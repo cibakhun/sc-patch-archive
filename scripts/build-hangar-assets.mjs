@@ -3669,10 +3669,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   // Innenraum: Quelle ist der Rohexport der Schiffe; gebaut nur auf Verlangen (--kind interior)
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
-  // ein Hallenordner ohne Hallenmodell (der Einzellauf "aufzug --hallen" legt hall/ an und schreibt nur die
-  // tor.json) zaehlt wie keiner: sonst ersetzten leere Eintraege hall und hallLite die bisherigen
-  const ohneModell = kind === 'hall' && existsSync(dir) && !readdirSync(dir).some((x) => istHallenModell(x));
-  if (!existsSync(dir) || ohneModell || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
+  // (ein Hallenordner, dem Modelle fehlen, behaelt deren bisherige Eintraege: Block nach dieser Schleife)
+  if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
   for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
     const name = f.replace(/\.glb$/i, '');
@@ -3801,6 +3799,28 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       // geschrieben hatte, stellt git wieder her. Den alten Eintrag zu behalten, passte nicht mehr zu dessen Dateien.
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
       process.exitCode = 1;
+    }
+  }
+}
+// Hallen, deren Modell nicht im Quellordner liegt, behalten ihren bisherigen Eintrag: Der Extraktor legt nur die
+// verlangten Hallen ab (--hallen, der Einzellauf "aufzug --hallen" nur die tor.json), und ein Lauf darf nur die
+// Eintraege ersetzen, fuer die er ein Modell vorfand. Ein Modell, das im Ordner liegt und scheitert, faellt wie
+// bisher heraus (Status 1). Gelesen wird der Ordner nur, wenn dieser Lauf Hallen baut.
+{
+  const dir = new URL('hall/', SRC);
+  if (existsSync(dir) && !(KIND && KIND !== 'hall')) {
+    const imOrdner = new Set(readdirSync(dir).filter((x) => istHallenModell(x)).map((x) => x.replace(/\.glb$/i, '')));
+    for (const slot of ['hall', 'hallLite']) {
+      const vorher = Object.keys(prev[slot] || {});
+      const bleiben = vorher.filter((name) => !imOrdner.has(name) && !manifest[slot][name]);
+      if (!bleiben.length) continue;
+      for (const name of bleiben) console.log(`  ${slot}/${name}: kein Modell im Quellordner, bisheriger Eintrag bleibt`);
+      reused += bleiben.length;
+      // Reihenfolge wie bisher: die Seite nimmt den ersten Eintrag unter hall als Halle
+      const neu = {};
+      for (const name of vorher) if (manifest[slot][name] || bleiben.includes(name)) neu[name] = manifest[slot][name] || prev[slot][name];
+      for (const [name, e] of Object.entries(manifest[slot])) if (!(name in neu)) neu[name] = e;
+      manifest[slot] = neu;
     }
   }
 }
