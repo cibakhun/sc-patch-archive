@@ -79,7 +79,11 @@ function spurAn(tr, f, dreh) {
  * gegen den Elternknochen.
  */
 export function knochenWerk(part) {
-  const by = new Map(part.nodes.map((n) => [n.index, n]));
+  // r steht im tor.json auf 1e-6 gerundet: eine um 30° gedrehte Ruhelage (0.866025, 0.5) ist dann nicht
+  // mehr ganz orthonormal, und R·Rᵀ zeigte bei einem Teil, das nur schiebt, rund 0,07° scheinbaren Schwenk.
+  // Über die Quaternion zurück auf die nächste echte Drehung gestellt (qMatrix normiert).
+  const echt = (r) => (r ? qMatrix(matrixQ(r)) : r);
+  const by = new Map(part.nodes.map((n) => [n.index, { ...n, r: echt(n.r) }]));
   const eltern = (n) => (n.parent != null ? by.get(n.parent) : null);
   const setze = (P, R, t) => (P ? { R: mal(P.R, R), t: plus(an(P.R, t), P.t) } : { R, t });
   const ruhe = (n) => setze(eltern(n) ? ruhe(eltern(n)) : null, n.r ?? I3, n.t);
@@ -101,7 +105,8 @@ export function knochenWerk(part) {
  */
 export function torBahn(part, bone, D, { steps = 60, tol = { m: 0.01, grad: 0.5 } } = {}) {
   const W = knochenWerk(part);
-  const n = part.nodes.find((x) => x.name === bone);
+  // aus dem Werkzeug, nicht aus part.nodes: dort steht r schon auf die nächste echte Drehung gestellt
+  const n = [...W.by.values()].find((x) => x.name === bone);
   if (!n) throw new Error(`Tor: Knochen ${bone} fehlt`);
   const A = [[D[0], D[4], D[8]], [D[1], D[5], D[9]], [D[2], D[6], D[10]]];
   const AAt = mal(A, quer(A));

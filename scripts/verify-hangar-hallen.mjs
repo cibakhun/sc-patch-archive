@@ -407,9 +407,22 @@
        Die Riegel am Tor der XL-Halle, die um ihren Knochen schwenken,
        rechnet dieselbe Regel mit Drehung um den Drehpunkt; das hält
        tests/e2e/aufzug-dreh.test.js an einem kleinen Tor (ein Riegel,
-       der offen nach außen ragt, liegt neben dem Feld; der Flügel falsch
-       herum wird genannt), und der Build bricht dort ab, wo eine Bahn
+       der offen ins Feld schwenkt, wird genannt, einer, der hinaus
+       schwenkt, nicht; der Flügel falsch herum wird genannt), und der Build bricht dort ab, wo eine Bahn
        nicht zur Ruhelage des Knotenbaums passt.
+       Nach dem Review von CodeRabbit an PR #389 fallen unvollständige
+       Teile nicht mehr still aus der Probe: Jedes Teil braucht, was
+       ownLift im Viewer verlangt (box, je Richtung zwei Schlüssel), ein
+       Teil mit Drehdaten dazu keysRot mit zwei Schlüsseln je Richtung und
+       einen Drehpunkt. Zweimal an einer Kopie von dist/ gebrochen:
+       box des ersten Torteils der Medium-Halle gelöscht, 1 FEHLER: „[2]
+       util-medtop: 1 Teil(e) des Bodentors unvollstaendig (aufzug_tor_00:
+       ohne box) — der Viewer baute den Aufzug nicht oder zoege einen
+       Riegel ohne Schwenk; Bahnen neu bauen“;
+       am ersten Riegel der XL-Halle nur der letzte Schlüssel von
+       keysRot.open behalten, 1 FEHLER: „[2] util-xltop: 1 Teil(e) des
+       Bodentors unvollstaendig (aufzug_tor_34: keysRot.open mit 1
+       Schluessel(n)) — …“.
    (w) 18.11.2026, der Wartungsplatz am Schiff in jeder Halle fester
        Größe (dienstSatz im Viewer, dienst in der Zeile der Seite). Krisz:
        „die assets wieder um die schiffe herum platzieren in den neuen
@@ -702,8 +715,24 @@ for (const [id, { hall, F }] of HALLEN) {
     const fm = [(feld.from[0] + feld.to[0]) / 2, (feld.from[1] + feld.to[1]) / 2];
     if (Math.hypot(fm[0] - mitte[0], fm[1] - mitte[1]) > 0.05) fail(`[2] ${id}: die Landeflaeche (Mitte ${mitte.join(', ')}) sitzt nicht mitten im Feld des Aufzugs (Mitte ${fm.map((v) => +v.toFixed(3)).join(', ')}) — das Schiff staende neben der Mitte der Plattform`);
     if (P.from[0] < feld.from[0] || P.to[0] > feld.to[0] || P.from[1] < feld.from[1] || P.to[1] > feld.to[1]) fail(`[2] ${id}: die Landeflaeche ${JSON.stringify(P)} ragt ueber das Feld des Aufzugs ${JSON.stringify(feld)} hinaus`);
-    // offen liegt jedes Teil des Tors neben der Oeffnung (unter dem Boden, aus)
-    const tt = (A.tor?.teile ?? []).filter((t) => t?.box && t.keys?.open?.length);
+    // jedes Teil so vollstaendig, wie der Viewer es verlangt (ownLift): box und je Richtung mindestens zwei
+    // Schluessel, sonst baut er den ganzen Aufzug nicht; ein Riegel mit Drehdaten dazu keysRot mit zwei
+    // Schluesseln je Richtung und einen Drehpunkt aus drei Zahlen, sonst zeichnet er ihn ohne Schwenk
+    const zahlen = (v, n) => Array.isArray(v) && v.length === n && v.every(Number.isFinite);
+    const torMangel = (t) => {
+      const m = [];
+      if (!(Array.isArray(t?.box) && t.box.length === 2 && t.box.every((e) => zahlen(e, 3)))) m.push('ohne box');
+      for (const k of ['close', 'open']) if (!(t?.keys?.[k]?.length > 1)) m.push(`keys.${k} mit ${t?.keys?.[k]?.length ?? 0} Schluessel(n)`);
+      if (t?.keysRot || t?.pivot) {
+        for (const k of ['close', 'open']) if (!(t.keysRot?.[k]?.length > 1)) m.push(`keysRot.${k} mit ${t.keysRot?.[k]?.length ?? 0} Schluessel(n)`);
+        if (!zahlen(t.pivot, 3)) m.push('pivot ist kein Punkt');
+      }
+      return m;
+    };
+    const mangel = (A.tor?.teile ?? []).map((t) => [t, torMangel(t)]).filter(([, m]) => m.length);
+    if (mangel.length) fail(`[2] ${id}: ${mangel.length} Teil(e) des Bodentors unvollstaendig (${mangel.slice(0, 4).map(([t, m]) => `${t?.node ?? '(ohne Namen)'}: ${m.join(', ')}`).join('; ')}) — der Viewer baute den Aufzug nicht oder zoege einen Riegel ohne Schwenk; Bahnen neu bauen`);
+    // offen liegt jedes Teil des Tors neben der Oeffnung (unter dem Boden, aus); geprueft werden die vollstaendigen
+    const tt = (A.tor?.teile ?? []).filter((t) => !torMangel(t).length);
     const imFeld = offenImFeld(tt, feld);
     if (imFeld.length) fail(`[2] ${id}: offen liegen ${imFeld.length} Teile des Tors ueber dem Feld des Aufzugs (${imFeld.slice(0, 4).map((t) => `${t.node} ${t.x} x ${t.z} m`).join(', ')}) — sie fahren falsch herum, das Schiff stuende auf ihnen; Bahnen aus scripts/lib/aufzug-dreh.mjs neu bauen`);
     torOffen += tt.length;

@@ -319,7 +319,9 @@ export function anhangLampen(xml, { gruppe, knochen }) {
   };
   const skala = (k, was) => { const s = at(kopf, k); if (s === undefined) return [1, 1, 1]; const v = String(s).split(','); return reihe(s, v.length === 1 ? 1 : 3, was).flatMap((x, i, a) => (a.length === 1 ? [x, x, x] : [x])); };
   const gSkala = skala('Scale', `${gruppe} Scale`), vSkala = skala('ParentOffsetScale', `${gruppe} ParentOffsetScale`);
-  if (gSkala.some((v, i) => Math.abs(v / vSkala[i] - 1) > 1e-3)) throw new Error(`Lichtgruppe ${gruppe}: Scale ${gSkala.join(',')} gegen ParentOffsetScale ${vSkala.join(',')} ergibt einen skalierten Knochen; nachgemessen ist nur ein unskalierter`);
+  // ein Versatz mit Skala 0 lässt sich nicht umkehren (v / 0 ergäbe NaN und rutschte am Toleranzvergleich vorbei)
+  if (vSkala.some((v) => v === 0)) throw new Error(`Lichtgruppe ${gruppe}: ParentOffsetScale ${vSkala.join(',')} hat eine Komponente 0, der Knochen lässt sich daraus nicht berechnen`);
+  if (gSkala.some((v, i) => !(Math.abs(v / vSkala[i] - 1) <= 1e-3))) throw new Error(`Lichtgruppe ${gruppe}: Scale ${gSkala.join(',')} gegen ParentOffsetScale ${vSkala.join(',')} ergibt einen skalierten Knochen; nachgemessen ist nur ein unskalierter`);
   const gDreh = drehung('Rotate', `${gruppe} Rotate`), vDreh = drehung('ParentOffsetRot', `${gruppe} ParentOffsetRot`);
   const gOrt = at(kopf, 'Pos') === undefined ? [0, 0, 0] : reihe(at(kopf, 'Pos'), 3, `${gruppe} Pos`), vOrt = at(kopf, 'ParentOffsetPos') === undefined ? [0, 0, 0] : reihe(at(kopf, 'ParentOffsetPos'), 3, `${gruppe} ParentOffsetPos`);
   let knochenDreh = qMal(gDreh, [vDreh[0], -vDreh[1], -vDreh[2], -vDreh[3]]);

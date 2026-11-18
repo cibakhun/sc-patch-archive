@@ -187,7 +187,10 @@ const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
 const parts = argv.filter((a) => ['ships', 'ships-matfix', 'weapons', 'components', 'hall', 'aufzug', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
-const hallArg = argv.includes('--hallen') ? argv[argv.indexOf('--hallen') + 1].split(',') : null;
+// --hallen ohne Wert (oder gleich das nächste Schalterwort) gezielt melden statt mit einem TypeError abzubrechen
+const hallWert = argv.includes('--hallen') ? argv[argv.indexOf('--hallen') + 1] : null;
+if (argv.includes('--hallen') && (!hallWert || hallWert.startsWith('--'))) { console.error(`--hallen braucht eine Liste, etwa --hallen util-smltop,util-xltop (bekannt: ${HALLS.map((h) => h.key).join(', ')})`); process.exit(1); }
+const hallArg = hallWert ? hallWert.split(',') : null;
 const fremdeHallen = (hallArg ?? []).filter((k) => !HALLS.some((h) => h.key === k));
 if (fremdeHallen.length) { console.error(`--hallen nennt unbekannte Hallen: ${fremdeHallen.join(', ')} (bekannt: ${HALLS.map((h) => h.key).join(', ')})`); process.exit(1); }
 const HALLEN_WAHL = hallArg ? HALLS.filter((h) => hallArg.includes(h.key)) : HALLS;
@@ -465,7 +468,8 @@ if (parts.includes('aufzug')) {
   console.log('Aufzug der Hallen');
   for (const h of HALLEN_WAHL.filter((x) => x.aufzug)) {
     console.log(` ${h.key}`);
-    try { hallAufzug(h); } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); }
+    // die übrigen Hallen weiter, aber mit Fehlerstatus: ein per && angehängter Bau nähme sonst die alte tor.json
+    try { hallAufzug(h); } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); process.exitCode = 1; }
   }
 }
 
@@ -905,6 +909,8 @@ function hallAufzug(h) {
     return { cga: name, nodes, subsets: readSubsetsNode(readFileSync(cgam)), cafs };
   };
   const out = { lod: h.lod, tor: teil(h.aufzug.tor), plattform: teil(h.aufzug.plattform) };
+  // der Einzellauf (aufzug --hallen …) kommt auch ohne vorherigen Hallenexport hierher
+  mkdirSync(`${SRC}hall/`, { recursive: true });
   writeFileSync(`${SRC}hall/${h.key}.tor.json`, JSON.stringify(out, null, 1));
   const spur = (t) => Object.entries(t.cafs).map(([k, c]) => `${k} ${Object.keys(c.tracks).length} Knochen in ${c.frames} Bildern`).join(', ');
   console.log(`  Aufzug: Tor ${out.tor.nodes.length} Knoten, ${out.tor.subsets.length} Teilnetze (${spur(out.tor)}); Plattform ${out.plattform.subsets.length} Teilnetze (${spur(out.plattform)})`);

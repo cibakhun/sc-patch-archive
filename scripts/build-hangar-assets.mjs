@@ -3793,7 +3793,11 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }
     } catch (err) {
+      // Fehlerstatus, damit kein Lauf, der ein Teil nicht bauen konnte, wie ein fertiger aussieht: Das Teil fehlt
+      // dann im Manifest (bei einer Halle reisst verify:hangar-hallen [1] an seiner Klinke), und was buildOne schon
+      // geschrieben hatte, stellt git wieder her. Den alten Eintrag zu behalten, passte nicht mehr zu dessen Dateien.
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
+      process.exitCode = 1;
     }
   }
 }

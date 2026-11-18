@@ -454,6 +454,8 @@ test('anhangLampen: was nicht nachgemessen ist, bricht ab', () => {
   assert.throws(lies({ traeger: `${TRAEGER} Pos="0,0"` }), /Plattform Pos: "0,0" ist keine Reihe aus 3 Zahlen/);
   // ein skalierter Knochen (Gruppe doppelt so groß wie ihr Versatz) ist nicht nachgemessen; Lagen, die keine sind, ebenso
   assert.throws(lies({ gruppe: GRUPPE.replace(' Pos="-0.01,-11,0.5"', ' Pos="-0.01,-11,0.5" Scale="2,2,2"') }), /Scale 2,2,2 gegen ParentOffsetScale 1,1,1 ergibt einen skalierten Knochen/);
+  // Skala 0 im Versatz: nicht umkehrbar, gemeldet statt NaN-Lampen
+  assert.throws(lies({ gruppe: GRUPPE.replace(' Pos="-0.01,-11,0.5"', ' Pos="-0.01,-11,0.5" Scale="0,1,1"').replace('EntityCryGUID="g1"', 'EntityCryGUID="g1" ParentOffsetScale="0,1,1"') }), /ParentOffsetScale 0,1,1 hat eine Komponente 0/);
   assert.throws(lies({ gruppe: GRUPPE.replace('ParentOffsetRot="1,0,0,0"', 'ParentOffsetRot="0.5,0,0,0.5"') }), /lg_anhang ParentOffsetRot 0\.5,0,0,0\.5 ist keine Drehung/);
   assert.throws(lies({ gruppe: GRUPPE.replace(' Pos="-0.01,-11,0.5"', ' Pos="-0.01,-11"') }), /lg_anhang Pos: "-0.01,-11" ist keine Reihe aus 3 Zahlen/);
   // ein Träger, der seinen Ort ausdrücklich im Ursprung nennt, gilt wie einer ohne Angabe

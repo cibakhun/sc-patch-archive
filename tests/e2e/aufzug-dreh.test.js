@@ -97,6 +97,23 @@ test('Stützstellen: die Bilder, an denen die Drehspur sich ändert, kommen zu d
   assert.ok(Math.abs(winkel(qMatrix(b.rot.open.at(-1).slice(1))) - 180) < 0.01);
 });
 
+test('gerundete Ruhelage: ein Teil, das nur schiebt, dreht nicht; ein echter Schwenk bleibt einer', () => {
+  // so steht eine um 30° gedrehte Ruhelage im tor.json (auf 1e-6 gerundet, Zeilen nicht mehr ganz Länge 1)
+  const r6 = (m) => m.map((z) => z.map((v) => Math.round(v * 1e6) / 1e6 + 0));
+  const t = tor();
+  t.nodes[4].r = r6(qMatrix(qZ(30)));
+  t.nodes.push({ index: 6, name: 'lamelle_30', parent: 0, t: [2, 0, 0], r: r6(qMatrix(qZ(30))) });
+  for (const [k, c] of Object.entries({ close: t.cafs.door_close, open: t.cafs.door_open })) c.tracks.lamelle_30 = k === 'close' ? [[0, -4, 0, 0], [25, 2, 0, 0], [30, 2, 0, 0]] : [[0, 2, 0, 0], [5, 2, 0, 0], [30, -4, 0, 0]];
+  for (const bone of ['lamelle_r', 'lamelle_30']) {
+    const b = torBahn(t, bone, D, { steps: 6 });
+    assert.equal(b.dreht, false, `${bone}: ${b.maxGrad}°`);
+    assert.equal(b.rot, undefined);
+  }
+  t.nodes[2].r = r6(t.nodes[2].r);
+  const b = torBahn(t, 'riegel_1', D, { steps: 6 });
+  assert.ok(b.dreht && Math.abs(b.maxGrad - 180) < 0.01, `${b.maxGrad}`);
+});
+
 test('Gegenprobe: passt die Spur nicht zur Ruhelage des Knotenbaums, bricht der Build ab', () => {
   // der Knotenbaum sagt 90° statt der 180°, die door_close am Ende hat
   assert.throws(() => torBahn(tor({ ruheDrehung: 90 }), 'riegel_1', D), /riegel_1 steht am Ende von door_close .* 90\.00° neben seiner Ruhelage/);
@@ -115,9 +132,13 @@ test('offenImFeld: ein Teil, das offen über der Öffnung liegt, wird genannt; n
   // rechts falsch herum: liegt offen bei x -10..0, mitten im Feld
   const falsch = [gut[0], teil('r', [[0, 0, -5], [10, 1, 5]], [-10, 0, 0])];
   assert.deepEqual(offenImFeld(falsch, feld), [{ node: 'r', x: 10, z: 10 }]);
-  // ein Riegel, der offen um 180° um seinen Knochen am Rand schwenkt, ragt nach außen
-  const riegel = teil('riegel', [[10, 0, -1], [12, 1, 1]], [0, 0, 0], { pivot: [10, 0, 0], keysRot: { close: [[0, 0, 1, 0, 0], [1, 0, 0, 0, 1]], open: [[0, 0, 0, 0, 1], [1, 0, 1, 0, 0]] } });
+  // ein Riegel, der offen um 180° um seinen Knochen am Rand schwenkt: liegt er zu außerhalb (x 10..12),
+  // schwenkt er ins Feld (x 8..10) und wird genannt; liegt er zu am Rand innen (x 8..10), schwenkt er hinaus
+  const schwenk = { pivot: [10, 0, 0], keysRot: { close: [[0, 0, 1, 0, 0], [1, 0, 0, 0, 1]], open: [[0, 0, 0, 0, 1], [1, 0, 1, 0, 0]] } };
+  const riegel = teil('riegel', [[10, 0, -1], [12, 1, 1]], [0, 0, 0], schwenk);
   assert.deepEqual(offenImFeld([riegel], feld), [{ node: 'riegel', x: 2, z: 2 }]);
+  const hinaus = teil('riegel', [[8, 0, -1], [10, 1, 1]], [0, 0, 0], schwenk);
+  assert.deepEqual(offenImFeld([hinaus], feld), []);
 });
 
 test('achsAbstand: die Mitte eines Riegels liegt nah an der Achse durch seinen Knochen, entlang der Achse egal', () => {

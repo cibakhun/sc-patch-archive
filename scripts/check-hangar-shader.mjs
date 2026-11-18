@@ -283,6 +283,22 @@
    plaetze, ihre Zeile der Seite nennt aber keinen Geraetesatz des
    Wartungsplatzes (dienst): am Schiff steht kein Geraet“ und dieselbe
    Meldung zur Klinke schichten.
+   Nach --wechsel (Review von CodeRabbit an PR #389): Bis dahin wertete
+   der Lauf den Wartungsplatz nur ohne Hallenwechsel; nach einem Wechsel
+   blieben beide Hallen ungeprueft. Jetzt fuehrt der Stand vor dem
+   Wechsel die Zeile der ersten Halle mit (gewertet gegen deren Klinke),
+   und die Endhalle zaehlt nur eine Zeile, die ihre eigene Buehne
+   gemeldet hat (kam.platz). Gemessen 18.11.2026, --wechsel
+   drak-cutlass-black von der Gladius aus (Small auf Medium), gruen:
+   „Wartungsplatz vor dem Hallenwechsel (util-smltop): Wartungsplatz bei
+   22 m: 10 von 10 Plätzen …“ und „Wartungsplatz: Wartungsplatz bei
+   37 m: 11 von 11 Plätzen …“. Vorgefuehrt rot mit einer Kopie des
+   Skripts, Klinke plaetze Small 11 und Medium 12, derselbe Aufruf, 2
+   FEHLER: „vor dem Hallenwechsel (util-smltop): nur 10 Plaetze des
+   Wartungsplatzes stehen am Schiff der Halle util-smltop, Klinke 11
+   (…)“ und „nur 11 Plaetze des Wartungsplatzes stehen am Schiff der
+   Halle util-medtop, Klinke 12 (…)“. Das Skript des Stands davor endete
+   mit denselben Klinken gruen.
 
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
@@ -578,7 +594,7 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) { frei = t; kam.frei = zeilen; }
   if (t.startsWith('[hangar] Vollbildpässe:')) { paesse = t; kam.paesse = zeilen; }
   if (t.startsWith('[hangar] Lack:')) { lacke.push({ t, bei: zeilen }); if (!lack) lack = t; }
-  if (t.startsWith('[hangar] Wartungsplatz bei')) platz = t;
+  if (t.startsWith('[hangar] Wartungsplatz bei')) { platz = t; kam.platz = zeilen; }
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
   if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) { geo = t; kam.geo = zeilen; }
   if (t.startsWith('[hangar] Geometrie nach der Freigabe noch einmal verlangt')) geoVerlangt.push(t.slice(9, 200));
@@ -691,7 +707,7 @@ try {
   if (steht && WECHSEL) {
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
     // was die erste Buehne gemeldet hat: Die neue ueberschreibt jede dieser Zeilen mit ihrer eigenen
-    const stand = { K, frei, geo, ktx, paesse, viewer, gitter, lampen, fest, n: vorher, dekoN, aufzugN, zeilen };
+    const stand = { K, frei, geo, ktx, paesse, viewer, gitter, lampen, platz, fest, n: vorher, dekoN, aufzugN, zeilen };
     let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
     while (!(erst = await aufDemFeld()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
@@ -725,6 +741,7 @@ try {
             if (!(kam.paesse > stand.zeilen)) paesse = '';
             if (!(kam.gitter > stand.zeilen)) gitter = '';
             if (!(kam.lampen > stand.zeilen)) lampen = '';
+            if (!(kam.platz > stand.zeilen)) platz = '';
             if (neuFest && !KLINKE_FEST[h1]) { fehler.push(`die Halle ${h1} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; steht = false; }
             else K = neuFest ? KLINKE_FEST[h1] : KLINKE;
           }
@@ -825,7 +842,7 @@ if (vor) {
   if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
   else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
   if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
-  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); }
+  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); platzUrteil(vor.platz, vor.K, vor.halle, wo); }
 }
 console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
@@ -876,7 +893,8 @@ if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}
 if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programme ${vor ? 'seit dem Hallenwechsel ' : ''}gelinkt, Klinke ${K.programme}`);
 if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
-if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); if (!vor) platzUrteil(platz, K, fest, ''); }
+// nach einem Hallenwechsel die Endhalle mit ihrer eigenen Zeile (platz ist dann geleert, wenn die neue Buehne keine meldete)
+if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); platzUrteil(platz, K, fest, ''); }
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {
