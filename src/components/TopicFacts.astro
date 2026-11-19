@@ -47,14 +47,14 @@ const dispVersion = dataVersion ?? parent?.data.version;
     <div class="reg-divider">
       <div class="reg-divider__in">
         <span class="reg-divider__l">{t('qf.register')}</span>
-        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {dispVersion}</span>
+        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')}{' '}{dispVersion}</span>
       </div>
     </div>
     <section class="tf" aria-label={t('qf.title')}>
       <div class="tf__in">
         <header class="tf__head">
           <h2>{t('qf.title')}</h2>
-          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {dispVersion}</span>
+          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')}{' '}{dispVersion}</span>
         </header>
         {shown.length > 0 ? (
           <dl class="tf__grid">

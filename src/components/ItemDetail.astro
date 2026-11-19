@@ -193,7 +193,7 @@ const crumbs = [
             keine Kaufpreise. Der Hinweis auf schwankende Preise und Orte nur,
             wo es Shop- oder Loot-Zeilen gibt. */}
         {schwankend && (
-          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}{lootBestaetigt > 0 && <> · {t('lootStatusNote')}</>}</p>
+          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')}{' '}{datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}{lootBestaetigt > 0 && <> · {t('lootStatusNote')}</>}</p>
         )}
       </>
     ) : (
