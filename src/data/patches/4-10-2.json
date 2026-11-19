@@ -113,10 +113,10 @@
       ]
     },
     {
-      "name": "Iasi-Aufträge",
+      "name": "Weitere Discovery-Month-Aufträge",
       "system": "Missionen & Aktivitäten",
       "kind": "gameplay",
-      "desc": "Neben den Discovery-Month-Familien kommen 18 Missionsfamilien der „Iasi\"-Reihe in den Bestand: Kurierfahrten, Schiffsschutz, Patrouillen und Abschüsse in drei Schwierigkeitsstufen, Salvage in drei Größen und Frachtfahrten mit Party- und Sicherheitsvorräten. Insgesamt wächst der Bestand von 1.355 auf 1.387 Missionsfamilien.",
+      "desc": "Neben Betankungsrufen und Rohstoffankäufen bringt der Discovery Month 18 weitere Missionsfamilien mit demselben Kürzel: Kurierfahrten, Schiffsschutz, Patrouillen und Abschüsse in drei Schwierigkeitsstufen, Salvage in drei Größen und Frachtfahrten mit Party- und Sicherheitsvorräten. Insgesamt wächst der Bestand von 1.355 auf 1.387 Missionsfamilien.",
       "facts": [
         {
           "label": "Missionsfamilien",
@@ -125,28 +125,28 @@
       ],
       "links": [
         {
-          "label": "Iasi 2 H Box Courier",
-          "href": "/missionen/iasi-2-h-box-courier.html"
+          "label": "RSI Disc. Month: Courier Run (Exp. E)",
+          "href": "/missionen/rsi-disc-month-courier-run-exp-e.html"
         },
         {
-          "label": "Iasi Defend Ship Medium",
-          "href": "/missionen/iasi-defend-ship-medium.html"
+          "label": "RSI Disc. Month: Orange Lvl. - Defend Ship",
+          "href": "/missionen/rsi-disc-month-orange-lvl-defend-ship.html"
         },
         {
-          "label": "Iasi Patrol Medium",
-          "href": "/missionen/iasi-patrol-medium.html"
+          "label": "RSI Disc. Month: Orange Lvl. - Conduct Security Sweep",
+          "href": "/missionen/rsi-disc-month-orange-lvl-conduct-security-sweep.html"
         },
         {
-          "label": "Iasi Eliminate Boss Hard",
-          "href": "/missionen/iasi-eliminate-boss-hard.html"
+          "label": "RSI Disc. Month: Take Out Gang Leader",
+          "href": "/missionen/rsi-disc-month-take-out-gang-leader.html"
         },
         {
-          "label": "Iasi Salvage Medium",
-          "href": "/missionen/iasi-salvage-medium.html"
+          "label": "RSI Disc. Month: UCM Order (M)",
+          "href": "/missionen/rsi-disc-month-ucm-order-m.html"
         },
         {
-          "label": "Iasi Haul Cargo: Party Supplies",
-          "href": "/missionen/iasi-haul-cargo-ato-b-supply-party-supplies.html"
+          "label": "RSI Disc. Month: Ling Supply Delivery",
+          "href": "/missionen/rsi-disc-month-ling-supply-delivery.html"
         }
       ]
     },

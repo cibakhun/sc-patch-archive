@@ -349,14 +349,16 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // sync:items): neu mit Angabe sind DayBreak, Goliath, F55 "Shadowflux" LMG,
 // acht Monolith-Teile und die zwei umbenannten Antium-Bauplaene; die zwei
 // alten Antium-Namen entfallen.
-need(totalWithSpec === 1557, `Chip-Reihen: erwartet 1557, gemessen ${totalWithSpec}`);
+// 1557 -> 1593 am 19.11.2026 (4.10.3): die Sprachdatei-Schluessel mit ",P"
+// werden jetzt gelesen, 36 Bauplaene finden ihr Item und damit ihre Groesse.
+need(totalWithSpec === 1593, `Chip-Reihen: erwartet 1593, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1557, `Groesse: erwartet 1557, gemessen ${totalSize}`);
+need(totalSize === 1593, `Groesse: erwartet 1593, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
@@ -378,7 +380,8 @@ need(toneFromPath === 103, `Ton aus dem Pfad: erwartet 103, gemessen ${toneFromP
 // das genau die 1.605 Bauplaene — die Selbstprobe eine Zeile tiefer haelt beide
 // Zahlen aneinander, eine allein koennte still auseinanderlaufen.
 // 65 -> 67 im 4.10.2-Datenlauf 11.10.2026: die zwei neuen Monolith-Helme tragen keine Chip-Angabe.
-need(totalNone === 77, `ohne jede Angabe: erwartet 77, gemessen ${totalNone}`);
+// 77 -> 41 am 19.11.2026: dieselben 36 Bauplaene wie bei den Chip-Reihen.
+need(totalNone === 41, `ohne jede Angabe: erwartet 41, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 10) Zwei gleiche Chips nebeneinander ---------- */

@@ -3119,9 +3119,9 @@
           ]
         },
         {
-          "name": "Iasi contracts",
+          "name": "More Discovery Month contracts",
           "system": "Missions & Activities",
-          "desc": "Alongside the Discovery Month families, 18 mission families of the \"Iasi\" line enter the catalogue. They cover courier runs, ship defence, patrols and kills in three difficulties, salvage in three sizes and hauls of party and security supplies. In total the catalogue grows from 1,355 to 1,387 mission families.",
+          "desc": "Besides refuel calls and material purchases, Discovery Month brings 18 more mission families with the same tag. They cover courier runs, ship defence, patrols and kills in three difficulties, salvage in three sizes and hauls of party and security supplies. In total the catalogue grows from 1,355 to 1,387 mission families.",
           "facts": [
             {
               "label": "Mission families",
@@ -3573,7 +3573,7 @@
         {
           "name": "Skarnov and Raider Camo",
           "system": "Weapons & Gear",
-          "desc": "New in the catalogue is the Skarnov energy rifle in five versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints: the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons, the Skarnov \"Raider Camo\" with its battery and the Deterrent shield. The Lephari radar already had a blueprint, which now carries its name. The RSI size 4 shield called \"Glacis\" up to 4.10.2 is now named Deterrent. The Polaris carries it from the factory. The Glacis name now belongs to a new Origin size 4 shield.",
+          "desc": "New in the catalogue is the Skarnov energy rifle in five versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Target Shattered Blade\" in Nyx. The workbench gains 17 blueprints: the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons, the Skarnov \"Raider Camo\" with its battery and the Deterrent shield. The Lephari radar already had a blueprint, which now carries its name. The RSI size 4 shield called \"Glacis\" up to 4.10.2 is now named Deterrent. The Polaris carries it from the factory. The Glacis name now belongs to a new Origin size 4 shield.",
           "facts": [
             {
               "label": "Item catalogue",

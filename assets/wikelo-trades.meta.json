@@ -1,6 +1,6 @@
 {
   "generator": "scripts/build-wikelo-trades.mjs",
-  "generatedAt": "2026-11-14T15:44:48.485Z",
+  "generatedAt": "2026-11-20T17:59:37.103Z",
   "gameVersion": "4.10.3-live.13165946",
   "patch": "4.10.3",
   "entryCount": 71,
@@ -8,5 +8,5 @@
   "orderLineCount": 295,
   "curatedCount": 59,
   "curatedReviewedAt": "2026-08-28",
-  "curatedGeaendert": "2026-11-03"
+  "curatedGeaendert": "2026-11-20"
 }

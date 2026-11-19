@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-14",
+  "fetchedAt": "2026-11-20",
   "gameVersion": "sc-alpha-4.10.3@13165946",
   "source": "Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer",
   "external": "src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De, fociDe — nicht in den Spieldateien)",
@@ -24732,7 +24732,7 @@
       "fixedWeaponSizes": [],
       "turretWeapons": [
         {
-          "name": "Mining_Laser_SHIN_Hofstede_S0",
+          "name": "S00 Hofstede",
           "size": 0,
           "count": 1,
           "cls": "Mining_Laser_SHIN_Hofstede_S0",
@@ -24751,7 +24751,7 @@
           ],
           "weapons": [
             {
-              "name": "Mining_Laser_SHIN_Hofstede_S0",
+              "name": "S00 Hofstede",
               "size": 0,
               "count": 1,
               "dps": null
