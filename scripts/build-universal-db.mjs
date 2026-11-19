@@ -113,8 +113,8 @@ if (explicitIni) {
 }
 
 // --- Platzhalter-Filter: Wortgrenzen, damit „Testudo“/„Contest“ NICHT rausfliegen;
-//     „(PH) …“ / „PH - …“ ist die CIG-Konvention für unfertige Einträge ---
-const PLACEHOLDER = /placeholder|<=|=>|\btbd\b|\bunknown\b|\bmissing\b|\btest\b|\bdebug\b|\btemp\b|^\(?ph\)?\s*[-–]?\s/i;
+//     „(PH) …“ / „PH - …“ / nacktes „PH“ ist die CIG-Konvention für unfertige Einträge ---
+const PLACEHOLDER = /placeholder|<=|=>|\btbd\b|\bunknown\b|\bmissing\b|\btest\b|\bdebug\b|\btemp\b|^\(?ph\)?\s*[-–]?\s|^\(?ph\)?$/i;
 const isPlaceholder = (name) => !name || PLACEHOLDER.test(name) || name.startsWith('@');
 
 // --- Kategorie-Ableitung (nur fürs Einsortieren; konservativ, sonst „Other“) ---

@@ -51,8 +51,9 @@ const EN = parseGlobalIni(iniEn), DE = parseGlobalIni(iniDe);
 // Nicht übersetzte Einträge liefert die deutsche global.ini als sichtbaren
 // Fehlerstring („! GERMAN_(GERMANY) TRANSLATION NOT FOUND FOR LOCID: … !").
 // Der muss weg — sonst steht er als Item-Name auf den DE-Seiten. In dem Fall
-// gilt: kein DE-Name, die UI fällt auf den englischen zurück.
-const BAD_LOC = /^@|PLACEHOLDER|LOC_EMPTY|\[PH\]|TRANSLATION NOT FOUND/;
+// gilt: kein DE-Name, die UI fällt auf den englischen zurück. Ein nacktes
+// "PH" ist ebenfalls Platzhalter (rrs_specialist_light_helmet_01_05_01, 4.10.3).
+const BAD_LOC = /^@|^PH$|PLACEHOLDER|LOC_EMPTY|\[PH\]|TRANSLATION NOT FOUND/;
 const locFrom = (map, k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = map.get(k.slice(1).toLowerCase()); return v && !BAD_LOC.test(v) ? v : null; };
 const locEn = (k) => locFrom(EN, k);
 const locDe = (k) => locFrom(DE, k);

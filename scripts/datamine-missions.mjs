@@ -425,6 +425,7 @@ function analyseTitle(rawKey, multi = false) {
   // Contractor-Fragmente aufloesen -> die Titel, die im Spiel wirklich erscheinen
   const variants = [];
   let fragment = null;
+  const fills = [];
   for (const tok of tokens) {
     const m = /^Contractor\|(.+)$/i.exec(tok);
     if (!m) continue;
@@ -432,13 +433,20 @@ function analyseTitle(rawKey, multi = false) {
     // sie selbst benennt. Besser als der interne Recordname.
     fragment ??= humanize(m[1].replace(/Title$/i, ''));
     for (const v of contractorTitles.get(m[1]) ?? []) {
-      variants.push({ org: v.org, text: clean(braces(text.replace(`~mission(${tok})`, v.text))) });
+      const filled = text.replace(`~mission(${tok})`, v.text);
+      variants.push({ org: v.org, text: clean(braces(filled)) });
+      fills.push(norm(braces(filled)));
     }
   }
   const display = norm(braces(text));
   // "pure" = der Text besteht NUR aus einem Platzhalter ("~mission(Title)") und
   // taugt damit nicht als Name/Beschreibung.
   const pure = /^\{[^}]*\}$/.test(display);
+  // Fuellt genau EIN Auftraggeber den Platzhalter, zeigt das Spiel immer
+  // dessen Text: ~mission(Contractor|DataHeistTitle_E) -> Bit Zeros ->
+  // "Quick Data Grab at {Location}".
+  const einzig = pure ? [...new Set(fills)] : [];
+  if (einzig.length === 1) return { text: einzig[0], dynamic: /\{/.test(einzig[0]), pure: false, tokens, variants: [], fragment: null };
   return { text: display, dynamic: true, pure, tokens, variants: variants.slice(0, 24), fragment: pure ? fragment : null };
 }
 
