@@ -83,6 +83,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 RUN rm -f /usr/share/nginx/html/50x.html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Paare alte -> neue Adresse, per include in die map $vb_umzug (default.conf).
+COPY nginx/umzuege.conf /etc/nginx/umzuege.conf
 # Der Tuersteher selbst (nginx/gate.js) — Ausfuhren `check`/`mint`, siehe
 # js_import in nginx/default.conf.
 COPY nginx/gate.js /etc/nginx/gate.js

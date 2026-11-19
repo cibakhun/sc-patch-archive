@@ -129,9 +129,9 @@ export const CHECKS = [
     script: 'scripts/verify-redirects.mjs',
     rail: 'A',
     checks:
-      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert und gibt die angefragte Adresse samt Query zurueck, auch nach einem internen rewrite wie /pilot/<handle> (gate.next in node:vm ausgefuehrt)',
+      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert und gibt die angefragte Adresse samt Query zurueck, auch nach einem internen rewrite wie /pilot/<handle> (gate.next in node:vm ausgefuehrt), und jedes Paar in nginx/umzuege.conf fuehrt von einer nicht mehr gebauten Seite auf eine gebaute, ohne Kette',
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
-    // dist/ (nur die Dateinamen) und die beiden nginx-Dateien als Text.
+    // dist/ (nur die Dateinamen) und die drei nginx-Dateien als Text.
   },
   {
     // Direkt nach verify:gate, weil beide dasselbe Muster haben: sie messen

@@ -15,7 +15,7 @@
    bis jemand die passende Adresse baut — deshalb wird hier nachgespielt
    statt nur gelesen.
 
-   Fuenf Zusicherungen, jede mit Soll/Ist-Zeile:
+   Sechs Zusicherungen, jede mit Soll/Ist-Zeile:
 
      1  Riegel: auf Server-Ebene steht ein `if ($uri ~ "…") { return
         400; }`, dessen Muster JEDES Steuerzeichen (0x00–0x1f, 0x7f) und
@@ -37,6 +37,9 @@
         prozentkodierte Zeichen (in node:vm ausgefuehrt, wie test:e2e) —
         und gibt die angefragte Adresse samt Query zurueck, auch nach
         einem internen rewrite wie /pilot/<handle> -> /pilot.html?h=…
+     6  Umzuege: nginx/umzuege.conf ist in map $vb_umzug eingebunden, jede
+        alte Adresse ist keine gebaute Seite mehr, jedes Ziel ist eine, und
+        kein Ziel ist selbst wieder umgezogen.
 
    Kopfzeile: gepruefte Weiterleitungen, Angriffe, Seiten, Artefakt.
    Untergrenzen als Sperrklinken (Grundsatz 5).
@@ -69,6 +72,7 @@ const KNOWN_VARS = {
   vb_next: 'prozentkodiert durch gate.next (Zusicherung 5)',
   is_args: 'nur "?" oder leer',
   args: 'Query-String wie empfangen; ein Rohzeilenumbruch kann in der Anfragezeile nicht stehen',
+  vb_umzug: 'nur Ziele aus nginx/umzuege.conf, jedes eine gebaute Seite (Zusicherung 6)',
 };
 // Benannte Ausnahme: ein Pfad-Variablen-Ziel, das nur hinter einer
 // Existenzpruefung steht. Verliert es die Pruefung oder verschwindet es,
@@ -372,6 +376,31 @@ if (nextFn) {
   for (const f of verloren)
     fail(`gate.next: angefragt ${zeig(f.soll)}, zurueck kaeme ${zeig(zurueck(f.r))} — der Ruecksprung landet nicht auf der angefragten Seite`);
 }
+
+/* ---- [6] Umgezogene Seiten ---- */
+console.log('\n[6] Umzuege (nginx/umzuege.conf): alte Adresse ist keine Seite mehr, neue ist eine');
+const UMZUG_RE = /^(\/[A-Za-z0-9._/-]+\.html) (\/[A-Za-z0-9._/-]+\.html);$/;
+const eingebunden = conf.some((a) => /^include\s+\/etc\/nginx\/umzuege\.conf;$/.test(a.code));
+const nutztUmzug = weiterleitungen.some((w) => /\$vb_umzug\b/.test(w.ziel));
+console.log(`    map $vb_umzug bindet umzuege.conf ein und location / nutzt sie — Soll: ja   Ist: ${eingebunden && nutztUmzug ? 'ja' : 'nein'}`);
+if (!eingebunden || !nutztUmzug) fail('umzuege.conf ist nicht per include in map $vb_umzug eingebunden oder keine Weiterleitung setzt $vb_umzug ein — die Paare wirken nicht');
+const UMZUEGE = arg('--umzuege', 'nginx/umzuege.conf');
+const seitenSet = new Set(seiten);
+const paare = existsSync(UMZUEGE) ? zerlege(readFileSync(UMZUEGE, 'utf8')) : [];
+const quellen = new Set();
+let umzugFehler = 0;
+for (const p of paare) {
+  const m = UMZUG_RE.exec(p.code);
+  if (!m) { umzugFehler++; fail(`${UMZUEGE}:${p.zeile} ${zeig(p.code)} ist kein Paar "/alt.html /neu.html;" aus dem Zeichenvorrat echter Seiten`); continue; }
+  const [, von, nach] = m;
+  if (quellen.has(von)) { umzugFehler++; fail(`${UMZUEGE}:${p.zeile} ${von} steht doppelt`); }
+  quellen.add(von);
+  if (seitenSet.has(von)) { umzugFehler++; fail(`${UMZUEGE}:${p.zeile} ${von} ist wieder eine gebaute Seite — die Weiterleitung verdeckt sie, Paar streichen`); }
+  if (!seitenSet.has(nach)) { umzugFehler++; fail(`${UMZUEGE}:${p.zeile} Ziel ${nach} ist keine gebaute Seite — Weiterleitung ins 404`); }
+}
+const ketten = paare.map((p) => UMZUG_RE.exec(p.code)?.[2]).filter((n) => n && quellen.has(n));
+for (const n of ketten) { umzugFehler++; fail(`${n} ist Ziel und zugleich Quelle eines Umzugs — Kette, direkt auf das Endziel zeigen`); }
+console.log(`    Paare: ${paare.length}   fehlerhaft — Soll: 0   Ist: ${umzugFehler}`);
 
 console.log(`\nverify-redirects: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}${warnungen ? ` (${warnungen} Warnung(en))` : ''}`);
 if (!ok) process.exit(1);
