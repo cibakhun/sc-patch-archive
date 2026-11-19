@@ -111,8 +111,8 @@
           "href": "/missionen/living-vanduul-sample.html"
         },
         {
-          "label": "Intersec Eliminate Specific Rank1",
-          "href": "/missionen/intersec-eliminate-specific-rank1.html"
+          "label": "Target Shattered Blade",
+          "href": "/missionen/target-shattered-blade.html"
         },
         {
           "label": "Patch Notes 4.10.3 (RSI)",
@@ -434,7 +434,7 @@
       "name": "Skarnov und Raider Camo",
       "system": "Waffen & Ausrüstung",
       "kind": "gameplay",
-      "desc": "Neu im Bestand ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Bis 4.10.2 hießen zwei RSI-Schilde der Größe 4 „Glacis\", einer davon heißt jetzt Deterrent. Die Polaris trägt ihn ab Werk.",
+      "desc": "Neu im Bestand ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Target Shattered Blade\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Bis 4.10.2 hießen zwei RSI-Schilde der Größe 4 „Glacis\", einer davon heißt jetzt Deterrent. Die Polaris trägt ihn ab Werk.",
       "facts": [
         {
           "label": "Gegenstände im Bestand",

@@ -34,7 +34,8 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // gebaute HTML geprueft, dort gegen die Datenschicht.
 // 4.10.2-Datenlauf 11.10.2026: 1540 -> 1550 (1.617 Bauplaene, Ursache in scripts/verify-crafting-specs.mjs).
 // 4.10.3-Datenlauf 12.11.2026: 1550 -> 1557 (1.623 Bauplaene, Ursache in scripts/verify-crafting-specs.mjs).
-const TOTAL_SPEC_ROWS = 1557;
+// 19.11.2026: 1557 -> 1593 (Sprachdatei-Schluessel mit ",P", Ursache in scripts/verify-crafting-specs.mjs).
+const TOTAL_SPEC_ROWS = 1593;
 // 4.10.2-Datenlauf 11.10.2026: 504 -> 506, beide aus game.class (404 -> 406,
 // s. scripts/verify-crafting-specs.mjs).
 // 4.10.3-Datenlauf 12.11.2026: 506 -> 511 (+2 game.class, +3 Raider-Camo-Kanonen aus dem Pfad).
