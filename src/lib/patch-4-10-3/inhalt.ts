@@ -18,7 +18,7 @@ import type { Locale } from '../../i18n/ui';
 import { fassung } from '../fassung';
 import { priceInfo } from '../shipExtras';
 import { pickThumb } from '../shipRenders';
-import { missionBySlug, bpCount } from '../missions';
+import { missionBySlug, bpCount, seoTitle } from '../missions';
 import ITEMS from '../../../assets/universal-items.json';
 import CRAFT from '../../../assets/crafting-db.json';
 import MISSIONS from '../../data/missions.json';
@@ -271,7 +271,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const auftrag = (slug: string, belohnung: Link | null = null): Auftrag => {
     const m = missionBySlug.get(slug);
     if (!m) throw new Error(`patch-4-10-3/inhalt: Auftrag ${slug} fehlt in src/data/missions.json`);
-    return { titel: m.title, link: { t: m.title, h: `/missionen/${slug}.html` }, rang: m.ranks[0], ort: 'Nyx', auftraggeber: 'InterSec Defense Solutions', bauplaene: bpCount(m), belohnung, stand: sMissions };
+    return { titel: seoTitle(m.title), link: { t: seoTitle(m.title), h: `/missionen/${slug}.html` }, rang: m.ranks[0], ort: 'Nyx', auftraggeber: 'InterSec Defense Solutions', bauplaene: bpCount(m), belohnung, stand: sMissions };
   };
   const gruppen: AuftragsGruppe[] = [
     { typ: T('Flotten', 'Fleets'), titel: T('Verbände abfangen', 'Intercept strike groups'), text: T('Ein Vanduul-Verband steht an einem Punkt in Nyx, und nach dem ersten Schlag folgen Unterstützungswellen.', 'A Vanduul strike group sits at a point in Nyx, and support waves follow the first strike.'),
@@ -281,7 +281,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
     { typ: 'Shattered Blade', titel: T('Dreifrontenkampf', 'Three-way fights'), text: T('Vanduul und die Shattered Blade kämpfen um dasselbe Gebiet, und InterSec will beide loswerden.', 'The Vanduul and the Shattered Blade fight over the same ground, and InterSec wants both gone.'),
       auftraege: ['engage-shattered-blade-and-vanduul', 'neutralize-vanduul-and-shattered-blade-threat', 'stop-vanduul-and-shattered-blade-hostilities'].map((s) => auftrag(s)) },
     { typ: T('An Bord', 'Aboard'), titel: T('Entern und Bergen', 'Boarding and recovery'), text: T('Ein geentertes Schiff zurückerobern, eine lebende Vanduul-Probe in der Kryokapsel abliefern und gezielt Ziele ausschalten.', 'Retake a boarded vessel, deliver a living Vanduul sample in its cryopod and eliminate specific targets.'),
-      auftraege: [auftrag('retake-boarded-vessel'), auftrag('living-vanduul-sample'), auftrag('intersec-eliminate-specific-rank1', { t: T('Bauplan Skarnov „Raider Camo“', 'Skarnov "Raider Camo" blueprint'), h: '/crafting/skarnov-raider-camo-rifle.html' })] },
+      auftraege: [auftrag('retake-boarded-vessel'), auftrag('living-vanduul-sample'), auftrag('target-shattered-blade', { t: T('Bauplan Skarnov „Raider Camo“', 'Skarnov "Raider Camo" blueprint'), h: '/crafting/skarnov-raider-camo-rifle.html' })] },
   ];
 
   /* ---- Neue Schiffe: Kennwerte aus den Fahrzeugdaten ---- */
@@ -477,7 +477,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const karten: AusruestungsKarte[] = [
     {
       id: 'skarnov', titel: 'Skarnov', tag: T('Energiegewehr', 'Energy rifle'), marken: ['neu'], stand: sItems,
-      text: [T('Neu in fünf Ausführungen. „Raider Camo“ und ihre Batterie gibt es als Bauplan aus dem InterSec-Auftrag ', 'New in five versions. The "Raider Camo" version and its battery come as a blueprint from the InterSec contract '), { t: 'Intersec Eliminate Specific Rank1', h: '/missionen/intersec-eliminate-specific-rank1.html' }, '.'],
+      text: [T('Neu in fünf Ausführungen. „Raider Camo“ und ihre Batterie gibt es als Bauplan aus dem InterSec-Auftrag ', 'New in five versions. The "Raider Camo" version and its battery come as a blueprint from the InterSec contract '), { t: 'Target Shattered Blade', h: '/missionen/target-shattered-blade.html' }, '.'],
       liste: [
         { k: T('Ausführungen', 'Versions'), v: skarnov.map((s) => s.link) },
         { k: T('Munition', 'Ammo'), v: [{ t: T('Batterie (30 cap)', 'Battery (30 cap)'), h: '/items/skarnov-rifle-battery-30-cap.html' }] },
