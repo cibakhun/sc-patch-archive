@@ -9,6 +9,7 @@ import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'assets', 'mining-gear-gamefiles.json');
@@ -22,8 +23,7 @@ const dcb = p4k.read(/^Data[\\/]Game2\.dcb$/i);
 const iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
 p4k.close();
 const db = openDataCore(dcb);
-const EN = new Map();
-for (const line of iniEn.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) EN.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); }
+const EN = parseGlobalIni(iniEn);
 const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = EN.get(k.slice(1).toLowerCase()); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) ? v : null; };
 const findType = (o, rx, hits = []) => { if (!o || typeof o !== 'object') return hits; if (o.__type && rx.test(o.__type)) hits.push(o); for (const v of Object.values(o)) if (v && typeof v === 'object') findType(v, rx, hits); return hits; };
 const findKey = (o, key) => { let r; (function w(x) { if (r !== undefined || !x || typeof x !== 'object') return; if (key in x) { r = x[key]; return; } for (const v of Object.values(x)) w(v); })(o); return r; };

@@ -46,6 +46,7 @@ import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'ship-missile-racks.json');
@@ -75,8 +76,7 @@ const iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('u
 const implIdx = new Map();
 for (const e of p4k.entries(/Implementations.Xml.*\.xml$/i)) implIdx.set(norm(e.name).toLowerCase(), e);
 
-const EN = new Map();
-for (const line of iniEn.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) EN.set(line.slice(0, i).replace(/^\uFEFF/, '').toLowerCase().replace(/,p$/, ''), line.slice(i + 1).trim()); }
+const EN = parseGlobalIni(iniEn, { trim: true });
 const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = EN.get(k.slice(1).toLowerCase()); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) ? v : null; };
 
 const recByNameIdx = new Map();

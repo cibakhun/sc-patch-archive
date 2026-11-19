@@ -16,6 +16,7 @@ import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { palettePbr } from '../assets/hangar-viewer.js';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA = resolve(__dirname, '..', 'src', 'data');
@@ -28,10 +29,8 @@ const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
 const iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
 p4k.close();
 
-const EN = new Map();
-for (const line of iniEn.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) EN.set(line.slice(0, i).replace(/^\uFEFF/, '').toLowerCase(), line.slice(i + 1)); }
-// Manche Lacknamen stehen nur unter "<key>,P" (Railen, Tyilui, Constellation Mk V).
-const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const key = k.slice(1).toLowerCase(); const v = (EN.get(key) ?? EN.get(key + ',p'))?.trim(); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) && !/placeholder|<=|=>|\bTBD\b/i.test(v) ? v : null; };
+const EN = parseGlobalIni(iniEn);
+const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const key = k.slice(1).toLowerCase(); const v = EN.get(key)?.trim(); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) && !/placeholder|<=|=>|\bTBD\b/i.test(v) ? v : null; };
 const component = (o, type) => o?.Components?.find((c) => c?.__type === type);
 const tokens = (s) => (s || '').split(/\s+/).filter(Boolean);
 

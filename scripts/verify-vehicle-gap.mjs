@@ -27,6 +27,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -85,11 +86,7 @@ const p4k = openP4k(P4K);
 const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
 const ini = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
 p4k.close();
-const EN = new Map();
-for (const line of ini.split(/\r?\n/)) {
-  const i = line.indexOf('=');
-  if (i > 0) EN.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase().replace(/,p$/, ''), line.slice(i + 1).trim());
-}
+const EN = parseGlobalIni(ini, { trim: true });
 const loc = (k) => (typeof k === 'string' && k.startsWith('@') ? EN.get(k.slice(1).toLowerCase()) ?? null : null);
 const findType = (o, name, d = 0) => {
   if (!o || typeof o !== 'object' || d > 10) return null;
