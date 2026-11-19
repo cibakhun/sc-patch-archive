@@ -23,6 +23,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDataCore } from './lib/datacore.mjs';
 import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'missions.json');
@@ -54,16 +55,8 @@ if (dcbArg) {
   p4k.close();
 }
 
-function parseIni(txt) {
-  const m = new Map();
-  for (const line of txt.split(/\r?\n/)) {
-    const i = line.indexOf('=');
-    if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1));
-  }
-  return m;
-}
-const EN = parseIni(iniEn);
-const DE = parseIni(iniDe);
+const EN = parseGlobalIni(iniEn);
+const DE = parseGlobalIni(iniDe);
 console.log(`localization: EN ${EN.size} keys, DE ${DE.size} keys`);
 
 const t0 = Date.now();

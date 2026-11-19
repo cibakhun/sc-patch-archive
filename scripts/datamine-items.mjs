@@ -19,6 +19,7 @@ import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { buildTagIndex, leafUnder } from './lib/tags.mjs';
 import { resolveArmorSets, shortNamesByStem } from './lib/armor-sets.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'assets', 'items-gamefiles.json');
@@ -46,8 +47,7 @@ let patchLabel = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
   if (d?.Branch && d?.RequestedP4ChangeNum) patchLabel = `${d.Branch}@${d.RequestedP4ChangeNum}`;
 }
 
-const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); } return m; };
-const EN = mkMap(iniEn), DE = mkMap(iniDe);
+const EN = parseGlobalIni(iniEn), DE = parseGlobalIni(iniDe);
 // Nicht übersetzte Einträge liefert die deutsche global.ini als sichtbaren
 // Fehlerstring („! GERMAN_(GERMANY) TRANSLATION NOT FOUND FOR LOCID: … !").
 // Der muss weg — sonst steht er als Item-Name auf den DE-Seiten. In dem Fall

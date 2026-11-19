@@ -31,6 +31,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, clientKennung } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPORT = process.argv.includes('--report');
@@ -41,13 +42,7 @@ const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
 p4k.close();
 
 /* ---------- Loc ---------- */
-const EN = new Map();
-for (const zeile of iniText.split(/\r?\n/)) {
-  const i = zeile.indexOf('=');
-  if (i < 0) continue;
-  const k = zeile.slice(0, i).trim().toLowerCase();
-  if (!EN.has(k)) EN.set(k, zeile.slice(i + 1));
-}
+const EN = parseGlobalIni(iniText);
 const LEER = new Set(['@LOC_UNINITIALIZED', '@LOC_EMPTY', '@LOC_PLACEHOLDER', '']);
 const loc = (k) => {
   if (typeof k !== 'string' || LEER.has(k)) return null;

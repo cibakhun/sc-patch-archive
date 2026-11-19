@@ -42,6 +42,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDataCore } from './lib/datacore.mjs';
 import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DB = resolve(__dirname, '..', 'assets', 'crafting-db.json');
@@ -84,16 +85,7 @@ if (dcbArg) {
   p4k.close();
 }
 
-// Achtung ini-Format: Keys koennen ein ",P"-Suffix tragen (Platzhalter-Flag,
-// z. B. "item_NameMining_Head_S00_Helix_SCItem,P=S0 Helix") — beim Nachschlagen
-// zaehlt der Key OHNE Suffix, sonst fehlen hunderte Item-Namen.
-const EN = new Map();
-for (const line of iniEn.split(/\r?\n/)) {
-  const i = line.indexOf('=');
-  if (i <= 0) continue;
-  const key = line.slice(0, i).replace(/^﻿/, '').toLowerCase().replace(/,p$/, '');
-  if (!EN.has(key)) EN.set(key, line.slice(i + 1));
-}
+const EN = parseGlobalIni(iniEn);
 const EMPTY_LOC = new Set(['@LOC_UNINITIALIZED', '@LOC_EMPTY', '@LOC_PLACEHOLDER', '@blank_space', '']);
 function loc(key) {
   if (typeof key !== 'string' || EMPTY_LOC.has(key)) return null;

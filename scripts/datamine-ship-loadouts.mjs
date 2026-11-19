@@ -24,6 +24,7 @@ import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { POWER_SUITS, powerSuitRecords } from './lib/power-suits.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll } from './lib/cryxml.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'ship-loadouts.json');
@@ -50,8 +51,7 @@ const loadoutXmlIdx = new Map();
 for (const e of p4k.entries(/Data[\\/]Scripts[\\/]Loadouts[\\/].*\.xml$/i)) loadoutXmlIdx.set(norm(e.name).toLowerCase(), e);
 const db = openDataCore(dcb);
 
-const EN = new Map();
-for (const line of iniEn.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) EN.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); }
+const EN = parseGlobalIni(iniEn);
 // getrimmt: die global.ini liefert einzelne Namen mit Rand-Leerzeichen
 // ("MVSA Cannon "). Das ist unsichtbar, verhindert aber jeden Join per Namen.
 const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = EN.get(k.slice(1).toLowerCase())?.trim(); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) ? v : null; };

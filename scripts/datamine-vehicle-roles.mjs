@@ -35,6 +35,7 @@ import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'vehicle-roles.json');
@@ -51,16 +52,8 @@ const iniDe = p4k.read(/Localization[\\/]german_\(germany\)[\\/]global\.ini$/i).
 p4k.close();
 const db = openDataCore(dcb);
 
-function buildLocMap(ini) {
-  const map = new Map();
-  for (const line of ini.split(/\r?\n/)) {
-    const i = line.indexOf('=');
-    if (i > 0) map.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1));
-  }
-  return map;
-}
-const EN = buildLocMap(iniEn);
-const DE = buildLocMap(iniDe);
+const EN = parseGlobalIni(iniEn);
+const DE = parseGlobalIni(iniDe);
 function mkLoc(map) {
   return (k) => {
     if (!k || typeof k !== 'string' || !k.startsWith('@')) return null;

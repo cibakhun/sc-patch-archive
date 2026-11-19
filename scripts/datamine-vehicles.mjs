@@ -53,6 +53,7 @@ import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { POWER_SUITS, powerSuitRecords } from './lib/power-suits.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
+import { parseGlobalIni } from './lib/global-ini.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_GAMEFILES = resolve(__dirname, '..', 'src', 'data', 'vehicles-gamefiles.json');
@@ -117,14 +118,7 @@ const readImpl = (path, modification) => {
   return { root, modOk };
 };
 
-// Ini-Format-Falle (01.4-03, D-08-Nachtrag, identisch zu datamine-crafting.mjs
-// Zeile 88-90): Keys können ein ",P"-Suffix tragen (Platzhalter-/Grammatik-Flag,
-// z. B. "vehicle_NameDRAK_Pitbull,P=Drake Pitbull") — beim Nachschlagen zählt der
-// Key OHNE Suffix, sonst bleibt der Pitbull (und potenziell weitere Fahrzeuge)
-// auf den rohen `id`-Fallback zurückfallen, weil @vehicle_NameDRAK_Pitbull ohne
-// Komma-Suffix nie im Ini-Index steht.
-const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase().replace(/,p$/, ''), line.slice(i + 1).trim()); } return m; };
-const EN = mkMap(iniEn), DE = mkMap(iniDe);
+const EN = parseGlobalIni(iniEn, { trim: true }), DE = parseGlobalIni(iniDe, { trim: true });
 const BAD = /^@|PLACEHOLDER|LOC_EMPTY|\[PH\]|TRANSLATION NOT FOUND/;
 const locFrom = (map, k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = map.get(k.slice(1).toLowerCase()); return v && !BAD.test(v) ? v : null; };
 const locEn = (k) => locFrom(EN, k);
@@ -437,7 +431,7 @@ function buildVehicle(id) {
   // --- Identität ---
   // Trailing-Zeilenumbruch-Falle (01.4-03, D-08-Nachtrag): manche Ini-Werte
   // tragen ein wörtliches "\n" (Backslash+n als zwei Textzeichen, KEIN echtes
-  // Whitespace — `.trim()` in mkMap() greift hier nicht) als Rest eines
+  // Whitespace — `trim` in parseGlobalIni() greift hier nicht) als Rest eines
   // Mehrzeilen-Templates, z. B. "Argo CSV-SM\n". Bei Namen (anders als bei
   // descriptionEn/De, wo \n-Folgen bewusst erhalten bleiben, D-07) ist das
   // ein Datenrest, kein Gestaltungsmittel — wird entfernt.
