@@ -349,6 +349,15 @@
    Lampen aus 870 Spiellampen (864 nach Gruppierung) gesetzt, 114
    gedämpft, 6 Hauptstrahler (Klinke 114 gedaempfte)“ und
    „Hauptstrahler: 6 (Klinke 6)“.
+   Seit 20.11.2026 auch die XL-Halle (Klinke 4, die Fluter ueber den
+   Laengsseiten; HALL_FEST.strahler mit bis und mal, Krisz: „Alles
+   beheben“ zur fast schwarzen Polaris). Vorgefuehrt rot mit --ship
+   rsi-polaris, der ausgelieferte Viewer ohne strahler in der Zeile von
+   util-xltop, 1 FEHLER: „die Buehne der Halle util-xltop hat 0
+   Hauptstrahler gestellt, Klinke 4: …“. Ohne Eingriff: „… 6 Lampen aus
+   1339 Spiellampen (1325 nach Gruppierung) gesetzt, 126 gedämpft, 4
+   Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die Carrack in
+   der Large-Halle unveraendert 6 (Klinke 6).
 
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
@@ -527,8 +536,9 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // daempft keine Lampe; meldet ihre Buehne doch gedaempfte, ist der Lauf rot.
 // strahler: so viele Lampen hat die Buehne als Hauptstrahler gestellt (dieselbe Zeile,
 // "…, N Hauptstrahler", im Kopf unter HAUPTSTRAHLER). util-lrgtop, gemessen
-// 18.11.2026: 6, die Fluter unter der Decke. Eine Halle ohne diese Klinke stellt
-// keine; meldet ihre Buehne doch welche, ist der Lauf rot.
+// 18.11.2026: 6, die Fluter unter der Decke. util-xltop seit 20.11.2026: 4, die
+// Fluter ueber den Laengsseiten (HALL_FEST.strahler mit bis 1000 und mal 12). Eine
+// Halle ohne diese Klinke stellt keine; meldet ihre Buehne doch welche, ist der Lauf rot.
 // plaetze: so viele Plaetze des Wartungsplatzes stehen am Schiff (Zeile "[hangar]
 // Wartungsplatz bei …: N von M Plätzen", im Kopf unter WARTUNGSPLATZ). Wie viele
 // WORK_DIENST stellt, haengt an der Groesse des Schiffs (ab/bis): 6 Plaetze bekommt
@@ -550,7 +560,7 @@ const KLINKE_FEST = {
   'util-lrgtop': { programme: 48, schichten: 1, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6 },
   'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
   'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
-  'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6 },
+  'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6, strahler: 4 },
 };
 // Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle
 const OHNE_KLINKEN = { programme: '—', schichten: '—', frei: '—', geoMB: '—', ktx: '—' };

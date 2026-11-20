@@ -554,6 +554,42 @@
        Schwelle), dort sechsmal vorgeführt rot. Dass die Bühne im Browser
        wirklich sechs stellt, hält check:hangar-shader gegen seine Klinke
        strahler.
+   (xi) 20.11.2026, Hauptstrahler der XL-Halle mit bis und mal
+       (HALL_FEST.strahler; Krisz: „Alles beheben“ zu den Bildern vom PC
+       vom 19.11.2026, die Polaris stand in der XL-Halle fast schwarz):
+       Die Fluter über den Längsseiten hängen dort 105 m hoch und 146 m
+       von der Mitte des Felds; bis 1000 lässt die vier Strahler der
+       Stirnwände gewöhnliche Lampen bleiben, mal 12 hebt die Fluter.
+       Viermal am ausgelieferten Viewer gebrochen und einmal an einer
+       Kopie des Tors, je 1 FEHLER:
+       hallStrahler übergeht bis: „[3] util-xltop: der Viewer stellt 4
+       Lampen ausserhalb der Staerke 300 bis unter 1000 als
+       Hauptstrahler (zuerst Light-123512 mit 1000) — die Strahler
+       darueber bekaemen Farbe und Faktor der Fluter, mit dem Faktor mal
+       einen gleissenden Fleck am Boden“;
+       hallStrahler übergeht mal: „[3] util-xltop: 4 von 4
+       Hauptstrahlern stellt der Viewer nicht, wie HALL_FEST.strahler es
+       nennt (hallStrahler fuer lg_hangar_xltop-372 bei x -10.965:
+       Staerke mal 1, …, erwartet mal 12 …)“;
+       mal 25 (über MAL_MAX) und bis 300 (nicht über ab): beide Male
+       „[3] util-xltop: HALL_FEST.strahler ist {…}, erwartet ab ueber
+       null (Spielstaerke), bis (wenn es steht) ueber ab, …, und mal
+       (wenn es steht) ueber null bis 20“;
+       die XL-Halle ohne Klinke strahler (Kopie des Tors): „[3]
+       util-xltop: HALL_FEST.strahler stellt 4 Hauptstrahler, die Halle
+       hat keine Klinke strahler (KLINKE) — fiele die Einstellung wieder
+       weg, bliebe das Tor gruen“.
+       Dieselben Brüche in tests/e2e/hall-lampen.test.js, viermal rot:
+       bis übergangen („util-xltop: ab bis (1000) ist eine Lampe kein
+       Hauptstrahler“ und „der stärkste Hauptstrahler hat 1000, bis ist
+       1000“), mal übergangen („eine Lampe auf der Seite +x bekommt den
+       ersten Faktor (mal 12)“, 1 statt 12), bis 2000 („bis 2000 nimmt
+       keine Lampe der Datei aus: eine Ausnahme ohne Anlass“), mal 0
+       („strahler.mal ist 0, erwartet ein Faktor über null“).
+       Nicht hier geprüft: ob die Polaris damit gut aussieht
+       (.planning/WINDOWS.md), und dass die Bühne im Browser vier
+       Hauptstrahler stellt (check:hangar-shader, Klinke strahler in
+       KLINKE_FEST).
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -624,13 +660,18 @@ const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff
 // 18.11.2026 zur ausgelieferten Halle: „die beleuchtung [ist] super kacke“; sie strahlten türkis und von beiden
 // Seiten gleich stark, das Schiff stand farbstichig und ohne Form da. Eine Halle ohne diese Klinke stellt keine;
 // nennt HALL_FEST für sie doch welche, reißt das Tor.
+// In util-xltop (20.11.2026) die vier Fluter über den Längsseiten (je 300, 105 m über dem Boden), mit bis 1000
+// ohne die vier Strahler der Stirnwände und mit mal 12 so stark, dass aufs Schiff so viel Licht kommt wie in der
+// Large-Halle; ohne sie stand die Polaris dort fast schwarz (Aufnahme vom PC, 19.11.2026).
+// MAL_MAX: höchster Faktor mal; darüber brennt jeder Lack aus, auch im Abstand der XL-Halle.
+const MAL_MAX = 20;
 const KLINKE = {
   'util-lrgtop': { lampen: 870, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86, strahler: 6 },
   // Small, Medium und XL (18.11.2026), gemessen am Vorschau-Bau mit ihren Modellen; dieselben Regeln wie Large.
   // Gedämpft sind auch dort die Lampen der Kabinen ihrer Frachtaufzüge (Small 1 Aufzug, Medium und XL je 2).
   'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57 },
   'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75 },
-  'util-xltop': { lampen: 1339, tor: 38, schriftTris: 4348, schirmTris: 422, schirme: 13, tafeln: 12, aufkleber: 159, schilder: 5, kinder: 26, grund: 3, gedaempft: 126, flaechen: 107, ruhe: 162 },
+  'util-xltop': { lampen: 1339, tor: 38, schriftTris: 4348, schirmTris: 422, schirme: 13, tafeln: 12, aufkleber: 159, schilder: 5, kinder: 26, grund: 3, gedaempft: 126, flaechen: 107, ruhe: 162, strahler: 4 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
@@ -1012,25 +1053,26 @@ for (const [id, { bytes }] of HALLEN) {
   if (ST !== undefined || K.strahler !== undefined) {
     const H = typeof viewer?.hallStrahler === 'function' ? viewer.hallStrahler : null;
     const pad = FEST[id]?.pad, mitte = pad ? (pad.from[0] + pad.to[0]) / 2 : NaN;
-    const heil = ST && Number.isFinite(ST.ab) && ST.ab > 0 && Number.isFinite(ST.weiss) && ST.weiss >= 0 && ST.weiss <= 1 && Array.isArray(ST.seiten) && ST.seiten.length === 2 && ST.seiten.every((f) => Number.isFinite(f) && f > 0 && f <= 2);
+    const heil = ST && Number.isFinite(ST.ab) && ST.ab > 0 && (ST.bis === undefined || (Number.isFinite(ST.bis) && ST.bis > ST.ab)) && Number.isFinite(ST.weiss) && ST.weiss >= 0 && ST.weiss <= 1 && Array.isArray(ST.seiten) && ST.seiten.length === 2 && ST.seiten.every((f) => Number.isFinite(f) && f > 0 && f <= 2) && (ST.mal === undefined || (Number.isFinite(ST.mal) && ST.mal > 0 && ST.mal <= MAL_MAX));
     if (ST === undefined) fail(`[3] ${id}: die Halle hat eine Klinke strahler (${K.strahler}), HALL_FEST nennt fuer sie keine Hauptstrahler mehr — ihre Fluter strahlten wieder in der Farbe des Spiels und von beiden Seiten gleich stark (Krisz, 18.11.2026: „die beleuchtung [ist] super kacke“)`);
-    else if (!heil) fail(`[3] ${id}: HALL_FEST.strahler ist ${JSON.stringify(ST)}, erwartet ab ueber null (Spielstaerke), weiss von 0 bis 1 und seiten aus zwei Faktoren ueber null bis 2 (+x, -x)`);
+    else if (!heil) fail(`[3] ${id}: HALL_FEST.strahler ist ${JSON.stringify(ST)}, erwartet ab ueber null (Spielstaerke), bis (wenn es steht) ueber ab, weiss von 0 bis 1, seiten aus zwei Faktoren ueber null bis 2 (+x, -x) und mal (wenn es steht) ueber null bis ${MAL_MAX}`);
     else if (!H) fail(`[3] ${id}: der Viewer nennt seine Hauptstrahler nicht mehr (hallStrahler), HALL_FEST.strahler stellt aber welche — ob er sie stellt, liesse sich nur raten`);
     else if (!Number.isFinite(mitte)) fail(`[3] ${id}: HALL_FEST nennt Hauptstrahler, aber keine Landeflaeche (pad): ihre Seiten haben keine Mitte`);
     else {
-      const haupt = lampen.filter((l) => l.intensity >= ST.ab), plus = haupt.filter((l) => l.pos[0] > mitte).length, minus = haupt.length - plus;
-      const soll = (l) => ({ staerke: ST.seiten[l.pos[0] > mitte ? 0 : 1], farbe: (l.color || [1, 1, 1]).map((v) => v + (1 - v) * ST.weiss) });
+      const traf = (l) => l.intensity >= ST.ab && !(l.intensity >= (ST.bis ?? Infinity));
+      const haupt = lampen.filter(traf), plus = haupt.filter((l) => l.pos[0] > mitte).length, minus = haupt.length - plus;
+      const soll = (l) => ({ staerke: ST.seiten[l.pos[0] > mitte ? 0 : 1] * (ST.mal ?? 1), farbe: (l.color || [1, 1, 1]).map((v) => v + (1 - v) * ST.weiss) });
       const falsch = haupt.filter((l) => { const r = H(id, l, mitte), w = soll(l); return !r || r.staerke !== w.staerke || !Array.isArray(r.farbe) || r.farbe.length !== 3 || r.farbe.some((v, i) => !(Math.abs(v - w.farbe[i]) < 1e-9)); });
-      const fremd = lampen.filter((l) => !(l.intensity >= ST.ab) && H(id, l, mitte) !== null);
+      const fremd = lampen.filter((l) => !traf(l) && H(id, l, mitte) !== null);
       const naht = /const s = hallStrahler\(h\.id, l, o\[0\]\);\s*l\.intensity \*= hallLampenStaerke\(h\.id, l\.name\) \* \(s\?\.staerke \?\? 1\);\s*if \(s\) \{ l\.color = s\.farbe; l\.haupt = true; haupt\+\+; \}/.test(viewerSrc)
         && /cand\.sort\(\(a, b\) => \(b\.haupt \? 1 : 0\) - \(a\.haupt \? 1 : 0\) \|\| b\.score - a\.score\);/.test(viewerSrc);
-      if (!plus || !minus) fail(`[3] ${id}: HALL_FEST.strahler stellt Lampen ab der Staerke ${ST.ab}, die ausgelieferte Lampendatei traegt davon ${plus} auf der Seite +x der Landeflaeche und ${minus} auf -x — die Einstellung hat ihren Anlass verloren (die Datei nennt die Staerke ihrer Fluter anders, oder sie fehlen): ab anpassen oder den Eintrag streichen`);
+      if (!plus || !minus) fail(`[3] ${id}: HALL_FEST.strahler stellt Lampen ab der Staerke ${ST.ab}${ST.bis ? ` unter ${ST.bis}` : ''}, die ausgelieferte Lampendatei traegt davon ${plus} auf der Seite +x der Landeflaeche und ${minus} auf -x — die Einstellung hat ihren Anlass verloren (die Datei nennt die Staerke ihrer Fluter anders, oder sie fehlen): ab anpassen oder den Eintrag streichen`);
       else if (falsch.length) { const l = falsch[0], r = H(id, l, mitte), w = soll(l); fail(`[3] ${id}: ${falsch.length} von ${haupt.length} Hauptstrahlern stellt der Viewer nicht, wie HALL_FEST.strahler es nennt (hallStrahler fuer ${l.name} bei x ${l.pos[0]}: ${r ? `Staerke mal ${r.staerke}, Farbe ${JSON.stringify(r.farbe?.map?.((v) => +v.toFixed(3)) ?? r.farbe)}` : 'nichts'}, erwartet mal ${w.staerke} und ${JSON.stringify(w.farbe.map((v) => +v.toFixed(3)))}) — das Schiff stuende wieder farbstichig oder von beiden Seiten gleich hell da`); }
-      else if (fremd.length) fail(`[3] ${id}: der Viewer stellt ${fremd.length} Lampen unter der Staerke ${ST.ab} als Hauptstrahler (zuerst ${fremd[0].name} mit ${fremd[0].intensity}) — Wandleuchten bekaemen die Farbe und den Faktor der Fluter`);
+      else if (fremd.length) fail(`[3] ${id}: der Viewer stellt ${fremd.length} Lampen ausserhalb der Staerke ${ST.ab}${ST.bis ? ` bis unter ${ST.bis}` : ''} als Hauptstrahler (zuerst ${fremd[0].name} mit ${fremd[0].intensity}) — ${fremd[0].intensity >= ST.ab ? 'die Strahler darueber bekaemen Farbe und Faktor der Fluter, mit dem Faktor mal einen gleissenden Fleck am Boden' : 'Wandleuchten bekaemen die Farbe und den Faktor der Fluter'}`);
       else if (!naht) fail(`[3] ${id}: die Buehne des ausgelieferten Viewers stellt ihre Lampen nicht mehr mit hallStrahler, bevor sie Rangfolge und Gitter rechnet (in loadHallLights erwartet: const s = hallStrahler(h.id, l, o[0]); l.intensity *= hallLampenStaerke(h.id, l.name) * (s?.staerke ?? 1); if (s) { l.color = s.farbe; l.haupt = true; haupt++; } und die Rangfolge mit den Hauptstrahlern zuerst) — die Regel stuende im Viewer, ohne dass eine Lampe sie bekommt`);
       else if (K.strahler === undefined) fail(`[3] ${id}: HALL_FEST.strahler stellt ${haupt.length} Hauptstrahler, die Halle hat keine Klinke strahler (KLINKE) — fiele die Einstellung wieder weg, bliebe das Tor gruen`);
       else if (!(haupt.length >= K.strahler)) fail(`[3] ${id}: der Viewer stellt ${haupt.length} Hauptstrahler der ausgelieferten Datei, Klinke ${K.strahler} — ein Teil der Fluter strahlt wieder in der Farbe des Spiels und mit voller Staerke`);
-      else strahler = `${haupt.length} Hauptstrahler ab Staerke ${ST.ab} (${plus} auf +x mal ${ST.seiten[0]}, ${minus} auf -x mal ${ST.seiten[1]}, Anteil Weiss ${ST.weiss}; Klinke ${K.strahler})`;
+      else strahler = `${haupt.length} Hauptstrahler ab Staerke ${ST.ab}${ST.bis ? ` unter ${ST.bis}` : ''} (${plus} auf +x mal ${ST.seiten[0]}, ${minus} auf -x mal ${ST.seiten[1]}${ST.mal ? `, beide mal ${ST.mal}` : ''}, Anteil Weiss ${ST.weiss}; Klinke ${K.strahler})`;
     }
   }
   // Lampenlicht im Gitter (HALL_FEST.gitter, hallGitterLampen): ein Faktor ueber null, der Viewer hebt damit die
