@@ -3392,7 +3392,9 @@ export function boot(doc) {
         // ab hier spricht die Seite mit dem Stellvertreter (halter)
         const v = halter.auf(roh);
         viewer = v;
-        buehneNeu = leicht ? null : (h) => bauen({ hall: h });
+        // wechsel: Die neue Bühne zeigt ihr erstes Bild erst mit der Halle,
+        // bis dahin liegt das Standbild der alten darüber (umbauen)
+        buehneNeu = leicht ? null : (h) => bauen({ hall: h, wechsel: true });
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
         // ab 90 % sind die Dateien da, der Rest ist Auspacken, Uebersetzen und Hochladen
         v.onProgress((p) => {

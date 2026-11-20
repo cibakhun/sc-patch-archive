@@ -753,6 +753,14 @@
         Bildschirmkoordinaten innerhalb der Gruppe)                 -> [12]
     dr  dort scene.add(root) umbenennen (szene.add: die Prüfung
         fände kein Teil mehr und liefe leer)                        -> [12]
+    ds  dist/assets/hangar-overview.js: in buehneNeu wechsel: true
+        aus dem Aufruf von bauen nehmen (20.11.2026, Hallenwechsel
+        Gladius zu Carrack: Das Standbild ging mit dem Schiff, und
+        die Carrack stand 8 bis 16 s allein auf Schwarz, bis die
+        Halle nachkam)                                              -> [24]
+    dt  dist/assets/hangar-viewer.js: in showShip die Zeile
+        streichen, mit der das erste Bild beim Wechsel auf die
+        Halle wartet (if (WECHSEL && !realHall …))                  -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3256,7 +3264,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 36, worte: 16, quellen: 23 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 38, worte: 16, quellen: 23 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3394,6 +3402,9 @@ const GROESSE_AUSNAHMEN = {
     // das Wort unter dem Ladebalken: Der Umbau dauert so lang wie ein erstes Laden, darunter steht das alte Bild still
     [ctrl, /async function umbauen\(\) \{[\s\S]{0,1500}?loadEl\.dataset\.umbau = '';\s*loadEl\.hidden = false;/, 'der Umbau nennt sich unter dem Ladebalken nicht mehr beim Wort (loadEl.dataset.umbau in umbauen): Die Seite stünde beim Hallenwechsel still, ohne zu sagen, warum'],
     [ctrl, /function standbildWeg\(sofort = false\) \{[\s\S]{0,200}?delete loadEl\.dataset\.umbau;\s*const el = standbild;\s*if \(!el\) return;/, 'das Wort des Hallenwechsels geht nicht mehr mit dem Standbild (standbildWeg, vor der Frage nach dem Bild): Es stünde über dem nächsten Schiffswechsel, oder bliebe ohne Standbild für immer'],
+    // erstes Bild nach dem Umbau (20.11.2026): Die neue Bühne wartet mit dem Schiff auf ihre Halle, das Standbild der alten deckt die Lücke
+    [ctrl, /buehneNeu = leicht \? null : \(h\) => bauen\(\{ hall: h, wechsel: true \}\);/, 'der Umbau sagt der neuen Bühne nicht mehr, dass sie für einen Hallenwechsel entsteht (bauen ohne wechsel): Nach 6 s stünde das Schiff allein auf Schwarz, bis die Halle nachkommt'],
+    [viewer, /const WECHSEL = REAL && opts\.wechsel === true;[\s\S]*?await Promise\.race\(\[hallSettled, sleep\(o\.sitz && LEIT \? SITZ_FRIST : 6000\)\]\);\s*(?:\/\/[^\n]*\n\s*)*if \(WECHSEL && !\(o\.sitz && LEIT\) && !realHall && !hallFailed\) await Promise\.race\(\[hallSettled, sleep\(SITZ_FRIST - 6000\)\]\);/, 'das erste Bild einer Bühne, die für einen Hallenwechsel entstand, wartet nicht mehr auf die Halle (WECHSEL in showShip): Das Standbild ginge mit dem Schiff, und die Carrack stünde 8 bis 16 s allein auf Schwarz'],
   ];
   let verdrahtet = 0;
   for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
