@@ -296,8 +296,16 @@ export function kurztitel(title: string): string {
 
 /** Missionstitel fuer <title>/og — Platzhalter ersetzt, Trenner aufgeraeumt. */
 export function seoTitle(title: string): string {
+  const fest = String(title).replace(/\{[^}]*\}/g, ' ');
+  // Steht das Ersatzwort schon im festen Titel, faellt der Slot weg:
+  // "Target Shattered Blade: {TargetName}" -> "Target Shattered Blade"
+  // statt "Target Shattered Blade: Target".
+  const schonDa = (w: string) => !!w && new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(fest);
   return String(title)
-    .replace(/\{([^}]*)\}/g, (_, t) => PH_TITLE[t.toLowerCase()] ?? deCamel(t))
+    .replace(/\{([^}]*)\}/g, (_, t) => {
+      const w = PH_TITLE[t.toLowerCase()] ?? deCamel(t);
+      return schonDa(w) ? '' : w;
+    })
     .replace(/\(\s*\)/g, ' ') // leere Klammerpaare nach ersatzlosen Slots
     .replace(/\s{2,}/g, ' ')
     .replace(/^[\s,:–—-]+|[\s,:–—-]+$/g, '');
