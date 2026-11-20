@@ -15587,7 +15587,9 @@ void main() {
     if (now < due - vsMs / 2) return;
     due = Math.max(due + iv, now + iv / 2);
     const t = (now - T0) / 1000;
-    const dt = Math.min(0.1, t - last); last = t;
+    // dtUhr: die ganze Zeit seit dem letzten Bild (Dämpfung der Kamera unten);
+    // dt auf 0,1 s gekürzt für alles, was je Schritt rechnet
+    const dtUhr = Math.max(0, t - last), dt = Math.min(0.1, dtUhr); last = t;
     const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
     if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
     for (const f of anim) f(t);
@@ -15739,7 +15741,9 @@ void main() {
       // Kamera sonst entsprechend länger nach (bei 2 Bildern je Sekunde
       // über eine Minute), und die Tafeln warteten so lange auf ihren Platz.
       // Bei 60 Bildern bleibt es DAMPING; der Weg der Drehung ist derselbe.
-      controls.dampingFactor = 1 - Math.pow(1 - DAMPING, dt * 60);
+      // Mit der ungekürzten Zeit (dtUhr): Mit dt (höchstens 0,1 s) liefe sie
+      // unter 10 Bildern je Sekunde wieder langsamer aus als die Uhr.
+      controls.dampingFactor = 1 - Math.pow(1 - DAMPING, dtUhr * 60);
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
