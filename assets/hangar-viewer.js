@@ -7900,6 +7900,11 @@ export async function initHangar(container, opts = {}) {
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
   const REAL = !!(opts.hall?.url && opts.hall.room);
+  // Für einen Hallenwechsel aufgebaut (assets/hangar-overview.js, umbauen):
+  // Bis das Schiff steht, liegt über der Bühne das Standbild der alten
+  // Halle. Das erste Bild wartet dann wie im Leitstand auf die Halle
+  // (SITZ_FRIST), statt das Schiff nach 6 s allein auf Schwarz zu stellen.
+  const WECHSEL = REAL && opts.wechsel === true;
   // Fahrwerk je Modelldatei (Pfad ohne ?v=): { contacts } oder { ground }, standOn
   const gearOf = (u) => (u && opts.gear?.[u.split('?')[0]]) || null;
   // Telefon: schmal oder Touch
@@ -13460,6 +13465,13 @@ void main() {
       // von selbst hinauf. Nicht ohne Frist: An einer Leitung, die hängt,
       // bliebe sonst nur der Ladebalken.
       await Promise.race([hallSettled, sleep(o.sitz && LEIT ? SITZ_FRIST : 6000)]);
+      // Beim Hallenwechsel (WECHSEL) deckt bis dahin das Standbild der
+      // alten Halle die Bühne: Ging die Frist hier ab, stand das Schiff
+      // allein auf Schwarz, bis die Halle nachkam (20.11.2026, Gladius zu
+      // Carrack auf dem PC gemessen: 8 bis 16 s). Es wartet dann so lange
+      // wie im Leitstand (zusammen höchstens SITZ_FRIST), mit dem Wort des
+      // Wechsels unter dem Ladebalken.
+      if (WECHSEL && !(o.sitz && LEIT) && !realHall && !hallFailed) await Promise.race([hallSettled, sleep(SITZ_FRIST - 6000)]);
       // Ist die Halle da schon gebaut und wird nur noch übersetzt und
       // hochgeladen, kommt sie gleich: darauf noch kurz warten. Seit das
       // Schiff früher bereit ist (13.11.2026: es wartete vorher 1 bis 2 s auf
