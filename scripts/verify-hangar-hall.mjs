@@ -433,7 +433,11 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // 22.10.2026 (Betreiber: „kabel connected nicht“): buchsen = Leitungen, deren
 // Anschluss auf der Oberflaeche eines Geraets ihres Platzes sitzt und zum
 // Schiff hin frei ist (BUCHSE).
-const KLINKE_DIENST = { stationen: 20, glieder: 138, leitungen: 6, buchsen: 6, spuren: 13, props: 56 };
+// 20.11.2026 (Betreiber: „Alles beheben“ nach den Bildern vom PC vom
+// 19.11.2026, auf dem XL-Boden ging der Platz an der Polaris verloren):
+// sechs Plätze mehr ab 130 m an den Längsseiten (26 Plätze, 175 Glieder), aus
+// Gerät, das der Satz schon trägt.
+const KLINKE_DIENST = { stationen: 26, glieder: 175, leitungen: 6, buchsen: 6, spuren: 13, props: 56 };
 // 21.10.2026 angehoben (210000 -> 213000, Klassen +5000/+5000/+4000): Teilflaechen mit dem
 // LayerBlend-Flag %DECALS fielen im Katalog-Build bisher still weg (als Decal ohne Karte
 // gelesen); seit Hangar-Werte Teil 2 sind sie da (Satz 212 465, Klassen 217 562 / 261 231 / 563 622).
@@ -449,14 +453,29 @@ const OBERGRENZE_DIENST = { mats: 45, tris: 227000, bytes: 5.6e6 };
 // von dienst_flach mit einer Zeile (am 21.10.2026: 124 Zeilen, 61, 61, 42,
 // 37, 41 Karten, 150 954 Ecken, 563 KB; mit den Gruppen 133, 63, 61, 45,
 // 42, 45 Karten, 162 007 Ecken, 643 KB); das Raster höchstens so schwer.
-const KLINKE_SCHICHTEN = { zeilen: 133, blend: 63, abnutzung: 61, detail: 45, normale: 42, karten: 45, ecken: 162000 };
-const OBERGRENZE_SCHICHTEN = { bytes: 700000 };
-const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120 };
-const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
+// 20.11.2026 neu gepackt (sechs Plätze ab 130 m, oben): der Katalog trägt
+// seit dem letzten Packen acht Abnutzungskarten mehr, die der Satz jetzt
+// mitnimmt (109 statt 61 Zeilen mit Abnutzungskarte, 53 statt 45 Karten).
+// Das Raster wiegt damit 846 466 Bytes (vorher 658 236), Obergrenze
+// 700 000 -> 870 000.
+const KLINKE_SCHICHTEN = { zeilen: 133, blend: 63, abnutzung: 109, detail: 45, normale: 42, karten: 53, ecken: 162000 };
+const OBERGRENZE_SCHICHTEN = { bytes: 870000 };
+// kapital seit 20.11.2026: die Polaris, wie der Viewer sie misst (167 m),
+// für das Band ab 130 m (Polaris, Reclaimer, 890 Jump, Idris in der XL-Halle).
+const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120, kapital: 167 };
+const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 }, kapital: { stationen: 25 } };
 // 21.10.2026 mit den Gruppen (oben): winzig +2000 (Werkzeugtasche, 118 305),
 // klein +2 Materialien und +11000 (Kunststoffkisten am Lager: 32, 228 174),
 // mittel +2 und +11000 (36, 271 843), gross +4 und +17000 (45, 580 320).
-const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 119000 }, klein: { mats: 32, tris: 229000 }, mittel: { mats: 36, tris: 273000 }, gross: { mats: 45, tris: 581000 } };
+// kapital 20.11.2026 neu: 25 Plätze, 45 Materialien (keins mehr als gross,
+// die sechs Plätze tragen dasselbe Gerät), 765 130 Dreiecke.
+// Vorgeführt rot an einer Kopie des Tors, je 1 FEHLER: ohne kapital in
+// DIENST_KLASSEN „[14] Schiffe von 130 bis Infinity m: keine Groesse in
+// DIENST_KLASSEN liegt darin …“; Klinke 26 „[14] an einem Schiff von 167 m
+// (kapital) stehen 25 Plaetze, die Klinke verlangt 26 …“; Obergrenze 760000
+// „[14] … zeichnet der Wartungsplatz 765130 Dreiecke, die Obergrenze ist
+// 760000 …“.
+const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 119000 }, klein: { mats: 32, tris: 229000 }, mittel: { mats: 36, tris: 273000 }, gross: { mats: 45, tris: 581000 }, kapital: { mats: 45, tris: 766000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 // Schachttor ([15], seit 18.10.2026): Teile, die ins Feld reichen (14 beim
 // Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die

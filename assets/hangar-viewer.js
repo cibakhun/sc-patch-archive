@@ -996,6 +996,18 @@ function hallShiftPoint(h, p) {
 // Glanzlichter auf dem Deck aus; 1 und 0,5 stehen. Die Rangfolge der Bühne
 // stellt die Hauptstrahler vor alle anderen Lampen, auch die schwächer
 // gestellten.
+// `bis`: nur Lampen schwächer als diese Spielstärke; `mal`: Faktor auf
+// beide Seiten. In util-xltop sind es die vier Fluter über den Längsseiten
+// (je 300, 105 m über dem Boden, 146 m von der Mitte der Landefläche). Ohne
+// sie stand die Polaris (Lack #2b2b2b) dort fast schwarz (Aufnahme vom PC,
+// 19.11.2026), und die vier Strahler an den Stirnwänden (je 1000, 44 m hoch)
+// machten als stärkste echte Lampen je einen gleißenden Fleck auf den Boden
+// vor Bug und Heck, statt das Schiff zu treffen; sie bleiben gewöhnliche
+// Lampen (`bis` 1000). `mal` 12 bringt so viel Licht aufs Schiff wie in der
+// Large-Halle: dort 600 aus 61 m, hier 300 · 12 aus 146 m (600 / 61² ≈
+// 3600 / 146²). Am Bild abgeglichen (Polaris, Startansicht, Mittel der
+// Fläche des Schiffs von 255): ohne 24, mit 8 (Seite +x) 43, mit 12 51;
+// der obere Bildteil dabei 33,4 und 32,4 % unter 16 (vorher 35,4 %).
 // Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
 // Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
 // durch, ownLift baut ihn.
@@ -1003,7 +1015,7 @@ const HALL_FEST = /* hall-fest */ {
   "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.3, "grund": 4, "gitter": 3, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.085 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
   "util-medtop": { "size": "M", "pad": { "from": [28, -111], "to": [84, -23] }, "clear": 32, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_med_a": 0.25 } },
   "util-smltop": { "size": "S", "pad": { "from": [30, 32], "to": [54, 64] }, "clear": 16, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_sml_a": 0.25 } },
-  "util-xltop": { "size": "XL", "pad": { "from": [-192, 32], "to": [-32, 304] }, "clear": 64, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_xlrg_a": 0.25 } }
+  "util-xltop": { "size": "XL", "pad": { "from": [-192, 32], "to": [-32, 304] }, "clear": 64, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_xlrg_a": 0.25 }, "strahler": { "ab": 300, "bis": 1000, "weiss": 0.65, "seiten": [1, 0.5], "mal": 12 } }
 } /* /hall-fest */;
 
 // Grundlicht einer Halle fester Größe (HALL_FEST.grund) als Bestrahlung im
@@ -1032,7 +1044,8 @@ export function hallLampenStaerke(id, name) {
 }
 
 // Hauptstrahler einer Halle fester Größe (HALL_FEST.strahler): die Lampen,
-// deren Stärke im Spiel mindestens `ab` beträgt. Für sie liefert die
+// deren Stärke im Spiel mindestens `ab` und, wo `bis` steht, weniger als
+// `bis` beträgt. Für sie liefert die
 // Funktion den Faktor ihrer Seite der Landefläche (`seiten`: +x, −x; im
 // Modellraum gegen `mitteX`, die Mitte der Landefläche) und ihre Farbe mit
 // dem Anteil `weiss` zu Weiß gemischt; für jede andere Lampe null. Steht
@@ -1040,10 +1053,10 @@ export function hallLampenStaerke(id, name) {
 // fahren wie die Bühne.
 export function hallStrahler(id, lampe, mitteX) {
   const S = HALL_FEST[id]?.strahler;
-  if (!S || !(S.ab > 0) || !(lampe?.intensity >= S.ab) || !Array.isArray(lampe.pos)) return null;
+  if (!S || !(S.ab > 0) || !(lampe?.intensity >= S.ab) || (S.bis > 0 && !(lampe.intensity < S.bis)) || !Array.isArray(lampe.pos)) return null;
   const w = Math.min(1, Math.max(0, S.weiss ?? 0));
   return {
-    staerke: (lampe.pos[0] > mitteX ? S.seiten?.[0] : S.seiten?.[1]) ?? 1,
+    staerke: ((lampe.pos[0] > mitteX ? S.seiten?.[0] : S.seiten?.[1]) ?? 1) * (S.mal ?? 1),
     farbe: (lampe.color || [1, 1, 1]).map((v) => v + (1 - v) * w),
   };
 }
@@ -3495,6 +3508,11 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // nur Werkzeug, Treibstoff, Diagnose, Werkbank und Kegel: Generator,
 // Kistenstapel, zweite Diagnose und Leiter waren größer als das Fahrzeug,
 // es stand in einem Haufen Gerät (19.10.2026).
+// Ab 130 m (Polaris, Reclaimer, 890 Jump, Idris; alle in der XL-Halle) sechs
+// Plätze mehr an den Längsseiten, je eine Zusammensetzung von oben noch
+// einmal: An der Polaris (155 m) standen auf der Seite zur Kamera vier
+// Plätze auf 155 m Rumpf, bis zu 100 m auseinander, und der Wartungsplatz
+// ging auf der Fläche der Halle unter (Aufnahme vom PC, 19.11.2026).
 // leitungen: Schlauch oder Kabel aus dem Satz, vom Anschluss am Gerät
 // ([Platz, x, z, Höhe der Achse] im Platz: auf der Fläche, die zum Schiff
 // zeigt; der Stecker steckt darin) über den Boden unter den Rumpf und dort
@@ -3594,6 +3612,31 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_lager_crate_metal_2_01x005x0025_a", 1.9, 1.5, 90, 0.25], ["prop_lager_drum_dry_1_a", 3.6, 0.4, 0], ["prop_lager_drum_dry_1_a", 4.2, 0.8, 0],
       ["prop_lager_drum_dry_1_a", 3.7, 1.1, 0], ["prop_licht_light_portable_tripod_1_base_a", -4.6, 0.3, 160],
       ["prop_sicherheit_tool_fire_extinguisher_1_a", 5.2, 0.0, 30], ["prop_sicherheit_cone_1_a", -1.0, -1.3, 0], ["prop_sicherheit_cone_1_a", 2.6, -1.3, 15]] },
+    { "name": "transport-seite", "ab": 130, "wo": ["seite", 1, 0.05], "sonst": [["seite", 1, 0.15], ["seite", 1, -0.1]], "glieder": [
+      ["prop_transport_machine_forklift_1_b", 0, 0.6, 90], ["prop_transport_machine_forklift_1_extension_console_a", 3.3, 0.4, 0],
+      ["prop_transport_prop_dumper_transport_pallet_a", -3.9, 0.5, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.3, 0.15, 5, 0.25],
+      ["prop_lager_crate_dry_1_0125x0125x00625_a", -3.5, 1.15, -8, 0.25]] },
+    { "name": "lager-seite", "ab": 130, "wo": ["seite", 1, -0.48], "sonst": [["seite", 1, -0.4], ["seite", 1, 0.55]], "glieder": [
+      ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0], ["prop_lager_storage_container_1_025x05x025_a", 1.4, 1.0, 0],
+      ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0, 2.5], ["prop_lager_crate_stack_1_025x0125x00625_a", 4.0, 0.6, 0],
+      ["prop_transport_prop_dumper_transport_pallet_a", -4.7, 0.2, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.9, -0.1, 3, 0.25],
+      ["prop_lager_crate_metal_2_01x005x0025_a", -4.4, 0.75, 85, 0.25], ["prop_transport_trolley_pallet_1_a", 1.0, -2.6, 90],
+      ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", -1.58, -3.2, -98], ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", -0.08, -2.83, 177]] },
+    { "name": "schweiss-seite", "ab": 130, "wo": ["seite", 1, 0.55], "sonst": [["seite", 1, 0.5], ["seite", 1, 0.2]], "glieder": [
+      ["prop_werkzeug_crane_welding_arm_1_a", 0, 1.5, 0], ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.2, 0.4, 90],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.6, 0.2, 0], ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.95, 0.75, 0],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -3.3, 1.2, 40], ["prop_werkzeug_tool_welder_a", 2.4, -1.4, -25]] },
+    { "name": "fracht-links", "ab": 130, "wo": ["seite", -1, -0.12], "sonst": [["seite", -1, 0.2], ["seite", -1, -0.9]], "glieder": [
+      ["prop_transport_trolley_cargo_1_a", 0, 1.2, 90], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.6, 0.4, 12],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.4, 1.8, -6], ["prop_lager_crate_dry_1_0125x0125x00625_a", -4.5, 1.1, 0, 1.25]] },
+    { "name": "strom-links", "ab": 130, "wo": ["seite", -1, 0.2], "sonst": [["seite", -1, -0.1], ["seite", -1, 0.9]], "glieder": [
+      ["prop_energie_generator_mobile_1_b", 0, 0.15, 0], ["prop_kabel_cable_reel_6_a", 2.9, 0.2, 0], ["prop_kabel_cable_terminal_6_a", -2.35, -0.15, 15],
+      ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200]] },
+    { "name": "werkzeug-links", "ab": 130, "wo": ["seite", -1, 0.9], "sonst": [["seite", -1, -0.9], ["seite", -1, 0.5]], "glieder": [
+      ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_licht_light_work_light_2_a", -1.6, 0.4, 0],
+      ["prop_transport_trolley_creeper_a", 2.6, -0.9, 95], ["prop_werkzeug_tool_socket_set_1_a", 1.05, -0.95, 35],
+      ["prop_werkzeug_tool_manual_1_ratchet_a", 1.7, -1.35, 65], ["prop_werkzeug_tool_manual_1_pliers_a", 2.0, -1.6, 140],
+      ["prop_werkzeug_bag_toolbox_2_a", -0.95, -0.9, -20]] },
     { "name": "kegel-links", "wo": ["ende", 1, -0.9], "sonst": [["ende", 1, -0.6]], "glieder": [
       ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", 1.1, -0.2, 30], ["prop_sicherheit_cone_1_closed_a", 0.5, 0.8, 70]] },
     { "name": "kegel-rechts", "wo": ["ende", 1, 0.9], "sonst": [["ende", 1, 0.6]], "glieder": [
@@ -8148,7 +8191,10 @@ export async function initHangar(container, opts = {}) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2.2, 0);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
+  // Dämpfung je Bild bei 60 Bildern je Sekunde; im Bildtakt nach der Uhr
+  // umgerechnet (frame(), vor controls.update)
+  const DAMPING = 0.08;
+  controls.dampingFactor = DAMPING;
   // Rechte Maustaste ziehen schiebt den Blick durch die Halle (Krisz,
   // 29.10.2026: „mit rechtsclick gedrückthalten und ziehen sich in der
   // hangar mit der kamera bewegen“): Ziel und Kamera wandern zusammen
@@ -8171,6 +8217,15 @@ export async function initHangar(container, opts = {}) {
   // Leerlauf und Ruhe (frame()).
   let activeUntil = 0, dragging = false, seen = performance.now();
   const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
+  // Auslaufen nach dem Loslassen (frame()): Im Hintergrund (Fenster nicht
+  // vorn, Zeiger nicht über der Bühne) zeichnet sie sonst nichts. Ohne dies
+  // blieb das Bild mitten im Nachlaufen der Kamera stehen, die Tafeln noch
+  // nicht an ihrem Platz: die Ausrüstung quer über dem Namen des Schiffs
+  // (Aufnahme vom PC 19.11.2026, Fenster im Hintergrund). Bis settleUntil
+  // zeichnet sie weiter; die Tafeln verlängern das, solange sie noch
+  // wandern, höchstens SETTLE_MAX ab dem Loslassen.
+  let settleUntil = 0, settleFrom = 0;
+  const SETTLE_MAX = 10000;
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
   // panned: das Ziel ist geschoben, also nicht mehr Schiffsmitte oder
@@ -8242,6 +8297,7 @@ export async function initHangar(container, opts = {}) {
     // die Dämpfung läuft nach dem Loslassen noch etwa eine Sekunde
     dragging = false;
     wake(1500);
+    settleFrom = performance.now(); settleUntil = settleFrom + 1500;
   });
 
   // Echte Halle: wird geladen, sobald die Bühne steht. room = Innenraum im
@@ -15522,7 +15578,7 @@ void main() {
     // eingebetteten Seite (Terminal im Leitstand), meldet dieses Fenster weder
     // den Wechsel zu einem anderen Programm noch die Rückkehr (onBlur unten).
     if (now - focusAt > 500) { focusAt = now; focused = document.hasFocus(); }
-    if (!focused && now > hoverUntil) { sound.hush(); return; }
+    if (!focused && now > hoverUntil && now > settleUntil) { sound.hush(); return; }
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate. Auch solange
     // ein Wechsel läuft (busy) und das Feld unten auf das neue Schiff wartet:
     // Sonst fiel die Bühne dort nach IDLE_MS auf IDLE_SCALE der Schärfe und
@@ -15543,7 +15599,9 @@ void main() {
     if (now < due - vsMs / 2) return;
     due = Math.max(due + iv, now + iv / 2);
     const t = (now - T0) / 1000;
-    const dt = Math.min(0.1, t - last); last = t;
+    // dtUhr: die ganze Zeit seit dem letzten Bild (Dämpfung der Kamera unten);
+    // dt auf 0,1 s gekürzt für alles, was je Schritt rechnet
+    const dtUhr = Math.max(0, t - last), dt = Math.min(0.1, dtUhr); last = t;
     const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
     if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
     for (const f of anim) f(t);
@@ -15690,6 +15748,14 @@ void main() {
     // walkStep; im Leitstand steht sie (leitSet)
     if (walk) walkStep(dt, now);
     else if (!trip && !post) {
+      // Dämpfung nach der Uhr statt je Bild: OrbitControls nimmt sie je
+      // Aufruf. Im Leerlauf (24 Bilder) oder auf langsamer Grafik lief die
+      // Kamera sonst entsprechend länger nach (bei 2 Bildern je Sekunde
+      // über eine Minute), und die Tafeln warteten so lange auf ihren Platz.
+      // Bei 60 Bildern bleibt es DAMPING; der Weg der Drehung ist derselbe.
+      // Mit der ungekürzten Zeit (dtUhr): Mit dt (höchstens 0,1 s) liefe sie
+      // unter 10 Bildern je Sekunde wieder langsamer aus als die Uhr.
+      controls.dampingFactor = 1 - Math.pow(1 - DAMPING, dtUhr * 60);
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
@@ -15709,7 +15775,10 @@ void main() {
     camRef = camera.position.distanceTo(controls.target);
     adapt(now, cap);
     // Stationen vor dem Spiegelbild stellen: es zeigt sie schon an ihrem Platz
-    if (stLayer?.tick(now)) wake(300);
+    if (stLayer?.tick(now)) {
+      wake(300);
+      if (now - settleFrom < SETTLE_MAX) settleUntil = Math.max(settleUntil, now + 300);
+    }
     // drinnen sieht niemand den Hallenboden glänzen
     if (!walk) renderMirror();
     renderer.shadowMap.needsUpdate = shadowsDue();

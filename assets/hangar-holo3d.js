@@ -1145,9 +1145,17 @@ export function holoLayer(ctx) {
   const camChanged = () => {
     camera.updateMatrixWorld();
     const a = camera.matrixWorld.elements, b = camera.projectionMatrix.elements;
+    // Die Lage (Meter) gegen den Abstand zum Schiff gemessen wie die Drehung:
+    // 1e-4 rad um das Schiff rücken die Kamera um r · 1e-4 m. Mit 1e-4 m
+    // wartete eine Tafel nach dem Loslassen gerechnet gut zwei Sekunden, bis
+    // das Nachlaufen der Kamera auch in der Lage unter der Schwelle lag
+    // (r 150 m, Dämpfung 0,08 bei 60 Bildern). So gilt die Kamera nach gut
+    // einer Sekunde als ruhend; was sie danach noch dreht, sind gut 1e-3 rad,
+    // rund zwei Bildpunkte.
+    const tol = 1e-4 * Math.max(1, camera.position.length());
     let moved = false;
     for (let i = 0; i < 16; i++) {
-      if (Math.abs(a[i] - camSig[i]) > 1e-4) { camSig[i] = a[i]; moved = true; }
+      if (Math.abs(a[i] - camSig[i]) > (i >= 12 && i <= 14 ? tol : 1e-4)) { camSig[i] = a[i]; moved = true; }
       if (Math.abs(b[i] - camSig[16 + i]) > 1e-4) { camSig[16 + i] = b[i]; moved = true; }
     }
     return moved;

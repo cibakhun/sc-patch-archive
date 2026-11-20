@@ -73,7 +73,7 @@ test('hallLampenStaerke: eine Halle ohne Eintrag lässt ihre Lampen, wie sie sin
 const mitteX = (F) => (F.pad.from[0] + F.pad.to[0]) / 2;
 const MIT_STRAHLERN = Object.entries(FEST).filter(([, F]) => F.strahler);
 
-test('hallStrahler: Lampen ab der Spielstärke `ab`, nach ihrer Seite der Landefläche gestellt, die Farbe zu Weiß gemischt', () => {
+test('hallStrahler: Lampen ab der Spielstärke `ab` (und unter `bis`), nach ihrer Seite der Landefläche gestellt (mal `mal`), die Farbe zu Weiß gemischt', () => {
   const H = viewer.hallStrahler;
   assert.equal(typeof H, 'function', 'der Viewer gibt hallStrahler nicht mehr heraus');
   assert.ok(MIT_STRAHLERN.length, 'keine Halle in HALL_FEST stellt Hauptstrahler: der Test liefe leer');
@@ -82,11 +82,18 @@ test('hallStrahler: Lampen ab der Spielstärke `ab`, nach ihrer Seite der Landef
     assert.ok(Number.isFinite(S.ab) && S.ab > 0, `${id}: strahler.ab ist ${S.ab}, erwartet eine Spielstärke über null`);
     assert.ok(Number.isFinite(S.weiss) && S.weiss >= 0 && S.weiss <= 1, `${id}: strahler.weiss ist ${S.weiss}, erwartet ein Anteil von 0 bis 1`);
     assert.ok(Array.isArray(S.seiten) && S.seiten.length === 2 && S.seiten.every((f) => Number.isFinite(f) && f > 0), `${id}: strahler.seiten ist ${JSON.stringify(S.seiten)}, erwartet zwei Faktoren über null (+x, −x)`);
+    assert.ok(S.bis === undefined || (Number.isFinite(S.bis) && S.bis > S.ab), `${id}: strahler.bis ist ${S.bis}, erwartet eine Spielstärke über ab`);
+    assert.ok(S.mal === undefined || (Number.isFinite(S.mal) && S.mal > 0), `${id}: strahler.mal ist ${S.mal}, erwartet ein Faktor über null`);
+    const mal = S.mal ?? 1, innen = S.bis ? (S.ab + S.bis) / 2 : S.ab * 2;
     const plus = H(id, { intensity: S.ab, pos: [m + 0.5, 40, 0], color: farbe }, m);
-    const minus = H(id, { intensity: S.ab * 2, pos: [m - 0.5, 40, 0], color: farbe }, m);
-    assert.equal(plus.staerke, S.seiten[0], `${id}: eine Lampe auf der Seite +x bekommt den ersten Faktor`);
-    assert.equal(minus.staerke, S.seiten[1], `${id}: eine Lampe auf der Seite −x bekommt den zweiten Faktor`);
-    assert.equal(H(id, { intensity: S.ab, pos: [m, 40, 0], color: farbe }, m).staerke, S.seiten[1], `${id}: genau über der Mitte zählt die Lampe zur Seite −x`);
+    const minus = H(id, { intensity: innen, pos: [m - 0.5, 40, 0], color: farbe }, m);
+    assert.equal(plus.staerke, S.seiten[0] * mal, `${id}: eine Lampe auf der Seite +x bekommt den ersten Faktor (mal ${mal})`);
+    assert.equal(minus.staerke, S.seiten[1] * mal, `${id}: eine Lampe auf der Seite −x bekommt den zweiten Faktor (mal ${mal})`);
+    assert.equal(H(id, { intensity: S.ab, pos: [m, 40, 0], color: farbe }, m).staerke, S.seiten[1] * mal, `${id}: genau über der Mitte zählt die Lampe zur Seite −x`);
+    if (S.bis) {
+      assert.equal(H(id, { intensity: S.bis, pos: [m + 0.5, 40, 0], color: farbe }, m), null, `${id}: ab bis (${S.bis}) ist eine Lampe kein Hauptstrahler`);
+      assert.ok(H(id, { intensity: S.bis * 0.999, pos: [m + 0.5, 40, 0], color: farbe }, m), `${id}: knapp unter bis ist eine Lampe Hauptstrahler`);
+    }
     for (const r of [plus, minus]) for (let i = 0; i < 3; i++) assert.ok(Math.abs(r.farbe[i] - (farbe[i] + (1 - farbe[i]) * S.weiss)) < 1e-12, `${id}: Kanal ${i} der Farbe ist ${r.farbe[i]}, erwartet der Anteil ${S.weiss} zu Weiß gemischt`);
     assert.deepEqual(farbe, [0.52, 0.95, 0.96], 'die Farbe der Lampe selbst bleibt, wie sie war');
     assert.deepEqual(H(id, { intensity: S.ab, pos: [m + 0.5, 40, 0] }, m).farbe, [1, 1, 1], `${id}: eine Lampe ohne Farbe ist weiß und bleibt es`);
@@ -112,8 +119,13 @@ test('hallStrahler an der Lampendatei: beide Seiten der Landefläche tragen Haup
     const m = mitteX(F), haupt = lampen.filter((l) => viewer.hallStrahler(id, l, m));
     const plus = haupt.filter((l) => l.pos[0] > m).length, minus = haupt.length - plus;
     assert.ok(plus > 0 && minus > 0, `${id}: ${plus} Hauptstrahler auf der Seite +x, ${minus} auf −x (von ${lampen.length} Lampen ab Stärke ${F.strahler.ab}): strahler.seiten stellt eine Seite, die es nicht gibt`);
-    const rest = Math.max(...lampen.filter((l) => !haupt.includes(l)).map((l) => l.intensity));
-    assert.ok(rest <= F.strahler.ab / 2, `${id}: die stärkste übrige Lampe hat ${rest}, die Schwelle ab ist ${F.strahler.ab}: Sie trennt die Hauptstrahler nicht mehr deutlich von den anderen`);
+    const rest = Math.max(...lampen.filter((l) => !haupt.includes(l) && l.intensity < F.strahler.ab).map((l) => l.intensity));
+    assert.ok(rest <= F.strahler.ab / 2, `${id}: die stärkste Lampe unter ab hat ${rest}, die Schwelle ab ist ${F.strahler.ab}: Sie trennt die Hauptstrahler nicht mehr deutlich von den anderen`);
+    if (F.strahler.bis) {
+      const oben = Math.max(...haupt.map((l) => l.intensity)), ueber = lampen.filter((l) => l.intensity >= F.strahler.bis);
+      assert.ok(oben <= F.strahler.bis / 2, `${id}: der stärkste Hauptstrahler hat ${oben}, bis ist ${F.strahler.bis}: Die Schwelle trennt sie nicht mehr deutlich von den Strahlern darüber`);
+      assert.ok(ueber.length > 0, `${id}: bis ${F.strahler.bis} nimmt keine Lampe der Datei aus: eine Ausnahme ohne Anlass`);
+    }
     hallen++;
   }
   assert.ok(hallen > 0);
