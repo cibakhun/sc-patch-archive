@@ -1298,8 +1298,12 @@ export function holoLayer(ctx) {
   // keinen Platz hatte (pickRoom: höher als sie, oder unter dem Namen des
   // Schiffs bleibt zu wenig; mit Halterungen ist es höher); die anderen
   // Slots behalten ihr Fenster.
+  // Der Titelblock (safe.titel) gehört dazu: Kommt er oder geht er, steht
+  // der Name woanders, und das Fenster bekommt eine neue Gelegenheit
+  // (CodeRabbit zu #396). Er wechselt nur, wenn das Hologramm am stehenden
+  // Schiff kommt oder geht, kein Hin und Her im Lauf.
   let splitOff = '', splitOffRow = '';
-  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}`;
+  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}|${safe.titel ? Math.round(safe.titel.b) : ''}`;
   const rowKey = (P) => `${splitKey()}|${P.data?.pick?.key ?? ''}`;
   const canSplit = (P) => splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0);
   // Gezeichnete Fläche einer Tafel im Bild: das Rechteck um ihre vier Ecken
