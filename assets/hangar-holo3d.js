@@ -362,6 +362,15 @@ function drawSystems(g, d, hover) {
 // was gerollt ist und ob das Menü der Layouts offen steht.
 const LO_W = 356;
 const LO = { p: 12, top: 40, tabs: 34, gh: 26, rh: 42, was: 14, foot: 68, oh: 36, opts: 6, ch: 60 };
+// Höhe der Liste: so viel, wie über dem Platz der Tafel frei ist (room),
+// höchstens der Inhalt. Wenigstens eine Gruppe mit einer Zeile; bis
+// 21.11.2026 wenigstens 150 px, und in kurzen Bildern ragte die Tafel dann
+// über Titelblock und Knöpfe (CodeRabbit zu #396: Bühne 400 px hoch, Name
+// bis 180 px). Reicht nicht einmal die eine Zeile, bleibt die Tafel und ragt
+// hinauf: Der Name liegt als Text vor der Leinwand und bleibt lesbar, ohne
+// Tafel wäre die Ausrüstung am Schiff ganz weg (dann hilft „Als Tafel“).
+export const LO_MIN_BODY = LO.gh + LO.rh;
+export const loBodyH = (contentH, room) => Math.min(contentH, Math.max(LO_MIN_BODY, room));
 const AMBER = '#f5a623', DOWN = '#ff9b8a', INK = '#04121d';
 // Farbton je Bauteilart: Energiewaffen blauviolett, ballistische sandhell,
 // Raketen und Bomben glutrot, Schild blau, Generator gelb, Kühler eisig,
@@ -524,7 +533,7 @@ function loLayout(g, d, ui) {
   if (d.empty) { items.push({ t: 'empty', y, h: 44 }); y += 44; }
   const contentH = y + 2;
   const menu = ui.menu ? loMenu(g, d.menu) : null;
-  let H = yBody + Math.min(contentH, Math.max(150, (ui.maxH ?? 640) - yBody - LO.foot)) + LO.foot;
+  let H = yBody + loBodyH(contentH, (ui.maxH ?? 640) - yBody - LO.foot) + LO.foot;
   if (menu) H = Math.max(H, menu.y + menu.h + 10);
   const hBody = H - yBody - LO.foot, max = Math.max(0, contentH - hBody);
   // eine frisch geöffnete Zeile samt Auswahl ins Bild rollen, die eingebaute Zeile in die Mitte ihrer Liste
@@ -838,6 +847,26 @@ export const PICK_NAME_AIR = 14;
 export function pickBelow(y0, s, nameB) {
   const q = s >= 0.5 && s <= 1.5 ? s : 1;
   return Math.max(0, Math.ceil((nameB + PICK_NAME_AIR - y0) / q / 8) * 8);
+}
+
+// Oberkante des freien Streifens x0..x1 im Bild der Höhe H, unter der eine
+// Tafel beginnen darf. sf = setSafe der Seite: unter der Kopfzeile (t), unter
+// Knöpfen in der oberen Hälfte (rects) und, solange er sichtbar ist, unter
+// dem ganzen Titelblock (titel). Den reicht die Seite nur, wenn das Hologramm
+// des Namens keinen Platz fand und der Name oben links steht; das Hologramm
+// selbst sieht ihn nicht, sonst wiche der Block nie (hangar-overview.js).
+// Polaris und 890 Jump im XL nach dem Drehen lag die Ausrüstung über Name,
+// Rolle und Knöpfen (Krisz' PC, 21.11.2026, WINDOWS #184).
+export const TITEL_AIR = 10;
+export function roomTop(sf, x0, x1, H) {
+  let top = sf?.t ?? 0;
+  for (const r of sf?.rects ?? []) {
+    if (r.r <= x0 || r.l >= x1 || r.t > H * 0.45) continue;
+    if ((r.b ?? 0) < H * 0.45) top = Math.max(top, r.b + TITEL_AIR);
+  }
+  const T = sf?.titel;
+  if (T && Number.isFinite(T.b) && T.r > x0 && T.l < x1) top = Math.max(top, T.b + TITEL_AIR);
+  return top;
 }
 
 // ─── Datenblatt des Bauteils: rechte Tafel, solange ein Slot offen steht ──
@@ -1254,13 +1283,12 @@ export function holoLayer(ctx) {
     const W = ctx.W(), H = ctx.H();
     const x = P.side === 'left' ? safe.l + 18 + w / 2 + shift : W - safe.r - 18 - w / 2 - shift;
     const x0 = x - w / 2, x1 = x + w / 2;
-    let bottom = H - 22, top = safe.t ?? 0;
+    let bottom = H - 22;
     for (const r of safe.rects ?? []) {
       if (r.r <= x0 || r.l >= x1) continue;
       if (r.t > H * 0.45) bottom = Math.min(bottom, r.t - 14);
-      else if ((r.b ?? 0) < H * 0.45) top = Math.max(top, r.b + 10);
     }
-    return { x, x0, x1, bottom, top };
+    return { x, x0, x1, bottom, top: roomTop(safe, x0, x1, H) };
   }
   // Fenster der Auswahl: hängt an der linken Tafel, kein eigener Platz am Boden.
   // splitOff: lag es an diesem Schiff in diesem Bild einmal am Datenblatt an
@@ -1270,10 +1298,17 @@ export function holoLayer(ctx) {
   // keinen Platz hatte (pickRoom: höher als sie, oder unter dem Namen des
   // Schiffs bleibt zu wenig; mit Halterungen ist es höher); die anderen
   // Slots behalten ihr Fenster.
-  let splitOff = '', splitOffRow = '';
-  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}`;
+  // Der Titelblock (safe.titel, Lage und Unterkante) gehört dazu: Kommt er
+  // oder geht er, steht der Name woanders, und das Fenster bekommt eine neue
+  // Gelegenheit (CodeRabbit zu #396). Er wechselt nur, wenn das Hologramm am
+  // stehenden Schiff kommt oder geht, kein Hin und Her im Lauf. Ändert sich
+  // der Schlüssel, verfallen beide Sperren (splitFresh): Kehrt derselbe
+  // Block später zurück, lebt eine alte Sperre nicht wieder auf.
+  let splitOff = '', splitOffRow = '', splitAt = '';
+  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}|${safe.titel ? [safe.titel.l, safe.titel.r, safe.titel.b].map(Math.round).join(',') : ''}`;
+  const splitFresh = () => { const k = splitKey(); if (k !== splitAt) { splitAt = k; splitOff = splitOffRow = ''; } };
   const rowKey = (P) => `${splitKey()}|${P.data?.pick?.key ?? ''}`;
-  const canSplit = (P) => splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0);
+  const canSplit = (P) => (splitFresh(), splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0));
   // Gezeichnete Fläche einer Tafel im Bild: das Rechteck um ihre vier Ecken
   const edgeV = new THREE.Vector3();
   function boxPx(P) {
@@ -1288,6 +1323,7 @@ export function holoLayer(ctx) {
   const NAME_PROBE = 120;
   // zurück zur Liste unter der Zeile (row: nur für diesen Slot); redraw rollt sie ins Bild
   const noSplit = (L, F, row) => {
+    splitFresh();
     if (row) splitOffRow = rowKey(L); else splitOff = splitKey();
     F.group.visible = false; F.rect = null;
     redraw(L); settledAt = 0; ctx.wake(300);
@@ -1312,9 +1348,10 @@ export function holoLayer(ctx) {
     };
     // unter dem Namen des Schiffs bleiben, wo er in der Breite des Fensters
     // steht (er liegt als Text vor der Leinwand): gemessen an der Oberkante,
-    // einmal ganz oben an der Tafel und einmal NAME_PROBE Pixel tiefer
+    // einmal ganz oben an der Tafel und einmal NAME_PROBE Pixel tiefer. Ohne
+    // Hologramm steht er im Titelblock der Seite (safe.titel, roomTop)
     let min = 0;
-    const nb = ctx.name?.();
+    const nb = ctx.name?.() ?? safe.titel ?? null;
     if (nb) {
       put(0);
       const f = boxPx(F), near = F.minTop ? 24 : 8;
@@ -1668,7 +1705,8 @@ export function holoLayer(ctx) {
     const free = (pt) => {
       const px = toPx(pt);
       if (!px || px[0] < (safe.l ?? 0) + m || px[0] > W - (safe.r ?? 0) - m || px[1] < (safe.t ?? 0) + m || px[1] > H - m) return false;
-      if ((safe.rects ?? []).some((r) => px[0] > r.l - m && px[0] < r.r + m && px[1] > r.t - m && px[1] < (r.b ?? H) + m)) return false;
+      // Knöpfe, und der Titelblock, solange der Name dort steht (roomTop)
+      if ([...(safe.rects ?? []), ...(safe.titel ? [safe.titel] : [])].some((r) => px[0] > r.l - m && px[0] < r.r + m && px[1] > r.t - m && px[1] < (r.b ?? H) + m)) return false;
       return !built.panels.some((P) => P.group.visible && P.rect && px[0] > P.rect.l - m && px[0] < P.rect.r + m && px[1] > P.rect.t - m && px[1] < P.rect.b + m);
     };
     for (const sp of built.sprites) {
