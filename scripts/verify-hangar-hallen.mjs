@@ -608,7 +608,7 @@
        Hauptstrahler stellt (check:hangar-shader, Klinke strahler in
        KLINKE_FEST).
    (y) 21.11.2026, die Arbeitsszenen der Large-Halle ([5]; Krisz auf
-       der Karte vom 15.11.2026: „Alle vier einbauen“). Zwanzig
+       der Karte vom 15.11.2026: „Alle vier einbauen“). Einundzwanzig
        Eingriffe in den ausgelieferten Viewer (Block WORK_DEKO_FEST,
        dekoPlan), in beide Hangarseiten oder in eine Kopie des Tors,
        jeder rot, der Lauf danach grün (Läufer .cache/rot5.mjs, nicht im
@@ -657,7 +657,18 @@
        Arbeitsszenen, hat aber keine Klinke (KLINKE_DEKO) …“;
        stufe niedrig: „… stufe niedrig ist weder mittel noch hoch …“;
        der Block kein JSON mehr: „[5] WORK_DEKO_FEST im ausgelieferten
-       Viewer ist kein JSON mehr …“.
+       Viewer ist kein JSON mehr …“;
+       der Block null (nach dem Review von CodeRabbit): „[5]
+       WORK_DEKO_FEST ist keine Liste { Halle: { zonen } }, sondern
+       null“. Die erste Fassung meldete hier „keine Halle fester Groesse
+       traegt Arbeitsszenen, nichts zu messen“ und blieb grün.
+       Ebenso aus dem Review: Was auf einem anderen Stück liegt, braucht
+       darunter nach oben zeigende Dreiecke. Die erste Fassung ließ
+       Oberkante und Mitte in der Hülle genügen, und eine Kiste über
+       einem offenen Rahmen galt als getragen (vorgeführt in
+       tests/e2e/hall-deko.test.js, gegen die alte Fassung rot). Mit der
+       Regel bleiben alle 45 gestapelten Stücke getragen, und das um
+       0,5 m gehobene meldet weiter „… schweben …“.
        Nicht hier geprüft: ob die Szenen gut aussehen (.planning/
        WINDOWS.md #185), und dass die Bühne im Browser alle 119 Stücke
        stellt (check:hangar-shader, Klinke szenen in KLINKE_FEST, dort
@@ -1244,10 +1255,12 @@ say(`    ${frei} von ${Object.keys(FEST).length} Halle(n) ohne ungenutzte Dateie
 /* ---------- [5] Deko ---------- */
 say('[5] Deko: die Arbeitsszenen der Hallen fester Groesse am ausgelieferten Modell: jedes Stueck mit Knoten im Satz, auf dem Boden oder auf einem anderen Stueck, keines im Feld des Aufzugs, in der Halle, in einem anderen oder vor einem Fahrzeug');
 const dfm = /\/\* work-deko-fest \*\/([\s\S]*?)\/\* \/work-deko-fest \*\//.exec(viewerSrc);
-let DEKO_FEST = null;
-try { DEKO_FEST = dfm ? JSON.parse(dfm[1]) : null; } catch (e) { fail(`[5] WORK_DEKO_FEST im ausgelieferten Viewer ist kein JSON mehr (${e.message})`); }
+// gelesen: der Block war JSON. Erst dann zaehlt seine Form; ein Lesefehler ist schon gemeldet und wird nicht doppelt
+let DEKO_FEST = null, dekoGelesen = false;
+try { if (dfm) { DEKO_FEST = JSON.parse(dfm[1]); dekoGelesen = true; } } catch (e) { fail(`[5] WORK_DEKO_FEST im ausgelieferten Viewer ist kein JSON mehr (${e.message})`); }
 if (!dfm) fail('[5] der ausgelieferte Viewer traegt keinen Block /* work-deko-fest */ … /* /work-deko-fest */ — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
-if (DEKO_FEST && (typeof DEKO_FEST !== 'object' || Array.isArray(DEKO_FEST))) { fail('[5] WORK_DEKO_FEST ist keine Liste { Halle: { zonen } }'); DEKO_FEST = null; }
+// auch null: dekoPlan im Viewer griffe dann ins Leere (TypeError beim Laden jeder Halle), und [5] liefe ohne diese Pruefung still leer
+if (dekoGelesen && (DEKO_FEST === null || typeof DEKO_FEST !== 'object' || Array.isArray(DEKO_FEST))) { fail(`[5] WORK_DEKO_FEST ist keine Liste { Halle: { zonen } }, sondern ${JSON.stringify(DEKO_FEST).slice(0, 60)}`); DEKO_FEST = null; }
 for (const id of Object.keys(KLINKE_DEKO)) if (DEKO_FEST && !DEKO_FEST[id]) fail(`[5] ${id}: KLINKE_DEKO haelt Arbeitsszenen fuer diese Halle, WORK_DEKO_FEST nennt sie nicht mehr — die Halle stuende wieder leer; soll sie das, den Eintrag in KLINKE_DEKO per Commit mit Ursache entfernen`);
 let dekoKat = null;
 if (DEKO_FEST && Object.keys(DEKO_FEST).length) {
@@ -1325,7 +1338,7 @@ for (const [id, plan] of Object.entries(DEKO_FEST ?? {})) {
   const drei = (l) => l.slice(0, 3).join('; ');
   if (L.imFeld.length) fail(`${tag}: ${L.imFeld.length} Stuecke stehen im Feld des Aufzugs oder naeher als ${DEKO_ABSTAND} m daran (${drei(L.imFeld)}) — dort faehrt die Plattform mit dem Schiff: x/z in WORK_DEKO_FEST nachziehen`);
   if (L.ineinander.length) fail(`${tag}: ${L.ineinander.length} Paare von Stuecken stecken ineinander (${drei(L.ineinander)}) — x/z in WORK_DEKO_FEST nachziehen`);
-  if (L.schwebt.length) fail(`${tag}: ${L.schwebt.length} Stuecke schweben (${drei(L.schwebt)}) — darunter endet nichts derselben Zone auf dieser Hoehe`);
+  if (L.schwebt.length) fail(`${tag}: ${L.schwebt.length} Stuecke schweben (${drei(L.schwebt)}) — darunter hat kein Stueck derselben Zone auf dieser Hoehe eine tragende Flaeche (nach oben zeigende Dreiecke, nicht nur die Huelle)`);
   if (L.imSpur.length) fail(`${tag}: ${L.imSpur.length} Stuecke stehen vor einem Fahrzeug in seiner Fahrspur von ${DEKO_SPUR.laenge} m (${drei(L.imSpur)}) — neben oder hinter das Fahrzeug stellen`);
   // Die Halle am Ort der Deko: alle Dreiecke im Band ueber dem Boden und die nach oben zeigenden auf Bodenhoehe,
   // ohne die Teile, die mit dem Aufzug fahren (Torfluegel und Plattform stehen im Modell in Ruhe)

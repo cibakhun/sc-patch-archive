@@ -154,7 +154,7 @@ export function pruefeLage(stuecke, { oben, feld, abstand = 0, spur }) {
     const F = { c: [(feld.from[0] + feld.to[0]) / 2, (feld.from[1] + feld.to[1]) / 2], a: 0, hx: (feld.to[0] - feld.from[0]) / 2 + abstand, hz: (feld.to[1] - feld.from[1]) / 2 + abstand };
     for (const m of stuecke) { zahlen.feld++; if (ueberdeckung(m, F) > 0.01) imFeld.push(m.name); }
   }
-  // worauf ein Stück liegt: Ein anderes derselben Zone endet auf seiner Höhe, oder es hat dort eine Fläche
+  // worauf ein Stück liegt: Ein anderes derselben Zone hat unter ihm eine tragende Fläche
   const liegtAuf = new Map();
   for (const m of stuecke) {
     if (!m.auf) { zahlen.amBoden++; continue; }
@@ -162,8 +162,9 @@ export function pruefeLage(stuecke, { oben, feld, abstand = 0, spur }) {
     const traeger = [];
     for (const q of stuecke) {
       if (q === m || q.zone !== m.zone || q.y >= m.y) continue;
-      // q endet auf der Höhe von m und m steht mit seiner Mitte darauf, oder q hat dort eine tragende Fläche
-      const g = Math.abs(q.top - m.y) <= 0.06 && drin(q, m.c[0], m.c[1], 0.03) ? 1 : getragen(m, q, oben(q.node));
+      // gezählt werden die Dreiecke von q, nicht seine Hülle: Ein offener Rahmen endet auf der Höhe von m
+      // und trägt in seiner Mitte doch nichts (bis 21.11.2026 reichte Oberkante plus Mitte in der Hülle)
+      const g = getragen(m, q, oben(q.node));
       if (g >= 1) traeger.push({ q, g });
     }
     liegtAuf.set(m, traeger);

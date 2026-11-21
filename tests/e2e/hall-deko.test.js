@@ -112,6 +112,33 @@ test('pruefeLage: Stapel, getragene Last, Schweben, Ineinander', () => {
   assert.deepEqual(flach.ineinander, []);
 });
 
+test('pruefeLage: Oberkante allein trägt nicht, die Fläche darunter zählt (offener Rahmen gegen Tischplatte)', () => {
+  // ein Rahmen 2 × 2 m, 1 m hoch: vier Pfosten und vier Holme oben, in der Mitte offen
+  const rahmen = knotenFlaechen([
+    quader([-1, 0, -1], [-0.9, 1, -0.9]), quader([0.9, 0, -1], [1, 1, -0.9]), quader([0.9, 0, 0.9], [1, 1, 1]), quader([-1, 0, 0.9], [-0.9, 1, 1]),
+    quader([-1, 0.9, -1], [1, 1, -0.9]), quader([-1, 0.9, 0.9], [1, 1, 1]), quader([-1, 0.9, -1], [-0.9, 1, 1]), quader([0.9, 0.9, -1], [1, 1, 1]),
+  ]).oben;
+  // derselbe Umriss mit geschlossener Platte
+  const tisch = knotenFlaechen([quader([-1, 0.9, -1], [1, 1, 1]), quader([-0.1, 0, -0.1], [0.1, 0.9, 0.1])]).oben;
+  const oben = (n) => ({ rahmen, tisch }[n]);
+  const spur = { laenge: 8, rand: 0.3 };
+  const R = st('rahmen', [0, 0], [2, 1, 2], 0, 0, { node: 'rahmen' }), T = st('tisch', [0, 0], [2, 1, 2], 0, 0, { node: 'tisch' });
+  // die Kiste mitten über dem offenen Rahmen: Oberkante und Mitte stimmen, darunter ist nichts
+  const kiste = (c, y = 1) => st('kiste', c, [0.5, 0.4, 0.5], 0, y, { node: 'kiste' });
+  const offen = pruefeLage([R, kiste([0, 0])], { oben, feld: null, spur });
+  assert.deepEqual(offen.schwebt, ['kiste auf 1 m']);
+  assert.equal(offen.zahlen.getragen, 0);
+  // auf dem Holm des Rahmens liegt sie auf
+  assert.deepEqual(pruefeLage([R, kiste([0.8, 0])], { oben, feld: null, spur }).schwebt, []);
+  // auf der geschlossenen Platte liegt sie auf, ob in der Mitte oder am Rand
+  for (const c of [[0, 0], [0.6, -0.6]]) {
+    const zu = pruefeLage([T, kiste(c)], { oben, feld: null, spur });
+    assert.deepEqual([zu.schwebt, zu.zahlen.getragen], [[], 1], `Tisch, Kiste bei ${c}`);
+  }
+  // ohne Flächen (Knoten ohne Geometrie) trägt nichts, auch wenn die Hülle passt
+  assert.deepEqual(pruefeLage([st('leer', [0, 0], [2, 1, 2], 0, 0, { node: 'leer' }), kiste([0, 0])], { oben, feld: null, spur }).schwebt, ['kiste auf 1 m']);
+});
+
 test('pruefeLage: Feld des Aufzugs mit Abstand, Fahrspur vor dem Fahrzeug', () => {
   const oben = () => undefined, feld = { from: [-10, -20], to: [10, 20] }, spur = { laenge: 8, rand: 0.3 };
   const K = (name, c) => st(name, c, [1, 1, 1]);
