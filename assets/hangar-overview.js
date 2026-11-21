@@ -3473,9 +3473,18 @@ export function boot(doc) {
           const p = on(side), d = on(dockEl), b = on(nav), t = on(title), a = t && on(acts);
           const rects = keep.map(on);
           if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + a.height });
+          // Fand das Hologramm keinen Platz, steht der ganze Block im Bild:
+          // Name, Rolle, Groesse und darunter die Knoepfe. Die Tafeln bleiben
+          // darunter (titel, roomTop in hangar-holo3d.js); das Hologramm sieht
+          // nur rects, sonst faende es neben dem Block nie Platz (s. o.).
+          // Polaris und 890 Jump im XL nach dem Drehen lag die Ausruestung
+          // ueber Name und Knoepfen (Krisz' PC, 21.11.2026, WINDOWS #184).
+          const titel = t && main.dataset.holo !== 'on' && t.height > 2 ? t : null;
+          const px = (r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top });
           v.setSafe?.({
             l: d ? d.right - c.left + 14 : 0, t: b ? b.bottom - c.top + 14 : 0, r: p ? c.right - p.left + 14 : 0,
-            rects: rects.filter(Boolean).map((r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top })),
+            rects: rects.filter(Boolean).map(px),
+            titel: titel ? px(titel) : null,
           });
         };
         v.onHolo?.((on) => {

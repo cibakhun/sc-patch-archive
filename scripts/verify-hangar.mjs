@@ -761,6 +761,20 @@
     dt  dist/assets/hangar-viewer.js: in showShip die Zeile
         streichen, mit der das erste Bild beim Wechsel auf die
         Halle wartet (if (WECHSEL && !realHall …))                  -> [24]
+    du  dist/assets/hangar-holo3d.js: in roomTop die Zeile des
+        Titelblocks streichen (21.11.2026, Krisz' PC: Polaris und
+        890 Jump im XL nach dem Drehen, die Ausrüstung lag über
+        Name, Rolle und Knöpfen; 240 Lagen falsch)                  -> [21]
+    dv  dist/assets/hangar-overview.js: titel auch melden, wenn
+        das Hologramm steht (ohne main.dataset.holo !== 'on')      -> [21]
+    dw  dort titel nicht mehr an setSafe geben                      -> [21]
+    dx  dist/assets/hangar-viewer.js: das Namens-Hologramm nimmt
+        titel zu seinen rects (es fände neben dem Block nie
+        Platz, und der Block wiche nie)                             -> [21]
+    dy  dist/assets/hangar-holo3d.js: roomOf nimmt die Oberkante
+        wieder aus safe.t statt aus roomTop                         -> [21]
+    dz  dort placeFly fragt nur ctx.name?.() (das Fenster der
+        Auswahl ginge ohne Hologramm über den Titelblock)           -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2659,7 +2673,7 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14943 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14943, titel: 4200 };
 // Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
 // Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
 // Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
@@ -2698,7 +2712,7 @@ const KANTE_ANGESEHEN = 0.065;
   // richtung kamera schauen“). Nachgerechnet am ausgelieferten Modul, mit
   // eigener Geometrie statt seiner Winkel: was das Auge sieht, ist, welche
   // Kante der Tafel naeher an der Kamera steht und um wie viel.
-  let schaut = '—', stellungen = 0, fensterIst = '—', fensterLagen = 0;
+  let schaut = '—', stellungen = 0, fensterIst = '—', fensterLagen = 0, titelIst = '—', titelLagen = 0;
   if (holoSrc) {
     let hm = null;
     try { hm = await import(pathToFileURL(holoFile).href); } catch (e) { fail(`[21] dist/assets/hangar-holo3d.js laedt nicht als Modul (${e.message})`); }
@@ -2860,6 +2874,54 @@ const KANTE_ANGESEHEN = 0.065;
         fensterIst = falsch.length ? `${falsch.length} Lagen falsch` : `Naht ${naht.length ? 'mit Lücke' : 'ganz'}, neben der Tafel ab ${ab} px Bildbreite (mit Seitenleiste), darunter unter der Zeile; ${fensterLagen} Lagen nachgerechnet`;
       }
     }
+    // Tafeln unter dem Titelblock der Seite (WINDOWS #184): Findet das
+    // Hologramm des Namens keinen Platz, steht der Name samt Rolle, Groesse
+    // und Knoepfen oben links, und die Ausruestung beginnt darunter. Auf
+    // Krisz' PC lag sie am 21.11.2026 nach dem Drehen (Polaris, 890 Jump im
+    // XL) ueber Name und Knoepfen, weil die Seite vom Block nur die
+    // Knopfreihe an ihrem oberen Platz meldete. Nachgerechnet an roomTop
+    // mit eigener Erwartung, dazu die Naht: die Seite meldet den Block nur
+    // ohne Hologramm (titel), das Modul nimmt ihn fuer Hoehe, Schilder und
+    // Fenster der Auswahl, das Hologramm selbst sieht ihn nicht.
+    if (hm) {
+      const src = holoSrc.toString('utf8'), falsch = [];
+      const nameHolo = /safe\(s\) \{\s*for \(const k of \['l', 't', 'r'\]\)[^\n]*\n\s*if \(Array\.isArray\(s\?\.rects\)\) safe\.rects = s\.rects;\s*\}/.test(viewer) && !/\btitel\b/.test(viewer);
+      const tnaht = [
+        [/return \{ x, x0, x1, bottom, top: roomTop\(safe, x0, x1, H\) \};/.test(src), 'dist/assets/hangar-holo3d.js: roomOf nimmt die Oberkante nicht mehr aus roomTop: die Höhe der Tafel fragt den Titelblock nicht'],
+        [/const nb = ctx\.name\?\.\(\) \?\? safe\.titel \?\? null;/.test(src), 'dist/assets/hangar-holo3d.js: das Fenster der Auswahl bleibt nicht mehr unter dem Namen im Titelblock (ctx.name ?? safe.titel in placeFly)'],
+        [/\.\.\.\(safe\.titel \? \[safe\.titel\] : \[\]\)\]\.some\(/.test(src), 'dist/assets/hangar-holo3d.js: die Schilder an den Maßlinien (placeLabels) meiden den Titelblock nicht mehr'],
+        [/const titel = t && main\.dataset\.holo !== 'on' && t\.height > 2 \? t : null;/.test(ctrl) && /titel: titel \? px\(titel\) : null,/.test(ctrl), 'dist/assets/hangar-overview.js: die Seite meldet den sichtbaren Titelblock nicht mehr an setSafe (titel), oder auch dann, wenn das Hologramm steht'],
+        [nameHolo, 'dist/assets/hangar-viewer.js: das Hologramm des Namens nimmt aus setSafe mehr als l, t, r und rects (titel): neben dem ganzen Block fände es nie Platz, und der Block wiche nie'],
+      ].filter(([ok]) => !ok).map(([, text]) => text);
+      for (const text of tnaht) fail(`[21] Tafel unter dem Titelblock, ${text}`);
+      if (typeof hm.roomTop !== 'function' || !(hm.TITEL_AIR >= 8)) {
+        fail('[21] dist/assets/hangar-holo3d.js exportiert roomTop oder TITEL_AIR (wenigstens 8 px) nicht mehr: ob die Tafel unter dem Titelblock beginnt, prueft dann nichts');
+      } else {
+        const A = hm.TITEL_AIR;
+        // Bild 1920 x 793 (Krisz' Fenster ohne Kopfzeile), Kopfzeile bis 14 px,
+        // Knopfreihe des Titels oben links (92..236, 30..70)
+        for (const H of [560, 793, 1200]) for (const st of [0, 14]) for (const knopf of [null, { l: 92, t: 30, r: 236, b: 70 }]) {
+          const sf0 = { t: st, rects: knopf ? [knopf, { l: 60, t: H - 60, r: 300, b: H - 20 }] : [] };
+          for (let x0 = 0; x0 <= 1700; x0 += 50) for (const breite of [300, 420]) {
+            const x1 = x0 + breite;
+            const ohne = hm.roomTop(sf0, x0, x1, H);
+            const soll0 = Math.max(st, knopf && knopf.r > x0 && knopf.l < x1 ? knopf.b + A : -Infinity);
+            titelLagen++;
+            if (ohne !== soll0) { falsch.push(`Bild ${H} px, Streifen ${x0} bis ${x1} px ohne Titelblock: Oberkante ${ohne} statt ${soll0} px`); break; }
+            if (hm.roomTop({ ...sf0, titel: null }, x0, x1, H) !== ohne) { falsch.push(`Bild ${H} px, Streifen ${x0} bis ${x1} px: titel null verschiebt die Oberkante`); break; }
+            if (hm.roomTop({ ...sf0, titel: { l: 30, t: 20, r: 500, b: NaN } }, x0, x1, H) !== ohne) { falsch.push(`Bild ${H} px, Streifen ${x0} bis ${x1} px: ein Titelblock ohne Unterkante verschiebt die Oberkante`); break; }
+            for (const tb of [120, 228, 300, H * 0.6]) {
+              titelLagen++;
+              const T = { l: 30, t: 20, r: 500, b: tb }, mit = hm.roomTop({ ...sf0, titel: T }, x0, x1, H), trifft = T.r > x0 && T.l < x1;
+              const soll = trifft ? Math.max(soll0, tb + A) : soll0;
+              if (mit !== soll) { falsch.push(`Bild ${H} px, Streifen ${x0} bis ${x1} px, Titelblock bis ${tb} px: Oberkante ${mit} statt ${soll} px${trifft && mit < tb ? ', die Tafel läge über dem Namen' : ''}`); break; }
+            }
+          }
+        }
+        for (const t of falsch.slice(0, 5)) fail(`[21] Tafel unter dem Titelblock, ${t}`);
+        titelIst = falsch.length ? `${falsch.length} Lagen falsch` : `Naht ${tnaht.length ? 'mit Lücke' : 'ganz'}, ${titelLagen} Lagen nachgerechnet`;
+      }
+    }
   }
   // Tafel „Ausruestung“ in der Halle: Werkstatt, Controller und Modul halten
   // dieselbe Naht (board hin, act zurueck)
@@ -2934,6 +2996,8 @@ const KANTE_ANGESEHEN = 0.065;
   if (stellungen < STATIONEN.stellungen) fail(`[21] nur ${stellungen} Stellungen der Tafeln nachgerechnet (Klinke ${STATIONEN.stellungen}): das Modul laedt nicht oder exportiert die Rechnung nicht mehr`);
   sollIst(`Auswahl als Fenster neben der Tafel „Ausrüstung“: Naht ganz, nie über dem Datenblatt, an der offenen Zeile, innerhalb der Tafel; Lagen >= ${STATIONEN.fenster}`, fensterIst);
   if (fensterLagen < STATIONEN.fenster) fail(`[21] nur ${fensterLagen} Lagen des Fensters der Auswahl nachgerechnet (Klinke ${STATIONEN.fenster}): das Modul laedt nicht oder exportiert pickFits und pickTop nicht mehr`);
+  sollIst(`Tafeln unter dem Titelblock, wenn der Name nicht als Hologramm steht: Naht Seite, Modul, Viewer ganz; Lagen >= ${STATIONEN.titel}`, titelIst);
+  if (titelLagen < STATIONEN.titel) fail(`[21] nur ${titelLagen} Lagen der Tafel unter dem Titelblock nachgerechnet (Klinke ${STATIONEN.titel}): das Modul laedt nicht oder exportiert roomTop nicht mehr`);
   ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
 }
 

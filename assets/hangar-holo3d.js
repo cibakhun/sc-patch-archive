@@ -840,6 +840,26 @@ export function pickBelow(y0, s, nameB) {
   return Math.max(0, Math.ceil((nameB + PICK_NAME_AIR - y0) / q / 8) * 8);
 }
 
+// Oberkante des freien Streifens x0..x1 im Bild der Höhe H, unter der eine
+// Tafel beginnen darf. sf = setSafe der Seite: unter der Kopfzeile (t), unter
+// Knöpfen in der oberen Hälfte (rects) und, solange er sichtbar ist, unter
+// dem ganzen Titelblock (titel). Den reicht die Seite nur, wenn das Hologramm
+// des Namens keinen Platz fand und der Name oben links steht; das Hologramm
+// selbst sieht ihn nicht, sonst wiche der Block nie (hangar-overview.js).
+// Polaris und 890 Jump im XL nach dem Drehen lag die Ausrüstung über Name,
+// Rolle und Knöpfen (Krisz' PC, 21.11.2026, WINDOWS #184).
+export const TITEL_AIR = 10;
+export function roomTop(sf, x0, x1, H) {
+  let top = sf?.t ?? 0;
+  for (const r of sf?.rects ?? []) {
+    if (r.r <= x0 || r.l >= x1 || r.t > H * 0.45) continue;
+    if ((r.b ?? 0) < H * 0.45) top = Math.max(top, r.b + TITEL_AIR);
+  }
+  const T = sf?.titel;
+  if (T && Number.isFinite(T.b) && T.r > x0 && T.l < x1) top = Math.max(top, T.b + TITEL_AIR);
+  return top;
+}
+
 // ─── Datenblatt des Bauteils: rechte Tafel, solange ein Slot offen steht ──
 // Einordnung wie in Detail Pages 2.0 (Richtung B): jeder Wert als Streifen
 // seiner Klasse. Jedes Teil der Klasse ein Punkt (mehrere mit demselben Wert:
@@ -1254,13 +1274,12 @@ export function holoLayer(ctx) {
     const W = ctx.W(), H = ctx.H();
     const x = P.side === 'left' ? safe.l + 18 + w / 2 + shift : W - safe.r - 18 - w / 2 - shift;
     const x0 = x - w / 2, x1 = x + w / 2;
-    let bottom = H - 22, top = safe.t ?? 0;
+    let bottom = H - 22;
     for (const r of safe.rects ?? []) {
       if (r.r <= x0 || r.l >= x1) continue;
       if (r.t > H * 0.45) bottom = Math.min(bottom, r.t - 14);
-      else if ((r.b ?? 0) < H * 0.45) top = Math.max(top, r.b + 10);
     }
-    return { x, x0, x1, bottom, top };
+    return { x, x0, x1, bottom, top: roomTop(safe, x0, x1, H) };
   }
   // Fenster der Auswahl: hängt an der linken Tafel, kein eigener Platz am Boden.
   // splitOff: lag es an diesem Schiff in diesem Bild einmal am Datenblatt an
@@ -1312,9 +1331,10 @@ export function holoLayer(ctx) {
     };
     // unter dem Namen des Schiffs bleiben, wo er in der Breite des Fensters
     // steht (er liegt als Text vor der Leinwand): gemessen an der Oberkante,
-    // einmal ganz oben an der Tafel und einmal NAME_PROBE Pixel tiefer
+    // einmal ganz oben an der Tafel und einmal NAME_PROBE Pixel tiefer. Ohne
+    // Hologramm steht er im Titelblock der Seite (safe.titel, roomTop)
     let min = 0;
-    const nb = ctx.name?.();
+    const nb = ctx.name?.() ?? safe.titel ?? null;
     if (nb) {
       put(0);
       const f = boxPx(F), near = F.minTop ? 24 : 8;
@@ -1668,7 +1688,8 @@ export function holoLayer(ctx) {
     const free = (pt) => {
       const px = toPx(pt);
       if (!px || px[0] < (safe.l ?? 0) + m || px[0] > W - (safe.r ?? 0) - m || px[1] < (safe.t ?? 0) + m || px[1] > H - m) return false;
-      if ((safe.rects ?? []).some((r) => px[0] > r.l - m && px[0] < r.r + m && px[1] > r.t - m && px[1] < (r.b ?? H) + m)) return false;
+      // Knöpfe, und der Titelblock, solange der Name dort steht (roomTop)
+      if ([...(safe.rects ?? []), ...(safe.titel ? [safe.titel] : [])].some((r) => px[0] > r.l - m && px[0] < r.r + m && px[1] > r.t - m && px[1] < (r.b ?? H) + m)) return false;
       return !built.panels.some((P) => P.group.visible && P.rect && px[0] > P.rect.l - m && px[0] < P.rect.r + m && px[1] > P.rect.t - m && px[1] < P.rect.b + m);
     };
     for (const sp of built.sprites) {
