@@ -3493,7 +3493,7 @@
         {
           "name": "New for aUEC",
           "system": "Ship systems",
-          "desc": "Eight ships that were already flyable can be bought in game with aUEC for the first time. New Deal in Lorville stocks the Tiburon and Starlite. Teach's Ship Shop on Levski has the Ironclad, Pitbull and Starlite. Ruin Station, Checkmate and Orbituary in Pyro sell the Ironclad Assault, Pitbull and Basher, and Astro Armada in Area18 sells the M80 and Tyilui.",
+          "desc": "Eight ships that were already flyable can be bought in game with aUEC for the first time. New Deal in Lorville stocks the Tiburon and Starlite. Teach's Ship Shop on Levski has the Ironclad, Pitbull and Starlite. Rundown Station in Pyro sells the Ironclad Assault, Pitbull and Basher, according to the patch notes, and Astro Armada in Area18 sells the M80 and Tyilui.",
           "facts": [
             {
               "label": "Lorville · New Deal",
@@ -3504,7 +3504,7 @@
               "value": "Ironclad, Pitbull, Starlite"
             },
             {
-              "label": "Pyro · Ruin Station, Checkmate, Orbituary",
+              "label": "Pyro · Rundown Station (per the patch notes)",
               "value": "Ironclad Assault, Pitbull, Basher"
             },
             {

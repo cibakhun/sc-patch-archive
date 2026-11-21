@@ -178,10 +178,12 @@ export async function chronik4103(lang: Locale): Promise<Chronik> {
     const ab = n(Math.min(...e.angebote.map((a) => a.preis)));
     return T(`ab ${ab} aUEC`, `from ${ab} aUEC`);
   };
+  /* Eine Station dieses Namens fuehren die Spieldaten nicht; UEX Corp listet den Haendler unter anderen Stationen. */
+  const laden = (l: string) => (l === 'Rundown Station, Pyro' ? T('Rundown Station, Pyro (laut Patch Notes)', 'Rundown Station, Pyro (per the patch notes)') : l);
   const karten: KaufbarKarte[] = Object.keys(LAEDEN).map((id) => ({
-    name: schiff(id), rolle: vRoleCig(id, fz(id), lang) ?? '', bild: rsiBild(id, lang), laeden: LAEDEN[id], preis: preisAb(id),
+    name: schiff(id), rolle: vRoleCig(id, fz(id), lang) ?? '', bild: rsiBild(id, lang), laeden: LAEDEN[id].map(laden), preis: preisAb(id),
   }));
-  const preisStempel: Satz = [T('Preise: ', 'Prices: '), { t: 'UEX Corp', h: UEX }, T(`, Stand ${preiseVom}`, `, as of ${preiseVom}`)];
+  const preisStempel: Satz = [T('Preise: ', 'Prices: '), { t: 'UEX Corp', h: UEX }, T(`, Stand ${preiseVom}. In Pyro listet UEX Corp Buy and Fly in Ruin Station, Checkmate und Orbituary.`, `, as of ${preiseVom}. In Pyro, UEX Corp lists Buy and Fly at Ruin Station, Checkmate and Orbituary.`)];
 
   /* ---- Bestehende Schiffe: Zeilen der Liste „Geändert“, nach Thema ---- */
   const felderVon = (id: string) => {

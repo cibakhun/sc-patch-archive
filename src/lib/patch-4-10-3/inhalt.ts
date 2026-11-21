@@ -351,7 +351,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const ORTE: Record<string, { haendler: string; ort: string; passt: (b: Buy) => boolean }> = {
     lorville: { haendler: 'New Deal', ort: 'Lorville', passt: (b) => b.where === 'Lorville' },
     levski: { haendler: "Teach's Ship Shop", ort: 'Levski', passt: (b) => b.where === 'Levski' },
-    pyro: { haendler: 'Buy and Fly', ort: T('Ruin Station, Checkmate und Orbituary · Pyro', 'Ruin Station, Checkmate and Orbituary · Pyro'), passt: (b) => b.system === 'Pyro' },
+    pyro: { haendler: 'Rundown Station', ort: T('Pyro, laut Patch Notes', 'Pyro, per the patch notes'), passt: (b) => b.system === 'Pyro' },
     area18: { haendler: 'Astro Armada', ort: 'Area18', passt: (b) => b.where === 'Area 18' },
   };
   const AUEC: [string, string, string[]][] = [
