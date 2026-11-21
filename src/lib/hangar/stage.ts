@@ -36,6 +36,8 @@ export interface HallConfig {
   readonly lift?: { url: string; json: string; bytes?: number; gate?: { url: string; json: string; bytes?: number } | null; rand?: { url: string; json: string; bytes?: number } | null; sound?: { dir: string; v: string } | null } | null;
   /** Werkstatt: Requisiten (glb), Boden-Decals (boden, eigene Datei fuers Telefon), Anordnung (json), placeWorkshop im Viewer; dienst: Geraetesatz fuer den Wartungsplatz am Schiff (scripts/build-hangar-dienst.mjs), layDienst im Viewer; deko: Satz der Hallendeko (build-hangar-dienst.mjs deko), buildDeko im Viewer */
   readonly workshop?: { url: string; json: string; bytes?: number; boden?: { url: string; bytes?: number } | null; dienst?: { url: string; bytes?: number } | null; deko?: { url: string; bytes?: number } | null } | null;
+  /** Satz der Hallendeko fuer eine Halle fester Groesse (dieselbe Datei wie workshop.deko); der Viewer laedt ihn nur, wenn WORK_DEKO_FEST fuer sie Zonen traegt */
+  readonly deko?: { url: string; bytes?: number } | null;
   /** Werkhalle fuer Bodenfahrzeuge: Garage aus dem Spiel (glb), ihre Masse, Tor und Leuchtkoerper (json), Bühnen (buehne, glb), Leitungen unter der Decke (decke, glb, WERK_DECKE); WERK im Viewer stellt sie hinter die Westnische */
   readonly werk?: { id: string; url: string; json: string; bytes?: number; buehne?: { url: string; bytes?: number } | null; decke?: { url: string; bytes?: number } | null } | null;
 }

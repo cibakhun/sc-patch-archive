@@ -359,6 +359,38 @@
    Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die Carrack in
    der Large-Halle unveraendert 6 (Klinke 6).
 
+   ARBEITSSZENEN (21.11.2026, Krisz auf der Karte vom 15.11.2026: „Alle
+   vier einbauen“). Die Large-Halle traegt vier Arbeitsszenen an ihren
+   Waenden (WORK_DEKO_FEST im Viewer, Satz aus halls.L.deko der Seite).
+   Ob jedes Stueck frei steht, misst verify:hangar-hallen [5] am
+   ausgelieferten Modell; ob die Buehne sie im Browser auch stellt, nur
+   dieser Lauf: Sie nennt in ihrer Zeile "[hangar] Arbeitsszenen der
+   Halle <id>: N Zonen, M Requisiten, …; weggelassen K[, J ohne Knoten]"
+   die Zahl, und der Lauf haelt M gegen die Klinke szenen der Halle
+   (KLINKE_FEST), weggelassen und ohne Knoten muessen 0 sein. Eine Halle
+   ohne diese Klinke traegt keine; meldet ihre Buehne doch welche, ist
+   der Lauf rot. Nach --wechsel wie die Lampen: nur eine Zeile der neuen
+   Buehne zaehlt fuer die Endhalle, die der ersten vor dem Wechsel.
+   Vorgefuehrt rot (21.11.2026, vier Laeufe mit --ship anvl-carrack, je
+   1 FEHLER; zwei mit einer Kopie des Skripts, zwei mit einem Eingriff in
+   den ausgelieferten Viewer): Klinke 120: „die Buehne der Halle
+   util-lrgtop hat 119 Stuecke ihrer Arbeitsszenen gestellt, Klinke 120:
+   Zonen fehlen oder stehen erst auf einer hoeheren Stufe“; die Halle
+   ohne Klinke szenen: „die Buehne der Halle util-lrgtop stellt
+   Arbeitsszenen, die Halle hat keine Klinke szenen (KLINKE_FEST): fielen
+   sie wieder weg, bliebe dieser Lauf gruen“; die Zeile umbenannt: „der
+   Viewer meldet keine Zeile "[hangar] Arbeitsszenen der Halle …“: ob
+   die Buehne der Halle util-lrgtop ihre Arbeitsszenen gestellt hat
+   (Klinke 119 Stuecke), ist ungeprueft; …“; ein Stueck mit einem
+   Knoten, den der Satz nicht traegt (Klinke dafuer 118): „die Buehne
+   der Halle util-lrgtop hat 1 Stuecke ihrer Arbeitsszenen weggelassen
+   (weggelassen 0, 1 ohne Knoten; …)“. Ohne Eingriff: „Arbeitsszenen der
+   Halle util-lrgtop: 5 Zonen, 119 Requisiten, …, 466070 Dreiecke in 57
+   Meshes, 270 Schichtzeilen; weggelassen 0“, ebenso nach dem Wechsel
+   von der Gladius und vor dem Wechsel zu ihr.
+   Grenze: Der Lauf zaehlt, er sieht nicht hin. Ob die Szenen gut
+   aussehen, ist ein Sichturteil (.planning/WINDOWS.md #185).
+
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
        (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
@@ -556,8 +588,18 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // Bilder aus komprimierten Zwillingen, keins aus dem WebP.
 // util-lrgtop am 18.11.2026 mit der Carrack: 65 Programme, eins mit Schichttafel
 // (schichten 0 -> 1, der Wartungsplatz), 613 Bilder, 109 MB, 114 gedaempft.
+// szenen: so viele Stuecke ihrer Arbeitsszenen hat die Buehne gestellt (Zeile "[hangar]
+// Arbeitsszenen der Halle <id>: …", WORK_DEKO_FEST im Viewer). util-lrgtop seit
+// 21.11.2026: 119 von 119, weggelassen 0. Eine Halle ohne diese Klinke traegt keine;
+// meldet ihre Buehne doch welche, ist der Lauf rot.
+// util-lrgtop am 21.11.2026 mit der Carrack und den Arbeitsszenen (drei Laeufe:
+// allein, nach dem Wechsel von der Gladius, vor dem Wechsel zur Gladius, alle gleich):
+// 65 Programme, zwei mit Schichttafel (der Wartungsplatz und die Arbeitsszenen, je
+// ein eigener Satz), 678 Bilder freigegeben (276 MB), 109 MB Geometrie, weiter
+// hoechstens 15 Texturen je Bildshader. Klinken: programme 48 -> 58, schichten 1 -> 2,
+// frei 500 -> 610 (rund ein Zehntel unter dem Gemessenen wie bei den anderen Hallen).
 const KLINKE_FEST = {
-  'util-lrgtop': { programme: 48, schichten: 1, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6 },
+  'util-lrgtop': { programme: 58, schichten: 2, frei: 610, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6, szenen: 119 },
   'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
   'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
   'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6, strahler: 4 },
@@ -627,7 +669,7 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '', gitter = '', lampen = '';
+let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '', gitter = '', lampen = '', szenen = '';
 // Hallen fester Groesse, deren Zeile der Seite den Geraetesatz des Wartungsplatzes traegt (platzUrteil)
 let mitDienst = [];
 // Wie oft die Halle sich gemeldet hat (dekoN, aufzugN: jede Buehne meldet sich einmal) und bei welcher Zeile des
@@ -667,6 +709,7 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Texturen bleiben WebP:')) ktxAus = t;
   if (t.startsWith('[hangar] Lichtgitter ')) { gitter = t; kam.gitter = zeilen; }
   if (/^\[hangar\] \d+ Lampen aus \d+ Spiellampen /.test(t)) { lampen = t; kam.lampen = zeilen; }
+  if (t.startsWith('[hangar] Arbeitsszenen der Halle ')) { szenen = t; kam.szenen = zeilen; }
   if (t.startsWith('[hangar] Zwilling ')) ktxFehlt.push(t.slice(9, 200));
 });
 const bildFehler = [];
@@ -771,7 +814,7 @@ try {
   if (steht && WECHSEL) {
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
     // was die erste Buehne gemeldet hat: Die neue ueberschreibt jede dieser Zeilen mit ihrer eigenen
-    const stand = { K, frei, geo, ktx, paesse, viewer, gitter, lampen, platz, fest, n: vorher, dekoN, aufzugN, zeilen };
+    const stand = { K, frei, geo, ktx, paesse, viewer, gitter, lampen, platz, szenen, fest, n: vorher, dekoN, aufzugN, zeilen };
     let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
     while (!(erst = await aufDemFeld()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
@@ -808,6 +851,7 @@ try {
             if (!(kam.paesse > stand.zeilen)) paesse = '';
             if (!(kam.gitter > stand.zeilen)) gitter = '';
             if (!(kam.lampen > stand.zeilen)) lampen = '';
+            if (!(kam.szenen > stand.zeilen)) szenen = '';
             if (neuFest && !KLINKE_FEST[h1]) { fehler.push(`die Halle ${h1} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; steht = false; }
             else K = neuFest ? KLINKE_FEST[h1] : KLINKE;
           }
@@ -900,6 +944,23 @@ function strahlerUrteil(zeile, k, halle, wo) {
   else if (!(n >= k.strahler)) fehler.push(`${wo ? `${wo}: ` : ''}die Buehne der Halle ${halle} hat ${n} Hauptstrahler gestellt, Klinke ${k.strahler}: ihre Fluter strahlen wieder in der Farbe des Spiels und von beiden Seiten gleich stark, das Schiff steht tuerkis und ohne Form da (Krisz, 18.11.2026: „die beleuchtung [ist] super kacke“; HALL_FEST.strahler, hallStrahler und loadHallLights im Viewer; nennt die Lampendatei ihre Staerke anders, passt die Schwelle ab nicht mehr)`);
 }
 
+// ARBEITSSZENEN einer Halle fester Groesse: wie viele Stuecke ihre Buehne gestellt hat (Zeile "[hangar]
+// Arbeitsszenen der Halle <id>: N Zonen, M Requisiten, …; weggelassen K"), gegen die Klinke szenen. Wo jedes
+// Stueck steht, prueft verify:hangar-hallen [5] am Modell; dass die Buehne sie stellt, kann nur sie selbst
+// melden. Eine Halle ohne diese Klinke traegt keine; meldet ihre Buehne doch welche, fehlt die Klinke, und der
+// Lauf ist rot (fielen sie spaeter weg, bliebe er sonst gruen).
+function szenenUrteil(zeile, k, halle, wo) {
+  if (k.szenen === undefined && !zeile) return;
+  const m = zeile ? /^\[hangar\] Arbeitsszenen der Halle (\S+): (\d+) Zonen, (\d+) Requisiten, .*; weggelassen (\d+)(?:.*?, (\d+) ohne Knoten)?/.exec(zeile) : null;
+  const vorn = wo ? `${wo}: ` : '', n = m ? Number(m[3]) : NaN, weg = m ? Number(m[4]) + Number(m[5] ?? 0) : NaN;
+  console.log(`  Arbeitsszenen${wo ? ` ${wo}` : ''}: ${zeile ? zeile.slice(9, 200) : 'keine Zeile'} (Klinke ${k.szenen ?? '—'} Stuecke)`);
+  if (k.szenen === undefined) fehler.push(`${vorn}die Buehne der Halle ${halle} stellt Arbeitsszenen, die Halle hat keine Klinke szenen (KLINKE_FEST): fielen sie wieder weg, bliebe dieser Lauf gruen`);
+  else if (!m) fehler.push(`${vorn}der Viewer meldet keine Zeile "[hangar] Arbeitsszenen der Halle …: N Zonen, M Requisiten, …; weggelassen K": ob die Buehne der Halle ${halle} ihre Arbeitsszenen gestellt hat (Klinke ${k.szenen} Stuecke), ist ungeprueft; die Halle stuende leer (WORK_DEKO_FEST und buildDeko im Viewer, halls.<Stufe>.deko der Seite)`);
+  else if (m[1] !== halle) fehler.push(`${vorn}die Buehne meldet Arbeitsszenen fuer die Halle ${m[1]}, es steht ${halle}`);
+  else if (!(n >= k.szenen)) fehler.push(`${vorn}die Buehne der Halle ${halle} hat ${n} Stuecke ihrer Arbeitsszenen gestellt, Klinke ${k.szenen}: Zonen fehlen oder stehen erst auf einer hoeheren Stufe`);
+  else if (weg > 0) fehler.push(`${vorn}die Buehne der Halle ${halle} hat ${weg} Stuecke ihrer Arbeitsszenen weggelassen (${zeile.slice(zeile.indexOf('weggelassen'), 220)}): Der Satz traegt ihre Knoten nicht, oder sie stiessen an`);
+}
+
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
 // Nach einem Hallenwechsel zaehlen fuer die Klinken der Halle am Ende nur die Programme seit dem Wechsel
 const seit = progs.slice(vor ? vor.n : 0);
@@ -921,11 +982,11 @@ if (vor) {
   if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
   else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
   if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
-  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); platzUrteil(vor.platz, vor.K, vor.halle, wo); strahlerUrteil(vor.lampen, vor.K, vor.halle, wo); }
+  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); platzUrteil(vor.platz, vor.K, vor.halle, wo); strahlerUrteil(vor.lampen, vor.K, vor.halle, wo); szenenUrteil(vor.szenen, vor.K, vor.halle, wo); }
 }
 console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
-console.log(`  ${fest ? `Halle fester Groesse ${fest}, ohne Hallendeko: ${aufzug.slice(9, 100)}` : deko ? deko.slice(9, 100) : 'Hallendeko: —'}`);
+console.log(`  ${fest ? `Halle fester Groesse ${fest}, Aufzug statt der Hallendeko von Revel & York: ${aufzug.slice(9, 100)}` : deko ? deko.slice(9, 100) : 'Hallendeko: —'}`);
 console.log(`  Viewer meldet: ${viewer ? viewer.slice(9) : '—'}`);
 for (const p of ueber) fehler.push(`${p.name} braucht ${p.n} Texturen, Grenze ${GRENZE}: unter Windows unsichtbar`);
 for (const p of kaputt) fehler.push(p.zaehlung ? `Zaehlung eines Programms fehlgeschlagen (${p.zaehlung}): ungeprueft` : `${p.name} linkt nicht`);
@@ -973,7 +1034,7 @@ if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programm
 if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
 // nach einem Hallenwechsel die Endhalle mit ihrer eigenen Zeile (platz ist dann geleert, wenn die neue Buehne keine meldete)
-if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); platzUrteil(platz, K, fest, ''); strahlerUrteil(lampen, K, fest, ''); }
+if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); platzUrteil(platz, K, fest, ''); strahlerUrteil(lampen, K, fest, ''); szenenUrteil(szenen, K, fest, ''); }
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {

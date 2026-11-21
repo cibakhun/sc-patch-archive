@@ -64,6 +64,23 @@
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
        solchen Halle in dist/, und keine Datei mit Bahnen eines Aufzugs,
        die keine Hangarseite nennt
+   [5] Deko: die Arbeitsszenen einer Halle fester Größe (WORK_DEKO_FEST
+       im Viewer). Diese Hallen messen im Browser keinen Grundriss (bei
+       1,8 Mio. Dreiecken kostete er Ladezeit), die Bühne stellt jedes
+       Stück so hin, wie der Block es nennt. Darum hier am ausgelieferten
+       Modell, mit der Rechnung des Viewers (dekoGlieder) und
+       scripts/lib/hall-deko.mjs: Der Block ist der Plan, den die Bühne
+       für die Halle nimmt (dekoPlan), die Seite gibt ihr den Satz mit;
+       jede Zone nennt Stufe, Wand, Bezugspunkt und eine Herkunft aus dem
+       Katalog; jeder Knoten steht mit Geometrie im Satz; kein Stück im
+       Feld des Aufzugs oder näher als 1 m daran, keines in einem
+       anderen, keines schwebt, keines vor einem Fahrzeug in dessen
+       Fahrspur; keines steckt in der Halle (Dreiecke des Modells gegen
+       den Quader des Stücks, ohne die fahrenden Teile des Aufzugs), und
+       unter jedem, das am Boden steht, liegt Boden. Gegenprobe im selben
+       Lauf: Am Bezugspunkt jeder Zone (er liegt auf ihrer Wand) trifft
+       dieselbe Messung die Halle; täte sie es nirgends, liefe sie leer.
+       Klinken und Obergrenzen je Halle (KLINKE_DEKO, OBERGRENZE_DEKO)
 
    Schiene A: liest dist/ und für [3] das Manifest
    src/data/hangar-assets.json. Kein git, kein Netz, kein Kindprozess. Im
@@ -590,6 +607,61 @@
        (.planning/WINDOWS.md), und dass die Bühne im Browser vier
        Hauptstrahler stellt (check:hangar-shader, Klinke strahler in
        KLINKE_FEST).
+   (y) 21.11.2026, die Arbeitsszenen der Large-Halle ([5]; Krisz auf
+       der Karte vom 15.11.2026: „Alle vier einbauen“). Zwanzig
+       Eingriffe in den ausgelieferten Viewer (Block WORK_DEKO_FEST,
+       dekoPlan), in beide Hangarseiten oder in eine Kopie des Tors,
+       jeder rot, der Lauf danach grün (Läufer .cache/rot5.mjs, nicht im
+       Repo):
+       ein Container 0,6 m in die Kabinenwand: „… 1 Stuecke stecken in
+       der Halle (fracht-west fracht_hurston_freight_container_a …: 386
+       Dreiecke der Halle)“ und „… stehen nicht auf dem Boden ihrer Zone
+       (… 9 von 25 Messpunkten …)“;
+       die Schlauchtrommel ins Feld des Aufzugs: „… stehen im Feld des
+       Aufzugs oder naeher als 1 m daran …“, dazu ineinander und ohne
+       Boden;
+       ein zweiter Container 0,3 m neben dem ersten: „… 1 Paare von
+       Stuecken stecken ineinander …“;
+       ein gestapeltes Stück 0,5 m höher: „… 1 Stuecke schweben (… auf
+       3.26 m) …“;
+       eine Kiste 4 m vor den Stapler: „… stehen vor einem Fahrzeug in
+       seiner Fahrspur von 8 m …“;
+       boden 0,5 für die Gasse der Betankung: „… 10 Stuecke stehen nicht
+       auf dem Boden ihrer Zone …“;
+       deko aus halls der Seiten genommen: „… die Seite gibt der Halle
+       den Satz der Hallendeko nicht mit (halls.L.deko) …“;
+       dekoPlan gibt für feste Hallen keinen Plan: „… die Buehne nimmt
+       fuer diese Halle keinen Plan, der Block WORK_DEKO_FEST nennt aber
+       einen (dekoPlan) …“;
+       ein Knoten, den der Satz nicht trägt: „… der Satz traegt 1 Knoten
+       nicht oder ohne Geometrie …“;
+       aus „munition+treibstoff“: „… ist weder ein Arbeitsplatz noch
+       eine Kategorie noch eine Zone des Katalogs …“;
+       die Messung erst ab 60 m über dem Boden (Kopie des Tors): „… 0
+       Zonen, hinter deren Bezugspunkt die Messung die Wand der Halle
+       trifft …, Klinke 5“;
+       die Zone der Wartung entfernt: „… 4 Zonen, Klinke 5“, „… 100
+       Stuecke, Klinke 119“ und die Gegenprobe 4 von 5;
+       Obergrenzen 400.000 und 300.000 (Kopie): „… 466070 Dreiecke Deko,
+       Obergrenze 400000 …“ und „… 339085 … auf der mittleren Stufe,
+       Obergrenze 300000 …“;
+       der Block umbenannt: „[5] der ausgelieferte Viewer traegt keinen
+       Block work-deko-fest …“ (in der Meldung mit seinen
+       Kommentarzeichen);
+       der Block leer: „… KLINKE_DEKO haelt Arbeitsszenen fuer diese
+       Halle, WORK_DEKO_FEST nennt sie nicht mehr …“;
+       spuren in einer Zone: „… spuren prueft dieses Tor nicht …“;
+       eine Halle, die HALL_FEST nicht kennt: „… WORK_DEKO_FEST nennt die
+       Halle, HALL_FEST kennt sie nicht …“;
+       die Halle ohne Klinke (Kopie): „… die Halle traegt
+       Arbeitsszenen, hat aber keine Klinke (KLINKE_DEKO) …“;
+       stufe niedrig: „… stufe niedrig ist weder mittel noch hoch …“;
+       der Block kein JSON mehr: „[5] WORK_DEKO_FEST im ausgelieferten
+       Viewer ist kein JSON mehr …“.
+       Nicht hier geprüft: ob die Szenen gut aussehen (.planning/
+       WINDOWS.md #185), und dass die Bühne im Browser alle 119 Stücke
+       stellt (check:hangar-shader, Klinke szenen in KLINKE_FEST, dort
+       viermal vorgeführt rot).
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -611,6 +683,7 @@ import { floorLevel } from './lib/hall-hull.mjs';
 import { offenImFeld } from './lib/aufzug-dreh.mjs';
 import { SCHRIFT, SCHIRM_AUS } from './lib/hall-decals.mjs';
 import { lampenName } from './lib/hall-ruhe.mjs';
+import { ecken, knotenFlaechen, pruefeLage, hallenRaster, hallImQuader, bodenUnter, LOSE_LEITUNG } from './lib/hall-deko.mjs';
 import { DataUtils } from 'three';
 import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, gitterDunkelste } from './lib/hall-gitter.mjs';
 
@@ -687,6 +760,27 @@ const OBERGRENZE = {
   'util-medtop': { tris: 1360000, bytes: 20e6, texturen: 257, leck: 0.3 },
   'util-xltop': { tris: 3550000, bytes: 37e6, texturen: 265, leck: 0.3 },
 };
+// Arbeitsszenen je Halle (WORK_DEKO_FEST im Viewer, [5]): Zonen, Stücke, davon auf der mittleren Stufe (der
+// Rest steht erst auf der hohen), Fahrzeuge mit freier Fahrspur, und Zonen, an deren Bezugspunkt die Messung
+// gegen das Modell die Wand trifft (anWand, die Gegenprobe: 0 hieße, sie liefe leer).
+// util-lrgtop, 15.11.2026: ankommende Fracht im westlichen Frachtaufzug, Treibstoff und Munition im östlichen,
+// eine Betankung in der Westgasse, eine Wartung in der Ostgasse.
+const KLINKE_DEKO = {
+  'util-lrgtop': { zonen: 5, stuecke: 119, mittel: 84, fahrzeuge: 2, anWand: 5 },
+};
+// Dreiecke der Deko, alle und auf der mittleren Stufe. Die Halle selbst trägt 1,8 Mio.; Krisz am 13.11.2026:
+// „braucht viel zu viele Ressourcen“. util-lrgtop steht bei 466 070 und 339 085.
+const OBERGRENZE_DEKO = {
+  'util-lrgtop': { tris: 480000, trisMittel: 350000 },
+};
+// Abstand zum Feld des Aufzugs (m); Fahrspur vor einem Fahrzeug (Länge und Rand, m); was ein Fahrzeug ist;
+// ab dieser Höhe über dem Boden der Zone zählt Halle im Quader eines Stücks (darunter liegen Bodenleisten und
+// Kabelrinnen); Boden unter einem Stück: Messpunkte, die Boden auf ± tol treffen, wenigstens dieser Anteil
+// (die Kabelrinnen im Boden der Large-Halle liegen 8 bis 10 cm tief, einzelne Fugen haben keinen Boden).
+const DEKO_ABSTAND = 1, DEKO_SPUR = { laenge: 8, rand: 0.3 }, DEKO_FAHRZEUG = /^prop_fahrzeug_|_forklift_/;
+const DEKO_BAND = 0.15, DEKO_BODEN = { tol: 0.12, anteil: 0.6 };
+// Gegenprobe: Quader vom Bezugspunkt einer Zone zur Wand hin, in dem die Messung die Halle treffen muss (m)
+const DEKO_PROBE = { breite: 1, tiefe: 6 };
 // Schirme ohne Bild. Aus ist ein Material ohne Farb- und Leuchtkarte in der Farbe, die das Spiel seinen
 // ausgeschalteten Schirmen gibt und der Build denen ohne Bild (SCHIRM_AUS, 0,0048). Ihre Dreiecke im Modell
 // hält eine Klinke: In der Large-Halle sind es 9 vom Build ausgeschaltete Materialien (der Rohexport nennt
@@ -777,7 +871,7 @@ say(`    Wartungsplatz am Schiff: ${mitDienst} von ${HALLEN.size} Halle(n) mit G
 /* ---------- [2] Modell ---------- */
 say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoehe, Landeflaeche im Feld des Aufzugs und im Raum, jede Bahn mit Knoten, das Tor offen neben dem Feld, Grundlicht je Halle ueber der Klinke und im Lichtgitter');
 const io = HALLEN.size ? new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() }) : null;
-const DOCS = new Map();
+const DOCS = new Map(), AUFZUG = new Map();
 let bahnen = 0, padFlaeche = 0, torOffen = 0, torSchwenk = 0;
 // Das Grundlicht steht nur dann auf den Flaechen, wenn es im Lichtgitter ankommt. Das Tor rechnet das Gitter
 // darum mit der Funktion des Viewers selbst (hallGitter; ihr Ergebnis laedt die Buehne als Textur) und liest
@@ -845,6 +939,7 @@ for (const [id, { hall, F }] of HALLEN) {
   // Bahnen des Aufzugs
   let A = null;
   try { A = JSON.parse(readFileSync(inDist(hall.aufzug), 'utf8')); } catch (e) { fail(`[2] ${id}: die Bahnen des Aufzugs lassen sich nicht lesen (${e.message})`); continue; }
+  AUFZUG.set(id, A);
   const knoten = new Map(doc.getRoot().listNodes().map((n) => [n.getName(), n]));
   const netze = (n) => (n.getMesh() ? 1 : 0) + n.listChildren().reduce((s, k) => s + netze(k), 0);
   const teile = [...(A.tor?.teile ?? []), ...(A.plattform ? [A.plattform] : [])];
@@ -1145,6 +1240,159 @@ const bahnDateien = existsSync(hallOrdner) ? readdirSync(hallOrdner).filter((n) 
 const lose = bahnDateien.filter((n) => !genannt.has(join(hallOrdner, n)));
 if (lose.length) fail(`[4] dist/hangar/hall/ traegt ${lose.join(', ')}, und keine Hangarseite nennt sie: der Rest eines frueheren Baus, das Manifest meldet fuer diese Halle keinen Aufzug (mehr). Die Datei gehoert geloescht, oder die Halle neu gebaut (scripts/build-hangar-assets.mjs --kind hall)`);
 say(`    ${frei} von ${Object.keys(FEST).length} Halle(n) ohne ungenutzte Dateien; ${bahnDateien.length} Datei(en) mit Bahnen eines Aufzugs, ${bahnDateien.length - lose.length} davon von der Seite genannt`);
+
+/* ---------- [5] Deko ---------- */
+say('[5] Deko: die Arbeitsszenen der Hallen fester Groesse am ausgelieferten Modell: jedes Stueck mit Knoten im Satz, auf dem Boden oder auf einem anderen Stueck, keines im Feld des Aufzugs, in der Halle, in einem anderen oder vor einem Fahrzeug');
+const dfm = /\/\* work-deko-fest \*\/([\s\S]*?)\/\* \/work-deko-fest \*\//.exec(viewerSrc);
+let DEKO_FEST = null;
+try { DEKO_FEST = dfm ? JSON.parse(dfm[1]) : null; } catch (e) { fail(`[5] WORK_DEKO_FEST im ausgelieferten Viewer ist kein JSON mehr (${e.message})`); }
+if (!dfm) fail('[5] der ausgelieferte Viewer traegt keinen Block /* work-deko-fest */ … /* /work-deko-fest */ — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+if (DEKO_FEST && (typeof DEKO_FEST !== 'object' || Array.isArray(DEKO_FEST))) { fail('[5] WORK_DEKO_FEST ist keine Liste { Halle: { zonen } }'); DEKO_FEST = null; }
+for (const id of Object.keys(KLINKE_DEKO)) if (DEKO_FEST && !DEKO_FEST[id]) fail(`[5] ${id}: KLINKE_DEKO haelt Arbeitsszenen fuer diese Halle, WORK_DEKO_FEST nennt sie nicht mehr — die Halle stuende wieder leer; soll sie das, den Eintrag in KLINKE_DEKO per Commit mit Ursache entfernen`);
+let dekoKat = null;
+if (DEKO_FEST && Object.keys(DEKO_FEST).length) {
+  try { dekoKat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[5] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
+}
+// Herkunft wie verify:hangar-hall [17]: ein Arbeitsplatz, eine Kategorie oder eine Zone, wie das Spiel sie stellt
+const dekoHerkunft = new Set([...(dekoKat?.arbeitsplaetze ?? []).map((a) => a.name), ...Object.keys(dekoKat?.kategorien ?? {}), ...(dekoKat?.zonen ?? []).map((z) => z.name)]);
+const dekoImKatalog = new Set((dekoKat?.props ?? []).map((q) => q.node));
+const SAETZE = new Map(), dekoZeilen = [];
+for (const [id, plan] of Object.entries(DEKO_FEST ?? {})) {
+  const K = KLINKE_DEKO[id], G = OBERGRENZE_DEKO[id], H = HALLEN.get(id), tag = `[5] ${id}`;
+  if (!FEST[id]) { fail(`${tag}: WORK_DEKO_FEST nennt die Halle, HALL_FEST kennt sie nicht — Deko ohne Halle (Zombie): den Eintrag entfernen oder an den neuen Namen anpassen`); continue; }
+  const zonen = Array.isArray(plan?.zonen) ? plan.zonen : [];
+  if (!zonen.length) { fail(`${tag}: WORK_DEKO_FEST nennt die Halle ohne Zonen — ein Eintrag ohne Anlass, herausnehmen`); continue; }
+  if (!H) { dekoZeilen.push(`    ${id}: ${zonen.length} Zonen, NICHT geprueft, weil dieser Bau die Halle nicht ausliefert`); continue; }
+  if (!K || !G) { fail(`${tag}: die Halle traegt Arbeitsszenen, hat aber keine ${!K ? 'Klinke (KLINKE_DEKO)' : 'Obergrenze (OBERGRENZE_DEKO)'} — ${!K ? 'fielen sie wieder weg' : 'wuechsen sie'}, bliebe das Tor gruen`); continue; }
+  // Seite und Viewer: Die Buehne laedt den Satz, den die Seite der Halle mitgibt, und stellt den Plan, den dekoPlan nennt
+  const DK = H.hall.deko, file = DK?.url ? inDist(DK.url) : null;
+  if (!file || !existsSync(file)) { fail(`${tag}: ${DK?.url ? `der Satz der Hallendeko (${DK.url.split('?')[0]}) fehlt in dist/` : `die Seite gibt der Halle den Satz der Hallendeko nicht mit (halls.${H.stufe}.deko)`} — die Buehne stellte ${zonen.length} Zonen nicht auf, die Halle stuende still leer (HangarApp.astro, public/hangar/props/deko.glb)`); continue; }
+  if (typeof viewer?.dekoPlan !== 'function' || typeof viewer?.dekoGlieder !== 'function') { fail(`${tag}: der ausgelieferte Viewer nennt den Plan seiner Deko nicht mehr (dekoPlan, dekoGlieder) — wo die Buehne die Stuecke hinstellt, liesse sich nur raten`); continue; }
+  const P = viewer.dekoPlan(id);
+  if (JSON.stringify(P) !== JSON.stringify(plan)) { fail(`${tag}: die Buehne nimmt fuer diese Halle ${P ? 'einen anderen Plan als den Block WORK_DEKO_FEST' : 'keinen Plan, der Block WORK_DEKO_FEST nennt aber einen'} (dekoPlan) — geprueft wuerde, was nicht steht`); continue; }
+  // Der Block: je Zone Name, Stufe, Herkunft, Wand, Bezugspunkt, Hoehe ihres Bodens und Glieder
+  const paar = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite), namen = new Set();
+  let heil = true;
+  const bruch = (m) => { heil = false; fail(m); };
+  for (const z of zonen) {
+    if (typeof z?.name !== 'string' || !z.name || namen.has(z.name)) { bruch(`${tag}: Zone ohne oder mit doppeltem Namen (${z?.name})`); continue; }
+    namen.add(z.name);
+    if (!['mittel', 'hoch'].includes(z.stufe)) bruch(`${tag} ${z.name}: stufe ${z.stufe} ist weder mittel noch hoch — die Buehne stellte die Zone nie oder auch auf der niedrigsten Stufe`);
+    if (!['w', 'o', 'n', 's'].includes(z.wand) || !paar(z.at)) bruch(`${tag} ${z.name}: wand ${z.wand} (w, o, n oder s) und at [x, z] im Modellraum noetig`);
+    if (z.boden !== undefined && !Number.isFinite(z.boden)) bruch(`${tag} ${z.name}: boden ${JSON.stringify(z.boden)} ist keine Hoehe in Metern ueber dem Hallenboden`);
+    if (dekoKat && !dekoHerkunft.has(z.aus)) bruch(`${tag} ${z.name}: aus „${z.aus}“ ist weder ein Arbeitsplatz noch eine Kategorie noch eine Zone des Katalogs — woher die Zusammenstellung kommt, ist nicht belegt`);
+    if (!(Array.isArray(z.glieder) && z.glieder.length)) { bruch(`${tag} ${z.name}: Zone ohne Glieder`); continue; }
+    for (const g of z.glieder) if (!(Array.isArray(g) && typeof g[0] === 'string' && g.length >= 3 && g.length <= 5 && g.slice(1).every(Number.isFinite) && (g[4] ?? 0) >= 0)) bruch(`${tag} ${z.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe ab 0]`);
+    const fremd = Object.keys(z).filter((k) => !['name', 'stufe', 'aus', 'wand', 'at', 'boden', 'glieder'].includes(k));
+    if (fremd.length) bruch(`${tag} ${z.name}: ${fremd.join(', ')} prueft dieses Tor nicht (Spuren, Leitungen und Gehwege kennt bisher nur die Halle von Revel & York, verify:hangar-hall [17]) — erst das Tor erweitern, dann stellen`);
+  }
+  if (!heil) continue;
+  // Der Satz: Masse, Dreiecke und nach oben zeigende Flaechen je Knoten (wie kitParts im Viewer: die Huelle der Geometrie)
+  let satz = SAETZE.get(file);
+  if (!satz) {
+    let sd = null;
+    try { sd = await io.read(file); } catch (e) { fail(`${tag}: der Satz der Hallendeko laesst sich nicht lesen (${e.message})`); continue; }
+    satz = new Map();
+    for (const node of (sd.getRoot().getDefaultScene() ?? sd.getRoot().listScenes()[0])?.listChildren() ?? []) {
+      const teile = (node.getMesh()?.listPrimitives() ?? []).map((p) => ({ pos: p.getAttribute('POSITION')?.getArray(), idx: p.getIndices()?.getArray() ?? null })).filter((t) => t.pos);
+      if (teile.length) satz.set(node.getName(), knotenFlaechen(teile));
+    }
+    SAETZE.set(file, satz);
+  }
+  const knotenNamen = [...new Set(zonen.flatMap((z) => z.glieder.map((g) => g[0])))];
+  const lost = knotenNamen.filter((n) => !satz.has(n));
+  if (lost.length) { fail(`${tag}: der Satz traegt ${lost.length} Knoten nicht oder ohne Geometrie, die WORK_DEKO_FEST nennt (${lost.slice(0, 3).join(', ')}) — die Buehne liesse das Stueck still weg (der Packer nimmt bisher nur die Knoten aus WORK_DEKO: scripts/build-hangar-dienst.mjs um diesen Block erweitern und neu packen)`); continue; }
+  const ohneKat = knotenNamen.filter((n) => !dekoImKatalog.has(n));
+  if (dekoKat && ohneKat.length) fail(`${tag}: ${ohneKat.length} Requisiten stehen nicht im Katalog (${ohneKat.slice(0, 3).join(', ')}) — ihre Bedeutung (wofuer, wo im Spiel) ist nicht belegt`);
+  const lose = knotenNamen.filter((n) => LOSE_LEITUNG.test(n));
+  if (lose.length) fail(`${tag}: ${lose.length} lose Kabel und Schlaeuche (${lose.slice(0, 3).join(', ')}) — ihre Enden laegen frei (Krisz: „kabel connected nicht“); Leitungen von Geraet zu Geraet stellt bisher nur die Halle von Revel & York`);
+  // Lage jedes Stuecks, mit der Rechnung des Viewers
+  const stuecke = [];
+  let krumm = 0;
+  for (const z of zonen) {
+    const gl = viewer.dekoGlieder(z, (n) => { const e = satz.get(n); return e ? { x: e.size[0], y: e.size[1], z: e.size[2] } : null; });
+    krumm += gl?.ohne ?? 0;
+    for (const g of gl?.glieder ?? []) {
+      if (!(Array.isArray(g.at) && [...g.at, g.a, g.y, g.top, g.hx, g.hz].every(Number.isFinite))) { krumm++; continue; }
+      stuecke.push({ name: `${z.name} ${String(g.node).replace(/^prop_/, '')} (${(g.lokal ?? []).join(', ')})`, node: g.node, zone: z.name, stufe: z.stufe, c: g.at, a: g.a, hx: g.hx, hz: g.hz, y: g.y, top: g.top, auf: !!g.auf, fahrzeug: DEKO_FAHRZEUG.test(g.node), bo: z.boden ?? 0, tris: satz.get(g.node)?.tris ?? 0 });
+    }
+  }
+  const soll = zonen.reduce((s, z) => s + z.glieder.length, 0);
+  if (krumm || stuecke.length !== soll) { fail(`${tag}: der Viewer nennt die Lage von ${stuecke.length} der ${soll} Stuecke (dekoGlieder), ${krumm} ohne Lage oder ohne Knoten — was die Buehne mit ihnen taete, ist ungeprueft`); continue; }
+  const A = AUFZUG.get(id), doc = DOCS.get(id);
+  if (!(Array.isArray(A?.feld?.from) && Array.isArray(A?.feld?.to)) || !doc) { fail(`${tag}: ohne ${doc ? 'das Feld des Aufzugs' : 'das Modell der Halle'} ([2]) laesst sich nicht pruefen, ob die Deko frei steht`); continue; }
+  const L = pruefeLage(stuecke, { oben: (n) => satz.get(n)?.oben, feld: A.feld, abstand: DEKO_ABSTAND, spur: DEKO_SPUR });
+  const drei = (l) => l.slice(0, 3).join('; ');
+  if (L.imFeld.length) fail(`${tag}: ${L.imFeld.length} Stuecke stehen im Feld des Aufzugs oder naeher als ${DEKO_ABSTAND} m daran (${drei(L.imFeld)}) — dort faehrt die Plattform mit dem Schiff: x/z in WORK_DEKO_FEST nachziehen`);
+  if (L.ineinander.length) fail(`${tag}: ${L.ineinander.length} Paare von Stuecken stecken ineinander (${drei(L.ineinander)}) — x/z in WORK_DEKO_FEST nachziehen`);
+  if (L.schwebt.length) fail(`${tag}: ${L.schwebt.length} Stuecke schweben (${drei(L.schwebt)}) — darunter endet nichts derselben Zone auf dieser Hoehe`);
+  if (L.imSpur.length) fail(`${tag}: ${L.imSpur.length} Stuecke stehen vor einem Fahrzeug in seiner Fahrspur von ${DEKO_SPUR.laenge} m (${drei(L.imSpur)}) — neben oder hinter das Fahrzeug stellen`);
+  // Die Halle am Ort der Deko: alle Dreiecke im Band ueber dem Boden und die nach oben zeigenden auf Bodenhoehe,
+  // ohne die Teile, die mit dem Aufzug fahren (Torfluegel und Plattform stehen im Modell in Ruhe)
+  // (der Quader der Gegenprobe je Zone, mit der Rechnung des Viewers gelegt: von 0,5 m vor dem Bezugspunkt zur Wand hin)
+  const proben = zonen.map((z) => {
+    const g = viewer.dekoGlieder({ ...z, glieder: [['gegenprobe', 0, DEKO_PROBE.tiefe / 2 - 0.5, 0, 0]] }, () => ({ x: DEKO_PROBE.breite, y: 2, z: DEKO_PROBE.tiefe })).glieder[0];
+    return { c: g.at, a: g.a, hx: g.hx, hz: g.hz };
+  });
+  const F = H.hall.floor, punkte = [...stuecke.flatMap(ecken), ...proben.flatMap(ecken)], xs = punkte.map((p) => p[0]), zs = punkte.map((p) => p[1]);
+  const bereich = [Math.min(...xs) - 1.5, Math.min(...zs) - 1.5, Math.max(...xs) + 1.5, Math.max(...zs) + 1.5];
+  const bos = zonen.map((z) => z.boden ?? 0), hoch = Math.max(...stuecke.map((m) => m.top), ...bos.map((b) => b + 2));
+  const wand = hallenRaster({ zelle: 2, bereich, band: [F + Math.min(...bos) + DEKO_BAND, F + hoch + 0.1] });
+  const boden = hallenRaster({ zelle: 1, bereich, band: [F + Math.min(...bos) - 0.15, F + Math.max(...bos) + 0.15] });
+  const beweglich = new Set([...(A.tor?.teile ?? []).map((t) => t.node), A.plattform?.node].filter(Boolean));
+  let hallTris = 0;
+  const lauf = (node, weg) => {
+    weg ||= beweglich.has(node.getName());
+    const mesh = node.getMesh();
+    if (mesh && !weg) {
+      const m = node.getWorldMatrix();
+      for (const prim of mesh.listPrimitives()) {
+        const Pa = prim.getAttribute('POSITION')?.getArray(), I = prim.getIndices()?.getArray();
+        if (!Pa) continue;
+        const cnt = I ? I.length : Pa.length / 3;
+        const at = (i) => { const x = Pa[i * 3], y = Pa[i * 3 + 1], z = Pa[i * 3 + 2]; return [m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]]; };
+        for (let i = 0; i + 2 < cnt; i += 3) {
+          const a = at(I ? I[i] : i), b = at(I ? I[i + 1] : i + 1), c = at(I ? I[i + 2] : i + 2);
+          hallTris++;
+          wand.dazu(a, b, c);
+          const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], wx = c[0] - a[0], wy = c[1] - a[1], wz = c[2] - a[2];
+          const ny = uz * wx - ux * wz, len = Math.hypot(uy * wz - uz * wy, ny, ux * wy - uy * wx);
+          if (len > 1e-10 && ny / len >= 0.7) boden.dazu(a, b, c);
+        }
+      }
+    }
+    for (const k of node.listChildren()) lauf(k, weg);
+  };
+  for (const sz of doc.getRoot().listScenes()) for (const k of sz.listChildren()) lauf(k, false);
+  const inHalle = [], ohneBoden = [];
+  let auf = 0, bodenTrifft = 0, bodenVon = 0;
+  for (const m of stuecke) {
+    const y0 = F + (m.auf ? m.y + 0.02 : m.bo + DEKO_BAND), y1 = F + m.top;
+    const n = y1 > y0 ? hallImQuader(m, y0, y1, wand) : 0;
+    if (n) inHalle.push(`${m.name}: ${n} Dreiecke der Halle`);
+    if (m.auf) { auf++; continue; }
+    const b = bodenUnter(m, F + m.bo, boden, { tol: DEKO_BODEN.tol });
+    bodenTrifft += b.auf; bodenVon += b.von;
+    if (b.auf < DEKO_BODEN.anteil * b.von) ohneBoden.push(`${m.name}: ${b.auf} von ${b.von} Messpunkten`);
+  }
+  if (inHalle.length) fail(`${tag}: ${inHalle.length} Stuecke stecken in der Halle (${drei(inHalle)}) — gemessen am ausgelieferten Modell ab ${DEKO_BAND} m ueber dem Boden der Zone, ohne die fahrenden Teile des Aufzugs: x/z in WORK_DEKO_FEST nachziehen`);
+  if (ohneBoden.length) fail(`${tag}: ${ohneBoden.length} Stuecke stehen nicht auf dem Boden ihrer Zone (${drei(ohneBoden)}; erwartet Boden auf ± ${DEKO_BODEN.tol} m unter wenigstens ${DEKO_BODEN.anteil * 100} % der Messpunkte) — sie hingen ueber einer Kante oder in der Luft: x/z oder boden der Zone nachmessen`);
+  // Gegenprobe: Hinter dem Bezugspunkt einer Zone steht ihre Wand. Dieselbe Messung trifft sie mit einem Quader,
+  // der vom Bezugspunkt DEKO_PROBE.tiefe m zur Wand hin reicht; traefe sie nirgends, saehe das Raster die Halle
+  // nicht (falsches Band, falscher Raum, falsche Drehung der Zone), und jedes Stueck gaelte als frei.
+  const ohneWand = zonen.filter((z, i) => !hallImQuader(proben[i], F + (z.boden ?? 0) + DEKO_BAND, F + (z.boden ?? 0) + 2, wand)).map((z) => z.name), anWand = zonen.length - ohneWand.length;
+  const ist = { zonen: zonen.length, stuecke: stuecke.length, mittel: stuecke.filter((m) => m.stufe === 'mittel').length, fahrzeuge: stuecke.filter((m) => m.fahrzeug).length, anWand };
+  for (const [k, was] of [['zonen', 'Zonen'], ['stuecke', 'Stuecke'], ['mittel', 'Stuecke auf der mittleren Stufe'], ['fahrzeuge', 'Fahrzeuge'], ['anWand', `Zonen, hinter deren Bezugspunkt die Messung die Wand der Halle trifft (von ${zonen.length}${ohneWand.length ? `, nicht bei ${ohneWand.join(', ')}` : ''}; traefe sie nirgends, saehe sie die Halle nicht, und jedes Stueck gaelte als frei; liegt der Bezugspunkt einer neuen Zone frei im Raum, die Klinke per Commit mit Ursache anpassen)`]]) {
+    if (!(ist[k] >= K[k])) fail(`${tag}: ${ist[k]} ${was}, Klinke ${K[k] ?? 'fehlt'}`);
+  }
+  const tris = Math.round(stuecke.reduce((s, m) => s + m.tris, 0)), trisMittel = Math.round(stuecke.filter((m) => m.stufe === 'mittel').reduce((s, m) => s + m.tris, 0));
+  const schwer = () => [...new Map(stuecke.map((m) => [m.node, m.tris])).entries()].sort((p, q) => q[1] - p[1]).slice(0, 3).map(([n, t]) => `${n.replace(/^prop_/, '')} ${Math.round(t)}`).join(', ');
+  if (!(tris <= G.tris)) fail(`${tag}: ${tris} Dreiecke Deko, Obergrenze ${G.tris} — die Halle wird schwerer (die schwersten Stuecke: ${schwer()})`);
+  if (!(trisMittel <= G.trisMittel)) fail(`${tag}: ${trisMittel} Dreiecke Deko auf der mittleren Stufe, Obergrenze ${G.trisMittel} — Zonen auf die hohe Stufe legen oder leichtere Stuecke nehmen (die schwersten: ${schwer()})`);
+  dekoZeilen.push(`    ${id}: ${ist.zonen} Zonen (Klinke ${K.zonen}), ${ist.stuecke} Stuecke (Klinke ${K.stuecke}), davon ${ist.mittel} auf der mittleren Stufe (Klinke ${K.mittel}); ${tris} Dreiecke (Obergrenze ${G.tris}), ${trisMittel} auf der mittleren Stufe (Obergrenze ${G.trisMittel}); ${L.zahlen ? `Lage: ${JSON.stringify(L.zahlen)}; ` : ''}${ist.fahrzeuge} Fahrzeuge mit ${DEKO_SPUR.laenge} m freier Fahrspur (Klinke ${K.fahrzeuge}); gegen ${wand.tris.length / 9} von ${hallTris} Dreiecken der Halle am Ort der Deko gemessen (ohne ${beweglich.size} fahrende Teile des Aufzugs), ${inHalle.length} Stuecke darin; ${stuecke.length - auf} am Boden, ${bodenTrifft} von ${bodenVon} Messpunkten treffen Boden (${boden.tris.length / 9} Bodenflaechen), ${auf} auf einem anderen Stueck; Gegenprobe: hinter ${anWand} von ${zonen.length} Bezugspunkten trifft die Messung die Wand (Klinke ${K.anWand})`);
+}
+for (const z of dekoZeilen) say(z);
+if (!dekoZeilen.length) say(`    ${DEKO_FEST && Object.keys(DEKO_FEST).length ? 'keine Halle vollstaendig gemessen' : 'keine Halle fester Groesse traegt Arbeitsszenen, nichts zu messen'}`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-hallen: ${fehler.length} FEHLER`);
