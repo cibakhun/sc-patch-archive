@@ -4076,8 +4076,112 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] }
   ]
 } /* /work-deko */;
+// Deko der Hallen fester Größe (HALL_FEST), je Halle eigene Zonen im Raum
+// ihres Modells, aus demselben Satz (deko.glb) und im selben Format. Dazu
+// boden: Höhe des Bodens der Zone über dem Hallenboden (die Plattform eines
+// Frachtaufzugs, eine abgesenkte Gasse); ohne sie 0. Diese Hallen wachsen
+// nicht und tragen keine Werkstatt: Der Viewer misst für sie keinen
+// Grundriss, ob ein Stück frei steht, prüft das Tor am ausgelieferten Modell.
+const WORK_DEKO_FEST = /* work-deko-fest */ {
+  "util-lrgtop": {
+    "zonen": [
+      { "name": "fracht-west", "stufe": "mittel", "aus": "lager+transport", "wand": "w", "at": [-152, 54], "glieder": [
+        ["prop_fracht_hurston_freight_container_a", -8.6, -2.75, 0], ["prop_fracht_hurston_freight_container_a", -8.1, -2.85, 2, 2.76],
+        ["prop_fracht_hurston_freight_container_a", 1, -3, 357], ["prop_fracht_shipping_container_1_025x05x025_a", 8.6, -4, 0],
+        ["prop_fracht_shipping_container_1_025x05x025_a", 11.6, -4.2, 2], ["prop_fracht_shipping_container_1_025x05x025_a", 10.1, -3.9, 90, 2.51],
+        ["prop_lager_crate_stack_1_03x025x0125_a", -11.2, -6.9, 90], ["prop_lager_crate_stack_1_03x025x0125_a", -7.4, -7.9, 4],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", -7.143, -8.519, 26, 1.29], ["prop_transport_prop_dumper_transport_pallet_a", -2.2, -8.9, 11],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", -2.974, -9.422, 11, 0.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -1.678, -9.674, 13, 0.25],
+        ["prop_lager_crate_dry_2_0125x0125x0125_a", -2.722, -8.126, 10, 0.25], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -1.426, -8.378, 12, 0.25],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", -2.976, -9.381, 14, 1.51], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -1.664, -9.656, 9, 1.51],
+        ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 2.6, -7.7, 84], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 2.532, -7.054, 84, 0.25],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", 2.668, -8.346, 87, 0.25], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 2.535, -7.083, 82, 1.51],
+        ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 5.6, -9.4, 71], ["prop_fracht_crate_dry_1_0125x0125x0125_b", 5.385, -8.776, 72, 0.25],
+        ["prop_lager_crate_dry_1_0125x0125x00625_a", 5.834, -10.081, 69, 0.25], ["prop_transport_prop_dumper_transport_pallet_a", 9.6, -9.1, 353],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", 9.025, -9.836, 354, 0.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", 10.336, -9.675, 351, 0.25],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", 8.864, -8.525, 353, 0.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", 10.175, -8.364, 355, 0.25],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", 9.693, -9.038, 24, 1.51], ["prop_licht_light_work_light_2_a", 12.9, -7.9, 200],
+        ["prop_transport_machine_forklift_1_a", 0.8, -15.4, 14], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 0.522, -16.516, 14, 0.54],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", -0.119, -16.356, 14, 0.79], ["prop_fracht_crate_dry_1_0125x0125x0125_c", 1.162, -16.676, 16, 0.79],
+        ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -4.4, -12.6, 336], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -5.003, -12.868, 336, 0.25],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", -3.797, -12.332, 338, 0.25], ["prop_transport_trolley_cargo_4_a", -10.4, -16.6, 28],
+        ["prop_lager_box_plastic_4_005x005x005_a", -12.2, -14.2, 40], ["prop_lager_box_plastic_4_005x005x005_a", -12.6, -12.6, 75],
+        ["prop_lager_crate_dry_1_0125x0125x00625_a", -12.3, -10.6, 8], ["prop_transport_trolley_mobile_1_a", 8.8, -15.6, 338],
+        ["prop_fracht_crate_metal_4_0125x0125x0125_a", 9.1, -16.342, 341, 0.58], ["prop_fracht_crate_metal_4_0125x0125x0125_a", 8.631, -15.075, 336, 0.58],
+        ["prop_sicherheit_cone_2_a", -12.8, -21.2, 0], ["prop_sicherheit_cone_2_a", 12.8, -21.2, 30],
+        ["prop_sicherheit_cone_2_a", -5.6, -21.2, 10], ["prop_sicherheit_cone_2_a", 6.4, -21.3, 50]
+      ] },
+      { "name": "treibstoff-ost", "stufe": "mittel", "aus": "lager+treibstoff", "wand": "o", "at": [8, 165.5], "glieder": [
+        ["prop_treibstoff_tank_gas_3_05x025x025_a", -10.6, -2.75, 0], ["prop_treibstoff_tank_gas_3_05x025x025_a", -5.2, -2.85, 1],
+        ["prop_treibstoff_tank_gas_3_05x025x025_a", -7.9, -2.8, 0, 2.48], ["prop_treibstoff_cell_fuel_1_a", -1.9, -1.7, 0],
+        ["prop_treibstoff_cell_fuel_1_a", -1.5, -2, 30], ["prop_treibstoff_cell_fuel_1_a", -1.9, -2.4, 60],
+        ["prop_treibstoff_cell_fuel_1_a", -1.2, -1.6, 10], ["prop_treibstoff_cell_fuel_1_a", -1.1, -2.5, 45],
+        ["prop_sicherheit_tool_fire_extinguisher_1_a", -2, -4.4, 20], ["prop_sicherheit_tool_fire_extinguisher_1_a", -12.9, -4.6, 200]
+      ] },
+      { "name": "munition-ost", "stufe": "mittel", "aus": "lager+munition", "wand": "o", "at": [8, 165.5], "glieder": [
+        ["prop_munition_rack_torpedo_1_a", 3.2, -3.6, 0], ["prop_munition_uee_lawless_prop_missilestack_large", 6.4, -3.4, 3],
+        ["prop_munition_uee_lawless_prop_missilestack_large", 8.6, -3.5, 358], ["prop_munition_uee_lawless_prop_missilestack_medium", 10.4, -2.6, 6],
+        ["prop_lager_cell_power_1_rack_a", 12.3, -8.4, 90], ["prop_munition_crate_torpedo_1_07x0075x0075_a", -8, -7.2, 6],
+        ["prop_munition_crate_torpedo_1_07x0075x0075_a", -7.9, -8.3, 4], ["prop_munition_crate_torpedo_1_07x0075x0075_a", -8, -7.75, 9, 0.77],
+        ["prop_munition_crate_torpedo_1_05x0075x0075_a", -6.4, -10.4, 348], ["prop_munition_ammo_box_1_pallet_250x125x025_a", 1.6, -8.4, 10],
+        ["prop_munition_ammo_box_1_pallet_250x125x025_a", 1.6, -8.4, 7, 0.25], ["prop_munition_ammo_box_1_pallet_250x125x025_a", 1.6, -8.4, 12, 0.5],
+        ["prop_munition_ammo_box_1_ballistic_open_1x05x025_a", 1.3, -8.3, 24, 0.75], ["prop_munition_ammo_box_1_ballistic_1x05x025_a", 2.1, -8.6, 352, 0.75],
+        ["prop_munition_uee_lawless_prop_ammocrate_01", 5.3, -8.2, 352], ["prop_munition_uee_lawless_prop_ammocrate_01", 7.1, -8.9, 12],
+        ["prop_fahrzeug_grin_ptv", -2.6, -15.8, 325], ["prop_transport_trolley_mobile_1_a", 9.2, -15.4, 30],
+        ["prop_munition_crate_torpedo_1_03x0075x0075_a", 9.1, -15.573, 120, 0.58], ["prop_munition_crate_torpedo_1_03x0075x0075_open_a", 4.6, -13.4, 78],
+        ["prop_munition_crate_torpedo_1_03x0075x0075_a", 5.9, -13, 70], ["prop_sicherheit_cone_2_a", -12.8, -21.2, 0],
+        ["prop_sicherheit_cone_2_a", 12.8, -21.2, 30], ["prop_sicherheit_cone_2_a", -8.2, -21.2, 10],
+        ["prop_sicherheit_cone_2_a", 8.6, -21.3, 50], ["prop_sicherheit_cone_1_a", -11.6, -11.6, 0]
+      ] },
+      { "name": "betankung-west", "stufe": "hoch", "aus": "schlauch", "wand": "w", "at": [-126, 92], "glieder": [
+        ["prop_schlauch_hose_reel_1_065x045x045_a", -4.2, -2.7, 0], ["prop_schlauch_maintenance_hose_1_a", 4.6, -6.36, 99.3],
+        ["prop_energie_generator_mobile_1_d", 3.4, -1.3, 0], ["prop_kabel_cable_reel_2_a", 6.6, -1.2, 20],
+        ["prop_kabel_cable_terminal_1_floor_a", 7.6, -0.5, 0], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 0.4, -3.6, 90],
+        ["prop_treibstoff_tank_gas_1_005x005x005_a", 0.1, -2.75, 90, 0.25], ["prop_treibstoff_tank_gas_1_005x005x005_a", 0.7, -3.45, 110, 0.25],
+        ["prop_treibstoff_tank_gas_1_005x005x005_a", 0.7, -2.75, 130, 0.25], ["prop_treibstoff_cell_fuel_1_a", 0.1, -4.1, 90, 0.25],
+        ["prop_treibstoff_cell_fuel_1_a", 0.15, -4.45, 120, 0.25], ["prop_treibstoff_cell_fuel_1_a", 0.6, -4.25, 150, 0.25],
+        ["prop_licht_light_portable_tripod_1_base_a", -7, -6.6, 150], ["prop_sicherheit_cone_2_a", -6, -8.4, 0],
+        ["prop_sicherheit_cone_2_a", -0.8, -8.5, 30], ["prop_sicherheit_cone_2_a", 4.4, -8.4, 70]
+      ] },
+      { "name": "wartung-ost", "stufe": "hoch", "aus": "energie+werkzeug", "wand": "o", "at": [-16, 70], "glieder": [
+        ["prop_maschine_construction_scaffold_base_04x02x02_a", -3.4, -1.4, 0], ["prop_maschine_construction_scaffold_mid_04x02x02_a", -3.4, -1.4, 0, 2.01],
+        ["prop_maschine_construction_scaffold_top_04x02x01_a", -3.4, -1.4, 0, 4.01], ["prop_maschine_lift_scissor_1_a", 3, -4.3, 24],
+        ["prop_transport_prop_dumper_transport_pallet_a", -2.6, -5.6, 12], ["prop_bauteile_powr_aegs_s03_pl03", -2.6, -5.6, 17, 0.25],
+        ["prop_werkzeug_workbench_mobile_1_a", 2.6, -1, 90], ["prop_werkzeug_tool_socket_set_closed_1_a", 1.7, -1, 110, 0.99],
+        ["prop_werkzeug_tool_power_1_drill_a", 2.7, -1.1, 150, 0.99], ["prop_werkzeug_bag_toolbox_1_a", 3.15, -0.95, 170, 0.99],
+        ["prop_werkzeug_tool_drawer_1_a", 5.4, -0.5, 0], ["prop_werkzeug_tool_welder_a", -0.4, -2.8, 40],
+        ["prop_heben_ladder_step_1_a", -5.3, -3.8, 200], ["prop_crew_steat_stool_1_a", -0.6, -4.4, 0],
+        ["prop_transport_trolley_creeper_a", 0.4, -7.2, 70], ["prop_werkzeug_bag_toolbox_2_a", -5, -7.8, 30],
+        ["prop_sicherheit_cone_2_a", -5, -10.4, 0], ["prop_sicherheit_cone_2_a", 0.4, -10.5, 30],
+        ["prop_sicherheit_cone_2_a", 5.4, -10.4, 70]
+      ] }
+    ]
+  }
+} /* /work-deko-fest */;
+// Plan der Deko für die Halle `id`: der Block, der ihre Koordinaten trägt
+export const dekoPlan = (id) => (WORK_DEKO.halle === id ? WORK_DEKO : WORK_DEKO_FEST[id]?.zonen?.length ? WORK_DEKO_FEST[id] : null);
 // Drehung des Platzes je Wand (Grad um y): z des Platzes zeigt zur Wand
 const DEKO_WAND = { w: -90, o: 90, n: 180, s: 0 };
+// Lage der Glieder einer Zone im Modellraum bei Maßstab 1, so wie buildDeko
+// sie stellt: at die Mitte der Grundfläche, a die Drehung um y, y die
+// Unterkante und top die Oberkante über dem Hallenboden, hx und hz die
+// halben Maße, ex und ez die halben Kanten der achsparallelen Hülle; auf:
+// steht auf einem anderen Stück statt am Boden der Zone. groesse(Knoten)
+// nennt die Maße des Knotens im Satz ({ x, y, z }) oder nichts, wenn der
+// Satz ihn nicht trägt (ohne zählt sie). Herausgegeben, damit das Tor einer
+// Halle fester Größe mit derselben Rechnung prüft, ob jedes Stück frei
+// steht (verify:hangar-hallen [5]).
+export function dekoGlieder(zn, groesse) {
+  const R = Math.PI / 180, th = DEKO_WAND[zn.wand] * R, c = Math.cos(th), s = Math.sin(th), [ax, az] = zn.at, bo = zn.boden ?? 0, glieder = [];
+  let ohne = 0;
+  for (const [node, x, z, r = 0, y = 0] of zn.glieder ?? []) {
+    const g = groesse(node);
+    if (!g) { ohne++; continue; }
+    const a = th + r * R, ca = Math.abs(Math.cos(a)), sa = Math.abs(Math.sin(a));
+    glieder.push({ node, at: [ax + x * c + z * s, az - x * s + z * c], a, y: y + bo, auf: y > 0.05, ex: (ca * g.x + sa * g.z) / 2, ez: (sa * g.x + ca * g.z) / 2, hx: g.x / 2, hz: g.z / 2, top: y + bo + g.y, lokal: [x, z] });
+  }
+  return { glieder, ohne };
+}
 
 // Grundriss des Schiffs von unten für den Wartungsplatz: je Zelle
 // (DIENST_CELL) die tiefste Höhe des Rumpfs darüber, Infinity, wo nichts
@@ -10698,20 +10802,17 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     return [...head, ...mid, ...tail];
   }
-  function buildDeko(kitScene, S, grid, floorY, stufe) {
+  function buildDeko(kitScene, S, grid, floorY, stufe, plan) {
     const parts = kitParts(kitScene, S), uses = [], gone = [], frei = [], R = THREE.MathUtils.DEG2RAD;
     let missing = 0, zones = 0;
     const ext = (e, a, sc = 1) => [(Math.abs(Math.cos(a)) * e.size.x + Math.abs(Math.sin(a)) * e.size.z) * sc / 2, (Math.abs(Math.sin(a)) * e.size.x + Math.abs(Math.cos(a)) * e.size.z) * sc / 2];
-    WORK_DEKO.zonen.forEach((zn, zi) => {
+    plan.zonen.forEach((zn, zi) => {
       if (zn.stufe === 'hoch' && stufe !== 'hoch') return;
-      const th = DEKO_WAND[zn.wand] * R, c = Math.cos(th), s = Math.sin(th), [ax, az] = zn.at, own = [];
+      const th = DEKO_WAND[zn.wand] * R, c = Math.cos(th), s = Math.sin(th), [ax, az] = zn.at, own = [], bo = zn.boden ?? 0;
       const at = (x, z) => [ax + x * c + z * s, az - x * s + z * c];
-      for (const [node, x, z, r = 0, y = 0] of zn.glieder) {
-        const e = parts.get(node);
-        if (!e) { missing++; continue; }
-        const a = th + r * R, [ex, ez] = ext(e, a);
-        own.push({ kind: 'glied', zone: zi, node, at: at(x, z), a, y, sc: 1, ex, ez, hx: e.size.x / 2, hz: e.size.z / 2, top: y + e.size.y });
-      }
+      const gl = dekoGlieder(zn, (n) => parts.get(n)?.size);
+      missing += gl.ohne;
+      for (const g of gl.glieder) own.push({ kind: 'glied', zone: zi, sc: 1, ...g });
       for (const [x0, z0, x1, z1] of zn.freihalten ?? []) {
         const hx = (x1 - x0) / 2, hz = (z1 - z0) / 2;
         frei.push({ at: at(x0 + hx, z0 + hz), ex: Math.abs(c) * hx + Math.abs(s) * hz, ez: Math.abs(s) * hx + Math.abs(c) * hz });
@@ -10720,12 +10821,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         const e = parts.get(node);
         if (!e) { missing++; continue; }
         const a = th + r * R, sc = edge / Math.max(e.size.x, e.size.z, 1e-3), [ex, ez] = ext(e, a, sc);
-        own.push({ kind: 'spur', zone: zi, node, at: at(x, z), a, y: WORK_LIFT, sc, ex, ez, top: WORK_LIFT });
+        own.push({ kind: 'spur', zone: zi, node, at: at(x, z), a, y: bo + WORK_LIFT, sc, ex, ez, top: bo + WORK_LIFT });
       }
       // Was im Band des Grundrisses auf Halle oder Einrichtung stößt, fällt
       // weg; dazu, was darauf steht (seine Mitte über dem Weggefallenen)
       const hit = own.filter((q) => q.kind === 'glied' && grid && q.y < WORK_BAND[1] && q.top > WORK_BAND[0] && !grid.freeRot(q.at[0], q.at[1], q.hx, q.hz, q.a));
-      const on = (q, b) => q.y > 0.05 && Math.abs(q.at[0] - b.at[0]) < b.ex && Math.abs(q.at[1] - b.at[1]) < b.ez;
+      const on = (q, b) => q.auf && Math.abs(q.at[0] - b.at[0]) < b.ex && Math.abs(q.at[1] - b.at[1]) < b.ez;
       for (let more = true; more;) {
         more = false;
         for (const q of own) if (!hit.includes(q) && hit.some((b) => on(q, b))) { hit.push(q); more = true; }
@@ -10749,12 +10850,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // Grundfläche. Eingetragen wird das achsparallele Rechteck samt
     // angeschnittener Zellen; daran fiel ein Regal neben einer schräg
     // stehenden Kabeltrommel der Nachbarzone samt Inhalt still weg.
-    if (grid) for (const q of uses) if (q.kind === 'glied' && q.y < 0.05) grid.fill(q.at[0], q.at[1], q.ex, q.ez);
+    if (grid) for (const q of uses) if (q.kind === 'glied' && !q.auf) grid.fill(q.at[0], q.at[1], q.ex, q.ez);
     // Gehwege der Eingänge ebenso: Die Werkstatt stellt dort nichts hin
     if (grid) for (const f of frei) grid.fill(f.at[0], f.at[1], f.ex, f.ez);
     // und nichts auf eine Leitung (alle 0,25 m ihres Wegs eine Zelle)
     if (grid) for (const u of uses) if (u.kind === 'leitung') {
-      const [ax, az] = WORK_DEKO.zonen[u.zone].at;
+      const [ax, az] = plan.zonen[u.zone].at;
       for (let i = 0; i + 1 < u.pts.length; i++) {
         const p = u.pts[i], q = u.pts[i + 1], n = Math.ceil(p.distanceTo(q) / 0.25);
         for (let k = 0; k <= n; k++) grid.fill(ax + p.x + ((q.x - p.x) * k) / n, az + p.z + ((q.z - p.z) * k) / n, 0.1, 0.1);
@@ -10769,7 +10870,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     // Schatten wie die Einrichtung: aus den Hallenlampen (renderHallShadows), nicht vom Schiffslicht
     for (const b of batches.values()) b.castShadow = false;
-    return { group, uses, parts, batches, missing, gone, tris, zones, frei: frei.length, floorY, k: 0 };
+    return { group, uses, parts, batches, missing, gone, tris, zones, frei: frei.length, floorY, k: 0, plan };
   }
   // Matrizen der Deko im Modell für den Maßstab k der Halle: jedes Stück
   // um den Bezugspunkt seiner Zone auf der Wand in 1/k, also in Metern wie
@@ -10777,7 +10878,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // ihrem Bezugspunkt als Ganzes (dekoOff).
   const dekoV = new THREE.Vector3();
   function dekoOff(d, zone, gd, out = dekoV) {
-    const G = realHall?.grow, [ax, az] = WORK_DEKO.zonen[zone].at;
+    const G = realHall?.grow, [ax, az] = d.plan.zonen[zone].at;
     return G ? growOff(ax - G.org.x, d.floorY - G.org.y, az - G.org.z, out, gd) : out.set(0, 0, 0);
   }
   function layDeko(d, k, gd = grow.d) {
@@ -10786,9 +10887,9 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     (d.gd ??= new THREE.Vector3()).copy(gd);
     const M = new THREE.Matrix4(), R = new THREE.Matrix4(), S0 = new THREE.Matrix4(), T0 = new THREE.Matrix4();
     for (const u of d.uses) {
-      const e = d.parts.get(u.node), [ax, az] = WORK_DEKO.zonen[u.zone].at, q = dekoOff(d, u.zone, gd);
+      const e = d.parts.get(u.node), [ax, az] = d.plan.zonen[u.zone].at, q = dekoOff(d, u.zone, gd);
       if (u.kind === 'leitung') {
-        M.makeTranslation(ax + q.x, d.floorY + q.y, az + q.z).multiply(S0.makeScale(1 / k, 1 / k, 1 / k));
+        M.makeTranslation(ax + q.x, d.floorY + q.y + (d.plan.zonen[u.zone].boden ?? 0) / k, az + q.z).multiply(S0.makeScale(1 / k, 1 / k, 1 / k));
         for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
         continue;
       }
@@ -10812,7 +10913,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     d.group.updateWorldMatrix(true, false);
     for (const u of d.uses) {
       if (u.kind !== 'glied') continue;
-      const [ax, az] = WORK_DEKO.zonen[u.zone].at, e = d.parts.get(u.node), q = dekoOff(d, u.zone, gd);
+      const [ax, az] = d.plan.zonen[u.zone].at, e = d.parts.get(u.node), q = dekoOff(d, u.zone, gd);
       const x = ax + q.x + (u.at[0] - ax) / k, z = az + q.z + (u.at[1] - az) / k, y = d.floorY + q.y + u.y / k;
       out.push(new THREE.Box3(new THREE.Vector3(x - u.ex / k, y, z - u.ez / k), new THREE.Vector3(x + u.ex / k, y + e.size.y / k, z + u.ez / k)).applyMatrix4(d.group.matrixWorld).expandByScalar(m));
     }
@@ -11487,8 +11588,10 @@ void main() {
         return null;
       })
       : Promise.resolve(null);
-    const dekoReady = W?.deko?.url && WB.props > 0 && HALL_LIFT[h.id] && WORK_DEKO.halle === h.id
-      ? fetchGltf(W.deko.url, 'deko', W.deko.bytes || 4e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.deko?.schichten, W.deko.url) }), (e) => {
+    // (WORK_DEKO), in einer Halle fester Größe der ihre (WORK_DEKO_FEST, Satz aus h.deko)
+    const DK = HALL_LIFT[h.id] ? W?.deko : HALL_FEST[h.id] ? h.deko : null, dekoP = dekoPlan(h.id);
+    const dekoReady = DK?.url && WB.props > 0 && dekoP
+      ? fetchGltf(DK.url, 'deko', DK.bytes || 4e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.deko?.schichten, DK.url) }), (e) => {
         console.warn('[hangar] Hallendeko nicht geladen', e);
         prog.delete('deko');
         return null;
@@ -11621,10 +11724,11 @@ void main() {
       // die Werkstatt weicht ihr aus. Eingehängt wird die Deko erst nach
       // den Hallenmaterialien unten, wie der Wartungsplatz.
       const work = L ? await workReady : null;
-      const dekoKit = L ? await dekoReady : null;
+      const dekoKit = L || HALL_FEST[h.id] ? await dekoReady : null;
       const rideMeshes = [];
       let grid = null, gridOk = true, deko = null;
-      if ((work || dekoKit) && WB.props > 0) {
+      // (eine Halle fester Größe trägt keine Werkstatt und misst keinen Grundriss)
+      if ((work || dekoKit) && WB.props > 0 && L) {
         try {
           grid = await floorGrid(model, h.room, floorY, new Set([lift?.group].filter(Boolean)), pause, WORK_DEKO.halle === h.id ? WORK_DEKO.nischen ?? [] : []);
         } catch (e) {
@@ -11632,12 +11736,14 @@ void main() {
           gridOk = false;
         }
       }
+      // Die Zeile einer Halle fester Größe heißt anders: An "[hangar] Hallendeko:" erkennt check:hangar-shader
+      // die gestreckte Halle, an "[hangar] Arbeitsszenen der Halle <id>:" zählt es die Stücke einer festen.
       if (dekoKit && gridOk) {
         const t8 = performance.now();
         try {
-          deko = buildDeko(dekoKit.scene, dekoKit.schichten, grid, floorY, SMALL ? 'niedrig' : Q0);
+          deko = buildDeko(dekoKit.scene, dekoKit.schichten, grid, floorY, SMALL ? 'niedrig' : Q0, dekoP);
           const n = deko.uses.filter((u) => u.kind === 'glied').length, nl = deko.uses.filter((u) => u.kind === 'leitung').length;
-          console.info(`[hangar] Hallendeko: ${deko.zones} Zonen, ${n} Requisiten, ${nl} Leitungen, ${deko.uses.length - n - nl} Spuren, ${deko.frei} Gehwege frei, ${Math.round(deko.tris)} Dreiecke in ${deko.batches.size} Meshes, ${dekoKit.schichten ? `${dekoKit.schichten.rows} Schichtzeilen` : 'ohne Schichten'}; weggelassen ${deko.gone.length}${deko.gone.length ? ` (${deko.gone.join(', ')})` : ''}${deko.missing ? `, ${deko.missing} ohne Knoten` : ''}; ${Math.round(performance.now() - t8)} ms`);
+          console.info(`[hangar] ${HALL_FEST[h.id] ? `Arbeitsszenen der Halle ${h.id}` : 'Hallendeko'}: ${deko.zones} Zonen, ${n} Requisiten, ${nl} Leitungen, ${deko.uses.length - n - nl} Spuren, ${deko.frei} Gehwege frei, ${Math.round(deko.tris)} Dreiecke in ${deko.batches.size} Meshes, ${dekoKit.schichten ? `${dekoKit.schichten.rows} Schichtzeilen` : 'ohne Schichten'}; weggelassen ${deko.gone.length}${deko.gone.length ? ` (${deko.gone.join(', ')})` : ''}${deko.missing ? `, ${deko.missing} ohne Knoten` : ''}; ${Math.round(performance.now() - t8)} ms`);
         } catch (e) {
           console.warn('[hangar] Hallendeko nicht gebaut', e);
           deko = null;

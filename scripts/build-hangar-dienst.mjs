@@ -53,6 +53,13 @@
 // eines größeren Wartungsplatz-Satzes: Der Wartungsplatz fährt je Schiff mit
 // dem Aufzug, die Deko steht fest in der Halle, und jeder Satz hat seine
 // eigenen Grenzen im Tor.
+//
+// Die Arbeitsszenen der Hallen fester Größe (Block /* work-deko-fest */,
+// seit 21.11.2026 die Large-Halle) nehmen ihre Stücke aus demselben Satz.
+// Der Packer liest bisher nur /* work-deko */; heute sind alle Knoten der
+// festen Hallen auch dort. Nennt eine Zone der festen Hallen einen Knoten,
+// den der Satz nicht trägt, reißt verify:hangar-hallen [5] (dann diesen
+// Packer um den zweiten Block erweitern und neu packen).
 
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP } from '@gltf-transform/extensions';

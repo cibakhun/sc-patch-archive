@@ -348,6 +348,7 @@ import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } 
 import { sha8 } from './lib/eol-sha.mjs';
 import sharp from 'sharp';
 import { MUSTER } from './build-hangar-dienst.mjs';
+import { LOSE_LEITUNG } from './lib/hall-deko.mjs';
 
 /** Breite und Höhe einer WebP-Datei aus ihrem Kopf (VP8, VP8L, VP8X), sonst null. */
 function webpSize(b) {
@@ -2625,9 +2626,10 @@ if (DK && dekoBlock) {
     // Punkte durch, sonst in einem flachen Bogen, und so in die andere
     // Buchse. Er fuehrt durch kein festes Stueck einer Zone (Grundflaeche und
     // Hoehe; die beiden eigenen Geraete nach ihren Dreiecken) und durch
-    // keinen Gehweg.
-    const LOSE = /cable_(floor|straight|bend|corner|small)|cables_|hose_floor_1_[a-e]$/;
-    const lose = solid.filter((m) => LOSE.test(m.node));
+    // keinen Gehweg. Welche Knoten lose Leitungen sind, steht einmal in
+    // scripts/lib/hall-deko.mjs (LOSE_LEITUNG); die Hallen fester Groesse
+    // (verify:hangar-hallen [5]) nehmen dieselbe Regel.
+    const lose = solid.filter((m) => LOSE_LEITUNG.test(m.node));
     if (lose.length) fail(`[17] ${lose.length} lose Kabel und Schlaeuche in der Hallendeko (z. B. ${lose.slice(0, 3).map(tag).join('; ')}): Ihre Enden liegen frei. Eine Leitung von Geraet zu Geraet gehoert in leitungen ihrer Zone`);
     const dT = await knotenDreiecke(file), lbad = [], lweg = [];
     for (const z of zones) {
