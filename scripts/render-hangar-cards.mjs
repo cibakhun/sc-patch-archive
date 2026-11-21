@@ -18,9 +18,6 @@
    Die Umrisse haben alle denselben Maszstab je Meter (TOP_PPM), gekappt auf
    TOP_MAX Pixel an der laengsten Seite; die Seite rechnet mit l und w.
 
-   Die Render-Seite, der Browser und dropSpecks sind exportiert: die
-   Patchseiten-Bilder (render-patch-bilder.mjs) nutzen sie mit.
-
    WIE: einmalig nach einem neuen Modellstand, nicht im Build (braucht einen
    Browser mit WebGL, Schiene C). Ohne Grafikkarte reicht SwiftShader:
      CHROME_PATH=/opt/pw-browsers/chromium node scripts/render-hangar-cards.mjs
@@ -28,21 +25,32 @@
    Rund 2–6 s je Schiff.
    ============================================================ */
 import { createServer } from 'node:http';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 import { chromium } from 'playwright-core';
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'public/hangar/cards');
 const DATA = path.join(ROOT, 'src/data/hangar-cards.json');
-export const VIEW = { az: 140, el: 18 };
-export const CARD = { w: 480, h: 270, pad: 0.06 };
+const VIEW = { az: 140, el: 18 };
+const CARD = { w: 480, h: 270, pad: 0.06 };
 const TOP_PPM = 8;
 const TOP_MAX = 320;
+
+const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] ?? '' : null; };
+const only = arg('--only')?.split(',').filter(Boolean) ?? null;
+
+const ids = Object.keys(JSON.parse(readFileSync(path.join(ROOT, 'src/data/holo-meshes.json'), 'utf8')).meshes);
+const unknown = (only ?? []).filter((id) => !ids.includes(id));
+if (unknown.length) { console.error(`render-hangar-cards: unbekannte Id ${unknown.join(', ')}`); process.exit(2); }
+const todo = only ?? ids;
+if (!todo.length) { console.error('render-hangar-cards: keine Id ausgewählt'); process.exit(2); }
+
+const BROWSER = [process.env.CHROME_PATH, '/opt/pw-browsers/chromium', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean).find((p) => existsSync(p));
+if (!BROWSER) { console.error('render-hangar-cards: kein Browser gefunden, CHROME_PATH setzen'); process.exit(2); }
 
 const PAGE = `<!doctype html><html><head><meta charset="utf-8">
 <script type="importmap">{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}</script>
@@ -58,39 +66,25 @@ r.setClearColor(0x000000, 0);
 r.outputColorSpace = THREE.SRGBColorSpace;
 const env = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
 const loader = new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/'));
-const studio = (scene) => {
+window.shot = async (url, az, el, ppm, maxPx) => {
+  const scene = new THREE.Scene();
   scene.environment = env;
   const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-1, 2, 1.5); scene.add(key);
   const rim = new THREE.DirectionalLight(0xffd7a0, 1.2); rim.position.set(2, 1, -2); scene.add(rim);
-};
-const load = async (url) => {
   const root = (await loader.loadAsync(url)).scene;
   // Glas halb durchsichtig, sonst steht vor jedem Cockpit eine graue Scheibe.
   root.traverse((o) => { if (o.isMesh) for (const m of [].concat(o.material)) if (m.transmission > 0 || m.transparent) { m.transparent = true; m.opacity = Math.min(m.opacity ?? 1, 0.35); m.depthWrite = false; } });
-  return root;
-};
-const aim = (box, az, el) => {
+  scene.add(root);
+  const box = new THREE.Box3().setFromObject(root);
   const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
   const rad = s.length() / 2, fov = 30;
+  r.setSize(1440, 810, false);
   const cam = new THREE.PerspectiveCamera(fov, canvas.width / canvas.height, rad / 100, rad * 100);
   const a = THREE.MathUtils.degToRad(az), e = THREE.MathUtils.degToRad(el);
   cam.position.copy(c).addScaledVector(new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)), rad / Math.sin(THREE.MathUtils.degToRad(fov / 2)) * 1.05);
   cam.lookAt(c);
-  return cam;
-};
-const photo = (scene, cam) => {
   r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.35;
   r.render(scene, cam);
-};
-window.shot = async (url, az, el, ppm, maxPx) => {
-  const scene = new THREE.Scene();
-  studio(scene);
-  const root = await load(url);
-  scene.add(root);
-  const box = new THREE.Box3().setFromObject(root);
-  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
-  r.setSize(1440, 810, false);
-  photo(scene, aim(box, az, el));
   const card = canvas.toDataURL('image/png');
   // Draufsicht: orthografisch, Bug oben (die Modelle zeigen mit dem Bug nach -Z).
   const k = Math.min(ppm, maxPx / Math.max(s.x, s.z));
@@ -104,120 +98,51 @@ window.shot = async (url, az, el, ppm, maxPx) => {
   root.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
   return { card, plan, size: [s.x, s.y, s.z] };
 };
-// Holo: nur die vorderste Flaeche leuchtet (erst Tiefe, dann Farbe), sonst
-// wird das Innenleben der grossen Schiffe zu Brei. Gerendert auf Schwarz; die
-// Deckkraft rechnet Node aus der Helligkeit, so wirkt es auf jedem dunklen
-// Grund wie additives Licht.
-const HOLO = new THREE.ShaderMaterial({
-  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }',
-  fragmentShader: 'uniform vec3 tint; varying vec3 vN; varying vec3 vV; void main(){ vec3 n = normalize(vN); float f = pow(1.0 - abs(dot(n, normalize(vV))), 2.2); float lit = 0.5 + 0.5 * n.y; gl_FragColor = vec4(tint * (0.10 + 0.16 * lit + 0.85 * f) + vec3(0.55, 0.9, 1.0) * pow(f, 4.0) * 0.45, 1.0); }',
-  uniforms: { tint: { value: new THREE.Color(0x1fb8e0) } },
-});
-const EDGE = new THREE.LineBasicMaterial({ color: 0x7fe8ff, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending });
-const DEPTH = new THREE.MeshBasicMaterial({ colorWrite: false, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2, side: THREE.DoubleSide });
-const holoize = (root) => {
-  const meshes = [];
-  root.traverse((o) => { if (o.isMesh) meshes.push(o); });
-  for (const o of meshes) {
-    const glass = [].concat(o.material).every((m) => m.transparent && m.opacity < 0.5);
-    if (glass) { o.visible = false; continue; }
-    if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
-    o.material = DEPTH;
-    const glow = new THREE.Mesh(o.geometry, HOLO); glow.renderOrder = 1; o.add(glow);
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 40), EDGE); edges.renderOrder = 2; o.add(edges);
-  }
-};
-// Foto und Holo aus derselben Kamera: beide Bilder decken sich Pixel fuer Pixel.
-window.pair = async (url, az, el, W, H) => {
-  const scene = new THREE.Scene();
-  studio(scene);
-  const root = await load(url);
-  scene.add(root);
-  r.setSize(W, H, false);
-  const cam = aim(new THREE.Box3().setFromObject(root), az, el);
-  photo(scene, cam);
-  const shot = canvas.toDataURL('image/png');
-  holoize(root);
-  scene.environment = null;
-  r.toneMapping = THREE.NoToneMapping; r.setClearColor(0x000000, 1);
-  r.render(scene, cam);
-  const holo = canvas.toDataURL('image/png');
-  r.setClearColor(0x000000, 0);
-  root.traverse((o) => { if (o.isMesh || o.isLineSegments) o.geometry.dispose(); });
-  return { shot, holo };
-};
-// Szene: mehrere Modelle in Weltmetern (Bug nach -Z), rot in Grad.
-window.scene = async (items, view, W, H) => {
-  const scene = new THREE.Scene();
-  scene.environment = env; scene.environmentIntensity = view.env;
-  for (const [hex, i, p] of view.lights) { const l = new THREE.DirectionalLight(hex, i); l.position.set(...p); scene.add(l); }
-  for (const it of items) {
-    // Eigene Gruppe: die Wurzel des Modells traegt schon eine Drehung, die bleiben muss.
-    const g = new THREE.Group();
-    g.add(await load(it.url));
-    g.position.set(...it.pos);
-    g.rotation.set(...it.rot.map((d) => THREE.MathUtils.degToRad(d)), 'YXZ');
-    scene.add(g);
-  }
-  r.setSize(W, H, false);
-  const cam = new THREE.PerspectiveCamera(view.fov, W / H, 0.5, 5000);
-  cam.position.set(...view.cam); cam.lookAt(new THREE.Vector3(...view.target));
-  r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = view.exposure;
-  r.render(scene, cam);
-  const out = canvas.toDataURL('image/png');
-  scene.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
-  return out;
-};
 window.ready = true;
 </script></body></html>`;
 
 const PAGE_ENV = path.join(ROOT, 'node_modules/three/examples/jsm/environments/RoomEnvironment.js');
 const TYPES = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.wasm': 'application/wasm', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
+const server = createServer(async (req, res) => {
+  const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  let file = null;
+  if (url === '/render.html') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(PAGE); return; }
+  if (url === '/env/RoomEnvironment.js') file = PAGE_ENV;
+  else if (url.startsWith('/vendor/') || url.startsWith('/hangar/')) file = path.join(ROOT, 'public', url);
+  // Nach dem Dekodieren kann ein „..%2f“ aus public/ fuehren: nur was darin liegt.
+  if (!file || !(file === PAGE_ENV || file.startsWith(path.join(ROOT, 'public') + path.sep)) || !existsSync(file)) { res.writeHead(404); res.end(); return; }
+  res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+  res.end(await readFile(file));
+});
+await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
+const base = `http://127.0.0.1:${server.address().port}`;
 
-/** Server und Chromium mit der Render-Seite; `page` gilt nach `fresh()`. */
-export async function openRenderer(who) {
-  const BROWSER = [process.env.CHROME_PATH, '/opt/pw-browsers/chromium', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean).find((p) => existsSync(p));
-  if (!BROWSER) { console.error(`${who}: kein Browser gefunden, CHROME_PATH setzen`); process.exit(2); }
-  const server = createServer(async (req, res) => {
-    const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    let file = null;
-    if (url === '/render.html') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(PAGE); return; }
-    if (url === '/env/RoomEnvironment.js') file = PAGE_ENV;
-    else if (url.startsWith('/vendor/') || url.startsWith('/hangar/')) file = path.join(ROOT, 'public', url);
-    // Nach dem Dekodieren kann ein „..%2f“ aus public/ fuehren: nur was darin liegt.
-    if (!file || !(file === PAGE_ENV || file.startsWith(path.join(ROOT, 'public') + path.sep)) || !existsSync(file)) { res.writeHead(404); res.end(); return; }
-    res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
-    res.end(await readFile(file));
-  });
-  await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
-  const base = `http://127.0.0.1:${server.address().port}`;
-  const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const R = {
-    page: null,
-    async fresh() {
-      await R.page?.close();
-      R.page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
-      await R.page.goto(`${base}/render.html`);
-      await R.page.waitForFunction(() => window.ready, null, { timeout: 60000 });
-    },
-    async close() { await browser.close(); server.close(); },
-  };
-  return R;
-}
+const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+let page = null;
+const fresh = async () => {
+  await page?.close();
+  page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
+  await page.goto(`${base}/render.html`);
+  await page.waitForFunction(() => window.ready, null, { timeout: 60000 });
+};
 
-export const png = (d) => Buffer.from(d.split(',')[1], 'base64');
+await mkdir(path.join(OUT, 'top'), { recursive: true });
+const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')) : { ships: {} };
+const ships = { ...prev.ships };
+const png = (d) => Buffer.from(d.split(',')[1], 'base64');
+// Nach jedem Schiff geschrieben: bricht der Lauf ab, passen Bilder und
+// Kennungen trotzdem zusammen (verify:hangar [19] prueft v gegen den Inhalt).
+const saveData = () => writeFile(DATA, `${JSON.stringify({ view: VIEW, card: { w: CARD.w, h: CARD.h }, topMax: TOP_MAX, ships: Object.fromEntries(Object.keys(ships).sort().map((k) => [k, ships[k]])) }, null, 1)}\n`);
+const round = (x) => Math.round(x * 10) / 10;
 
 /**
  * Nimmt Kleinteile aus dem Bild, die fern vom Schiff schweben (ein loser Stab
  * neben der 325a machte sie im Rahmen winzig): Inseln im Alphakanal mit
  * weniger als 5 % der Flaeche der groessten, die ausserhalb ihres um ein
  * Zehntel erweiterten Rahmens liegen. Der Stab der 325a hat 1,1 %. Gerechnet auf einem Raster aus
- * 4x4-Bloecken. Liefert das Bild und wie viele Inseln wegfielen. `margin`
- * ist die Erweiterung des Rahmens (Patchseiten-Bilder: 0,02, dort ist ein
- * Splitter neben der Basher im grossen Bild deutlich zu sehen).
+ * 4x4-Bloecken. Liefert das Bild und wie viele Inseln wegfielen.
  */
-export async function dropSpecks(buf, margin = 0.1) {
+async function dropSpecks(buf) {
   const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H } = info;
   const S = 4, gw = Math.ceil(W / S), gh = Math.ceil(H / S);
@@ -243,7 +168,7 @@ export async function dropSpecks(buf, margin = 0.1) {
   }
   if (comps.length < 2) return { buf, dropped: 0 };
   const main = comps.reduce((a, b) => (b.n > a.n ? b : a));
-    const px = (main.x1 - main.x0) * margin + 2, py = (main.y1 - main.y0) * margin + 2;
+    const px = (main.x1 - main.x0) * 0.1 + 2, py = (main.y1 - main.y0) * 0.1 + 2;
   const keep = comps.map((c) => c === main || c.n >= main.n * 0.05
     || (c.x1 >= main.x0 - px && c.x0 <= main.x1 + px && c.y1 >= main.y0 - py && c.y0 <= main.y1 + py));
   const dropped = keep.filter((k) => !k).length;
@@ -255,65 +180,44 @@ export async function dropSpecks(buf, margin = 0.1) {
   return { buf: await sharp(data, { raw: { width: W, height: H, channels: 4 } }).png().toBuffer(), dropped };
 }
 
-async function main() {
-  const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] ?? '' : null; };
-  const only = arg('--only')?.split(',').filter(Boolean) ?? null;
-
-  const ids = Object.keys(JSON.parse(readFileSync(path.join(ROOT, 'src/data/holo-meshes.json'), 'utf8')).meshes);
-  const unknown = (only ?? []).filter((id) => !ids.includes(id));
-  if (unknown.length) { console.error(`render-hangar-cards: unbekannte Id ${unknown.join(', ')}`); process.exit(2); }
-  const todo = only ?? ids;
-  if (!todo.length) { console.error('render-hangar-cards: keine Id ausgewählt'); process.exit(2); }
-
-  const R = await openRenderer('render-hangar-cards');
-  await mkdir(path.join(OUT, 'top'), { recursive: true });
-  const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')) : { ships: {} };
-  const ships = { ...prev.ships };
-  // Nach jedem Schiff geschrieben: bricht der Lauf ab, passen Bilder und
-  // Kennungen trotzdem zusammen (verify:hangar [19] prueft v gegen den Inhalt).
-  const saveData = () => writeFile(DATA, `${JSON.stringify({ view: VIEW, card: { w: CARD.w, h: CARD.h }, topMax: TOP_MAX, ships: Object.fromEntries(Object.keys(ships).sort().map((k) => [k, ships[k]])) }, null, 1)}\n`);
-  const round = (x) => Math.round(x * 10) / 10;
-
-  let done = 0, failed = 0;
-  for (const id of todo) {
-    const glb = path.join(ROOT, 'public/hangar/ships', `${id}.glb`);
-    if (!existsSync(glb)) { console.log(`  fehlt  ${id} (kein Hangar-Modell)`); failed++; continue; }
-    // Eine Seite je 25 Schiffe: SwiftShader gibt Speicher nur beim Schliessen ganz frei.
-    if (done % 25 === 0) await R.fresh();
-    const t0 = Date.now();
-    try {
-      const r = await R.page.evaluate(([u, az, el, ppm, mx]) => window.shot(u, az, el, ppm, mx), [`/hangar/ships/${id}.glb`, VIEW.az, VIEW.el, TOP_PPM, TOP_MAX]);
-      const shot = await dropSpecks(png(r.card));
-      const trimmed = await sharp(shot.buf).trim({ threshold: 1 }).toBuffer();
-      const m = await sharp(trimmed).metadata();
-      const k = Math.min((CARD.w * (1 - 2 * CARD.pad)) / m.width, (CARD.h * (1 - 2 * CARD.pad)) / m.height);
-      const fit = await sharp(trimmed).resize(Math.max(1, Math.round(m.width * k)), Math.max(1, Math.round(m.height * k)), { kernel: 'lanczos3' }).toBuffer();
-      const card = await sharp({ create: { width: CARD.w, height: CARD.h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-        .composite([{ input: fit, gravity: 'centre' }]).webp({ quality: 80, alphaQuality: 90, effort: 6 }).toBuffer();
-      // Breite und Laenge in Metern aus dem Umriss selbst, wie er nach dem
-      // Zuschnitt dasteht: die Seite streckt ihn auf genau diese Masse.
-      const top = await dropSpecks(png(r.plan));
-      const planPng = await sharp(top.buf).trim({ threshold: 1 }).toBuffer();
-      const pm = await sharp(planPng).metadata();
-      const ppm = Math.min(TOP_PPM, TOP_MAX / Math.max(r.size[0], r.size[2]));
-      const plan = await sharp(planPng).webp({ quality: 85, alphaQuality: 85, effort: 6 }).toBuffer();
-      await writeFile(path.join(OUT, `${id}.webp`), card);
-      await writeFile(path.join(OUT, 'top', `${id}.webp`), plan);
-      const v = createHash('sha256').update(card).update(plan).digest('hex').slice(0, 8);
-      ships[id] = { v, w: round(pm.width / ppm), l: round(pm.height / ppm), h: round(r.size[1]) };
-      await saveData();
-      done++;
-      console.log(`  ${id.padEnd(40)} ${String(Date.now() - t0).padStart(5)} ms  ${(card.length / 1024).toFixed(0)} + ${(plan.length / 1024).toFixed(0)} KB${shot.dropped + top.dropped ? `  ${shot.dropped + top.dropped} lose Teile weg` : ''}`);
-    } catch (e) {
-      failed++;
-      console.log(`  FEHLER ${id}: ${String(e).slice(0, 160)}`);
-      await R.fresh();
-    }
+let done = 0, failed = 0;
+for (const id of todo) {
+  const glb = path.join(ROOT, 'public/hangar/ships', `${id}.glb`);
+  if (!existsSync(glb)) { console.log(`  fehlt  ${id} (kein Hangar-Modell)`); failed++; continue; }
+  // Eine Seite je 25 Schiffe: SwiftShader gibt Speicher nur beim Schliessen ganz frei.
+  if (done % 25 === 0) await fresh();
+  const t0 = Date.now();
+  try {
+    const r = await page.evaluate(([u, az, el, ppm, mx]) => window.shot(u, az, el, ppm, mx), [`/hangar/ships/${id}.glb`, VIEW.az, VIEW.el, TOP_PPM, TOP_MAX]);
+    const shot = await dropSpecks(png(r.card));
+    const trimmed = await sharp(shot.buf).trim({ threshold: 1 }).toBuffer();
+    const m = await sharp(trimmed).metadata();
+    const k = Math.min((CARD.w * (1 - 2 * CARD.pad)) / m.width, (CARD.h * (1 - 2 * CARD.pad)) / m.height);
+    const fit = await sharp(trimmed).resize(Math.max(1, Math.round(m.width * k)), Math.max(1, Math.round(m.height * k)), { kernel: 'lanczos3' }).toBuffer();
+    const card = await sharp({ create: { width: CARD.w, height: CARD.h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: fit, gravity: 'centre' }]).webp({ quality: 80, alphaQuality: 90, effort: 6 }).toBuffer();
+    // Breite und Laenge in Metern aus dem Umriss selbst, wie er nach dem
+    // Zuschnitt dasteht: die Seite streckt ihn auf genau diese Masse.
+    const top = await dropSpecks(png(r.plan));
+    const planPng = await sharp(top.buf).trim({ threshold: 1 }).toBuffer();
+    const pm = await sharp(planPng).metadata();
+    const ppm = Math.min(TOP_PPM, TOP_MAX / Math.max(r.size[0], r.size[2]));
+    const plan = await sharp(planPng).webp({ quality: 85, alphaQuality: 85, effort: 6 }).toBuffer();
+    await writeFile(path.join(OUT, `${id}.webp`), card);
+    await writeFile(path.join(OUT, 'top', `${id}.webp`), plan);
+    const v = createHash('sha256').update(card).update(plan).digest('hex').slice(0, 8);
+    ships[id] = { v, w: round(pm.width / ppm), l: round(pm.height / ppm), h: round(r.size[1]) };
+    await saveData();
+    done++;
+    console.log(`  ${id.padEnd(40)} ${String(Date.now() - t0).padStart(5)} ms  ${(card.length / 1024).toFixed(0)} + ${(plan.length / 1024).toFixed(0)} KB${shot.dropped + top.dropped ? `  ${shot.dropped + top.dropped} lose Teile weg` : ''}`);
+  } catch (e) {
+    failed++;
+    console.log(`  FEHLER ${id}: ${String(e).slice(0, 160)}`);
+    await fresh();
   }
-  await R.close();
-  await saveData();
-  console.log(`\nrender-hangar-cards: ${done} Schiffe gerendert, ${failed} fehlgeschlagen, ${Object.keys(ships).length} in ${path.relative(ROOT, DATA)}`);
-  if (failed) process.exit(1);
 }
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();
+await browser.close();
+server.close();
+await saveData();
+console.log(`\nrender-hangar-cards: ${done} Schiffe gerendert, ${failed} fehlgeschlagen, ${Object.keys(ships).length} in ${path.relative(ROOT, DATA)}`);
+if (failed) process.exit(1);
