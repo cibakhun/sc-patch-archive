@@ -781,6 +781,9 @@
     eb  dort safe.titel aus splitKey nehmen (CodeRabbit zu #396:
         die Sperre des Fensters für die offene Zeile bliebe,
         wenn der Titelblock geht)                                   -> [21]
+    ec  dort splitFresh() aus canSplit nehmen (CodeRabbit zu
+        #396: kehrt derselbe Block zurück, lebte eine alte Sperre
+        wieder auf)                                                 -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2896,7 +2899,8 @@ const KANTE_ANGESEHEN = 0.065;
         [/return \{ x, x0, x1, bottom, top: roomTop\(safe, x0, x1, H\) \};/.test(src), 'dist/assets/hangar-holo3d.js: roomOf nimmt die Oberkante nicht mehr aus roomTop: die Höhe der Tafel fragt den Titelblock nicht'],
         [/const nb = ctx\.name\?\.\(\) \?\? safe\.titel \?\? null;/.test(src), 'dist/assets/hangar-holo3d.js: das Fenster der Auswahl bleibt nicht mehr unter dem Namen im Titelblock (ctx.name ?? safe.titel in placeFly)'],
         [/\.\.\.\(safe\.titel \? \[safe\.titel\] : \[\]\)\]\.some\(/.test(src), 'dist/assets/hangar-holo3d.js: die Schilder an den Maßlinien (placeLabels) meiden den Titelblock nicht mehr'],
-        [/const splitKey = \(\) => `[^`\n]*\$\{safe\.titel \? Math\.round\(safe\.titel\.b\) : ''\}`;/.test(src), 'dist/assets/hangar-holo3d.js: splitKey fragt den Titelblock nicht mehr: hatte das Fenster unter ihm keinen Platz, bliebe die Auswahl unter ihrer Zeile, auch wenn er geht (CodeRabbit zu #396)'],
+        [/const splitKey = \(\) => `[^`\n]*\$\{safe\.titel \? \[safe\.titel\.l, safe\.titel\.r, safe\.titel\.b\]\.map\(Math\.round\)\.join\(','\) : ''\}`;/.test(src), 'dist/assets/hangar-holo3d.js: splitKey fragt Lage und Unterkante des Titelblocks nicht mehr: hatte das Fenster unter ihm keinen Platz, bliebe die Auswahl unter ihrer Zeile, auch wenn er geht oder sich verschiebt (CodeRabbit zu #396)'],
+        [/const canSplit = \(P\) => \(splitFresh\(\), /.test(src) && /const noSplit = \(L, F, row\) => \{\s*splitFresh\(\);/.test(src) && /if \(k !== splitAt\) \{ splitAt = k; splitOff = splitOffRow = ''; \}/.test(src), 'dist/assets/hangar-holo3d.js: alte Sperren des Fensters verfallen nicht mehr, wenn sich der Schlüssel ändert (splitFresh in canSplit und noSplit): kehrt derselbe Titelblock zurück, lebte eine alte Sperre wieder auf (CodeRabbit zu #396)'],
         [/const titel = t && main\.dataset\.holo !== 'on' && t\.height > 2 \? t : null;/.test(ctrl) && /titel: titel \? px\(titel\) : null,/.test(ctrl), 'dist/assets/hangar-overview.js: die Seite meldet den sichtbaren Titelblock nicht mehr an setSafe (titel), oder auch dann, wenn das Hologramm steht'],
         [nameHolo, 'dist/assets/hangar-viewer.js: das Hologramm des Namens nimmt aus setSafe mehr als l, t, r und rects (titel): neben dem ganzen Block fände es nie Platz, und der Block wiche nie'],
       ].filter(([ok]) => !ok).map(([, text]) => text);

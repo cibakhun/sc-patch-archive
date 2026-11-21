@@ -1298,14 +1298,17 @@ export function holoLayer(ctx) {
   // keinen Platz hatte (pickRoom: höher als sie, oder unter dem Namen des
   // Schiffs bleibt zu wenig; mit Halterungen ist es höher); die anderen
   // Slots behalten ihr Fenster.
-  // Der Titelblock (safe.titel) gehört dazu: Kommt er oder geht er, steht
-  // der Name woanders, und das Fenster bekommt eine neue Gelegenheit
-  // (CodeRabbit zu #396). Er wechselt nur, wenn das Hologramm am stehenden
-  // Schiff kommt oder geht, kein Hin und Her im Lauf.
-  let splitOff = '', splitOffRow = '';
-  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}|${safe.titel ? Math.round(safe.titel.b) : ''}`;
+  // Der Titelblock (safe.titel, Lage und Unterkante) gehört dazu: Kommt er
+  // oder geht er, steht der Name woanders, und das Fenster bekommt eine neue
+  // Gelegenheit (CodeRabbit zu #396). Er wechselt nur, wenn das Hologramm am
+  // stehenden Schiff kommt oder geht, kein Hin und Her im Lauf. Ändert sich
+  // der Schlüssel, verfallen beide Sperren (splitFresh): Kehrt derselbe
+  // Block später zurück, lebt eine alte Sperre nicht wieder auf.
+  let splitOff = '', splitOffRow = '', splitAt = '';
+  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}|${safe.titel ? [safe.titel.l, safe.titel.r, safe.titel.b].map(Math.round).join(',') : ''}`;
+  const splitFresh = () => { const k = splitKey(); if (k !== splitAt) { splitAt = k; splitOff = splitOffRow = ''; } };
   const rowKey = (P) => `${splitKey()}|${P.data?.pick?.key ?? ''}`;
-  const canSplit = (P) => splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0);
+  const canSplit = (P) => (splitFresh(), splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0));
   // Gezeichnete Fläche einer Tafel im Bild: das Rechteck um ihre vier Ecken
   const edgeV = new THREE.Vector3();
   function boxPx(P) {
@@ -1320,6 +1323,7 @@ export function holoLayer(ctx) {
   const NAME_PROBE = 120;
   // zurück zur Liste unter der Zeile (row: nur für diesen Slot); redraw rollt sie ins Bild
   const noSplit = (L, F, row) => {
+    splitFresh();
     if (row) splitOffRow = rowKey(L); else splitOff = splitKey();
     F.group.visible = false; F.rect = null;
     redraw(L); settledAt = 0; ctx.wake(300);
