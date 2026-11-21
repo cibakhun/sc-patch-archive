@@ -362,6 +362,15 @@ function drawSystems(g, d, hover) {
 // was gerollt ist und ob das Menü der Layouts offen steht.
 const LO_W = 356;
 const LO = { p: 12, top: 40, tabs: 34, gh: 26, rh: 42, was: 14, foot: 68, oh: 36, opts: 6, ch: 60 };
+// Höhe der Liste: so viel, wie über dem Platz der Tafel frei ist (room),
+// höchstens der Inhalt. Wenigstens eine Gruppe mit einer Zeile; bis
+// 21.11.2026 wenigstens 150 px, und in kurzen Bildern ragte die Tafel dann
+// über Titelblock und Knöpfe (CodeRabbit zu #396: Bühne 400 px hoch, Name
+// bis 180 px). Reicht nicht einmal die eine Zeile, bleibt die Tafel und ragt
+// hinauf: Der Name liegt als Text vor der Leinwand und bleibt lesbar, ohne
+// Tafel wäre die Ausrüstung am Schiff ganz weg (dann hilft „Als Tafel“).
+export const LO_MIN_BODY = LO.gh + LO.rh;
+export const loBodyH = (contentH, room) => Math.min(contentH, Math.max(LO_MIN_BODY, room));
 const AMBER = '#f5a623', DOWN = '#ff9b8a', INK = '#04121d';
 // Farbton je Bauteilart: Energiewaffen blauviolett, ballistische sandhell,
 // Raketen und Bomben glutrot, Schild blau, Generator gelb, Kühler eisig,
@@ -524,7 +533,7 @@ function loLayout(g, d, ui) {
   if (d.empty) { items.push({ t: 'empty', y, h: 44 }); y += 44; }
   const contentH = y + 2;
   const menu = ui.menu ? loMenu(g, d.menu) : null;
-  let H = yBody + Math.min(contentH, Math.max(150, (ui.maxH ?? 640) - yBody - LO.foot)) + LO.foot;
+  let H = yBody + loBodyH(contentH, (ui.maxH ?? 640) - yBody - LO.foot) + LO.foot;
   if (menu) H = Math.max(H, menu.y + menu.h + 10);
   const hBody = H - yBody - LO.foot, max = Math.max(0, contentH - hBody);
   // eine frisch geöffnete Zeile samt Auswahl ins Bild rollen, die eingebaute Zeile in die Mitte ihrer Liste

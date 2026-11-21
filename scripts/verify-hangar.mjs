@@ -775,6 +775,9 @@
         wieder aus safe.t statt aus roomTop                         -> [21]
     dz  dort placeFly fragt nur ctx.name?.() (das Fenster der
         Auswahl ginge ohne Hologramm über den Titelblock)           -> [21]
+    ea  dort in loBodyH wieder wenigstens 150 px (Math.max(150,
+        room); CodeRabbit zu #396: in kurzen Bildern ragte die
+        Tafel über den Namen)                                       -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2673,7 +2676,7 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14943, titel: 4200 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14943, titel: 5155 };
 // Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
 // Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
 // Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
@@ -2917,6 +2920,19 @@ const KANTE_ANGESEHEN = 0.065;
               if (mit !== soll) { falsch.push(`Bild ${H} px, Streifen ${x0} bis ${x1} px, Titelblock bis ${tb} px: Oberkante ${mit} statt ${soll} px${trifft && mit < tb ? ', die Tafel läge über dem Namen' : ''}`); break; }
             }
           }
+        }
+        // Hoehe der Liste (loBodyH): in kurzen Bildern so kurz, wie unter dem
+        // Block frei ist, bis hinab zu einer Gruppe mit einer Zeile (CodeRabbit
+        // zu #396: mit wenigstens 150 px ragte sie dort wieder ueber den Namen)
+        if (typeof hm.loBodyH !== 'function' || !(hm.LO_MIN_BODY >= 40 && hm.LO_MIN_BODY <= 120)) falsch.push('dist/assets/hangar-holo3d.js exportiert loBodyH oder LO_MIN_BODY (40 bis 120 px, eine Gruppe mit einer Zeile) nicht mehr');
+        else if (!/let H = yBody \+ loBodyH\(contentH, \(ui\.maxH \?\? 640\) - yBody - LO\.foot\) \+ LO\.foot;/.test(src)) falsch.push('dist/assets/hangar-holo3d.js: loLayout bemisst die Liste nicht mehr mit loBodyH am freien Platz (ui.maxH)');
+        else for (const inhalt of [20, 68, 110, 300, 900]) for (let room = -60; room <= 700; room += 4) {
+          titelLagen++;
+          const b = hm.loBodyH(inhalt, room), wo = `Liste mit ${inhalt} px Inhalt, ${room} px frei`;
+          if (!Number.isFinite(b) || b > inhalt + 1e-9) { falsch.push(`${wo}: ${b} px hoch, mehr als ihr Inhalt`); break; }
+          if (b < Math.min(inhalt, hm.LO_MIN_BODY) - 1e-9) { falsch.push(`${wo}: nur ${b} px hoch, nicht einmal eine Zeile`); break; }
+          if (room >= hm.LO_MIN_BODY && b > room + 1e-9) { falsch.push(`${wo}: ${b} px hoch, die Tafel ragte ${Math.ceil(b - room)} px über den Titelblock`); break; }
+          if (room >= hm.LO_MIN_BODY && b < Math.min(inhalt, room) - 1e-9) { falsch.push(`${wo}: nur ${b} px hoch, obwohl ${Math.min(inhalt, room)} px Platz haben`); break; }
         }
         for (const t of falsch.slice(0, 5)) fail(`[21] Tafel unter dem Titelblock, ${t}`);
         titelIst = falsch.length ? `${falsch.length} Lagen falsch` : `Naht ${tnaht.length ? 'mit Lücke' : 'ganz'}, ${titelLagen} Lagen nachgerechnet`;
