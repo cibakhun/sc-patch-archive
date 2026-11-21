@@ -1,0 +1,7 @@
+---
+import type { Satz } from '../../lib/patch-chronik/chronik';
+
+interface Props { satz: Satz }
+const { satz } = Astro.props;
+---
+{satz.map((teil) => (typeof teil === 'string' ? teil : <a href={teil.h}>{teil.t}</a>))}

@@ -1,0 +1,11 @@
+---
+import type { Wert } from '../../lib/patch-chronik/chronik';
+
+interface Props { werte: Wert[] }
+const { werte } = Astro.props;
+---
+<dl class="werte">
+  {werte.map((w) => (
+    <div><dt>{w.h ? <a href={w.h}>{w.k}</a> : w.k}</dt><dd>{w.v}</dd></div>
+  ))}
+</dl>

@@ -1,0 +1,531 @@
+{
+  "schema": 1,
+  "von": {
+    "version": "4.10.1",
+    "ref": "d678af9f^",
+    "commit": "0e4ed9762be9",
+    "cl": {
+      "vehicles": "12660092",
+      "items": "12660092",
+      "crafting": "12660092",
+      "missions": "12660092"
+    },
+    "preiseVom": "2026-09-24"
+  },
+  "nach": {
+    "version": "4.10.2",
+    "ref": "d678af9f",
+    "commit": "d678af9f13fe",
+    "cl": {
+      "vehicles": "12881860",
+      "items": "12881860",
+      "crafting": "12881860",
+      "missions": "12881860"
+    },
+    "preiseVom": "2026-10-11"
+  },
+  "bestand": {
+    "ship": {
+      "vorher": 229,
+      "nachher": 231
+    },
+    "item": {
+      "vorher": 6709,
+      "nachher": 6808
+    },
+    "blueprint": {
+      "vorher": 1605,
+      "nachher": 1617
+    },
+    "mission": {
+      "vorher": 1355,
+      "nachher": 1387
+    },
+    "price": {
+      "vorher": 174,
+      "nachher": 174
+    },
+    "itemKatalog": {
+      "vorher": 9222,
+      "nachher": 9410
+    }
+  },
+  "zaehler": {
+    "ship": {
+      "new": 2,
+      "renamed": 5,
+      "changed": 3,
+      "removed": 0
+    },
+    "price": {
+      "new": 0,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 0
+    },
+    "item": {
+      "new": 103,
+      "renamed": 20,
+      "changed": 1,
+      "removed": 4
+    },
+    "blueprint": {
+      "new": 13,
+      "renamed": 2,
+      "changed": 1,
+      "removed": 1
+    },
+    "mission": {
+      "new": 32,
+      "renamed": 0,
+      "changed": 2,
+      "removed": 0
+    }
+  },
+  "felder": {
+    "ship": {
+      "crewMin": {
+        "de": "Mindestcrew",
+        "en": "Minimum crew"
+      },
+      "sizeClass": {
+        "de": "Größenklasse",
+        "en": "Size class"
+      },
+      "hullHp": {
+        "de": "Hülle (HP)",
+        "en": "Hull (HP)"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "scmSpeed": {
+        "de": "SCM (m/s)",
+        "en": "SCM (m/s)"
+      },
+      "maxSpeed": {
+        "de": "Max (m/s)",
+        "en": "Max (m/s)"
+      },
+      "boostForward": {
+        "de": "Boost vorwärts (m/s)",
+        "en": "Forward boost (m/s)"
+      },
+      "pitch": {
+        "de": "Nicken (°/s)",
+        "en": "Pitch (°/s)"
+      },
+      "yaw": {
+        "de": "Gieren (°/s)",
+        "en": "Yaw (°/s)"
+      },
+      "roll": {
+        "de": "Rollen (°/s)",
+        "en": "Roll (°/s)"
+      },
+      "cargoSCU": {
+        "de": "Fracht (SCU)",
+        "en": "Cargo (SCU)"
+      },
+      "oreSCU": {
+        "de": "Erz (SCU)",
+        "en": "Ore (SCU)"
+      },
+      "qtSpeedMs": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "qtRangeM": {
+        "de": "Quantenreichweite (m)",
+        "en": "Quantum range (m)"
+      },
+      "qtFuel": {
+        "de": "Quantentreibstoff",
+        "en": "Quantum fuel"
+      },
+      "h2Fuel": {
+        "de": "Wasserstoff",
+        "en": "Hydrogen fuel"
+      },
+      "insClaimMin": {
+        "de": "Versicherung, Anspruch (min)",
+        "en": "Insurance claim (min)"
+      },
+      "pilotDps": {
+        "de": "Pilot-DPS",
+        "en": "Pilot DPS"
+      },
+      "turretDps": {
+        "de": "Turm-DPS",
+        "en": "Turret DPS"
+      },
+      "missileCount": {
+        "de": "Raketen",
+        "en": "Missiles"
+      },
+      "cmLaunchers": {
+        "de": "Täuschkörperwerfer",
+        "en": "Countermeasure launchers"
+      },
+      "fixedWeapons": {
+        "de": "Waffen",
+        "en": "Weapons"
+      },
+      "turretWeapons": {
+        "de": "Turmwaffen",
+        "en": "Turret weapons"
+      },
+      "missileRacks": {
+        "de": "Raketenbestückung",
+        "en": "Missile loadout"
+      },
+      "powerPlants": {
+        "de": "Kraftwerk",
+        "en": "Power plant"
+      },
+      "shields": {
+        "de": "Schildgenerator",
+        "en": "Shield generator"
+      },
+      "coolers": {
+        "de": "Kühler",
+        "en": "Cooler"
+      },
+      "quantumDrives": {
+        "de": "Quantenantrieb",
+        "en": "Quantum drive"
+      },
+      "radars": {
+        "de": "Radar",
+        "en": "Radar"
+      }
+    },
+    "item": {
+      "size": {
+        "de": "Größe",
+        "en": "Size"
+      },
+      "grade": {
+        "de": "Grade",
+        "en": "Grade"
+      },
+      "class": {
+        "de": "Klasse",
+        "en": "Class"
+      },
+      "dps": {
+        "de": "DPS",
+        "en": "DPS"
+      },
+      "damage.physical": {
+        "de": "Schaden je Schuss, physisch",
+        "en": "Damage per shot, physical"
+      },
+      "damage.energy": {
+        "de": "Schaden je Schuss, Energie",
+        "en": "Damage per shot, energy"
+      },
+      "damage.distortion": {
+        "de": "Schaden je Schuss, Verzerrung",
+        "en": "Damage per shot, distortion"
+      },
+      "damage.thermal": {
+        "de": "Schaden je Schuss, thermisch",
+        "en": "Damage per shot, thermal"
+      },
+      "damage.stun": {
+        "de": "Schaden je Schuss, Betäubung",
+        "en": "Damage per shot, stun"
+      },
+      "fireRate": {
+        "de": "Feuerrate (/min)",
+        "en": "Fire rate (/min)"
+      },
+      "magazine": {
+        "de": "Magazin",
+        "en": "Magazine"
+      },
+      "health": {
+        "de": "Lebenspunkte",
+        "en": "Health"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "regen": {
+        "de": "Schild-Regeneration",
+        "en": "Shield regen"
+      },
+      "powerOutput": {
+        "de": "Leistung",
+        "en": "Power output"
+      },
+      "coolingRate": {
+        "de": "Kühlrate",
+        "en": "Cooling rate"
+      },
+      "driveSpeed": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "fuelCapacity": {
+        "de": "Tankinhalt",
+        "en": "Fuel capacity"
+      },
+      "armTime": {
+        "de": "Scharfschaltzeit (s)",
+        "en": "Arm time (s)"
+      },
+      "blastRadius": {
+        "de": "Explosionsradius (m)",
+        "en": "Blast radius (m)"
+      }
+    },
+    "blueprint": {
+      "craft_time_seconds": {
+        "de": "Herstellzeit (s)",
+        "en": "Craft time (s)"
+      },
+      "tiers": {
+        "de": "Stufen",
+        "en": "Tiers"
+      },
+      "ingredients": {
+        "de": "Zutaten",
+        "en": "Ingredients"
+      },
+      "missions": {
+        "de": "Aufträge mit diesem Bauplan",
+        "en": "Contracts rewarding it"
+      }
+    },
+    "mission": {
+      "ranks": {
+        "de": "Ränge",
+        "en": "Ranks"
+      },
+      "rewardMin": {
+        "de": "Belohnung ab (aUEC)",
+        "en": "Reward from (aUEC)"
+      },
+      "rewardMax": {
+        "de": "Belohnung bis (aUEC)",
+        "en": "Reward up to (aUEC)"
+      },
+      "shareable": {
+        "de": "Teilbar",
+        "en": "Shareable"
+      },
+      "maxPlayers": {
+        "de": "Höchstzahl Spieler",
+        "en": "Max players"
+      },
+      "lawful": {
+        "de": "Legal",
+        "en": "Lawful"
+      },
+      "blueprints": {
+        "de": "Baupläne als Belohnung",
+        "en": "Blueprint rewards"
+      },
+      "giverNames": {
+        "de": "Auftraggeber",
+        "en": "Contractor"
+      }
+    }
+  },
+  "ausnahmen": [],
+  "eintraege": [
+    {"kind":"ship","id":"rsi-constellation-mk5-centaurus","slug":"rsi-constellation-mk5-centaurus","name":"Constellation Mk V Centaurus","change":"new","werte":[{"feld":"crewMin","wert":4},{"feld":"sizeClass","wert":5},{"feld":"hullHp","wert":170500},{"feld":"shieldHp","wert":200000},{"feld":"scmSpeed","wert":170},{"feld":"maxSpeed","wert":1075},{"feld":"boostForward","wert":365},{"feld":"pitch","wert":22},{"feld":"yaw","wert":18},{"feld":"roll","wert":35},{"feld":"cargoSCU","wert":240},{"feld":"qtSpeedMs","wert":250857104},{"feld":"qtRangeM","wert":848377221781},{"feld":"qtFuel","wert":8.6},{"feld":"h2Fuel","wert":46.8},{"feld":"insClaimMin","wert":13.5},{"feld":"pilotDps","wert":9274.4},{"feld":"missileCount","wert":32},{"feld":"cmLaunchers","wert":2},{"feld":"fixedWeapons","wert":["4× CF-557 Galdereen Repeater (S5)","8× CF-337 Panther Repeater (S3)"]},{"feld":"missileRacks","wert":["32× StrikeForce II Missile (S2)"]},{"feld":"powerPlants","wert":["2× Sedulity (S2)"]},{"feld":"shields","wert":["2× 5CA 'Akura' (S3)"]},{"feld":"coolers","wert":["2× Snowfall (S2)"]},{"feld":"quantumDrives","wert":["1× Khaos (S2)"]},{"feld":"radars","wert":["1× RADR_WLOP_S03_Lephari (S3)"]}]},
+    {"kind":"ship","id":"rsi-skylark","slug":"rsi-skylark","name":"Skylark","change":"new","werte":[{"feld":"crewMin","wert":1},{"feld":"sizeClass","wert":1},{"feld":"hullHp","wert":6230},{"feld":"shieldHp","wert":6000},{"feld":"scmSpeed","wert":227},{"feld":"maxSpeed","wert":1240},{"feld":"boostForward","wert":535},{"feld":"pitch","wert":70},{"feld":"yaw","wert":58},{"feld":"roll","wert":212},{"feld":"cargoSCU","wert":0},{"feld":"h2Fuel","wert":0.8},{"feld":"insClaimMin","wert":3.4},{"feld":"pilotDps","wert":984},{"feld":"missileCount","wert":10},{"feld":"cmLaunchers","wert":2},{"feld":"fixedWeapons","wert":["3× CF-227 Badger Repeater (S2)"]},{"feld":"missileRacks","wert":["10× Marksman I Missile (S1)"]},{"feld":"powerPlants","wert":["1× PowerBolt (S1)"]},{"feld":"shields","wert":["2× 5SA 'Rhada' (S1)"]},{"feld":"coolers","wert":["2× Frost-Star (S1)"]},{"feld":"radars","wert":["1× Capston (S1)"]}]},
+    {"kind":"ship","id":"rsi-constellation-andromeda","slug":"rsi-constellation-andromeda","name":"Constellation Mk IV Andromeda","change":"renamed","nameVorher":"Constellation Andromeda","felder":[{"feld":"hullHp","vorher":180644,"nachher":103004}]},
+    {"kind":"ship","id":"rsi-constellation-aquila","slug":"rsi-constellation-aquila","name":"Constellation Mk IV Aquila","change":"renamed","nameVorher":"Constellation Aquila","felder":[{"feld":"hullHp","vorher":180644,"nachher":103004}]},
+    {"kind":"ship","id":"rsi-constellation-phoenix","slug":"rsi-constellation-phoenix","name":"Constellation Mk IV Phoenix","change":"renamed","nameVorher":"Constellation Phoenix","felder":[{"feld":"hullHp","vorher":180644,"nachher":104005}]},
+    {"kind":"ship","id":"rsi-constellation-phoenix-emerald","slug":"rsi-constellation-phoenix-emerald","name":"Constellation Mk IV Phoenix Emerald","change":"renamed","nameVorher":"Constellation Phoenix Emerald","felder":[]},
+    {"kind":"ship","id":"rsi-constellation-taurus","slug":"rsi-constellation-taurus","name":"Constellation Mk IV Taurus","change":"renamed","nameVorher":"Constellation Taurus","felder":[{"feld":"hullHp","vorher":180644,"nachher":104005},{"feld":"h2Fuel","vorher":19,"nachher":33}]},
+    {"kind":"ship","id":"anvl-c8r-pisces","slug":"anvl-c8r-pisces","name":"C8R Pisces Rescue","change":"changed","felder":[{"feld":"pitch","vorher":60,"nachher":56},{"feld":"yaw","vorher":60,"nachher":56},{"feld":"roll","vorher":150,"nachher":142}]},
+    {"kind":"ship","id":"aegs-hammerhead","slug":"aegs-hammerhead","name":"Hammerhead","change":"changed","felder":[{"feld":"crewMin","vorher":9,"nachher":8},{"feld":"hullHp","vorher":295600,"nachher":403400},{"feld":"shieldHp","vorher":144000,"nachher":211200},{"feld":"cargoSCU","vorher":40,"nachher":64},{"feld":"qtSpeedMs","vorher":532468704,"nachher":392090592},{"feld":"qtRangeM","vorher":491718427442,"nachher":155279504978},{"feld":"shields","vorher":["2× Stronghold (S3)"],"nachher":["2× SureStop (S3)"]},{"feld":"quantumDrives","vorher":["1× Kama (S3)"],"nachher":["1× Pontes (S3)"]},{"feld":"radars","vorher":["1× Surveyor (S2)"],"nachher":["1× Resolu (S3)"]}]},
+    {"kind":"ship","id":"krig-p72-archimedes-emerald","slug":"krig-p72-archimedes-emerald","name":"P-72 Archimedes Emerald","change":"changed","felder":[{"feld":"scmSpeed","vorher":275,"nachher":270},{"feld":"maxSpeed","vorher":1450,"nachher":1550},{"feld":"boostForward","vorher":605,"nachher":620},{"feld":"pitch","vorher":58,"nachher":57},{"feld":"yaw","vorher":50,"nachher":57},{"feld":"roll","vorher":200,"nachher":190}]},
+    {"kind":"item","id":"0f41e33c9f7a1ed1be579be54771f881","slug":"atzkav-starwalker-sniper-rifle","name":"Atzkav \"Starwalker\" Sniper Rifle","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":82.5},{"feld":"damage.energy","wert":120},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":10},{"feld":"fireRate","wert":30},{"feld":"magazine","wert":8}]},
+    {"kind":"item","id":"2e499de3a21e8da91c871d6d44091fae","slug":"aurora-mk-ii-starwalker-livery","name":"Aurora Mk II Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"4a4ecf36215b18d69ec34df7e25502aa","slug":"bobcat-bomber-jacket-rsi","name":"Bobcat Bomber Jacket RSI","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c34ab8b7b78493cee33daa7ad4479f9a","slug":"briskair-ic-10","name":"BriskAir IC-10","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":210},{"feld":"coolingRate","wert":22}]},
+    {"kind":"item","id":"1a4ded51165a8bbecbc637b1ae53c2ab","slug":"briskair-ic-20","name":"BriskAir IC-20","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":560},{"feld":"coolingRate","wert":28.6}]},
+    {"kind":"item","id":"6f4d151cd6a327f9d26b4af0fc5d34ae","slug":"briskair-ic-30","name":"BriskAir IC-30","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":2300},{"feld":"coolingRate","wert":35.2}]},
+    {"kind":"item","id":"0d4ba63e2697250ef6cfec3eadafda98","slug":"cambio-ii-glacier-srt","name":"Cambio-II \"Glacier\" SRT","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Gadget"}]},
+    {"kind":"item","id":"4d4e95cb6d0709be3affdc0ed2987689","slug":"constellation-mk-iv-emerald-livery","name":"Constellation Mk IV Emerald Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c1425a3dd19c020e1723f36cda1d38a8","slug":"constellation-mk-iv-starwalker-livery","name":"Constellation Mk IV Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"144429419edfe86c8c76e918989c5884","slug":"constellation-mk-v-starwalker-livery","name":"Constellation Mk V Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5a490dea81f4605112613ca00155b595","slug":"delphi-rs-10","name":"Delphi RS-10","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":630}]},
+    {"kind":"item","id":"234de9ac754293a56f80f1b990b8a4b4","slug":"delphi-rs-20","name":"Delphi RS-20","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":1260}]},
+    {"kind":"item","id":"e349c28145786bf8cfa19714556b62b5","slug":"delphi-rs-30","name":"Delphi RS-30","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":3780}]},
+    {"kind":"item","id":"884d6f06bdeb3e18a1d8c5e9071492b3","slug":"eclipse-desmodus-livery","name":"Eclipse Desmodus Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"46485da56eebb8dd9d8eeaa9dd5af390","slug":"f55-shadowflux-lmg","name":"F55 \"Shadowflux\" LMG","change":"new","werte":[{"feld":"size","wert":4},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":200},{"feld":"damage.physical","wert":10},{"feld":"fireRate","wert":1200},{"feld":"magazine","wert":150}]},
+    {"kind":"item","id":"e945ff6574997e29e5ed0e0e712e0188","slug":"helios-ip-10","name":"Helios IP-10","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Industrial"},{"feld":"health","wert":300},{"feld":"powerOutput","wert":17}]},
+    {"kind":"item","id":"ec458e6313fc64c7729c0403958a06a9","slug":"helios-ip-20","name":"Helios IP-20","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Industrial"},{"feld":"health","wert":840},{"feld":"powerOutput","wert":21}]},
+    {"kind":"item","id":"dc47382c6c3f6ef8d1891220d693cfbb","slug":"helios-ip-30","name":"Helios IP-30","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Industrial"},{"feld":"health","wert":2300},{"feld":"powerOutput","wert":25}]},
+    {"kind":"item","id":"ed49efeee206ed4e9d6c6826b91ce380","slug":"hermes-starwalker-livery","name":"Hermes Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3940f94a79e0cd83e92dd2d3040da9b7","slug":"li-tova-meditation-t-shirt","name":"Li'tova Meditation T-Shirt","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5b41d62665c2849acabceca25125afba","slug":"m80-runic-livery","name":"M80 Runic Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3d433742ffc34f604161a165f35b53b0","slug":"maxlift-ii-keelback-tractor-beam","name":"MaxLift-II \"Keelback\" Tractor Beam","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Gadget"},{"feld":"damage.energy","wert":21},{"feld":"magazine","wert":60}]},
+    {"kind":"item","id":"1a418598aa6ccece90bbd8ce06dadfa0","slug":"monolith-armor-arms","name":"Monolith Armor Arms","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1f4f77d5f188eabcd47eb38d16790eb9","slug":"monolith-armor-arms-oubliette","name":"Monolith Armor Arms Oubliette","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"9a42ea429a6d34c195ba57f16fa2feb5","slug":"monolith-armor-arms-runic","name":"Monolith Armor Arms Runic","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"284bc891ef8c1b0c22ded1dbfd025899","slug":"monolith-armor-arms-sandhawk","name":"Monolith Armor Arms Sandhawk","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d24ed2ee4e4ff04cc3599792651ddba1","slug":"monolith-armor-arms-serpentine","name":"Monolith Armor Arms Serpentine","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"db481e394d1930b973729e080e3b08aa","slug":"monolith-armor-arms-shadowflux","name":"Monolith Armor Arms Shadowflux","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"8b4b98983495e27e64e8b534b8def8a0","slug":"monolith-armor-arms-silver-strike","name":"Monolith Armor Arms Silver Strike","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"bb4779014fdc6e07b4f51e8fc2b3889d","slug":"monolith-armor-arms-tsunami","name":"Monolith Armor Arms Tsunami","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"f74b7931b99701b03d8e9d19f3496780","slug":"monolith-armor-core","name":"Monolith Armor Core","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"534a38e8a5cab5a699ec98bb32c8988c","slug":"monolith-armor-core-oubliette","name":"Monolith Armor Core Oubliette","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"294d26cdf57af91310ad31f722788cb4","slug":"monolith-armor-core-runic","name":"Monolith Armor Core Runic","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"2f437094c0b718ada67747ae604f8492","slug":"monolith-armor-core-sandhawk","name":"Monolith Armor Core Sandhawk","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"544df12d28dcfff33839327969531b8a","slug":"monolith-armor-core-serpentine","name":"Monolith Armor Core Serpentine","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1f4b4c0cf2487c3c1760ee0d344f6c9a","slug":"monolith-armor-core-shadowflux","name":"Monolith Armor Core Shadowflux","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5a4f28adaaf1f5dbfe4308ef2dea7791","slug":"monolith-armor-core-silver-strike","name":"Monolith Armor Core Silver Strike","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"694bd9b4df3902b891aab90f27d7e3af","slug":"monolith-armor-core-tsunami","name":"Monolith Armor Core Tsunami","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1e45e157835106ba9362be48c2dcc1a2","slug":"monolith-armor-legs","name":"Monolith Armor Legs","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b74678d81a9c8b980660be03b7a079b6","slug":"monolith-armor-legs-blackheart","name":"Monolith Armor Legs Blackheart","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"624f4aa6f5133dfe24ca2776339cea91","slug":"monolith-armor-legs-oubliette","name":"Monolith Armor Legs Oubliette","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"794fab1fc28b48a9474d5eb9737b369c","slug":"monolith-armor-legs-runic","name":"Monolith Armor Legs Runic","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"40451c866d561bb4cf9617778f1903a7","slug":"monolith-armor-legs-sandhawk","name":"Monolith Armor Legs Sandhawk","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b84fb641b6f973b83ca854db1f405fb1","slug":"monolith-armor-legs-serpentine","name":"Monolith Armor Legs Serpentine","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"544c5dd425716a7321b03fd8caaaaf8d","slug":"monolith-armor-legs-shadowflux","name":"Monolith Armor Legs Shadowflux","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"8a44e51597241d73ea283aa513dad286","slug":"monolith-armor-legs-silver-strike","name":"Monolith Armor Legs Silver Strike","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"e143713298d667148120e5905d5fdb95","slug":"monolith-armor-legs-tsunami","name":"Monolith Armor Legs Tsunami","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"41477cd715e0575ac30f198d48d264b3","slug":"monolith-backpack","name":"Monolith Backpack","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"484b828cd8017abb5fe685cf0677659a","slug":"monolith-backpack-blackheart","name":"Monolith Backpack Blackheart","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"4d4a1d14d35ccf47b20852d9b07cd5ab","slug":"monolith-backpack-liquidator","name":"Monolith Backpack Liquidator","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5d431da6903899fad329230023da8fab","slug":"monolith-backpack-oubliette","name":"Monolith Backpack Oubliette","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"464b4c1b81935439bd917eb13db33799","slug":"monolith-backpack-runic","name":"Monolith Backpack Runic","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3940a95e42150351ca3c257b4055c89c","slug":"monolith-backpack-sandhawk","name":"Monolith Backpack Sandhawk","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"97455d711b8092e2f62ebd89c6c0cfad","slug":"monolith-backpack-serpentine","name":"Monolith Backpack Serpentine","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"4c4e6f50e46b65207d75fda913a8b78d","slug":"monolith-backpack-shadowflux","name":"Monolith Backpack Shadowflux","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b64e8d3aa155edb414a52a32462fda93","slug":"monolith-backpack-silver-strike","name":"Monolith Backpack Silver Strike","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"dd4a5033d63dcb721eb2721d32e9cf9e","slug":"monolith-backpack-tsunami","name":"Monolith Backpack Tsunami","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"35430d0ca5ce3c978a760864005bd4b5","slug":"monolith-helmet-blackheart","name":"Monolith Helmet Blackheart","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"784ee69f6f6bfad57efecfd0e686f4a7","slug":"monolith-helmet-liquidator","name":"Monolith Helmet Liquidator","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"8b49b88ae27dc3f124bc30fec5ab6bb1","slug":"monolith-helmet-oubliette","name":"Monolith Helmet Oubliette","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"8e4a3d4d68e92ef392571b2a8e2d25b2","slug":"monolith-helmet-sandhawk","name":"Monolith Helmet Sandhawk","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ea4eebadd6559e3c53cf30baf32e2b87","slug":"monolith-helmet-serpentine","name":"Monolith Helmet Serpentine","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"644a8fa96d4dea78f99ad6563c9107a6","slug":"monolith-helmet-silver-strike","name":"Monolith Helmet Silver Strike","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"a94ab3848a7a383204b3d7010f65b194","slug":"monolith-helmet-tsunami","name":"Monolith Helmet Tsunami","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"114aa851ebf18a472dbc365e796f2c9c","slug":"p8-sc-echo-smg","name":"P8-SC \"Echo\" SMG","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":183.33},{"feld":"damage.physical","wert":13.75},{"feld":"fireRate","wert":800},{"feld":"magazine","wert":45}]},
+    {"kind":"item","id":"c147ebf3dc0de9e13bf138eb7cb01eb2","slug":"r97-runic-shotgun","name":"R97 \"Runic\" Shotgun","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":30.33},{"feld":"damage.physical","wert":4},{"feld":"fireRate","wert":455},{"feld":"magazine","wert":18}]},
+    {"kind":"item","id":"7c487503ea6bf7c8de3387337d7f1fbc","slug":"ravager-212-infrared-twin-shotgun","name":"Ravager-212 \"Infrared\" Twin Shotgun","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":86.67},{"feld":"damage.physical","wert":6.5},{"feld":"fireRate","wert":800},{"feld":"magazine","wert":16}]},
+    {"kind":"item","id":"4645b9a8d58f1af3f00f32e693e5d485","slug":"rsi-constellation-mk-v-missile-rack","name":"RSI Constellation Mk V Missile Rack","change":"new","werte":[{"feld":"size","wert":6},{"feld":"grade","wert":"A"},{"feld":"health","wert":2000}]},
+    {"kind":"item","id":"9e47e62b1f38778607fa09a4ae7a6286","slug":"s71-infrared-rifle","name":"S71 \"Infrared\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":179.17},{"feld":"damage.physical","wert":21.5},{"feld":"fireRate","wert":500},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"0b4ddee462ee13c4c1563f49b23a93bd","slug":"salvation-glacier-livery","name":"Salvation Glacier Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5b4b2a4ac14e1436c5b694a6470c809a","slug":"scorpius-echo-livery","name":"Scorpius Echo Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"9c48cf73fd0870e1f5dae06bc97fa1a7","slug":"skylark-blackthorn-livery","name":"Skylark Blackthorn Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"8644e380407badc18cf57d839acbadb9","slug":"skylark-convergence-livery","name":"Skylark Convergence Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"08419f715017c16cf377aca0ce544ea9","slug":"skylark-heritage-livery","name":"Skylark Heritage Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c843a656ca9e8beaf2adc0fceb5e4aa1","slug":"skylark-magnitude-livery","name":"Skylark Magnitude Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"964e738c6c6020aaded585fe54bd768d","slug":"skylark-patrician-livery","name":"Skylark Patrician Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"0048cf16f83ad3936157d12aa8699aa1","slug":"skylark-starwalker-livery","name":"Skylark Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ca437f9bd7c29334f49eccfb1980bbae","slug":"sovereign-ip-10","name":"Sovereign IP-10","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":310},{"feld":"powerOutput","wert":16}]},
+    {"kind":"item","id":"cf47ceb1ce2986fba09abfa9aa94ddbf","slug":"sovereign-ip-20","name":"Sovereign IP-20","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":860},{"feld":"powerOutput","wert":20}]},
+    {"kind":"item","id":"7c4b093bcf78e5869745bb339cfb0fb6","slug":"sovereign-ip-30","name":"Sovereign IP-30","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"B"},{"feld":"class","wert":"Military"},{"feld":"health","wert":2400},{"feld":"powerOutput","wert":24}]},
+    {"kind":"item","id":"b14942510acb1e6bbc097d25e92ab58e","slug":"ursa-starwalker-livery","name":"Ursa Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c644e28dd1694d502892602cd16cc588","slug":"venture-arms-infrared","name":"Venture Arms Infrared","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3f467e3b807ffb144e4c9bdba3d972ba","slug":"venture-arms-starwalker","name":"Venture Arms Starwalker","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"86431d9428404cd4253f0f4c10afb8a4","slug":"venture-core-infrared","name":"Venture Core Infrared","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d34cccd46de8ad4d08f5dde1ca6eaeb3","slug":"venture-core-starwalker","name":"Venture Core Starwalker","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c042a735da433aa65017149ce0bf5eb3","slug":"venture-helmet-infrared","name":"Venture Helmet Infrared","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d2434f80e3382deaa90a2ddcf404a9a3","slug":"venture-helmet-starwalker","name":"Venture Helmet Starwalker","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"064a27089c8cdf3f80876c57a0b4fb9e","slug":"venture-legs-infrared","name":"Venture Legs Infrared","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"f6443f68ff759caed94896c0feb0eab4","slug":"venture-legs-starwalker","name":"Venture Legs Starwalker","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"a94870e3e5a919602a62e7af1b22258a","slug":"venture-undersuit-infrared","name":"Venture Undersuit Infrared","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3843c294f897107b4b70a6b2e9f5998e","slug":"venture-undersuit-starwalker","name":"Venture Undersuit Starwalker","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b34098b5b472c69532e33a70dbc709a0","slug":"vulture-abomination-livery","name":"Vulture Abomination Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"de4cb58086831b4861f4596c238e81b0","slug":"wolf-lycan-livery","name":"Wolf Lycan Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1f44786f3887960f9d0f4077b4bca4ad","slug":"zeus-exploration-backpack-echo","name":"Zeus Exploration Backpack Echo","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"f04fcac9caa78560e037c88f664e6287","slug":"zeus-exploration-backpack-glacier","name":"Zeus Exploration Backpack Glacier","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3846a64a366f099cb00e5be8cbdb18bd","slug":"zeus-exploration-backpack-keelback","name":"Zeus Exploration Backpack Keelback","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"2b4a7ceb76c4b0e1ab089db6ddb8ae98","slug":"zeus-exploration-helmet-echo","name":"Zeus Exploration Helmet Echo","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5e49c10041b4f559dc90b36f105f53be","slug":"zeus-exploration-helmet-glacier","name":"Zeus Exploration Helmet Glacier","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"0f449460b8a32243d1e580c7235e50b0","slug":"zeus-exploration-helmet-keelback","name":"Zeus Exploration Helmet Keelback","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d94f2ed85f4707961760b53fd915ab8f","slug":"zeus-exploration-suit-echo","name":"Zeus Exploration Suit Echo","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"844a0d03d9aa5c588f630c5cebe091a2","slug":"zeus-exploration-suit-glacier","name":"Zeus Exploration Suit Glacier","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"bb41fbdf54510bff70c8705ea7ce4eb9","slug":"zeus-exploration-suit-keelback","name":"Zeus Exploration Suit Keelback","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b2477cc3a0d8a11d10a4df2f0fb626b8","slug":"zeus-keelback-livery","name":"Zeus Keelback Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"2b425c1b8382dd4dcf6f771eee5d5d82","slug":"antium-core-jet","name":"Antium Core Jet","change":"renamed","nameVorher":"Antium Helmet Jet","slugVorher":"antium-helmet-jet","felder":[]},
+    {"kind":"item","id":"1143394cb6212a576aeffbfebb93af89","slug":"antium-helmet-jet","name":"Antium Helmet Jet","change":"renamed","nameVorher":"Antium Arms Maroon","slugVorher":"antium-arms-maroon","felder":[]},
+    {"kind":"item","id":"8a4393b345ac0de1f1b76305d95ba487","slug":"constellation-mk-iv-2952-auspicious-red-monkey-livery","name":"Constellation Mk IV 2952 Auspicious Red Monkey Livery","change":"renamed","nameVorher":"Constellation 2952 Auspicious Red Monkey Livery","slugVorher":"constellation-2952-auspicious-red-monkey-livery","felder":[]},
+    {"kind":"item","id":"22489f70155bc1786924327ee00ad694","slug":"constellation-mk-iv-arccorp-livery","name":"Constellation Mk IV ArcCorp Livery","change":"renamed","nameVorher":"Constellation ArcCorp Livery","slugVorher":"constellation-arccorp-livery","felder":[]},
+    {"kind":"item","id":"8f40bca48a485289e0afc8eed5d0ed9b","slug":"constellation-mk-iv-black-heron-livery","name":"Constellation Mk IV Black Heron Livery","change":"renamed","nameVorher":"Constellation Black Heron Livery","slugVorher":"constellation-black-heron-livery","felder":[]},
+    {"kind":"item","id":"51406a181af1b038cd7a61c493026e96","slug":"constellation-mk-iv-crusader-livery","name":"Constellation Mk IV Crusader Livery","change":"renamed","nameVorher":"Constellation Crusader Livery","slugVorher":"constellation-crusader-livery","felder":[]},
+    {"kind":"item","id":"e846e1d576a86afaccbccc433254109f","slug":"constellation-mk-iv-dark-green-livery","name":"Constellation Mk IV Dark Green Livery","change":"renamed","nameVorher":"Constellation Dark Green Livery","slugVorher":"constellation-dark-green-livery","felder":[]},
+    {"kind":"item","id":"b943cd2af19ffc46dca25a8e59cd3687","slug":"constellation-mk-iv-hurston-livery","name":"Constellation Mk IV Hurston Livery","change":"renamed","nameVorher":"Constellation Hurston Livery","slugVorher":"constellation-hurston-livery","felder":[]},
+    {"kind":"item","id":"1e4b09c7c011a8aebede31ef0dce388c","slug":"constellation-mk-iv-invictus-blue-and-gold-livery","name":"Constellation Mk IV Invictus Blue and Gold Livery","change":"renamed","nameVorher":"Constellation Invictus Blue and Gold Livery","slugVorher":"constellation-invictus-blue-and-gold-livery","felder":[]},
+    {"kind":"item","id":"124aa79ad8c9497f945075ce80ae0982","slug":"constellation-mk-iv-microtech-livery","name":"Constellation Mk IV microTech Livery","change":"renamed","nameVorher":"Constellation microTech Livery","slugVorher":"constellation-microtech-livery","felder":[]},
+    {"kind":"item","id":"8245f42ff86c876417ea8f0f82017e87","slug":"constellation-mk-iv-nightbreak-livery","name":"Constellation Mk IV Nightbreak Livery","change":"renamed","nameVorher":"Constellation Nightbreak Livery","slugVorher":"constellation-nightbreak-livery","felder":[]},
+    {"kind":"item","id":"5840d57bae455da1e323f7cc99a138bd","slug":"constellation-mk-iv-orange-heron-livery","name":"Constellation Mk IV Orange Heron Livery","change":"renamed","nameVorher":"Constellation Orange Heron Livery","slugVorher":"constellation-orange-heron-livery","felder":[]},
+    {"kind":"item","id":"794e515f8f91e3cbecf098dc8b0aad8e","slug":"constellation-mk-iv-polar-livery","name":"Constellation Mk IV Polar Livery","change":"renamed","nameVorher":"Constellation Polar Livery","slugVorher":"constellation-polar-livery","felder":[]},
+    {"kind":"item","id":"f043f1b44486aa1c616382088069f4a0","slug":"constellation-mk-iv-stormbringer-livery","name":"Constellation Mk IV Stormbringer Livery","change":"renamed","nameVorher":"Constellation Stormbringer Livery","slugVorher":"constellation-stormbringer-livery","felder":[]},
+    {"kind":"item","id":"6c4c34a76e51f0873026908bcb55d3aa","slug":"constellation-mk-iv-white-heron-livery","name":"Constellation Mk IV White Heron Livery","change":"renamed","nameVorher":"Constellation White Heron Livery","slugVorher":"constellation-white-heron-livery","felder":[]},
+    {"kind":"item","id":"7648bf26c58a77b9ffb93af8abde49ae","slug":"stv-blue-carbon-livery","name":"STV Blue Carbon Livery","change":"renamed","nameVorher":"STV Blue Steel Livery","slugVorher":"stv-blue-steel-livery","felder":[]},
+    {"kind":"item","id":"6e4a9dbf934b583cbe081cb8216c9d99","slug":"zeus-exploration-backpack","name":"Zeus Exploration Backpack","change":"renamed","nameVorher":"Zeus Exploration Suit Backpack","slugVorher":"zeus-exploration-suit-backpack","felder":[]},
+    {"kind":"item","id":"1a4e4779918e18703c60623374ae7e89","slug":"zeus-exploration-backpack-solar","name":"Zeus Exploration Backpack Solar","change":"renamed","nameVorher":"Zeus Exploration Suit Backpack Solar","slugVorher":"zeus-exploration-suit-backpack-solar","felder":[]},
+    {"kind":"item","id":"3c432b0c0af35e0eb4ce22c977f1779b","slug":"zeus-exploration-helmet","name":"Zeus Exploration Helmet","change":"renamed","nameVorher":"Zeus Exploration Suit Helmet","slugVorher":"zeus-exploration-suit-helmet","felder":[]},
+    {"kind":"item","id":"3641d1f2108d3ced15cef062f02e47b5","slug":"zeus-exploration-helmet-solar","name":"Zeus Exploration Helmet Solar","change":"renamed","nameVorher":"Zeus Exploration Suit Helmet Solar","slugVorher":"zeus-exploration-suit-helmet-solar","felder":[]},
+    {"kind":"item","id":"0640093f33450d066b6922b0ee7c85b3","slug":"constellation-andromeda-ship-armor","name":"Constellation Andromeda Ship Armor","change":"changed","felder":[{"feld":"health","vorher":11520,"nachher":25740}]},
+    {"kind":"item","id":"a240685fdb92fc7faaa9007e7a220997","slug":"antium-core-jet","name":"Antium Core Jet","change":"removed"},
+    {"kind":"item","id":"0a4e85b152da192355f795877e5f41b8","slug":"omni-afs-sapphire-armored-flight-suit-alpine","name":"OMNI-AFS-Sapphire Armored Flight Suit Alpine","change":"removed"},
+    {"kind":"item","id":"6c4b98c4277315a5b16f9c9cc793bca7","slug":"omni-afs-sapphire-armored-flight-suit-jungle","name":"OMNI-AFS-Sapphire Armored Flight Suit Jungle","change":"removed"},
+    {"kind":"item","id":"c94ac47caa9a66dd609fb5ddd74ea299","slug":"omni-afs-sapphire-armored-flight-suit-slate","name":"OMNI-AFS-Sapphire Armored Flight Suit Slate","change":"removed"},
+    {"kind":"blueprint","id":"804acb0c8658a6fd84456d188b52eea5","name":"DayBreak","change":"new","werte":[{"feld":"craft_time_seconds","wert":1080},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["SHELL: Iron 1.22 SCU (ab Q1)","STATOR CORES: Silicon 0.85 SCU (ab Q1)","VOLTAGE REGULATOR: Silicon 0.5 SCU (ab Q1)"]},{"feld":"missions","wert":["foxwell-defend-entities-and-escort-pyro-easy","foxwell-defend-entities-and-escort-pyro-hard","foxwell-defend-entities-and-escort-pyro-medium","foxwell-defend-entities-and-escort-pyro-super","foxwell-defend-entities-and-escort-pyro-very-easy-from","foxwell-defend-entities-and-escort-pyro-very-easy-to","foxwell-defend-entities-and-escort-pyro-very-hard"]}]},
+    {"kind":"blueprint","id":"46485da56eebb8dd9d8eeaa9dd5af390","name":"F55 \"Shadowflux\" LMG","change":"new","werte":[{"feld":"craft_time_seconds","wert":240},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["BARREL: Iron 0.03 SCU","FRAME: Lindinium 0.06 SCU","STOCK: Hephaestanite 0.04 SCU"]},{"feld":"missions","wert":["big-style-lmg"]}]},
+    {"kind":"blueprint","id":"c54a29cdaaad3ffcef3d8d98d451f5a2","name":"Goliath","change":"new","werte":[{"feld":"craft_time_seconds","wert":780},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASE: Tungsten 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Laranite 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"]}]},
+    {"kind":"blueprint","id":"1a418598aa6ccece90bbd8ce06dadfa0","name":"Monolith Armor Arms","change":"new","werte":[{"feld":"craft_time_seconds","wert":240},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]}]},
+    {"kind":"blueprint","id":"db481e394d1930b973729e080e3b08aa","name":"Monolith Armor Arms Shadowflux","change":"new","werte":[{"feld":"craft_time_seconds","wert":240},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["monolith-armor-very-smooth"]}]},
+    {"kind":"blueprint","id":"f74b7931b99701b03d8e9d19f3496780","name":"Monolith Armor Core","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.07 SCU","INSULATIVE LINER: Aslarite 0.02 SCU","SUPPORT STRUCTURE: Titanium 0.07 SCU"]}]},
+    {"kind":"blueprint","id":"1f4b4c0cf2487c3c1760ee0d344f6c9a","name":"Monolith Armor Core Shadowflux","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.07 SCU","INSULATIVE LINER: Aslarite 0.02 SCU","SUPPORT STRUCTURE: Titanium 0.07 SCU"]},{"feld":"missions","wert":["monolith-armor-very-smooth"]}]},
+    {"kind":"blueprint","id":"1e45e157835106ba9362be48c2dcc1a2","name":"Monolith Armor Legs","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU","SUPPORT STRUCTURE: Titanium 0.06 SCU"]}]},
+    {"kind":"blueprint","id":"544c5dd425716a7321b03fd8caaaaf8d","name":"Monolith Armor Legs Shadowflux","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU","SUPPORT STRUCTURE: Titanium 0.06 SCU"]},{"feld":"missions","wert":["monolith-armor-very-smooth"]}]},
+    {"kind":"blueprint","id":"41477cd715e0575ac30f198d48d264b3","name":"Monolith Backpack","change":"new","werte":[{"feld":"craft_time_seconds","wert":105},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["FRAME: Ouratite 0.06 SCU"]}]},
+    {"kind":"blueprint","id":"4c4e6f50e46b65207d75fda913a8b78d","name":"Monolith Backpack Shadowflux","change":"new","werte":[{"feld":"craft_time_seconds","wert":105},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["FRAME: Ouratite 0.06 SCU"]},{"feld":"missions","wert":["monolith-armor-very-smooth"]}]},
+    {"kind":"blueprint","id":"15454f89991807d97a77e1d8dad739b4","name":"Monolith Helmet","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.05 SCU","INSULATIVE LINER: Aslarite 0.01 SCU","SUPPORT STRUCTURE: Titanium 0.05 SCU"]}]},
+    {"kind":"blueprint","id":"d949c744d6062f9d9f29cdbf74eed6a4","name":"Monolith Helmet Shadowflux","change":"new","werte":[{"feld":"craft_time_seconds","wert":250},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["ARMOURED CARAPACE: Ouratite 0.05 SCU","INSULATIVE LINER: Aslarite 0.01 SCU","SUPPORT STRUCTURE: Titanium 0.05 SCU"]},{"feld":"missions","wert":["monolith-armor-very-smooth"]}]},
+    {"kind":"blueprint","id":"2b425c1b8382dd4dcf6f771eee5d5d82","name":"Antium Core Jet","change":"renamed","nameVorher":"Antium Helmet Jet","felder":[]},
+    {"kind":"blueprint","id":"1143394cb6212a576aeffbfebb93af89","name":"Antium Helmet Jet","change":"renamed","nameVorher":"Antium Arms Maroon","felder":[]},
+    {"kind":"blueprint","id":"7441fcb82200fc1a984b745bfc6d8786","name":"TH-01 Propulsor","change":"changed","felder":[{"feld":"missions","vorher":["orison-relief-large-fabrication-order","orison-relief-medium-fabrication-order","orison-relief-small-fabrication-order"],"nachher":["orison-relief-large-fabrication-order"]}]},
+    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa#2","name":"FoxFire","change":"removed"},
+    {"kind":"mission","id":"big-style-lmg","slug":"big-style-lmg","name":"Big Style LMG","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":1}]},
+    {"kind":"mission","id":"iasi-2-h-box-courier","slug":"iasi-2-h-box-courier","name":"Iasi 2 H Box Courier","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-courier-gold-item","slug":"iasi-courier-gold-item","name":"Iasi Courier Gold Item","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-courier-gold-item-once-only","slug":"iasi-courier-gold-item-once-only","name":"Iasi Courier Gold Item Once Only","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-defend-ship-easy","slug":"iasi-defend-ship-easy","name":"Iasi Defend Ship Easy","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-defend-ship-hard","slug":"iasi-defend-ship-hard","name":"Iasi Defend Ship Hard","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-defend-ship-medium","slug":"iasi-defend-ship-medium","name":"Iasi Defend Ship Medium","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-eliminate-all-medium","slug":"iasi-eliminate-all-medium","name":"Iasi Eliminate All Medium","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-eliminate-boss-hard","slug":"iasi-eliminate-boss-hard","name":"Iasi Eliminate Boss Hard","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-eliminate-specific-easy","slug":"iasi-eliminate-specific-easy","name":"Iasi Eliminate Specific Easy","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-haul-cargo-ato-b-small-party-supplies","slug":"iasi-haul-cargo-ato-b-small-party-supplies","name":"Iasi Haul Cargo Ato B Small Party Supplies","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-haul-cargo-ato-b-supply-party-supplies","slug":"iasi-haul-cargo-ato-b-supply-party-supplies","name":"Iasi Haul Cargo Ato B Supply Party Supplies","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-haul-cargo-ato-b-supply-security-supplies","slug":"iasi-haul-cargo-ato-b-supply-security-supplies","name":"Iasi Haul Cargo Ato B Supply Security Supplies","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-patrol-easy","slug":"iasi-patrol-easy","name":"Iasi Patrol Easy","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-patrol-hard","slug":"iasi-patrol-hard","name":"Iasi Patrol Hard","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-patrol-medium","slug":"iasi-patrol-medium","name":"Iasi Patrol Medium","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-salvage-large","slug":"iasi-salvage-large","name":"Iasi Salvage Large","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-salvage-medium","slug":"iasi-salvage-medium","name":"Iasi Salvage Medium","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"iasi-salvage-small","slug":"iasi-salvage-small","name":"Iasi Salvage Small","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"monolith-armor-very-smooth","slug":"monolith-armor-very-smooth","name":"Monolith Armor Very Smooth","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":5}]},
+    {"kind":"mission","id":"rsi-disc-month-critical-refuel-request","slug":"rsi-disc-month-critical-refuel-request","name":"RSI Disc. Month: Critical Refuel Request ({Ship})","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-high-value-package-retrieval-op","slug":"rsi-disc-month-high-value-package-retrieval-op","name":"RSI Disc. Month: High Value Package Retrieval Op","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-package-recovery-exp-e","slug":"rsi-disc-month-package-recovery-exp-e","name":"RSI Disc. Month: Package Recovery (Exp. E)","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-package-recovery-exp-jr","slug":"rsi-disc-month-package-recovery-exp-jr","name":"RSI Disc. Month: Package Recovery (Exp. JR)","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-package-recovery-exp-s","slug":"rsi-disc-month-package-recovery-exp-s","name":"RSI Disc. Month: Package Recovery (Exp. S)","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-procure-refined-beryl","slug":"rsi-disc-month-procure-refined-beryl","name":"RSI Disc. Month: Procure Refined Beryl","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-procure-refined-iron","slug":"rsi-disc-month-procure-refined-iron","name":"RSI Disc. Month: Procure Refined Iron","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-procure-refined-quantainium","slug":"rsi-disc-month-procure-refined-quantainium","name":"RSI Disc. Month: Procure Refined Quantainium","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-recover-package-from-hijackers","slug":"rsi-disc-month-recover-package-from-hijackers","name":"RSI Disc. Month: Recover Package from Hijackers","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-recover-package-from-site","slug":"rsi-disc-month-recover-package-from-site","name":"RSI Disc. Month: Recover Package from Site","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-refuel-request","slug":"rsi-disc-month-refuel-request","name":"RSI Disc. Month: Refuel Request ({Ship})","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"rsi-disc-month-urgent-refuel-request","slug":"rsi-disc-month-urgent-refuel-request","name":"RSI Disc. Month: Urgent Refuel Request ({Ship})","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
+    {"kind":"mission","id":"orison-relief-medium-fabrication-order","slug":"orison-relief-medium-fabrication-order","name":"Orison Relief: Medium Fabrication Order","change":"changed","felder":[{"feld":"blueprints","vorher":1,"nachher":0}]},
+    {"kind":"mission","id":"orison-relief-small-fabrication-order","slug":"orison-relief-small-fabrication-order","name":"Orison Relief: Small Fabrication Order","change":"changed","felder":[{"feld":"blueprints","vorher":1,"nachher":0}]}
+  ]
+}

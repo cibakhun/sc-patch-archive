@@ -1,8 +1,7 @@
 /* ============================================================
    inhalt.ts — alles, was die Seite zu Alpha 4.10.3 sagt, einmal.
 
-   Die heutige Seite (src/components/patches/sc-4-10-3.astro) und die drei
-   Entwuerfe (src/components/patch-konzepte/) lesen nur hier. Was die
+   Die Seite (src/components/patches/sc-4-10-3.astro) liest nur hier. Was die
    Spieldaten wissen, kommt aus ihnen; der Rest ist geprueftes Redaktionsgut
    (Faktencheck 9c79ab59).
 
@@ -18,14 +17,13 @@ import type { Locale } from '../../i18n/ui';
 import { fassung } from '../fassung';
 import { priceInfo } from '../shipExtras';
 import { pickThumb } from '../shipRenders';
-import { missionBySlug, bpCount, seoTitle } from '../missions';
+import { missionBySlug, bpCount, kurztitel } from '../missions';
 import ITEMS from '../../../assets/universal-items.json';
 import CRAFT from '../../../assets/crafting-db.json';
 import MISSIONS from '../../data/missions.json';
 import VEHICLES from '../../data/vehicles.json';
 import PRICES from '../../data/vehicle-prices.json';
 import RSI_BILDER from '../../data/patch-4-10-3/bilder-rsi.json';
-import RENDER_BILDER from '../../data/patch-4-10-3/bilder-render.json';
 
 /* ---------- Typen ---------- */
 
@@ -39,7 +37,7 @@ export type Hervor = { b: string };
 /** Fliesstext mit eingebetteten Links und Hervorhebungen. */
 export type Text = (string | Link | Hervor)[];
 
-export type BildArt = 'rsi' | 'render' | 'holo' | 'szene';
+export type BildArt = 'rsi' | 'holo';
 export type BildGroesse = { w: number; h: number; src: string; avif?: string };
 export type Bild = {
   key: string;
@@ -195,10 +193,9 @@ const HAND: BildRoh[] = [
 ];
 const ALLE_BILDER: BildRoh[] = [
   ...(RSI_BILDER as { bilder: BildRoh[] }).bilder,
-  ...(RENDER_BILDER as { bilder: BildRoh[] }).bilder,
   ...HAND,
 ];
-const ART_FOLGE: BildArt[] = ['rsi', 'szene', 'render', 'holo'];
+const ART_FOLGE: BildArt[] = ['rsi', 'holo'];
 
 /* ---------- Spieldaten und ihre Fassung ---------- */
 
@@ -271,7 +268,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const auftrag = (slug: string, belohnung: Link | null = null): Auftrag => {
     const m = missionBySlug.get(slug);
     if (!m) throw new Error(`patch-4-10-3/inhalt: Auftrag ${slug} fehlt in src/data/missions.json`);
-    return { titel: seoTitle(m.title), link: { t: seoTitle(m.title), h: `/missionen/${slug}.html` }, rang: m.ranks[0], ort: 'Nyx', auftraggeber: 'InterSec Defense Solutions', bauplaene: bpCount(m), belohnung, stand: sMissions };
+    return { titel: kurztitel(m.title), link: { t: kurztitel(m.title), h: `/missionen/${slug}.html` }, rang: m.ranks[0], ort: 'Nyx', auftraggeber: 'InterSec Defense Solutions', bauplaene: bpCount(m), belohnung, stand: sMissions };
   };
   const gruppen: AuftragsGruppe[] = [
     { typ: T('Flotten', 'Fleets'), titel: T('Verbände abfangen', 'Intercept strike groups'), text: T('Ein Vanduul-Verband steht an einem Punkt in Nyx, und nach dem ersten Schlag folgen Unterstützungswellen.', 'A Vanduul strike group sits at a point in Nyx, and support waves follow the first strike.'),
@@ -426,7 +423,6 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
         z({ schiffe: [], was: [T('Mauler „STRIKER“, DPS', 'Mauler "STRIKER", DPS')], vorher: { v: [T('rund 800', 'about 800')], zahl: 800 }, nachher: zahl(3125) }),
         z({ schiffe: [], was: [T('High Risk Target, Ruf bei der Bounty Hunters Guild', 'High Risk Target, Bounty Hunters Guild rep')], vorher: zahl(2000), nachher: zahl(4000) }),
         z({ schiffe: [], was: [T('Torpedos Größe 5 und 7', 'Size 5 and 7 torpedoes')], vorher: null, nachher: { v: [T('scharf ab 700 m', 'armed from 700 m')] } }),
-        z({ schiffe: [], was: [T('Bombenhalter Größe 1 und 3, links und rechts', 'Bomb racks size 1 and 3, left and right')], vorher: null, nachher: { v: [T('neu am Waffenkiosk im Crusader-Showroom in Orison', 'now at the weapon kiosk in the Crusader showroom in Orison')] } }),
       ],
       notiz: [T('Vanduul-KI hat mehr Munition und regeneriert sie schneller, der Mauler hat dafür weniger Lebenspunkte.', 'Vanduul AI carries more ammo and regenerates it faster, while the Mauler has less health.')],
       bilder: bilderZu('vncl-mauler', 'vncl-scythe', 'vanduul-incursion'),
@@ -477,7 +473,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const karten: AusruestungsKarte[] = [
     {
       id: 'skarnov', titel: 'Skarnov', tag: T('Energiegewehr', 'Energy rifle'), marken: ['neu'], stand: sItems,
-      text: [T('Neu in fünf Ausführungen. „Raider Camo“ und ihre Batterie gibt es als Bauplan aus dem InterSec-Auftrag ', 'New in five versions. The "Raider Camo" version and its battery come as a blueprint from the InterSec contract '), { t: 'Target Shattered Blade', h: '/missionen/target-shattered-blade.html' }, '.'],
+      text: [T('Neu in fünf Ausführungen. „Raider Camo“ und ihre Batterie gibt es als Bauplan aus dem InterSec-Auftrag ', 'New in five versions. The "Raider Camo" version and its battery come as a blueprint from the InterSec contract '), auftrag('target-shattered-blade').link, '.'],
       liste: [
         { k: T('Ausführungen', 'Versions'), v: skarnov.map((s) => s.link) },
         { k: T('Munition', 'Ammo'), v: [{ t: T('Batterie (30 cap)', 'Battery (30 cap)'), h: '/items/skarnov-rifle-battery-30-cap.html' }] },
@@ -497,8 +493,8 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
         T(' „Glacis“ hieß, heißt jetzt ', ' is now named '), { t: 'Deterrent', h: '/items/deterrent.html' },
         T('. Die ', '. The '), schiff('rsi-polaris', 'Polaris'),
         T(' trägt ihn ab Werk. Den Namen ', ' carries it from the factory. The '), { t: 'Glacis', h: '/items/glacis.html' },
-        T(' trägt jetzt ein neuer Schild der Größe 4 von Origin. ', ' name now belongs to a new Origin size 4 shield. '), { t: 'Lephari', h: '/items/lephari.html' },
-        T(' ist ein ziviles Radar der Größe 3 für ', ' is a size 3 civilian radar for the '), schiff('rsi-galaxy', 'Galaxy'), ', ', schiff('rsi-constellation-mk5-centaurus', 'Centaurus'), T(' und ', ' and '), schiff('rsi-zeus-es', 'Zeus ES'), '.',
+        T(' trägt jetzt ein neuer Schild der Größe 4 von Origin. Das zivile Radar der Größe 3 in der ', ' name now belongs to a new Origin size 4 shield. The size 3 civilian radar in the '), schiff('rsi-constellation-mk5-centaurus', 'Centaurus'), T(' und der ', ' and the '), schiff('rsi-zeus-es', 'Zeus ES'),
+        T(' hatte bisher keinen Namen im Spiel und heißt jetzt ', ' had no in-game name until now and is called '), { t: 'Lephari', h: '/items/lephari.html' }, T('. Die neue ', '. The new '), schiff('rsi-galaxy', 'Galaxy'), T(' trägt es auch.', ' carries it too.'),
       ],
       liste: [{ k: null, v: [{ t: T('Bauplan Deterrent', 'Deterrent blueprint'), h: '/crafting/deterrent.html' }] }, { k: null, v: [{ t: T('Bauplan Lephari', 'Lephari blueprint'), h: '/crafting/lephari.html' }] }],
       bilder: [],
@@ -564,7 +560,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
     auftraege: {
       titel: T('Vanduul-Aufträge in Nyx', 'Vanduul contracts in Nyx'),
       auftraggeber: 'InterSec Defense Solutions',
-      lead: [T('Vanduul-Clans bedrohen die Handelsrouten in Nyx. InterSec vergibt zwölf Aufträge, je nach Auftrag ab ', 'Vanduul clans threaten the trade routes in Nyx. InterSec offers twelve contracts, from '), { b: 'Jr. Contractor' }, T(' bis ', ' to '), { b: 'Head Contractor' }, T('. Die meisten lassen sich teilen.', ' depending on the contract. Most of them can be shared.')],
+      lead: [T('Vanduul-Clans bedrohen die Handelsrouten in Nyx. InterSec vergibt zwölf Aufträge. Der Einstiegsrang reicht je nach Auftrag von ', 'Vanduul clans threaten the trade routes in Nyx. InterSec offers twelve contracts. Depending on the contract, the entry rank ranges from '), { b: 'Jr. Contractor' }, T(' bis ', ' to '), { b: 'Elite Contractor' }, '.'],
       gruppen,
       bilder: bilderZu('vanduul-incursion', 'vncl-scythe', 'vncl-glaive', 'vncl-blade', 'vncl-stinger', 'vncl-mauler'),
     },

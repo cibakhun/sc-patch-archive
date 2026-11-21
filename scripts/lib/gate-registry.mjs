@@ -242,7 +242,7 @@ export const CHECKS = [
     script: 'scripts/verify-vorschau-patches.mjs',
     rail: 'A',
     checks:
-      'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die Entwurfsseiten (VORSCHAU_KONZEPTE) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
+      'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach
@@ -591,6 +591,27 @@ export const CHECKS = [
     // gewandert — die Kennung kommt jetzt aus scripts/build-wikelo-trades.mjs
     // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
     // Register-Eintrag id 51 aufloesbar.
+  },
+  {
+    // Neuzugang 15.11.2026, neben verify:datastand (Datenstaende und ihre
+    // Vergleiche). Die Patchseiten lesen ueber src/lib/patchVergleich.ts,
+    // was sich zwischen zwei Datenstaenden geaendert hat; das Tor haelt die
+    // committeten Vergleiche in sich stimmig. Neu gerechnet wird mit git auf
+    // der Betreiber-Maschine (scripts/patch-vergleich.mjs), hier nicht.
+    // VORGEFUEHRT ROT am 15.11.2026: zuerst echt (FoxFire-Bauplaene mit
+    // gleicher guid zweimal je Datei, der Erzeuger vergibt seitdem <guid>#2),
+    // dann absichtlich in 4.10.2__4.10.3.json (Zaehler ship.new 6 -> 7,
+    // Hoplite turretDps vorher = nachher): 3 FEHLER, Datei per sha256
+    // zurueckgespielt, wieder gruen.
+    // Abschnitt [6] Hand-Ergaenzungen, VORGEFUEHRT ROT am 15.11.2026: eine
+    // Ergaenzung "radars" an der Carrack (das Feld rechnet der Vergleich
+    // selbst) gab 2 FEHLER, Datei zurueckkopiert, wieder gruen.
+    id: 'verify:patch-vergleich',
+    npm: 'verify:patch-vergleich',
+    script: 'scripts/verify-patch-vergleich.mjs',
+    rail: 'A',
+    checks:
+      'die Patch-Vergleiche in src/data/patch-vergleich/ sind in sich stimmig: uebersicht.json deckt sich mit den Paardateien, die Paare bilden eine Kette, Zaehler = Eintraege, keine Feldaenderung ohne Unterschied oder Beschriftung, Bestand nachher - vorher = neu - entfernt; Klinken fuer Paare und Eintraege; Hand-Ergaenzungen (ergaenzt/<nach>.json) vollstaendig, belegt und ohne Feld, das der Vergleich selbst fuehrt; WARNUNG, wenn der juengste Vergleich nicht auf dem Fahrzeug-Datenstand endet',
   },
   {
     // Neuzugang 10.11.2026, neben verify:datastand (dieselbe Familie: eine

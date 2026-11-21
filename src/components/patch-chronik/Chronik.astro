@@ -1,0 +1,252 @@
+---
+// Chronik eines Patches: Abschnitte untereinander, jeder mit eigenem Aufbau
+// (Vollbild, Wortkapitel, Text neben Liste, Text neben Bild, Karten,
+// Gruppen, Reiter). Der Inhalt kommt fertig aus dem Modul des Patches
+// (src/lib/patch-chronik/<patch>.ts). Das einzige Skript schaltet Reiter;
+// ohne Skript stehen alle Felder untereinander.
+import SiteNav from '../SiteNav.astro';
+import Auftakt from './Auftakt.astro';
+import Wortkapitel from './Wortkapitel.astro';
+import TextListe from './TextListe.astro';
+import NeueSchiffe from './NeueSchiffe.astro';
+import BildText from './BildText.astro';
+import Karten from './Karten.astro';
+import Bestand from './Bestand.astro';
+import AlleListen from './AlleListen.astro';
+import { href } from '../../i18n/ui';
+import type { Chronik } from '../../lib/patch-chronik/chronik';
+
+interface Props { chronik: Chronik }
+const { chronik } = Astro.props;
+const de = chronik.lang === 'de';
+---
+<SiteNav
+  crumbs={[
+    { label: 'VerseBase', href: href('/index.html', chronik.lang) },
+    { label: de ? 'Archiv' : 'Archive', href: href('/archiv.html', chronik.lang) },
+    { label: `Alpha ${chronik.version}` },
+  ]}
+  hasEn={true}
+/>
+
+<main id="main" class="chronik">
+  {chronik.abschnitte.map((a) => {
+    switch (a.art) {
+      case 'auftakt': return <Auftakt a={a} />;
+      case 'wort': return <Wortkapitel a={a} />;
+      case 'liste': return <TextListe a={a} />;
+      case 'schiffe': return <NeueSchiffe a={a} />;
+      case 'bild-text': return <BildText a={a} />;
+      case 'karten': return <Karten a={a} />;
+      case 'bestand': return <Bestand a={a} />;
+      case 'reiter': return <AlleListen a={a} />;
+    }
+  })}
+</main>
+
+<style is:inline>
+:root{
+  --bg:#05060b;--bg-2:#0b0c12;--text:#eef2fb;--muted:#93a0b8;--linie:rgba(255,255,255,.12);
+  --akz:#ff4b3e;--akz-2:#ffb4a3;
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
+.chronik{--rand:clamp(1.1rem,5vw,6.5rem);overflow-x:clip}
+.chronik a{color:var(--akz-2);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--akz) 60%,transparent);text-underline-offset:4px}
+.chronik a:hover{color:#fff}
+.chronik a:focus-visible{outline:2px solid var(--akz-2);outline-offset:3px;border-radius:2px}
+.chronik h2{margin:0;font-family:var(--font-display);font-weight:700;line-height:1.1;letter-spacing:var(--ls-2);font-size:clamp(1.7rem,3.2vw,3rem);color:#fff;text-wrap:balance}
+.chronik h3{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.2;color:#fff}
+.chronik p{line-height:1.55}
+.chronik picture{display:block}
+.chronik picture img{display:block;width:100%;height:100%;object-fit:cover}
+.abschnitt{position:relative;padding:clamp(4rem,10vh,7.5rem) var(--rand)}
+.abschnitt:nth-of-type(even){background:var(--bg-2)}
+.chronik p.stempel{margin:1.2rem 0 0;font-size:var(--fs-7);color:var(--muted)}
+.chronik .stempel a{color:var(--muted)}
+
+/* Kennwerte: Bezeichnung links, Wert rechts, lange Werte brechen darunter um. */
+.werte{margin:1.4rem 0 0;padding:0;border-top:1px solid var(--linie)}
+.werte div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem 1.5rem;padding:.65rem 0;border-bottom:1px solid var(--linie)}
+.werte dt{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-11);color:var(--muted)}
+.werte dd{margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-11);color:#fff;font-variant-numeric:tabular-nums}
+
+/* ---------- Vollbild ---------- */
+.auftakt{height:100vh;height:100svh;min-height:560px;padding:0;overflow:hidden;background:var(--bg)}
+.auftakt__bild{position:absolute;inset:0;-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.14) 0%,rgba(0,0,0,.4) 34%,#000 62%);mask-image:linear-gradient(90deg,rgba(0,0,0,.14) 0%,rgba(0,0,0,.4) 34%,#000 62%)}
+.auftakt__text{position:absolute;z-index:2;left:var(--rand);top:50%;translate:0 -50%;max-width:min(40rem,calc(100% - 2*var(--rand)))}
+.auftakt__patch{margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);letter-spacing:var(--ls-5);color:#e7ebf5}
+.auftakt__titel{margin:.5rem 0 0;font-family:var(--font-display);font-weight:800;line-height:1;letter-spacing:var(--ls-2);font-size:clamp(2.6rem,6vw,6rem);color:#fff;text-wrap:balance}
+.auftakt__satz{margin:1.4rem 0 0;font-size:var(--fs-14);color:#e7ebf5;max-width:30ch}
+.auftakt__notes{margin:1.6rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-12)}
+
+/* ---------- Wortkapitel ---------- */
+.wort{min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding:0}
+.wort__wort{position:absolute;right:-.04em;top:50%;translate:0 -50%;margin:0;pointer-events:none;user-select:none;
+  font-family:var(--font-display);font-weight:900;line-height:.8;letter-spacing:var(--ls-1);font-size:clamp(4rem,15.5vw,19rem);color:rgba(255,75,62,.07)}
+.wort__text{position:relative;z-index:1;box-sizing:border-box;width:min(46rem,100%);padding:calc(var(--nav-h,60px) + 2rem) var(--rand) 3rem}
+.wort__titel{margin:0;font-weight:normal}
+.wort__name{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-15);line-height:1.2;color:#fff}
+.wort__zahl{display:block;margin:.6rem 0 .2rem;font-family:var(--font-display);font-weight:800;font-size:clamp(3rem,6.4vw,6.4rem);line-height:1;letter-spacing:var(--ls-2);font-variant-numeric:tabular-nums;color:#fff;white-space:nowrap}
+.wort__was{display:block;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-15);color:var(--akz-2)}
+.wort__traeger{margin:1.2rem 0 0;font-size:var(--fs-11);color:#e7ebf5}
+.wort__notiz{margin:1.6rem 0 0;font-size:var(--fs-10);color:#e7ebf5;max-width:42ch}
+
+/* ---------- Text neben Liste ---------- */
+.textliste{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,5vw,5rem);align-items:start}
+.textliste__text p{max-width:44ch;font-size:var(--fs-12);color:#e7ebf5}
+.textliste__liste h3{margin-bottom:.8rem}
+.textliste__liste dl{margin:0;border-top:1px solid var(--linie)}
+.textliste__liste dl div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--linie)}
+.textliste__liste dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--muted)}
+.textliste__liste dd{margin:0}
+.textliste__liste ul,.bildtext ul,.karte__laeden{margin:0;padding:0;list-style:none}
+.textliste__liste li{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-11);padding:.1rem 0}
+
+/* ---------- Vollbild je Schiff, darunter Reiter ---------- */
+.schiffe{padding-left:0;padding-right:0}
+.schiffe__titel{padding:0 var(--rand)}
+.schiff{margin-top:clamp(2.5rem,6vh,4rem)}
+.schiff__bild{height:100vh;height:100svh;max-height:62vw}
+.schiff__text{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,5vw,5rem);padding:2rem var(--rand) 0}
+.schiff__hersteller{margin:.3rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-10);color:var(--muted)}
+.schiff__beschreibung{margin:1rem 0 0;font-size:var(--fs-11);color:#e7ebf5;max-width:60ch}
+
+/* Reiter: ohne Skript stehen die Felder untereinander, mit Skript zeigt die Leiste eines. */
+.reiter{margin-top:1.6rem}
+.schiff__daten .reiter{margin-top:0}
+.reiter__leiste{display:none;flex-wrap:wrap;gap:.2rem 1.4rem;border-bottom:1px solid var(--linie)}
+.reiter.ist-aktiv .reiter__leiste{display:flex}
+.reiter.ist-aktiv .reiter__titel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.reiter__leiste button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:.6rem 0;cursor:pointer;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--muted)}
+.reiter__leiste button:hover{color:#fff}
+.reiter__leiste button[aria-selected="true"]{color:#fff;border-bottom-color:var(--akz)}
+.reiter__leiste button:focus-visible{outline:2px solid var(--akz-2);outline-offset:2px}
+.reiter__feld{padding-top:.4rem}
+.reiter__feld + .reiter__feld{margin-top:1.6rem}
+.reiter.ist-aktiv .reiter__feld + .reiter__feld{margin-top:0}
+.reiter__titel{margin:1rem 0 0}
+
+/* ---------- Text neben Bild ---------- */
+.bildtext{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(2rem,5vw,5rem);align-items:center}
+.bildtext__text p{font-size:var(--fs-12);color:#e7ebf5;max-width:44ch}
+.bildtext__gruppe{margin-top:1.4rem}
+.bildtext__gruppe h3{font-size:var(--fs-12);margin-bottom:.4rem}
+.bildtext li{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-11);padding:.15rem 0}
+.bildtext__bild{aspect-ratio:16/10}
+
+/* ---------- Karten ---------- */
+.karten__satz{max-width:60ch;font-size:var(--fs-12);color:#e7ebf5}
+.karten__liste{margin:2rem 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(16rem,100%),1fr));gap:2rem 1.6rem}
+.karte__bild{aspect-ratio:16/9;margin-bottom:.9rem}
+.karte h3{font-size:var(--fs-13)}
+.karte__rolle{margin:.2rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-9);color:var(--muted)}
+.karte__laeden{margin-top:.6rem;font-size:var(--fs-9);color:#e7ebf5}
+.karte__preis{margin:.6rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);color:#fff;font-variant-numeric:tabular-nums}
+
+/* ---------- Gruppen wie auf den Schiffsseiten ---------- */
+.bestand__gruppen{margin-top:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26rem,100%),1fr));gap:2.4rem 3rem}
+.bestand__gruppe h3{padding-bottom:.6rem;border-bottom:1px solid var(--linie)}
+.bestand dl{margin:0}
+.bestand dl div{padding:.7rem 0;border-bottom:1px solid var(--linie)}
+.bestand dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11)}
+.bestand dd{margin:.2rem 0 0;font-size:var(--fs-9);color:#e7ebf5}
+.bestand dd span{color:var(--muted)}
+/* Die letzte Gruppe (Weitere Aenderungen) ist die laengste: sie laeuft ueber die volle Breite, ihre Zeilen in Spalten. */
+.bestand__gruppe:last-child{grid-column:1/-1}
+.bestand__gruppe:last-child dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(22rem,100%),1fr));column-gap:3rem}
+.ausquelle{margin-top:2.6rem;padding-top:1.4rem;border-top:1px solid var(--linie)}
+.ausquelle h3{font-size:var(--fs-12)}
+.ausquelle ul{margin:.8rem 0 0;padding:0 0 0 1.1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26rem,100%),1fr));gap:.5rem 3rem}
+.ausquelle li{font-size:var(--fs-9);line-height:1.5;color:#e7ebf5}
+
+/* ---------- Alle Aenderungen ---------- */
+.alle .reiter__feld > p{max-width:70ch;font-size:var(--fs-10);color:#e7ebf5}
+.alle__zeilen{margin:.8rem 0 0;padding:0;list-style:none;border-top:1px solid var(--linie)}
+.alle__zeilen li{display:grid;grid-template-columns:minmax(0,10rem) minmax(0,16rem) minmax(0,1fr);gap:.3rem 1.4rem;padding:.6rem 0;border-bottom:1px solid var(--linie);font-size:var(--fs-9)}
+.alle__art{color:var(--muted);font-family:var(--font-ui);font-weight:600}
+.alle__name{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
+.alle__werte{color:#e7ebf5}
+.alle__weiter{display:flex;flex-wrap:wrap;gap:.5rem 2rem;margin:2rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11)}
+
+@media(max-width:760px){
+  .chronik{--rand:1.1rem}
+  .auftakt__bild{-webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.4) 45%,#000 75%);mask-image:linear-gradient(0deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.4) 45%,#000 75%)}
+  .auftakt__bild img{object-position:30% 50%}
+  .auftakt__text{top:auto;bottom:3rem;translate:none}
+  .wort__wort{top:calc(var(--nav-h,60px) + 1rem);translate:none;font-size:clamp(3.5rem,16vw,6rem)}
+  .wort__text{padding-top:calc(var(--nav-h,60px) + 5rem)}
+  .wort__zahl{font-size:clamp(2.6rem,13vw,4rem)}
+  /* Lange Werte stehen linksbuendig unter ihrer Bezeichnung statt rechts daneben. */
+  .werte div{flex-direction:column}
+  .textliste,.bildtext{grid-template-columns:minmax(0,1fr)}
+  .textliste__liste dl div{grid-template-columns:minmax(0,1fr);gap:.3rem}
+  .bildtext__bild{grid-row:1}
+  .schiff__bild{height:auto;max-height:none;aspect-ratio:4/3}
+  .schiff__text{grid-template-columns:minmax(0,1fr)}
+  .alle__zeilen li{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
+<script is:inline>
+(function () {
+  function waehle(gruppe, tab, fokus) {
+    gruppe.querySelectorAll('[role="tab"]').forEach(function (t) {
+      var an = t === tab;
+      t.setAttribute('aria-selected', an ? 'true' : 'false');
+      t.tabIndex = an ? 0 : -1;
+      var feld = document.getElementById(t.getAttribute('aria-controls'));
+      if (feld) feld.hidden = !an;
+    });
+    if (fokus) tab.focus();
+  }
+  document.querySelectorAll('[data-reiter]').forEach(function (gruppe) {
+    var tabs = Array.prototype.slice.call(gruppe.querySelectorAll('[role="tab"]'));
+    if (!tabs.length) return;
+    gruppe.classList.add('ist-aktiv');
+    waehle(gruppe, tabs[0], false);
+    gruppe.addEventListener('click', function (e) {
+      var t = e.target.closest('[role="tab"]');
+      if (t) waehle(gruppe, t, false);
+    });
+    gruppe.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      var ziel = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length]
+        : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null;
+      if (ziel) { e.preventDefault(); waehle(gruppe, ziel, true); }
+    });
+  });
+  /* Ein Anker auf ein Reiterfeld (#liste-bauplaene) oeffnet dessen Reiter. */
+  function zumAnker() {
+    var id = location.hash.slice(1);
+    var feld = id && document.getElementById(id);
+    if (!feld || feld.getAttribute('role') !== 'tabpanel') return;
+    var gruppe = feld.closest('[data-reiter]');
+    var tab = document.getElementById(id + '-tab');
+    if (gruppe && tab) { waehle(gruppe, tab, false); feld.scrollIntoView(); }
+  }
+  addEventListener('hashchange', zumAnker);
+  zumAnker();
+
+  /* Die Fortschrittsleiste der Kopfzeile zeichnet ihren Verlauf erst beim ersten Scrollen;
+     die GPU uebersetzt dafuer neue Programme (gemessen bis 37 ms, RTX 3070 Ti, D3D11).
+     Ein fast durchsichtiger Abzug in einer ruhigen Pause nach dem Laden nimmt das vorweg. */
+  function vorwaermen() {
+    var leiste = document.querySelector('.snav__progress-bar');
+    if (!leiste) return;
+    var abzug = leiste.cloneNode(true);
+    var fuellung = abzug.querySelector('.snav__progress-fill');
+    var kopf = abzug.querySelector('.snav__progress-head');
+    if (fuellung) fuellung.style.transform = 'scaleX(.5)';
+    if (kopf) kopf.style.transform = 'translateX(-50%)';
+    abzug.style.cssText = 'position:fixed;left:0;right:0;top:0;opacity:.01;pointer-events:none;z-index:-1';
+    document.body.appendChild(abzug);
+    setTimeout(function () { abzug.remove(); }, 1000);
+  }
+  var ruhe = window.requestIdleCallback || function (f) { return setTimeout(f, 200); };
+  if (document.readyState === 'complete') ruhe(vorwaermen);
+  else addEventListener('load', function () { ruhe(vorwaermen); });
+})();
+</script>

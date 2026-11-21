@@ -1,0 +1,37 @@
+---
+import Bild from './Bild.astro';
+import ReiterLeiste from './ReiterLeiste.astro';
+import SatzText from './SatzText.astro';
+import Werte from './Werte.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'schiffe' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt schiffe" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <h2 class="schiffe__titel" id={`${a.id}-h`}>{a.titel}</h2>
+  {a.schiffe.map((s) => (
+    <article class="schiff" id={s.id} aria-labelledby={`${s.id}-h`}>
+      <Bild bild={s.bild} class="schiff__bild" />
+      <div class="schiff__text">
+        <div>
+          <h3 id={`${s.id}-h`}>{s.name.h ? <a href={s.name.h}>{s.name.t}</a> : s.name.t}</h3>
+          <p class="schiff__hersteller">{s.hersteller}</p>
+          {s.text.map((t) => <p class="schiff__beschreibung"><SatzText satz={t} /></p>)}
+        </div>
+        <div class="schiff__daten">
+          <div class="reiter" data-reiter>
+            <ReiterLeiste label={s.name.t} reiter={s.reiter} />
+            {s.reiter.map((r) => (
+              <div class="reiter__feld" role="tabpanel" id={r.id} aria-labelledby={`${r.id}-tab`} tabindex="0">
+                <h4 class="reiter__titel">{r.titel}</h4>
+                <Werte werte={r.werte} />
+              </div>
+            ))}
+          </div>
+          <p class="stempel"><SatzText satz={s.stempel} /></p>
+        </div>
+      </div>
+    </article>
+  ))}
+</section>

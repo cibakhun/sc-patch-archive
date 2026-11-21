@@ -415,6 +415,15 @@ export const pageCount = (c: CategoryNode) => Math.max(1, Math.ceil(c.items.leng
 
 export const categoryBySlug = new Map(categories.map((c) => [c.slug, c]));
 
+/** Die Listenseite der Kategorie, auf der ein Item ohne eigene Seite namentlich steht (Seite 2 ff.: <slug>-<n>.html). */
+export function kategorieSeiteVon(id: string): string | null {
+  const i = itemById.get(id);
+  const c = i ? categoryBySlug.get(categorySlug(i.category)) : undefined;
+  if (!i || !c) return null;
+  const seite = Math.floor(c.items.indexOf(i) / PER_PAGE) + 1;
+  return `/items/category/${c.slug}${seite > 1 ? `-${seite}` : ''}.html`;
+}
+
 /** Wurzel-Kategorien mit Gesamtzahl + ihren Blaettern (fuer den Hub). */
 export const roots = (() => {
   const by = new Map<string, CategoryNode[]>();

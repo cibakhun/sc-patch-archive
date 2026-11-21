@@ -1,0 +1,12 @@
+---
+// Leiste einer Reitergruppe. Die Felder stehen beim Aufrufer als
+// <div class="reiter__feld" role="tabpanel" id={id} aria-labelledby={`${id}-tab`}>;
+// ohne Skript bleibt die Leiste verborgen und alle Felder stehen untereinander.
+interface Props { label: string; reiter: { id: string; titel: string }[] }
+const { label, reiter } = Astro.props;
+---
+<div class="reiter__leiste" role="tablist" aria-label={label}>
+  {reiter.map((r, i) => (
+    <button type="button" role="tab" id={`${r.id}-tab`} aria-controls={r.id} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>{r.titel}</button>
+  ))}
+</div>

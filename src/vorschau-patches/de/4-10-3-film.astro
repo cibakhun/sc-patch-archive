@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Chronik from '../../components/patch-chronik/Chronik.astro';
+import Vorlauf from '../../components/patch-chronik/Vorlauf.astro';
+import { chronik4103 } from '../../lib/patch-chronik/4-10-3';
+const chronik = await chronik4103('de');
+---
+<Layout title={"4.10.3 · Vanduul Incursion | VerseBase"} description={"Vorschau: was Alpha 4.10.3 ändert, von der Vanduul Incursion bis zur Liste aller Änderungen."} themeColor="#05060b" ogType="article" ogImage="/assets/img-vanduul.jpg" translated={true} noindex={true}>
+<Vorlauf chronik={chronik} slot="head" />
+<Chronik chronik={chronik} />
+</Layout>

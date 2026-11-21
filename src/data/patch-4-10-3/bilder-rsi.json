@@ -1,35 +1,6 @@
 {
   "bilder": [
     {
-      "key": "iae-2956-halle",
-      "art": "rsi",
-      "thema": "iae-2956",
-      "alt": {
-        "de": "Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo",
-        "en": "Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo"
-      },
-      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 960,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp",
-          "avif": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.avif"
-        },
-        {
-          "w": 1200,
-          "h": 600,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 320,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-640.webp"
-        }
-      ]
-    },
-    {
       "key": "iae-2956-stadt",
       "art": "rsi",
       "thema": "iae-2956",
@@ -54,34 +25,6 @@
           "w": 640,
           "h": 320,
           "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "iae-2956-logo",
-      "art": "rsi",
-      "thema": "iae-2956",
-      "alt": {
-        "de": "IAE-2956-Logo vor dunkelblauen, geschwungenen Lichtbahnen",
-        "en": "IAE 2956 logo against dark blue sweeping light streaks"
-      },
-      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 960,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 600,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 320,
-          "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-640.webp"
         }
       ]
     },
@@ -115,118 +58,6 @@
       ]
     },
     {
-      "key": "vncl-scythe",
-      "art": "rsi",
-      "thema": "vncl-scythe",
-      "alt": {
-        "de": "Vanduul Scythe mit ausladenden Flügeln vor einem rötlichen Planeten, Triebwerk glüht",
-        "en": "Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing"
-      },
-      "quelle": "https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 1080,
-          "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 675,
-          "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 360,
-          "src": "/assets/patch-4-10-3/rsi/vncl-scythe-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "vncl-glaive",
-      "art": "rsi",
-      "thema": "vncl-glaive",
-      "alt": {
-        "de": "Rotes, gebogenes Vanduul-Schiff Glaive feuert mit hellen Triebwerksflammen vor schwarzem Hintergrund",
-        "en": "Red curved Vanduul Glaive firing with bright engine flares against a black backdrop"
-      },
-      "quelle": "https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 1080,
-          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 675,
-          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 360,
-          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "vncl-blade",
-      "art": "rsi",
-      "thema": "vncl-blade",
-      "alt": {
-        "de": "Dunkles Vanduul-Schiff Blade steht nachts im Nebel auf dem Boden",
-        "en": "Dark Vanduul Blade resting on the ground in night fog"
-      },
-      "quelle": "https://media.robertsspaceindustries.com/0s9bslimticmx/source.png",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 1080,
-          "src": "/assets/patch-4-10-3/rsi/vncl-blade-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 675,
-          "src": "/assets/patch-4-10-3/rsi/vncl-blade-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 360,
-          "src": "/assets/patch-4-10-3/rsi/vncl-blade-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "vncl-stinger",
-      "art": "rsi",
-      "thema": "vncl-stinger",
-      "alt": {
-        "de": "Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund",
-        "en": "Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it"
-      },
-      "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 823,
-          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 514,
-          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 274,
-          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-640.webp"
-        }
-      ]
-    },
-    {
       "key": "rsi-galaxy",
       "art": "rsi",
       "thema": "rsi-galaxy",
@@ -252,34 +83,6 @@
           "w": 640,
           "h": 274,
           "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "rsi-galaxy-flug",
-      "art": "rsi",
-      "thema": "rsi-galaxy",
-      "alt": {
-        "de": "RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier",
-        "en": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks"
-      },
-      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 960,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 600,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 320,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
         }
       ]
     },

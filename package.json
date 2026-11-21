@@ -55,6 +55,7 @@
     "refresh:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/freeze-mining-constants.mjs && node scripts/datamine-refinery-methods.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/build-refinery-data.mjs && node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
     "verify:datastand": "node scripts/verify-datastand.mjs",
+    "verify:patch-vergleich": "node scripts/verify-patch-vergleich.mjs",
     "verify:patch-angaben": "node scripts/verify-patch-angaben.mjs",
     "verify:sprache": "node scripts/verify-sprache.mjs",
     "verify:clienttext": "node scripts/verify-clienttext.mjs",

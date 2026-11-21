@@ -1,0 +1,22 @@
+---
+import SatzText from './SatzText.astro';
+import Werte from './Werte.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'wort' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt wort" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <p class="wort__wort" aria-hidden="true">{a.wort}</p>
+  <div class="wort__text">
+    <h2 class="wort__titel" id={`${a.id}-h`}>
+      <span class="wort__name">{a.waffe.h ? <a href={a.waffe.h}>{a.waffe.t}</a> : a.waffe.t}</span>
+      <span class="wort__zahl">{a.zahl}</span>
+      <span class="wort__was">{a.was}</span>
+    </h2>
+    <p class="wort__traeger">{a.traeger}</p>
+    <Werte werte={a.werte} />
+    <p class="stempel"><SatzText satz={a.stempel} /></p>
+    <p class="wort__notiz"><SatzText satz={a.notiz} /></p>
+  </div>
+</section>

@@ -18,7 +18,7 @@ const BREITEN = [1920, 1200, 640];
 const WEBP_Q = 82;
 const AVIF_Q = 52;
 const AVIF_MAX_ANTEIL = 0.8; // AVIF nur, wenn höchstens 80 % der WebP-Größe
-const BUDGET_KB = 4500;
+const BUDGET_KB = 5200;
 const ABGERUFEN = '2026-11-15';
 
 const MEDIA = 'https://media.robertsspaceindustries.com';
@@ -26,48 +26,20 @@ const CL = 'https://robertsspaceindustries.com/en/comm-link/transmission';
 
 // hero: true => zusätzlich AVIF in 1920
 const BILDER = [
-  { key: 'iae-2956-halle', roh: 'cl-twitch.jpg', thema: 'iae-2956', hero: true,
-    quelle: `${CL}/21434-Twitch-Drops-IAE-2956`,
-    de: 'Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo',
-    en: 'Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo' },
   { key: 'iae-2956-stadt', roh: 'cl-patchnotes.jpg', thema: 'iae-2956',
     quelle: 'https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103',
     de: 'Mehrere Raumschiffe fliegen bei Nacht durch eine Hochhausstadt, im Hintergrund das IAE-2956-Zeichen',
     en: 'Several spaceships flying through a skyscraper city at night with the IAE 2956 emblem behind them' },
-  { key: 'iae-2956-logo', roh: 'cl-iae-schedule.jpg', thema: 'iae-2956',
-    quelle: `${CL}/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule`,
-    de: 'IAE-2956-Logo vor dunkelblauen, geschwungenen Lichtbahnen',
-    en: 'IAE 2956 logo against dark blue sweeping light streaks' },
 
   { key: 'vanduul-angriff', roh: 'cl-vanduul.jpg', thema: 'vanduul-incursion', hero: true,
     quelle: `${CL}/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion`,
     de: 'Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe',
     en: 'Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field' },
-  { key: 'vncl-scythe', roh: 'ship-scythe.jpg', thema: 'vncl-scythe',
-    quelle: `${MEDIA}/kysobeqkurqyd/source.jpg`,
-    de: 'Vanduul Scythe mit ausladenden Flügeln vor einem rötlichen Planeten, Triebwerk glüht',
-    en: 'Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing' },
-  { key: 'vncl-glaive', roh: 'ship-glaive.jpg', thema: 'vncl-glaive',
-    quelle: `${MEDIA}/msy0lud5dd4eg/source.jpg`,
-    de: 'Rotes, gebogenes Vanduul-Schiff Glaive feuert mit hellen Triebwerksflammen vor schwarzem Hintergrund',
-    en: 'Red curved Vanduul Glaive firing with bright engine flares against a black backdrop' },
-  { key: 'vncl-blade', roh: 'ship-blade.png', thema: 'vncl-blade',
-    quelle: `${MEDIA}/0s9bslimticmx/source.png`,
-    de: 'Dunkles Vanduul-Schiff Blade steht nachts im Nebel auf dem Boden',
-    en: 'Dark Vanduul Blade resting on the ground in night fog' },
-  { key: 'vncl-stinger', roh: 'ship-stinger.jpg', thema: 'vncl-stinger',
-    quelle: `${MEDIA}/90r0njd8ob87b/source.jpg`,
-    de: 'Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund',
-    en: 'Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it' },
 
   { key: 'rsi-galaxy', roh: 'ship-galaxy.jpg', thema: 'rsi-galaxy', hero: true,
     quelle: `${MEDIA}/bb6z60h2ou5a0/source.jpg`,
     de: 'RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken',
     en: 'RSI Galaxy, a large dark modular ship with blue accents, flying above clouds' },
-  { key: 'rsi-galaxy-flug', roh: 'cl-galaxy-old.jpg', thema: 'rsi-galaxy',
-    quelle: `${CL}/18836-RSI-Galaxy`,
-    de: 'RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier',
-    en: 'RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks' },
   { key: 'anvl-liberator', roh: 'ship-liberator.png', thema: 'anvl-liberator',
     quelle: `${MEDIA}/k2zu1md2ulfxn/source.png`,
     de: 'Anvil Liberator mit großen Doppeltriebwerken auf einem Flugfeld, kleine Schiffe fliegen dahinter',

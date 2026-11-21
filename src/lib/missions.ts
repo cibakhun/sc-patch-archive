@@ -289,6 +289,11 @@ export function phLabel(marke: string): string {
   return v ? v : deCamel(marke);
 }
 
+/** Missionstitel ohne den Laufzeit-Platzhalter am Ende („Target Shattered Blade: {TargetName}" -> „Target Shattered Blade"). */
+export function kurztitel(title: string): string {
+  return String(title).replace(/[\s:,–—-]*\{[^}]*\}\s*$/, '');
+}
+
 /** Missionstitel fuer <title>/og — Platzhalter ersetzt, Trenner aufgeraeumt. */
 export function seoTitle(title: string): string {
   return String(title)
