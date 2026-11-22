@@ -251,7 +251,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     }
   });
 
-  test('am Bildschirm bleibt die Erklaerung der Schiffsauswahl zu und ungesehen; auf dem Feld geht sie beim ersten Besuch auf wie bisher', () => {
+  test('am Schreibtisch bleibt die lange Erklaerung der Schiffsauswahl zu und ungesehen (Hinweise statt Textwand); am Telefon geht sie beim ersten Besuch auf wie bisher', () => {
     // assets/tool-help.js laeuft hier wie beim Laden der Seite, mit einem Abschnitt und nachgestellter Ablage
     const hilfe = fs.readFileSync(new URL('../../assets/tool-help.js', import.meta.url), 'utf8');
     const lauf = (aus, gesehen) => {
@@ -272,9 +272,9 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     // schon gesehen: zu, mit und ohne Angabe
     assert.deepEqual(lauf(false, true), { offen: false, gesehen: true, schrieb: 0 });
     assert.deepEqual(lauf(true, true), { offen: false, gesehen: true, schrieb: 0 });
-    // das Geruest sagt es genau dort, wo es den Leitstand vorab setzt
+    // das Geruest sagt es fuer jeden Aufruf am Schreibtisch, vor jedem Zugriff auf den Speicher (Hangar-Politur 22.11.2026)
     const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
-    assert.match(geruest, /\.matches\)\{m\.dataset\.ort='leit';m\.dataset\.helpAuto='aus'\}\}catch\(e\)\{\}/);
+    assert.match(geruest, /try\{var t=matchMedia\('\(max-width: 760px\), \(pointer: coarse\)'\)\.matches;if\(!t\)m\.dataset\.helpAuto='aus';/);
     assert.equal((geruest.match(/helpAuto/g) ?? []).length, 1, 'data-help-auto wird an einer zweiten Stelle gesetzt');
     // der Controller liest den alten Ort nicht aus dem Dokument: Dort steht der Leitstand schon vor seinem ersten
     // Durchlauf, und eine offene Erklaerung bliebe ueber dem Monitor
@@ -288,7 +288,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
   // Geruest entschied allein nach dem Lesen. Liess sich die Sitzung lesen, aber nicht beschreiben, setzte es
   // den Leitstand und schob die Erklaerung auf, der Controller begann auf dem Feld, und die Erklaerung blieb
   // dort bei jedem Aufruf zu.
-  test('laesst sich die Sitzung lesen, aber nicht beschreiben, bleibt es im Geruest wie im Controller beim Feld, und die Erklaerung geht auf', () => {
+  test('laesst sich die Sitzung lesen, aber nicht beschreiben, bleibt es im Geruest wie im Controller beim Feld', () => {
     const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
     const roh = /<script is:inline set:html=\{`(\(function\(m\)\{[^`]*)`\}><\/script>/.exec(geruest)?.[1] ?? '';
     assert.ok(roh.includes("m.dataset.ort='leit'"), 'das Inline-Skript in <main> nicht gefunden');
@@ -313,11 +313,12 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     };
     // wie bisher: erster Besuch, die Sitzung nimmt an
     assert.deepEqual(lauf('', 'gut'), { ort: 'leit', hilfe: 'aus', liegt: [] }, 'das Geruest vermerkt den Besuch nicht selbst und raeumt seine Probe weg');
-    // der Fall aus dem Review: Feld, und nichts schiebt die Erklaerung auf
-    assert.deepEqual(lauf('', 'nurLesen'), { ort: null, hilfe: null, liegt: [] });
-    assert.deepEqual(lauf('', 'zu'), { ort: null, hilfe: null, liegt: [] });
+    // der Fall aus dem Review: Feld; die lange Erklaerung bleibt am Schreibtisch trotzdem zu, dort zeigen die
+    // kurzen Hinweise (Hangar-Politur 22.11.2026)
+    assert.deepEqual(lauf('', 'nurLesen'), { ort: null, hilfe: 'aus', liegt: [] });
+    assert.deepEqual(lauf('', 'zu'), { ort: null, hilfe: 'aus', liegt: [] });
     // ein spaeterer Besuch fragt nicht nach dem Schreiben
-    assert.deepEqual(lauf('', 'gut', '1'), { ort: null, hilfe: null, liegt: ['hg-besuch'] });
+    assert.deepEqual(lauf('', 'gut', '1'), { ort: null, hilfe: 'aus', liegt: ['hg-besuch'] });
     // nennt die Adresse den Leitstand, fragt niemand den Speicher (der Controller liest ihn dafuer auch nicht)
     for (const sitzung of ['gut', 'nurLesen', 'zu']) assert.deepEqual(lauf('?ort=leit', sitzung), { ort: 'leit', hilfe: 'aus', liegt: [] }, sitzung);
     // der Controller: Scheitert das Schreiben, gilt der Besuch nicht als erster (dieselbe Antwort wie oben)

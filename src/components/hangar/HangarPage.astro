@@ -242,6 +242,20 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Drinnen steht statt des Bedienhinweises der zum Gehen */
 .hg .hgx-walkhint{opacity:0;visibility:hidden}
 .hg[data-walk="on"] .hgx-walkhint{opacity:1;visibility:visible;transition:opacity var(--dur-slow) var(--ease-ui)}
+.hgx-tipp{position:absolute;z-index:30;left:0;top:0;pointer-events:auto;width:min(330px,calc(100% - 24px));padding:.85rem 1rem .7rem;border:1px solid color-mix(in srgb,var(--hg-amber,var(--accent)) 55%,transparent);border-radius:10px;background:var(--hg-panel);box-shadow:0 12px 32px rgb(0 0 0/.5);color:var(--hg-on);font-family:var(--font-ui);font-size:var(--fs-6);line-height:1.45}
+.hgx-tipp[hidden]{display:none}
+.hgx-tipp::after{content:'';position:absolute;left:calc(var(--x,50%) - 7px);top:calc(var(--y,50%) - 7px);width:12px;height:12px;background:var(--hg-panel);border:1px solid color-mix(in srgb,var(--hg-amber,var(--accent)) 55%,transparent);transform:rotate(45deg)}
+.hgx-tipp[data-seite="oben"]::after{bottom:-7px;border-top:0;border-left:0}
+.hgx-tipp[data-seite="unten"]::after{top:-7px;border-bottom:0;border-right:0}
+.hgx-tipp[data-seite="rechts"]::after{left:-7px;border-top:0;border-right:0}
+.hgx-tipp[data-seite="oben"]::after{top:auto}
+.hgx-tipp__t{margin:0}
+.hgx-tipp__fuss{display:flex;align-items:center;gap:.45rem;margin-top:.7rem}
+.hgx-tipp__n{margin-right:auto;font-size:var(--fs-7);color:color-mix(in srgb,var(--hg-on) 65%,transparent);font-variant-numeric:tabular-nums}
+.hgx-tipp__weiter{border-color:var(--hg-amber,var(--accent));color:var(--hg-amber,var(--accent));font-weight:700}
+.hgx-tipp-ziel{outline:2px solid var(--hg-amber,var(--accent));outline-offset:3px}
+.hg[data-tipp] .hg-hint:not(.hgx-walkhint){visibility:hidden}
+@media (prefers-reduced-motion:no-preference){.hgx-tipp:not([hidden]){animation:hgx-tipp-ein var(--dur-slow,.35s) var(--ease-ui,ease-out)}@keyframes hgx-tipp-ein{from{opacity:0}to{opacity:1}}}
 .hg[data-walk="on"] #hg-hint{display:none}
 /* Zeichenkontext verloren (data-lost, assets/hangar-overview.js): die Meldung
    steht allein, Ladebalken, Knoepfe, Bedienhinweis und die Marker am Schiff
@@ -932,11 +946,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       einen eigenen Schluessel und nimmt ihn wieder weg, ohne den Besuch
       selbst zu vermerken. Laesst sich die Sitzung lesen, aber nicht
       beschreiben, bleibt es bei beiden beim Feld (Review PR #388).
-      Dort bleibt auch die Erklaerung zu, die beim allerersten Besuch von
-      selbst aufgeht (data-help-auto, gelesen von tool-help.js): Sie laege
-      ueber dem Anmeldebild. Ungesehen, also kommt sie beim naechsten Aufruf
-      auf dem Feld. */}
-  <script is:inline set:html={`(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}try{var p=new URLSearchParams(location.search),k=${jsonForScript(START_NENNT)};if((p.get('ort')==='leit'||(sessionStorage.getItem('hg-besuch')===null&&location.hash.length<2&&!k.some(function(x){return p.has(x)})&&(sessionStorage.setItem('hg-besuch-probe','1'),sessionStorage.removeItem('hg-besuch-probe'),true)))&&!matchMedia('(max-width: 760px), (pointer: coarse)').matches){m.dataset.ort='leit';m.dataset.helpAuto='aus'}}catch(e){}})(document.currentScript.parentElement)`}></script>
+      Am Schreibtisch geht die lange Erklaerung der Schiffsauswahl nicht
+      mehr von selbst auf (data-help-auto, gelesen von tool-help.js): Auf dem
+      Feld zeigen stattdessen drei kurze Hinweise auf die Knoepfe
+      (hangar-overview.js tipps, Hangar-Politur 22.11.2026), im Leitstand
+      laege sie ueber dem Anmeldebild. Am Telefon geht sie wie bisher auf. */}
+  <script is:inline set:html={`(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}try{var t=matchMedia('(max-width: 760px), (pointer: coarse)').matches;if(!t)m.dataset.helpAuto='aus';var p=new URLSearchParams(location.search),k=${jsonForScript(START_NENNT)};if(!t&&(p.get('ort')==='leit'||(sessionStorage.getItem('hg-besuch')===null&&location.hash.length<2&&!k.some(function(x){return p.has(x)})&&(sessionStorage.setItem('hg-besuch-probe','1'),sessionStorage.removeItem('hg-besuch-probe'),true)))){m.dataset.ort='leit'}}catch(e){}})(document.currentScript.parentElement)`}></script>
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />
@@ -1005,7 +1020,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         </button>
       </div>
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>
-      <p class="hg-hint hgx-walkhint" id="hgx-walkhint">{t('walk.hint')}</p>
+      <p class="hg-hint hgx-walkhint" id="hgx-walkhint" data-gehen={t('walk.hint')} data-sitzen={t('walk.sitHint')}>{t('walk.hint')}</p>
       {/* Das Terminal im Leitstand: Leiste und Fenster der Seite, vom Controller
           auf den Schirm der Halle gelegt, sobald die Kamera davor steht. Das
           Fenster bekommt seine Adresse erst dann (assets/hangar-terminal.js);
@@ -1139,6 +1154,18 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <span class="hgx-tray__hint" id="hgx-tray-hint" hidden>{t('cmp.hint')}</span>
         <button type="button" class="hg-btn hgx-tray__open" id="hgx-cmp-open" hidden>{t('msg.cmp.open', { n: '2' })}</button>
         <p class="hgx-tray__msg" id="hgx-tray-msg" hidden>{t('cmp.full')}</p>
+      </div>
+    </div>
+    {/* Erste Schritte (Hangar-Politur 22.11.2026, Stelle 9): drei kurze
+        Hinweise an den echten Knoepfen statt der langen Erklaerung beim
+        ersten Besuch, nacheinander (hangar-overview.js tipps). Die lange
+        steht weiter hinter dem „?“ der Schiffsauswahl. */}
+    <div class="hgx-tipp" id="hgx-tipp" role="group" aria-label={t('tipp.label')} data-t-dock={t('tipp.dock')} data-t-tafel={t('tipp.tafel')} data-t-orte={t('tipp.orte')} data-weiter={t('tipp.weiter')} data-fertig={t('tipp.fertig')} hidden>
+      <p class="hgx-tipp__t" id="hgx-tipp-t" aria-live="polite"></p>
+      <div class="hgx-tipp__fuss">
+        <span class="hgx-tipp__n" id="hgx-tipp-n"></span>
+        <button type="button" class="hg-btn hgx-tipp__zu" id="hgx-tipp-zu">{t('tipp.zu')}</button>
+        <button type="button" class="hg-btn hgx-tipp__weiter" id="hgx-tipp-weiter">{t('tipp.weiter')}</button>
       </div>
     </div>
     {/* Die Tafel rechts: Werkstatt (Station Loadout, Vorgabe) oder
@@ -1378,7 +1405,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     <span data-msg="gr" data-s={t('gr.S')} data-m={t('gr.M')} data-l={t('gr.L')} data-xl={t('gr.XL')} data-own={t('gr.own')} data-feld={t('msg.gr.feld')} data-frei={t('msg.gr.frei')}></span>
     <span data-msg="find-hits" data-one={t('msg.find.hits.one')} data-other={t('msg.find.hits.other')}></span>
     <span data-msg="find" data-remove={t('msg.find.remove')} data-cargo={t('msg.find.cargo')} data-price={t('msg.find.price')} data-here={t('msg.qv.here')}></span>
-    <span data-msg="holo" data-speed={t('holo.speed')} data-fire={t('holo.fire')} data-shield={t('holo.shield')} data-hull={t('holo.hull')} data-rank={t('msg.holo.rank')} data-cls={t('msg.holo.cls')} data-size={t('msg.holo.size')} data-none={t('holo.none')} data-cmp={t('holo.cmp')} data-cmp-on={t('holo.cmpOn')} data-all={t('holo.all')} data-sys={t('holo.sys')} data-more={t('msg.holo.more')}></span>
+    <span data-msg="holo" data-speed={t('holo.speed')} data-fire={t('holo.fire')} data-fire-t={t('holo.fireT')} data-shield={t('holo.shield')} data-hull={t('holo.hull')} data-rank={t('msg.holo.rank')} data-cls={t('msg.holo.cls')} data-size={t('msg.holo.size')} data-none={t('holo.none')} data-cmp={t('holo.cmp')} data-cmp-on={t('holo.cmpOn')} data-all={t('holo.all')} data-sys={t('holo.sys')} data-more={t('msg.holo.more')}></span>
     <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')} data-loading={t('cmp.loading')}></span>
   </div>
 </main>
