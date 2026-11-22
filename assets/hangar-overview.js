@@ -3395,12 +3395,25 @@ export function boot(doc) {
       { text: box.dataset.tOrte, el: () => $('hgx-orte') },
     ];
     const txt = $('hgx-tipp-t'), num = $('hgx-tipp-n'), weiter = $('hgx-tipp-weiter');
-    let i = -1, ziel = null, ruhig = 0, uhr = 0;
-    const t0 = Date.now();
+    // seit: wann die Halle zuletzt bereit und unberührt wurde (0: gerade
+    // nicht); druck: eine Taste oder ein Finger liegt auf der Bühne
+    let i = -1, ziel = null, seit = 0, druck = false, uhr = 0;
+    const t0 = Date.now(), RUHE = 1500;
+    const canvas = $('hg-canvas');
+    const an = () => { druck = true; seit = 0; };
+    const los = () => { druck = false; seit = 0; };
+    const rad = () => { seit = 0; };
+    const lauschen = (on) => {
+      const f = on ? 'addEventListener' : 'removeEventListener';
+      canvas?.[f]('pointerdown', an, { passive: true });
+      canvas?.[f]('wheel', rad, { passive: true });
+      for (const ev of ['pointerup', 'pointercancel']) window[f](ev, los, { passive: true });
+    };
     const bereit = () => ortGemalt === 'halle' && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
     const markieren = (el) => { ziel?.classList.remove('hgx-tipp-ziel'); ziel = el; ziel?.classList.add('hgx-tipp-ziel'); };
     const ende = () => {
       clearInterval(uhr);
+      lauschen(false);
       box.hidden = true;
       markieren(null);
       delete main.dataset.tipp;
@@ -3449,13 +3462,19 @@ export function boot(doc) {
     };
     weiter.addEventListener('click', zeige);
     $('hgx-tipp-zu').addEventListener('click', ende);
-    // warten, bis die Halle steht und 1,5 s ruhig steht; offen: dem Knopf folgen,
-    // und wer das Feld verlaesst (Werkhalle, Leitstand, Einsteigen), ist schon unterwegs
+    // warten, bis die Halle steht und RUHE ms ununterbrochen unberuehrt
+    // bleibt (Ziehen und Zoomen fangen von vorn an; CodeRabbit zu #399: mit
+    // drei gezaehlten Abfragen reichte gut eine Sekunde, auch mitten im
+    // Drehen); offen: dem Knopf folgen, und wer das Feld verlaesst
+    // (Werkhalle, Leitstand, Einsteigen), ist schon unterwegs
+    lauschen(true);
     uhr = setInterval(() => {
       if (i < 0) {
-        if (Date.now() - t0 > 180000) { clearInterval(uhr); return; }
-        ruhig = bereit() ? ruhig + 1 : 0;
-        if (ruhig >= 3) { doc.addEventListener('keydown', taste); zeige(); }
+        const jetzt = Date.now();
+        if (jetzt - t0 > 180000) { clearInterval(uhr); lauschen(false); return; }
+        if (!bereit() || druck) { seit = 0; return; }
+        if (!seit) seit = jetzt;
+        if (jetzt - seit >= RUHE) { doc.addEventListener('keydown', taste); zeige(); }
         return;
       }
       if (ortGemalt !== 'halle' || main.dataset.walk === 'on') { ende(); return; }
