@@ -22,7 +22,7 @@ import { href, useTranslations, type Locale } from '../../i18n/ui';
 import { hangarT } from '../../i18n/hangarText';
 import { mergePatchEn } from '../../i18n/patchText';
 import { patchSeiteHref } from '../../lib/patchPages';
-import { pageItems } from '../../lib/items';
+import { db as itemDb } from '../../lib/items';
 import { blueprints } from '../../lib/crafting';
 import { missions } from '../../lib/missions';
 import vehiclesSnapshot from '../../data/vehicles.json';
@@ -49,10 +49,13 @@ const daumen = (bild: string | undefined) => {
 const patchBild = daumen(neu.data.heroImage);
 
 // Was die Werkzeuge kennen, gezaehlt aus denselben Listen, aus denen ihre
-// Seiten entstehen. Die Bilder sind die der Startseite.
+// Seiten entstehen. Die Bilder sind die der Startseite. Bei den Items die
+// Zahl, die ihre Seite oben nennt („Alle 9.518 Items“), nicht die der Items
+// mit eigenem Datenblatt: Die Kachel sagte vorher 5.821, die Seite dahinter
+// gleich darauf 9.518.
 const ZAHL: Record<string, number> = {
   schiffe: Number(vehiclesSnapshot.count) || 0,
-  items: pageItems.length,
+  items: itemDb.counts.items,
   crafting: blueprints.length,
   missionen: missions.length,
   archiv: patches.length,
@@ -238,7 +241,7 @@ const kbd = lang === 'de' ? 'Strg' : 'Ctrl';
 .hgx-term[data-niedrig] .hgx-ts__chips{max-height:28px}
 @media (prefers-reduced-motion:reduce){.hgx-ts,.hgx-ts__ich,.hgx-ts__fld,.hgx-ts__ort,.hgx-ts__ort i,.hgx-ts__chip,.hgx-ts__z,.hgx-ts__weg,.hgx-ts__pk,.hgx-ts__pk>img,.hgx-ts__wz,.hgx-ts__wz>img{transition:none}.hgx-term[data-zeigt="start"] .hgx-ts>*{animation:none}}
 </style>
-<div class="hgx-ts" id="hgx-ts" role="region" aria-label={t('term.start.label')} data-l-zurueck={t('term.login.zurueck')} data-l-hallo={t('term.login.hallo')} data-l-gast={t('term.login.gast')} data-l-gastsub={t('term.start.gast.sub')} data-l-kontosub={t('term.start.konto.sub')} data-l-acct={ui('nav.account')} data-l-ort-a={t('term.start.ort.a')} data-f-schiff1={t('term.fakt.schiff1')} data-f-schiffn={t('term.fakt.schiffn')} data-f-leer={t('term.fakt.leer')} data-l-hol={t('term.start.flotte.hol')} data-l-mehr={t('term.start.flotte.mehr')} data-l-ref-aktiv={t('term.start.ref.aktiv')} data-l-ref-fertig1={t('term.start.ref.fertig1')} data-l-ref-fertign={t('term.start.ref.fertign')} data-l-ref-leer={t('term.start.ref.leer')} data-l-ref-alle={t('term.start.ref.alle')} data-l-craft-besitz={t('term.start.craft.besitz')} data-l-craft-plan={t('term.start.craft.plan')} data-l-craft-leer={t('term.start.craft.leer')} data-l-anfrage1={t('term.start.freunde.anfrage1')} data-l-anfragen={t('term.start.freunde.anfragen')} data-l-nachricht1={t('term.start.freunde.nachricht1')} data-l-nachrichten={t('term.start.freunde.nachrichten')} data-l-ruhig={t('term.start.freunde.ruhig')} data-l-nichtda={t('term.start.nichtda')} data-site={href('/', lang)}>
+<div class="hgx-ts" id="hgx-ts" role="region" aria-label={t('term.start.label')} data-l-zurueck={t('term.login.zurueck')} data-l-hallo={t('term.login.hallo')} data-l-gast={t('term.login.gast')} data-l-gastsub={t('term.start.gast.sub')} data-l-kontosub={t('term.start.konto.sub')} data-l-acct={ui('nav.account')} data-l-ort-a={t('term.start.ort.a')} data-f-schiff1={t('term.fakt.schiff1')} data-f-schiffn={t('term.fakt.schiffn')} data-f-leer={t('term.fakt.leer')} data-l-hol={t('term.start.flotte.hol')} data-l-mehr={t('term.start.flotte.mehr')} data-l-ref-aktiv={t('term.start.ref.aktiv')} data-l-ref-fertig1={t('term.start.ref.fertig1')} data-l-ref-fertign={t('term.start.ref.fertign')} data-l-ref-leer={t('term.start.ref.leer')} data-l-ref-alle={t('term.start.ref.alle')} data-l-craft-besitz={t('term.start.craft.besitz')} data-l-craft-plan={t('term.start.craft.plan')} data-l-craft-leer={t('term.start.craft.leer')} data-l-anfrage1={t('term.start.freunde.anfrage1')} data-l-anfragen={t('term.start.freunde.anfragen')} data-l-nachricht1={t('term.start.freunde.nachricht1')} data-l-nachrichten={t('term.start.freunde.nachrichten')} data-l-ruhig={t('term.start.freunde.ruhig')} data-l-fav-leer={t('term.start.fav.leer')} data-l-fav-lo1={t('term.start.fav.lo1')} data-l-fav-lon={t('term.start.fav.lon')} data-l-fav-fa1={t('term.start.fav.fa1')} data-l-fav-fan={t('term.start.fav.fan')} data-l-nichtda={t('term.start.nichtda')} data-site={href('/', lang)}>
   <span class="hgx-ts__ecke hgx-ts__ecke--lo" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--ro" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--lu" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--ru" aria-hidden="true"></span>
   <header class="hgx-ts__kopf">
     {/* Wer davor sitzt: fuehrt zum Konto auf dem Schirm, ohne Konto zur Anmeldung (Ziel setzt das Terminal) */}
