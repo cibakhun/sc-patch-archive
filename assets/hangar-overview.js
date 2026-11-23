@@ -2879,6 +2879,22 @@ export function boot(doc) {
     requestAnimationFrame(tick);
   }
 
+  // Drehen (Hangar-Modus, Politur 23.11.2026): Solange man die Kamera zieht
+  // oder zoomt, tritt der Seitenkopf zurueck (data-dreh, CSS in
+  // HangarPage.astro), wie die Tafeln in der Halle (MOVE_K in
+  // hangar-holo3d.js). Ein Klick ohne Weg zaehlt nicht; nach dem Loslassen
+  // kommt der Kopf wieder.
+  {
+    const box = $('hg-canvas');
+    let x0 = 0, y0 = 0, unten = false, uhr = 0;
+    const an = () => { clearTimeout(uhr); main.dataset.dreh = 'on'; };
+    const aus = (ms) => { clearTimeout(uhr); uhr = setTimeout(() => { delete main.dataset.dreh; }, ms); };
+    box?.addEventListener('pointerdown', (e) => { unten = true; x0 = e.clientX; y0 = e.clientY; }, { passive: true });
+    box?.addEventListener('pointermove', (e) => { if (unten && !main.dataset.dreh && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) an(); }, { passive: true });
+    for (const ev of ['pointerup', 'pointercancel']) window.addEventListener(ev, () => { if (!unten) return; unten = false; if (main.dataset.dreh) aus(500); }, { passive: true });
+    box?.addEventListener('wheel', () => { an(); aus(700); }, { passive: true });
+  }
+
   // show() loest auch auf, wenn ein neueres show() es ueberholt hat: nur der
   // eigene Zaehler sagt, ob das Modell dieser Auswahl wirklich steht.
   let showTok = 0;
