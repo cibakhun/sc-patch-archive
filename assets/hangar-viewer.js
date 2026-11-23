@@ -9838,8 +9838,12 @@ export async function initHangar(container, opts = {}) {
   // immer hatte: ohne Schiff, Crew und Dunst, ohne Spiegelbild, mit der
   // Ersatzkugel ganz schwach, die Halle in Ruhelage (hallRest), ohne die
   // Hologramme der Stationen. Danach steht alles wieder wie vorher.
-  // Die erste Seite zeichnet dazu die Schatten neu, ohne Schiff und Crew,
-  // wie die Aufnahme sie sieht (die Karten gelten bis zur letzten Seite).
+  // Jede Seite zeichnet dazu die Schatten neu, ohne Schiff und Crew, wie
+  // die Aufnahme sie sieht: Zwischen zwei Seiten kann ein Bild sie mit dem
+  // Schiff neu gezeichnet haben (es fährt ein oder steigt). Danach zeichnet
+  // das nächste Bild sie wieder mit Schiff (shadowSig), sonst fehlte sein
+  // Schatten bis zur nächsten Bewegung. Ohne Schiff wirft dort fast nichts
+  // Schatten (die Halle hat ihre eigenen Karten, renderHallShadows).
   function envSeite(cam, i) {
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
     for (const o of hide) o.visible = false;
@@ -9855,7 +9859,7 @@ export async function initHangar(container, opts = {}) {
     }
     scene.environment = envRT.texture;
     setHallEnv(envRT.texture);
-    if (i === 0) renderer.shadowMap.needsUpdate = true;
+    renderer.shadowMap.needsUpdate = true;
     // Ohne die Hologramme der Stationen (wie renderMirror): Tafeln und
     // Lichtlinien gehören nicht in das Licht, das die Halle zurückwirft.
     // Bis zum 18.11.2026 lag mit ihnen ein schwarzes Rechteck über dem
@@ -9885,6 +9889,7 @@ export async function initHangar(container, opts = {}) {
       hallRefl.on.value = reflOn;
       fog.near = near; fog.far = far;
       for (const o of hide) o.visible = true;
+      shadowSig = '';
     }
   }
   // Die Kugel entsteht Seite für Seite (Hangar-Politur 23.11.2026, Stelle 4):

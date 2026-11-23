@@ -1728,7 +1728,11 @@ export function holoLayer(ctx) {
     const off = 1.2, tick = 0.7;
     const xEdge = sx > 0 ? B.max.x + off : B.min.x - off, zEdge = sz > 0 ? B.max.z + off : B.min.z - off;
     const P3 = (x, z, y = 0) => new THREE.Vector3(x, y, z);
-    // Länge entlang z (Bugachse in der Halle), Breite entlang x
+    // Länge entlang der Bugachse, Breite quer dazu: auf dem Schiffsfeld
+    // liegt der Bug auf z, in der Werkhalle (WERK_YAW) auf x. Gezeichnet
+    // werden beide Linien gleich, die Schilder tauschen (quer).
+    const bug = new THREE.Vector3(0, 0, 1).transformDirection(built.model.matrixWorld);
+    const quer = Math.abs(bug.x) > Math.abs(bug.z);
     const L = [P3(xEdge, B.min.z), P3(xEdge, B.max.z)], Wd = [P3(B.min.x, zEdge), P3(B.max.x, zEdge)];
     for (const [a, b, t] of [[L[0], L[1], [tick, 0]], [Wd[0], Wd[1], [0, tick]]]) {
       lines.push(floorBand(a, b, 0.1, 0.95));
@@ -1749,8 +1753,10 @@ export function holoLayer(ctx) {
     // den keine Tafel verdeckt
     const lab = (s, at) => { const sp = makeSprite((g) => drawLabel(g, s), at[0], { kind: 'dim', owner: DIMS }); sp.at = at; lines.push(sp.obj); built.sprites.push(sp); };
     const along = (fs, f) => fs.map(f);
-    if (d.len) lab(d.len, along([0.65, 0.5, 0.8, 0.35, 0.2], (t) => P3(xEdge, B.min.z * (1 - t) + B.max.z * t, 0.9)));
-    if (d.wid) lab(d.wid, along([0.6, 0.45, 0.75, 0.3, 0.15], (t) => P3(B.min.x * (1 - t) + B.max.x * t, zEdge, 0.9)));
+    const anZ = (fs) => along(fs, (t) => P3(xEdge, B.min.z * (1 - t) + B.max.z * t, 0.9));
+    const anX = (fs) => along(fs, (t) => P3(B.min.x * (1 - t) + B.max.x * t, zEdge, 0.9));
+    if (d.len) lab(d.len, (quer ? anX : anZ)([0.65, 0.5, 0.8, 0.35, 0.2]));
+    if (d.wid) lab(d.wid, (quer ? anZ : anX)([0.6, 0.45, 0.75, 0.3, 0.15]));
     if (d.hgt) lab(d.hgt, along([0.5, 0.7, 0.3], (t) => P3(xEdge, zFar, B.max.y * t)));
     built.lines = lines;
     // neu gebaut mit voller Deckkraft: gleich auf den Stand von alpha und DIMS
