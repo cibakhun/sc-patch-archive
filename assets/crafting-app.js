@@ -180,7 +180,7 @@
   // hier (Klicks fängt die bestehende Delegation auf #cdb-grid).
   // Index -> Slug und zurück. Der SLUG ist der Schlüssel für „im Besitz" und
   // Planer (localStorage wie Konto): der DB-Index verschiebt sich bei jedem
-  // Datamine-Lauf, der Slug ist derselbe wie in /crafting/<slug>.html und
+  // Datenlauf, der Slug ist derselbe wie in /crafting/<slug>.html und
   // überlebt Patches. Er kostet kein zusätzliches Markup — der Kartenname ist
   // ohnehin ein Link auf genau diese Seite.
   var SLUG_BY_I = {};
@@ -426,7 +426,7 @@
 
   // Einmalige Übernahme der alten, INDEX-basierten Ablage (craft.owned.v1 /
   // craft.plan.v1). Die Indizes stammen aus derselben Seite, die sie geschrieben
-  // hat — nach einem Datamine-Lauf können sie verschoben sein. Genau deshalb
+  // hat — nach einem Datenlauf können sie verschoben sein. Genau deshalb
   // wechseln wir auf Slugs; die Übernahme ist der bestmögliche Stand, nicht mehr.
   (function migrateV1() {
     if (localStorage.getItem(LS_GUEST) != null) return;
@@ -2097,7 +2097,7 @@
   //  STAR CITIZEN DISMANTLING CALCULATOR
   // =========================================================
   // „Selten“ = Material steht auf der globalen Dismantle-Blacklist des Spiels
-  // (CraftingGlobalParams.dismantleBlacklistResources, Game2.dcb): diese Erze
+  // (`dismantle_blacklist` in crafting-db.json): diese Erze
   // stecken in der Zusammensetzung vieler Items, kommen beim Zerlegen aber NIE
   // zurück (Anti-Farming). Alles andere kommt mit der Basis-Effizienz des
   // generischen Dismantle-Blueprints zurück (GlobalGenericDismantle).
@@ -2108,8 +2108,8 @@
   // (`recipe[].name`, proper-case wie im Spiel — deckt auch Edelstein-/Item-
   // Materialien ab), die Slider-Default-Effizienz aus
   // `window.__CRAFT.dismantleEfficiency` (= DB.dismantle_efficiency, zur Build-
-  // Zeit ins Markup gerendert). datamine-crafting.mjs extrahiert alles direkt
-  // aus dem DataCore; ein neuer Lauf zieht Patch-Änderungen automatisch nach.
+  // Zeit ins Markup gerendert). Der Crafting-Datenlauf schreibt alles davon
+  // neu; ein neuer Lauf zieht Patch-Änderungen automatisch nach.
   var DISMANTLE_BLACKLIST = null; // { mid: true } sobald DB geladen; null = noch unbekannt
   var MAT_NAMES = {};             // mid -> Spiel-Anzeigename (aus recipe[].name)
   var dbFailed = false;           // DB-Fetch endgültig fehlgeschlagen?

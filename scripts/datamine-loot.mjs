@@ -18,7 +18,7 @@
 //     -> Tabelle: LootTable (alt) / LootTableV3Record
 //     -> Archetyp: LootArchetype (alt) / LootArchetypeV3Record
 //     -> Tags -> Items
-//   Semantik der Archetypen (Juli-Messung, docs/item-finder-armor-sets-deep-dive.md
+//   Semantik der Archetypen (Juli-Messung, .planning/archiv/item-finder-armor-sets-deep-dive.md
 //   § 4.2): alt = ODER innerhalb einer Gruppe, UND zwischen den Gruppen, exakter
 //   Tag-Treffer, negativeTags/excludedTags schliessen aus. V3 = alle positiven
 //   Tags eines Eintrags noetig, keiner der negativen.
