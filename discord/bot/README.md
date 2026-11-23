@@ -143,7 +143,7 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-**Docker** — Node 20+ base, `npm ci --omit=dev` (add build tools for
+**Docker** — Node 22 base (better-sqlite3 13 needs it), `npm ci --omit=dev` (add build tools for
 better-sqlite3), mount a volume at `./data` so the database survives redeploys.
 
 ---

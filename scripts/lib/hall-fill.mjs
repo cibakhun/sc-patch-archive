@@ -20,16 +20,20 @@ export const centroid = (t) => [0, 1, 2].map((a) => (t[0][a] + t[1][a] + t[2][a]
 
 // Probepunkte eines Dreiecks: Es wird je Kante in n Teile zerlegt (n²
 // Teildreiecke, n so, dass ein Teil hoechstens SAMPLE_STEP lang ist,
-// mindestens 2, hoechstens 64), die Proben sind deren Schwerpunkte. Bei
-// n = 2 sind das der Schwerpunkt und drei Punkte je auf halbem Weg von
-// ihm zu einer Ecke. Liegt nur ein Teil des Dreiecks auf der dichten Stufe,
-// trifft das eine Probe, sobald der Teil groesser ist als ein
-// Teildreieck; der Schwerpunkt allein verfehlt ihn oft.
+// mindestens 2), die Proben sind deren Schwerpunkte. Bei n = 2 sind das
+// der Schwerpunkt und drei Punkte je auf halbem Weg von ihm zu einer
+// Ecke. Liegt nur ein Teil des Dreiecks auf der dichten Stufe, trifft das
+// eine Probe, sobald der Teil groesser ist als ein Teildreieck; der
+// Schwerpunkt allein verfehlt ihn oft. Ohne Obergrenze fuer n: Bis
+// 11.10.2026 hoerte das Raster bei n = 64 auf, Dreiecke ueber 3,2 m (77
+// der 160 der Fuellung, bis 4,9 m) bekamen Teile bis 7,7 cm, und ein
+// aufliegendes Stueck von 5 cm blieb dort unentdeckt. Die Kosten haelt
+// coverage() klein: Proben nur, wo eine Flaeche der dichten Stufe nahe ist.
 export const SAMPLE_STEP = 0.05;
 const sub = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+const gridN = (t) => Math.max(2, Math.ceil(Math.max(...[0, 1, 2].map((k) => Math.hypot(...sub(t[(k + 1) % 3], t[k])))) / SAMPLE_STEP));
 export function samples(t) {
-  const len = Math.max(...[0, 1, 2].map((k) => Math.hypot(...sub(t[(k + 1) % 3], t[k]))));
-  const n = Math.min(64, Math.max(2, Math.ceil(len / SAMPLE_STEP))), out = [];
+  const n = gridN(t), out = [];
   const at = (u, v) => [0, 1, 2].map((a) => t[0][a] + u * (t[1][a] - t[0][a]) + v * (t[2][a] - t[0][a]));
   for (let i = 0; i < n; i++) for (let j = 0; i + j < n; j++) {
     out.push(at((i + 1 / 3) / n, (j + 1 / 3) / n));
@@ -51,6 +55,21 @@ export const withNormals = (list) => list.map((t) => ({ t, n: normalOf(t) }));
 // Flaeche nur, etwa eine Ebene laengs durch ein Rohr, liegen die Proben an
 // der Schnittlinie auch nahe, flimmern aber nicht.
 export const onLite = (q, n, near) => near.some((l) => Math.abs(n[0] * l.n[0] + n[1] * l.n[1] + n[2] * l.n[2]) >= 0.9 && dist2(q, l.t) <= FILL_TOL * FILL_TOL);
+
+// Wie viele Proben des Dreiecks t liegen auf der dichten Stufe (near aus
+// withNormals)? { on, of }: on === of heisst ganz aufliegend, 0 < on
+// teilweise. Erst die Flaechen, die ueberhaupt in Frage kommen (gleich
+// ausgerichtet, Huellquader bis FILL_TOL am Dreieck); ohne sie keine
+// Proben, das Ergebnis ist dasselbe.
+export function coverage(t, near) {
+  const n = normalOf(t), k = gridN(t);
+  const cand = near.filter((l) => Math.abs(n[0] * l.n[0] + n[1] * l.n[1] + n[2] * l.n[2]) >= 0.9 && [0, 1, 2].every((a) =>
+    Math.min(l.t[0][a], l.t[1][a], l.t[2][a]) <= Math.max(t[0][a], t[1][a], t[2][a]) + FILL_TOL
+    && Math.max(l.t[0][a], l.t[1][a], l.t[2][a]) >= Math.min(t[0][a], t[1][a], t[2][a]) - FILL_TOL));
+  if (!cand.length) return { on: 0, of: k * k };
+  const pr = samples(t);
+  return { on: pr.filter((q) => onLite(q, n, cand)).length, of: pr.length };
+}
 
 // Schneidet ein Vieleck auf den Kasten zu (Sutherland-Hodgman an seinen
 // sechs Ebenen). Ecken sind { p: [x, y, z], a: [Attribut, …] }; die
