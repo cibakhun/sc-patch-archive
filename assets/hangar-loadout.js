@@ -265,6 +265,7 @@ function writeUrl(soon = false) {
 }
 
 function adopt(ship, lo) {
+  era += 1;
   const raw = decodeLayout(lo ?? EMPTY_CODE) ?? { name: '', slots: {} };
   slots = shipSlots(data.ships[ship]);
   const { slots: clean, racks: rk, dropped: lost } = cleanSlots(raw.slots, slots, data.items, raw.racks, data.racks);
@@ -568,11 +569,13 @@ function changed() {
   writeUrl();
   paintAll();
 }
-// Rueckgaengig: der Stand vor einer Aenderung als Kopie. Gilt nur fuer dasselbe
-// Schiff; wer inzwischen gewechselt hat, bekommt nichts Fremdes zurueck.
-const snap = () => ({ ship: draft.ship, slots: { ...draft.slots }, racks: draft.racks ? { ...draft.racks } : null, paint: draft.paint ?? null });
+// Rueckgaengig: der Stand vor einer Aenderung als Kopie. Gilt nur im selben Entwurf:
+// adopt (anderes Schiff, gespeichertes Layout geoeffnet) zaehlt era hoch, und ein
+// Rueckgaengig von vorher bringt nichts Fremdes zurueck, auch beim selben Schiff.
+let era = 0;
+const snap = () => ({ era, ship: draft.ship, slots: { ...draft.slots }, racks: draft.racks ? { ...draft.racks } : null, paint: draft.paint ?? null });
 function undoTo(s) {
-  if (s.ship !== draft.ship) return;
+  if (s.era !== era || s.ship !== draft.ship) return;
   draft.slots = { ...s.slots };
   if (s.racks) draft.racks = { ...s.racks }; else delete draft.racks;
   if (s.paint) draft.paint = s.paint; else delete draft.paint;
@@ -594,7 +597,9 @@ function fit(slot, k) {
 }
 // Dasselbe Teil in alle passenden Plaetze der Gruppe (Knopf im Kopf oder im Hinweis).
 function fitAll(slot, k) {
-  if (!data.items[k] || !slots.includes(slot)) return;
+  // Aus dem Hinweis kann der Knopf spaeter kommen: inzwischen eine andere Halterung
+  // am Platz, und das Teil passt dort nicht mehr. Dann nichts aendern.
+  if (!data.items[k] || !slots.includes(slot) || !fits(data.items[k], eff(slot))) return;
   const before = snap();
   const all = [slot, ...siblings(slot, k)];
   for (const s of all) setItem(s, k);
