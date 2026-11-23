@@ -142,7 +142,7 @@ export const CHECKS = [
     script: 'scripts/verify-windows.mjs',
     rail: 'A',
     checks:
-      '.planning/WINDOWS.md bleibt fuer gsd-tools lesbar — geprueft mit gsd-cores EIGENEM parseLedger (keine zweite, nachgebaute Auslegung), dazu die drei Muster, die es am 20.08.2026 je einmal zerlegt haben: kind "sight" (kein gueltiger Wert), CRLF (bricht die Frontmatter) und null statt Zeichenkette bei description/reason. Ein unlesbares Register liefert GAR KEINE Eintraege, nicht die uebrigen — der Ausfall ist total und faellt beim Lesen der Datei nicht auf',
+      '.planning/WINDOWS.md bleibt fuer gsd-tools lesbar — geprueft mit gsd-cores EIGENEM parseLedger (keine zweite, nachgebaute Auslegung), dazu die drei Muster, die es am 20.08.2026 je einmal zerlegt haben: kind "sight" (kein gueltiger Wert), CRLF (bricht die Frontmatter) und null statt Zeichenkette bei description/reason. Ausserdem stimmen Tabelle, JSON-Spiegel und Kopfzaehlung ueberein (jede Zeile hat ihren JSON-Eintrag mit demselben Status, die Zaehler folgen dem JSON; zweimal bezahlt: #137 nur in der Tabelle, #169/#176/#178 im JSON offen). Ein unlesbares Register liefert GAR KEINE Eintraege, nicht die uebrigen — der Ausfall ist total und faellt beim Lesen der Datei nicht auf',
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest eine
     // Textdatei und laedt ein lokales Modul.
   },

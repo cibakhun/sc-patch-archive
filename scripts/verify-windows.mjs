@@ -26,6 +26,10 @@
    (fremder Rechner ohne gsd-core), faellt die Pruefung auf die drei
    Muster oben zurueck und sagt das ausdruecklich.
 
+   Dazu, ohne Parser und ohne eigene Auslegung der Gueltigkeit: Die Datei
+   wird mit sich selbst verglichen. Tabelle, JSON-Spiegel und Kopfzaehlung
+   muessen dieselben Eintraege mit demselben Status nennen ([2b]).
+
    Bewusst KEIN Netz, kein git, kein Kindprozess — Schiene A.
    ============================================================ */
 import { readFileSync, existsSync } from 'node:fs';
@@ -100,6 +104,59 @@ console.log(`    description/reason null — Soll: 0   Ist: ${nullText}`);
 if (nullText > 0)
   fail(`${nullText}x null statt Zeichenkette bei description/reason — validateEntryShape weist das ab. ` +
        "Leer ist '', nicht null.");
+
+/* ---------- 2b. Tabelle, JSON-Spiegel und Kopfzaehlung stimmen ueberein ---------- */
+// Die Datei fuehrt jeden Eintrag zweimal: als Tabellenzeile (die liest der
+// Mensch) und im JSON-Block darunter (den liest parseLedger). Laufen beide
+// auseinander, sieht die Datei richtig aus und gsd-tools zeigt etwas
+// anderes. Zweimal bezahlt: #137 stand nur in der Tabelle, und parseLedger
+// warf auf Krisz' PC (29.10.2026, PR #257); #169, #176 und #178 waren in
+// der Tabelle erledigt und im JSON offen (PR #406, 23.11.2026). Die Wolke
+// hat keinen gsd-core und merkte beides nicht. Diese Pruefung braucht
+// keinen Parser: Sie vergleicht die Datei mit sich selbst.
+console.log('\n[2b] Tabelle, JSON-Spiegel und Kopfzaehlung');
+const MIN_SPIEGEL = 187; // Klinke: Eintraege werden nie geloescht, nur geschlossen
+let spiegel = 0;
+const jsonAuf = raw.indexOf('````json\n');
+const jsonZu = jsonAuf < 0 ? -1 : raw.indexOf('\n````', jsonAuf + 9);
+let json = null;
+if (jsonAuf < 0 || jsonZu < 0) fail('kein ````json-Block im Register gefunden');
+else {
+  try { json = JSON.parse(raw.slice(jsonAuf + 9, jsonZu)); } catch (e) { fail(`JSON-Block nicht lesbar: ${String(e.message).slice(0, 160)}`); }
+}
+if (Array.isArray(json)) {
+  // Tabellenzeilen von rechts gelesen: Die Beschreibung darf „ | “ enthalten,
+  // die letzten vier Zellen (status, reason, recorded_at, resolved_at) nicht.
+  const zeilen = new Map();
+  for (const z of raw.slice(0, jsonAuf).split('\n')) {
+    const id = z.match(/^\| (\d+) \| /);
+    if (!id) continue;
+    const rechts = z.match(/\| ([^|]*) \| ([^|]*) \| ([^|]*) \| ([^|]*) \|\s*$/);
+    zeilen.set(+id[1], rechts ? rechts[1].trim() : null);
+  }
+  const eintr = new Map(json.map((e) => [e.id, e.status]));
+  const nurTabelle = [...zeilen.keys()].filter((i) => !eintr.has(i));
+  const nurJson = [...eintr.keys()].filter((i) => !zeilen.has(i));
+  const ungleich = [...zeilen].filter(([i, s]) => eintr.has(i) && eintr.get(i) !== s);
+  spiegel = [...zeilen.keys()].filter((i) => eintr.has(i)).length;
+  console.log(`    Tabellenzeilen: ${zeilen.size}   JSON-Eintraege: ${eintr.size}   verglichen: ${spiegel}`);
+  console.log(`    nur in der Tabelle — Soll: 0   Ist: ${nurTabelle.length}${nurTabelle.length ? ` (${nurTabelle.join(', ')})` : ''}`);
+  console.log(`    nur im JSON        — Soll: 0   Ist: ${nurJson.length}${nurJson.length ? ` (${nurJson.join(', ')})` : ''}`);
+  console.log(`    Status ungleich    — Soll: 0   Ist: ${ungleich.length}${ungleich.length ? ` (${ungleich.map(([i, s]) => `#${i} Tabelle ${s}, JSON ${eintr.get(i)}`).join('; ')})` : ''}`);
+  if (nurTabelle.length) fail(`Eintrag ohne JSON-Spiegel: ${nurTabelle.join(', ')} — parseLedger kennt ihn nicht`);
+  if (nurJson.length) fail(`JSON-Eintrag ohne Tabellenzeile: ${nurJson.join(', ')}`);
+  if (ungleich.length) fail('Tabelle und JSON nennen verschiedene Status — beide Stellen aendern, status, reason und resolved_at');
+  // Die Kopfzaehlung folgt dem JSON (den liest das Werkzeug)
+  const kopf = (k) => { const m = raw.match(new RegExp(`^${k}: (\\d+)$`, 'm')); return m ? +m[1] : null; };
+  const zaehl = (s) => json.filter((e) => e.status === s).length;
+  for (const [k, ist] of [['open_count', zaehl('open')], ['waived_count', zaehl('waived')], ['fixed_count', zaehl('fixed')], ['total_count', json.length]]) {
+    const soll = kopf(k);
+    console.log(`    ${k.padEnd(12)} Kopf: ${soll}   JSON: ${ist}`);
+    if (soll !== ist) fail(`${k} im Kopf ist ${soll}, der JSON-Block zaehlt ${ist}`);
+  }
+  console.log(`    Untergrenze: ${MIN_SPIEGEL} verglichene Eintraege`);
+  if (spiegel < MIN_SPIEGEL) fail(`nur ${spiegel} Eintraege verglichen — Ursache klaeren, nicht die Untergrenze senken`);
+}
 
 /* ---------- 3. Selbstauskunft (Grundsatz 2) ---------- */
 // Ein Waechter, der nicht sagt, WIE VIEL er geprueft hat, ist von einem
