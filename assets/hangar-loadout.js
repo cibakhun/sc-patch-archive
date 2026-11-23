@@ -576,6 +576,9 @@ function undoTo(s) {
   draft.slots = { ...s.slots };
   if (s.racks) draft.racks = { ...s.racks }; else delete draft.racks;
   if (s.paint) draft.paint = s.paint; else delete draft.paint;
+  // Zurueck auf einen gespeicherten Stand heisst wieder "gespeichert", nicht ein
+  // zweites Speichern desselben Layouts.
+  savedId = store.list().find((e) => sameLayout(e, draft))?.id ?? null;
   prev = null;
   changed();
 }
