@@ -83,4 +83,4 @@ git log -1 --format='%cr  %s' origin/data/marketplace-log
 - `scripts/track-marketplace.mjs` — der Sammler selbst
 - `.github/workflows/track-marketplace.yml` — der abgeschaltete Zeitplan, im
   Dateikopf der vollständige Cloudflare-Befund
-- `docs/stand-2026-08-04.md` — Abschnitt 6, warum das hier gesichert wurde
+- `.planning/archiv/stand-2026-08-04.md` — Abschnitt 6, warum das hier gesichert wurde

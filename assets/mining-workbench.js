@@ -37,7 +37,7 @@
      Wahrheit; pctSub()/pctRight()/locSub() arbeiten unveraendert auf diesen
      Objekten. */
   /* Object.create(null), nicht {} (Code-Review 12-REVIEW.md, WR-01): der
-     Schluessel ist ein Fundortname aus den Spieldaten. Hiesse ein Fundort je
+     Schluessel ist ein Fundortname aus den Mining-Daten. Hiesse ein Fundort je
      "__proto__" oder "constructor", traefe `locIndex[name]` bei einem
      Objekt-Literal das Prototyp-Objekt statt eines eigenen Eintrags — der Ort
      bekaeme keine Liste, und jede spaetere for...in-Schleife der Seite waere
@@ -647,7 +647,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      bauen waere eine zweite Wahrheit.
 
      ⚠ Schluessel der Eintraege ist der MINERALNAME, nicht der Index in
-     mining-db.json: der verschiebt sich mit jedem Datamine-Lauf. Genau dieser
+     mining-db.json: der verschiebt sich mit jedem Datenlauf. Genau dieser
      Fehler ist bei Crafting einmal bezahlt worden. Beim Laden wird gegen
      `byName` gefiltert — ein Erz, das ein Patch entfernt, faellt still raus
      statt die Liste zu vergiften.
