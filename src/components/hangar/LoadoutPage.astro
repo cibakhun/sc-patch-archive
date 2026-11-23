@@ -104,6 +104,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-slot__nm em,.lo-opt em{font-style:normal;margin-right:.35rem;padding:0 .35rem;border-radius:4px;background:color-mix(in srgb,var(--lo-a) 18%,transparent);color:var(--lo-a);font-weight:700}
 .lo-slot__fig{display:flex;flex-direction:column;align-items:flex-end;font-family:var(--font-ui);font-weight:800;font-variant-numeric:tabular-nums}
 .lo-slot__fig small{font-size:var(--fs-5);font-weight:600;color:var(--lo-dim)}
+/* "4 × 818": die Zahl gilt je Stueck, die Anzahl steht leise davor. */
+.lo-slot__v{display:inline-flex;align-items:baseline;gap:.25rem;white-space:nowrap}
+.lo-slot__v i{font-style:normal;font-size:var(--fs-5);font-weight:700;color:var(--lo-dim)}
 .lo-chev{font-size:var(--fs-9);color:var(--lo-dim)}
 .lo-slot.is-sel .lo-chev{color:var(--lo-a)}
 .lo-sock{position:relative;flex:0 0 auto;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border:1px solid var(--lo-hair);border-radius:8px;color:var(--lo-on)}
@@ -133,8 +136,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-pick{position:sticky;top:calc(var(--nav-h,68px) + .8rem);max-height:calc(100dvh - var(--nav-h,68px) - 1.6rem);overflow:auto;overscroll-behavior:contain;display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;padding-right:.2rem}
 .lo-pick:empty{display:none}
 .lo-tolist{display:none}
-.lo-pickhead{display:flex;align-items:center;gap:.8rem}
-.lo-pickhead>div{flex:1;min-width:0}
+.lo-pickhead{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem}
+.lo-pickhead>div{flex:1 1 14rem;min-width:0}
 .lo-pickhead p{margin:0;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
 .lo-pickhead h2{font-family:var(--font-display);font-size:var(--fs-11);font-weight:800;line-height:1.15}
 .lo-pickhead small{font-size:var(--fs-6);color:var(--lo-dim)}
@@ -221,6 +224,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-saved h4{margin:0;font-size:var(--fs-7)}
 .lo-saved p{margin:.15rem 0 0;font-size:var(--fs-6);color:var(--lo-dim)}
 .lo-saved p b{color:var(--lo-on)}
+.lo-saved__txt{flex:1 1 18rem;min-width:0}
+.lo-saved .lo-saved__facts{display:flex;flex-wrap:wrap;gap:.1rem .9rem;color:var(--lo-on);font-size:var(--fs-5)}
+.lo-saved__facts span{color:var(--lo-dim)}
 .lo-tag{margin-left:.4rem;padding:0 .35rem;border-radius:4px;background:color-mix(in srgb,var(--lo-a) 18%,transparent);color:var(--lo-a);font-size:var(--fs-5)}
 .lo-saved__acts{display:flex;gap:.35rem}
 .lo-where{margin:0;padding:0 1rem 1rem;font-size:var(--fs-6);color:var(--lo-dim)}
@@ -233,7 +239,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 /* Grosskategorien: Waffen, Komponenten, Lackierung als eigene Baender, beim Scrollen oben angeheftet. */
 .lo-equip>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .lo-big{margin:0 0 1rem}
-.lo-big__h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.6rem;margin:0 0 .15rem;padding:.5rem .7rem;border-radius:14px;background:color-mix(in srgb,var(--lo-a) 12%,var(--bg));color:var(--lo-on);font-family:var(--font-display);font-size:var(--fs-8);font-weight:800;letter-spacing:var(--ls-6);text-transform:uppercase}
+.lo-big__h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.6rem;margin:0 0 .15rem;padding:.5rem .7rem;border-radius:14px;background:color-mix(in srgb,var(--lo-a) 12%,var(--bg));box-shadow:0 0 0 .5rem var(--bg);color:var(--lo-on);font-family:var(--font-display);font-size:var(--fs-8);font-weight:800;letter-spacing:var(--ls-6);text-transform:uppercase}
 .lo-big__i{flex:0 0 auto;display:inline-grid;place-items:center;width:1.9rem;height:1.9rem;border-radius:999px;background:var(--lo-a);color:var(--ink)}
 .lo-big__i svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .lo-big__sw{display:inline-flex;width:1.9rem;height:1.9rem;border-radius:999px;overflow:hidden}
@@ -279,6 +285,12 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-dv__r.is-key b{font-weight:800}
 .lo-dv__r.is-same{opacity:.6}
 .lo-links{display:none}
+/* Datenblatt (nichts zu vergleichen): Wert und Zahl, volle Schrift, keine leeren Balken. */
+.lo-dv--one .lo-dv__r{grid-template-columns:minmax(0,1fr) auto}
+.lo-dv--one .lo-dv__l{grid-column:auto}
+.lo-dv--one .lo-dv__h>span:first-child{display:block}
+.lo-dv__na{font-size:var(--fs-5);font-style:italic;color:var(--lo-dim)}
+.lo-cmphint{margin:.55rem .9rem .35rem;font-size:var(--fs-5)}
 .lo-dv__more{appearance:none;justify-self:start;margin:.4rem .9rem .6rem;padding:0;border:0;background:none;color:var(--lo-dim);font:inherit;font-size:var(--fs-5);font-weight:700;cursor:pointer}
 .lo-dv__more:hover,.lo-dv__more:focus-visible{color:var(--lo-a);outline:0}
 @property --nt{syntax:'<length>';inherits:true;initial-value:0px}
@@ -305,7 +317,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-st{flex:1 1 0;min-width:0;grid-template-columns:auto 1fr;gap:0 .4rem}
   .lo-st__l{grid-column:1/-1;font-size:var(--fs-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lo-st .lo-d{min-width:0;text-align:left}
-  .lo-grid{flex:1 1 auto;min-height:0;margin:0;align-items:stretch;grid-template-columns:minmax(0,clamp(16rem,19vw,24rem)) minmax(0,1fr);gap:1rem}
+  .lo-grid{flex:1 1 auto;min-height:0;margin:0;align-items:stretch;grid-template-columns:minmax(0,clamp(18rem,22vw,24rem)) minmax(0,1fr);gap:1rem}
   .lo-equip{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:.3rem}
   .lo-grp h3{margin:.6rem 0 .3rem}
   .lo-slot{padding:.4rem .6rem;gap:.6rem}
@@ -373,6 +385,12 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 @media (min-width:1100px) and (max-width:1999px) and (min-height:600px){
   .lo-opts .is-col{display:none}
 }
+/* Ab 1600 px ist neben Name und Hauptwert Platz fuer den ersten Kernwert
+   (Schild: Aufladung, Waffe: Schaden je Schuss): bei Schilden gleicher HP
+   steht der Unterschied sonst erst im Vergleich. */
+@media (min-width:1600px) and (max-width:1999px) and (min-height:600px){
+  .lo-opts .is-col.is-c1{display:table-cell}
+}
 @media (min-width:1100px) and (max-width:1599px) and (min-height:600px){
   .lo-pick{padding:.45rem .5rem .5rem}
   .lo-opt .is-name{min-width:0;max-width:12rem}
@@ -396,6 +414,38 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-tolist{display:inline-flex;justify-self:start;appearance:none;border:0;background:none;padding:0;color:var(--lo-a);font:inherit;font-weight:700;cursor:pointer}
   .lo-acts{width:100%}
   .lo-acts .lo-btn{flex:1 1 auto}
+}
+/* Handy: die Teileliste als zweizeilige Karte. Als Tabelle deckte die
+   angeheftete Spalte "Einbauen" den Hauptwert zu, zu sehen waren nur Namen. */
+@media (max-width:640px){
+  .lo-scroll{overflow-x:visible}
+  .lo-opts,.lo-opts thead,.lo-opts tbody{display:block}
+  .lo-opts thead{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--lo-on) 3%,var(--bg))}
+  .lo-opts thead tr{display:flex;align-items:center}
+  .lo-optscroll .lo-opts thead th{display:block;position:static;background:none;box-shadow:none}
+  .lo-opts thead th:first-child{flex:1}
+  .lo-optscroll .lo-opts thead th.is-col,.lo-optscroll .lo-opts thead th.is-act{display:none}
+  .lo-opts tr.lo-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n v" "n a";align-items:center;gap:.2rem .7rem;padding:.55rem .5rem}
+  .lo-opts tr.lo-opt+tr.lo-opt{border-top:1px solid var(--lo-soft)}
+  .lo-opts td{display:block;padding:0}
+  .lo-opts td.is-col{display:none}
+  .lo-opts .lo-opt .is-name{grid-area:n;min-width:0}
+  .lo-opts .lo-opt .is-name b{white-space:normal}
+  .lo-opts .lo-opt .is-name small{max-width:none}
+  .lo-opts .lo-opt .is-main{grid-area:v;min-width:0}
+  .lo-opts .lo-mainbar{width:6.5rem;margin-left:auto}
+  .lo-opts .lo-opt .is-act{grid-area:a;position:static;box-shadow:none;background:transparent}
+  /* Kopf: zwei Knoepfe gross, drei klein in einer Reihe; Summen zu zweit. */
+  .lo-eyebrow{display:none}
+  .lo-acts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.4rem}
+  .lo-acts .lo-btn{grid-column:span 2;min-width:0;padding:.3rem .4rem;white-space:normal;text-align:center;line-height:1.15}
+  .lo-acts #lo-save,.lo-acts #lo-savedbtn{grid-column:span 3}
+  .lo-acts .lo-copyfield{grid-column:1/-1;width:100%}
+  .lo-sumg{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1rem}
+  .lo-sumg h3{grid-column:1/-1}
+  .lo-st{grid-template-columns:auto 1fr}
+  .lo-st__l{grid-column:1/-1}
+  .lo-st .lo-d{min-width:0;text-align:left}
 }
 @media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none}}
 </style>
@@ -453,7 +503,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
     <ul class="lo-list" id="lo-list"></ul>
     <p class="lo-where" id="lo-where"></p>
   </dialog>
-  <div class="lo-toast" id="lo-toast" role="status"><span id="lo-toast-txt"></span><button type="button" id="lo-undo" hidden>{l('msg.undo')}</button></div>
+  <div class="lo-toast" id="lo-toast" role="status"><span id="lo-toast-txt"></span><button type="button" id="lo-more" hidden></button><button type="button" id="lo-undo" hidden>{l('msg.undo')}</button></div>
 
   <script type="application/json" id="lo-ships" set:html={jsonForScript(ships)}></script>
   <div id="lo-msg" hidden>
