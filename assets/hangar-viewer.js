@@ -7606,7 +7606,12 @@ const WERK_LIGHT = {
 // Krisz: „die wände etwas dunkler beleuchten“), danach eine Spur zurück
 // (ab 0,15, rest 0,07; Krisz: „so dass der hintergrund so dunkel ist ist an
 // sich gut, es könnte minimal heller sein“; die Wände etwa 20 % heller).
-const WERK_WAND = { ab: 0.2, rest: 0.1, glow: 0.5 };
+// Seit der Hangar-Politur (23.11.2026, Stelle 6 der Liste „zehn Stellen,
+// die noch nach Alpha aussehen“) rest 0,5 statt 0,1: Die Werkhalle las sich
+// als dunkler, leerer Raum. Wände und Rahmen sind jetzt zu erkennen, der Spot
+// über der Bühne bleibt das Hellste im Bild (mit der ATLS gemessen: in den
+// oberen 40 % des Bilds 41 % fast schwarze Punkte statt 73 %).
+const WERK_WAND = { ab: 0.2, rest: 0.5, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
@@ -8683,7 +8688,12 @@ export async function initHangar(container, opts = {}) {
     }
     return L * k;
   };
-  const spanOf = (info) => Math.max(info.len, info.halfW * 2, 6);
+  // Bezugsmaß der Kamera (wantDist). Auf dem Schiffsfeld mindestens 6 m. In
+  // der Werkhalle sieht die Startansicht das Fahrzeug von vorn (WERK_HOME_DIR):
+  // Dort zählt auch die Höhe, und kleine Fahrzeuge (Pulse, PTV, ATLS) stehen
+  // mit 3 m Mindestmaß näher; mit 6 m wirkten sie verloren auf der Bühne
+  // (Hangar-Politur 23.11.2026, Stelle 6).
+  const spanOf = (info) => (ort === 'werk' ? Math.max(info.len, info.halfW * 2, info.height * 1.5, 3) : Math.max(info.len, info.halfW * 2, 6));
   const werkScale = (info) => {
     const F = WERK.feld;
     return Math.max(1, (info.len + 1) / (2 * F.hx), (2 * info.halfW + 1) / (2 * F.hz), (info.height + 0.6) / (-WERK_PAD_DOWN - 0.1), (info.height + 1.2) / WERK.spot.y, wantDist(spanOf(info)) / werkRoom(1));
@@ -8697,7 +8707,7 @@ export async function initHangar(container, opts = {}) {
   // Halle, werkRescale)
   function scaleWorld(shipInfo, hold = false, keep = false) {
     lastInfo = shipInfo;
-    span = Math.max(shipInfo.len, shipInfo.halfW * 2, 6);
+    span = spanOf(shipInfo);
     S = Math.max(1, span / 16);
     if (hall) {
       hall.scale.setScalar(S);
@@ -15261,7 +15271,7 @@ void main() {
   // (opts.holo.module), geladen erst, wenn die Seite eine Station in 3D
   // zeigt. Nur in der echten Halle und nicht am Telefon (dort bleibt die
   // Tafel der Seite). Sie stehen, wenn das Schiff ruht: kein Wechsel, keine
-  // Fahrt, der Aufzug oben, nicht drinnen und nicht in der Werkhalle.
+  // Fahrt, der Aufzug oben (in der Werkhalle ihre Hebebühne), nicht drinnen.
   const ST_OK = REAL && !SMALL && !!opts.holo?.module;
   let stWant = null, stLayer = null, stLoad = null, stAct = null, stSafe = null;
   // Ruhe heißt auch: die Lage des Modells hat sich 400 ms nicht geändert.
@@ -15271,7 +15281,9 @@ void main() {
   let stStill = 0;
   function stRest() {
     const c = current;
-    if (!c || !revealed || trip || walk || post || leaving || c.werk || ort === 'werk') return null;
+    if (!c || !revealed || trip || walk || post || leaving) return null;
+    const B = realHall?.werk?.buehne;
+    if (c.werk && B && (B.dur || Math.abs(B.v) > 1e-4)) return null;
     const now = performance.now();
     if (c.lift ? lift.dur || Math.abs(lift.y) > 1e-4 : !reduceMotion && now - c.born < 1300) return null;
     const e = c.model.matrixWorld.elements, at = [e[0], e[12], e[13], e[14]];

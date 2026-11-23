@@ -243,9 +243,11 @@ function drawTiles(g, d, hover) {
     // Rang in der Klasse, oder was das Layout ändert (tone: Bernstein mehr, Rot weniger)
     const rSt = t.tone ? { f: RAJ, w: 700, s: 13, c: toneOf(t.tone === 'up' ? 1 : -1), al: 'right' } : { f: BAR, s: 12.5, c: C.mut, al: 'right' };
     // Die Beschriftung weicht dem Rang: Ein langes Wort („Feuerkraft Türme“
-    // bei Schiffen ohne Pilotenwaffen) wird kleiner, statt darunter zu liegen
+    // bei Schiffen ohne Pilotenwaffen) wird erst enger gesperrt, dann kleiner,
+    // statt darunter zu liegen oder mit … abzubrechen
     const lab = t.label.toLocaleUpperCase(), lSt = { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' };
     const lMax = tw - 24 - (t.rank ? measure(g, t.rank, rSt) + 8 : 0);
+    for (let e = 0.12; e >= 0.02 && measure(g, lab, lSt) > lMax; e -= 0.02) lSt.ls = `${e.toFixed(2)}em`;
     while (lSt.s > 9 && measure(g, lab, lSt) > lMax) lSt.s -= 0.5;
     text(g, fit(g, lab, lMax, lSt), x + 12, y + 21, lSt);
     if (t.rank) text(g, t.rank, x + tw - 12, y + 21, rSt);
