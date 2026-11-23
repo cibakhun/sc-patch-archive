@@ -38,6 +38,11 @@ const LISTE = resolve(ROOT, 'src/data/item-3d.json');
 // Klinken (nur nach oben; nach unten nur per Commit mit Ursache).
 const MIN_ITEMSEITEN = 11000; // gelesene Item-Seiten EN+DE (22.11.2026: 11 642)
 const MIN_MODELLE = 0;         // Eintraege der Liste; steigt mit dem ersten Hochladen
+// Blueprint-Seiten EN+DE, die ihr Ergebnis-Item nennen (23.11.2026: 3 246 von
+// 3 252; ohne Item nur Scraper-Module und ein Antrieb ohne eigene Item-Seite).
+// Attribut und Dialog haengen am selben linkedItem in BlueprintDetail.astro;
+// verliert eine Seite ihr Item, faellt sie hier auf statt still durchzugehen.
+const MIN_BP_MIT_ITEM = 3200;
 
 const fehler = [];
 const fail = (m) => fehler.push(m);
@@ -145,12 +150,14 @@ if (!vorschau) {
   // und welches Modell hier stehen muss.
   let bpMitItem = 0;
   let bpSoll = 0;
+  const bpOhneItem = [];
   for (const s of bpSeiten) {
     const html = readFileSync(join(DIST, s), 'utf8');
     const gefunden = dialoge(html);
     const items = [...html.matchAll(BP_ITEM)].map((m) => m[1]);
     if (items.length > 1) { fail(`[4] ${s}: ${items.length}× data-bp-item, erwartet hoechstens eins`); continue; }
     if (items.length) bpMitItem++;
+    else bpOhneItem.push(s);
     const soll = items.length ? dateien.get(items[0]) : undefined;
     if (soll) bpSoll++;
     if (gefunden.length) bpMitDialog++;
@@ -161,7 +168,9 @@ if (!vorschau) {
   }
   // Nennt keine Seite mehr ihr Item, liefe [4] leer — das waere kein Befund, sondern Blindheit.
   if (bpSeiten.length && !bpMitItem) fail('[4] keine Blueprint-Seite nennt ihr Ergebnis-Item (data-bp-item) — BlueprintDetail.astro geaendert?');
-  console.log(`  [4] ${bpSeiten.length} Blueprint-Seiten gelesen, ${bpMitItem} mit Ergebnis-Item: ${bpMitDialog} mit 3D-Dialog (Soll ${bpSoll})`);
+  else if (bpMitItem < MIN_BP_MIT_ITEM) fail(`[4] ${bpMitItem} Blueprint-Seiten nennen ihr Ergebnis-Item, Klinke ${MIN_BP_MIT_ITEM} — Zuordnung Blueprint -> Item verloren?`);
+  console.log(`  [4] ${bpSeiten.length} Blueprint-Seiten gelesen, ${bpMitItem} mit Ergebnis-Item (Klinke ${MIN_BP_MIT_ITEM}): ${bpMitDialog} mit 3D-Dialog (Soll ${bpSoll})`);
+  if (bpOhneItem.length) console.log(`      ohne Ergebnis-Item (${bpOhneItem.length}): ${bpOhneItem.slice(0, 8).join(', ')}${bpOhneItem.length > 8 ? ' …' : ''}`);
 
   // [5]
   for (const f of ['assets/hangar-item3d.js', 'vendor/three/addons/environments/RoomEnvironment.js'])
