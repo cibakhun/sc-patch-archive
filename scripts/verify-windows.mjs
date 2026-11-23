@@ -130,12 +130,13 @@ else {
 if (Array.isArray(json)) {
   // Tabellenzeilen von rechts gelesen: Die Beschreibung darf „ | “ enthalten,
   // die letzten vier Zellen (status, reason, recorded_at, resolved_at) nicht.
+  // Leerraum um die Trennstriche ist frei („|999| …“ ist auch eine Zeile).
   const zeilen = new Map();
   const doppelt = [];
   for (const z of raw.slice(0, jsonAuf).split('\n')) {
-    const id = z.match(/^\| (\d+) \| /);
+    const id = z.match(/^\|\s*(\d+)\s*\|/);
     if (!id) continue;
-    const rechts = z.match(/\| ([^|]*) \| ([^|]*) \| ([^|]*) \| ([^|]*) \|\s*$/);
+    const rechts = z.match(/\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|\s*$/);
     // eine zweite Zeile mit derselben id ueberschriebe die erste ungesehen
     if (zeilen.has(+id[1])) doppelt.push(`Tabelle #${id[1]}`);
     zeilen.set(+id[1], rechts ? rechts[1].trim() : null);
