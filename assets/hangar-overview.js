@@ -3435,7 +3435,10 @@ export function boot(doc) {
       window[f]('keyup', tasteLos, { passive: true });
       window[f]('blur', allesLos, { passive: true });
     };
-    const bereit = () => ortGemalt === 'halle' && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
+    // bereit: die Halle steht und das gewaehlte Schiff auch. Beim Wechsel
+    // bleibt holo noch an und der Ladebalken kommt erst nach einer Weile,
+    // placed faellt aber sofort (wie in syncMarks).
+    const bereit = () => ortGemalt === 'halle' && placed === state.ship && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
     const markieren = (el) => { ziel?.classList.remove('hgx-tipp-ziel'); ziel = el; ziel?.classList.add('hgx-tipp-ziel'); };
     const ende = () => {
       clearInterval(uhr);
