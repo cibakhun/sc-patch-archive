@@ -122,24 +122,36 @@ const jsonZu = jsonAuf < 0 ? -1 : raw.indexOf('\n````', jsonAuf + 9);
 let json = null;
 if (jsonAuf < 0 || jsonZu < 0) fail('kein ````json-Block im Register gefunden');
 else {
-  try { json = JSON.parse(raw.slice(jsonAuf + 9, jsonZu)); } catch (e) { fail(`JSON-Block nicht lesbar: ${String(e.message).slice(0, 160)}`); }
+  let gelesen = false;
+  try { json = JSON.parse(raw.slice(jsonAuf + 9, jsonZu)); gelesen = true; } catch (e) { fail(`JSON-Block nicht lesbar: ${String(e.message).slice(0, 160)}`); }
+  // lesbar heisst noch nicht Liste: null oder {} liefen sonst an allen Vergleichen vorbei
+  if (gelesen && !Array.isArray(json)) fail(`JSON-Block ist keine Liste von Eintraegen, sondern ${json === null ? 'null' : typeof json}`);
 }
 if (Array.isArray(json)) {
   // Tabellenzeilen von rechts gelesen: Die Beschreibung darf „ | “ enthalten,
   // die letzten vier Zellen (status, reason, recorded_at, resolved_at) nicht.
   const zeilen = new Map();
+  const doppelt = [];
   for (const z of raw.slice(0, jsonAuf).split('\n')) {
     const id = z.match(/^\| (\d+) \| /);
     if (!id) continue;
     const rechts = z.match(/\| ([^|]*) \| ([^|]*) \| ([^|]*) \| ([^|]*) \|\s*$/);
+    // eine zweite Zeile mit derselben id ueberschriebe die erste ungesehen
+    if (zeilen.has(+id[1])) doppelt.push(`Tabelle #${id[1]}`);
     zeilen.set(+id[1], rechts ? rechts[1].trim() : null);
   }
-  const eintr = new Map(json.map((e) => [e.id, e.status]));
+  const eintr = new Map();
+  for (const e of json) {
+    if (eintr.has(e?.id)) doppelt.push(`JSON #${e?.id}`);
+    eintr.set(e?.id, e?.status);
+  }
   const nurTabelle = [...zeilen.keys()].filter((i) => !eintr.has(i));
   const nurJson = [...eintr.keys()].filter((i) => !zeilen.has(i));
   const ungleich = [...zeilen].filter(([i, s]) => eintr.has(i) && eintr.get(i) !== s);
   spiegel = [...zeilen.keys()].filter((i) => eintr.has(i)).length;
   console.log(`    Tabellenzeilen: ${zeilen.size}   JSON-Eintraege: ${eintr.size}   verglichen: ${spiegel}`);
+  console.log(`    doppelte ids       — Soll: 0   Ist: ${doppelt.length}${doppelt.length ? ` (${doppelt.join(', ')})` : ''}`);
+  if (doppelt.length) fail(`doppelte ids: ${doppelt.join(', ')} — ein Eintrag verdeckt den anderen`);
   console.log(`    nur in der Tabelle — Soll: 0   Ist: ${nurTabelle.length}${nurTabelle.length ? ` (${nurTabelle.join(', ')})` : ''}`);
   console.log(`    nur im JSON        — Soll: 0   Ist: ${nurJson.length}${nurJson.length ? ` (${nurJson.join(', ')})` : ''}`);
   console.log(`    Status ungleich    — Soll: 0   Ist: ${ungleich.length}${ungleich.length ? ` (${ungleich.map(([i, s]) => `#${i} Tabelle ${s}, JSON ${eintr.get(i)}`).join('; ')})` : ''}`);
