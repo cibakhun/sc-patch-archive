@@ -385,7 +385,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-term:is([data-wechsel],[data-zeigt="seite"]:not(.is-ready):not([data-fehler])) .hgx-term__lauf{opacity:1}
 .hgx-term:is([data-wechsel],[data-zeigt="seite"]:not(.is-ready):not([data-fehler])) .hgx-term__lauf i{animation:hgxTermLauf 1.15s cubic-bezier(.45,0,.55,1) infinite}
 @keyframes hgxTermLauf{to{transform:translateX(320%)}}
-@media (prefers-reduced-motion:reduce){.hgx-term__lauf,.hgx-term__load,.hgx-term__start svg{transition:none}.hgx-term .hgx-term__lauf i{width:100%;transform:none;animation:none;opacity:.55}}
+/* Weniger Bewegung: dieselbe Auswahl wie die Animation oben, sonst verliert
+   die Gegenregel gegen deren Spezifitaet (Review PR #407) */
+@media (prefers-reduced-motion:reduce){.hgx-term__lauf,.hgx-term__load,.hgx-term__start svg{transition:none}.hgx-term:is([data-wechsel],[data-zeigt="seite"]:not(.is-ready):not([data-fehler])) .hgx-term__lauf i{width:100%;transform:none;animation:none;opacity:.55}}
 /* Wer am Terminal sitzt (rechts in der Leiste): Bild oder Zeichen des Kontos
    im Ring seiner Farbe (--av, vom Profil) und der Name; ohne Konto der Weg
    zur Anmeldung. Im schmalen Fenster bleibt nur das Bild. */

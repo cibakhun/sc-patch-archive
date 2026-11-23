@@ -1104,7 +1104,7 @@ export function initTerminal(box, hooks = {}) {
   // takt: Uhr und Countdown der Raffinerie, solange der Ueberblick vorn steht;
   // daten: die Zahlen des Kontos { uid, t, ref, craft, freunde, fav } (undefined: noch nicht da, null: nicht erreichbar);
   // datenLauf zaehlt die Abrufe, damit ein ueberholter nichts mehr setzt; breit: Breite des Kastens beim letzten Kuerzen der Flotte
-  let takt = 0, daten = null, datenLauf = 0, datenStop = null, breit = 0;
+  let takt = 0, daten = null, datenLauf = 0, datenStop = null, breit = 0, schlag = 0;
 
   function startMalen() {
     if (!ts) return;
@@ -1123,6 +1123,9 @@ export function initTerminal(box, hooks = {}) {
     if (zeigt !== 'start' || !box.classList.contains('is-on')) { stopTakt(); return; }
     malUhr();
     malRef();
+    // Steht der Ueberblick laenger, verfallen die Zahlen des Kontos (TERM_DATEN_MS):
+    // alle zehn Schlaege nachsehen, malKonto holt nur, wenn sie alt sind (Review PR #407)
+    if (++schlag % 10 === 0) malKonto();
   }
   // Wer davor sitzt: wie die Leiste. Bevor das Konto geantwortet hat, steht
   // bei einer gespeicherten Sitzung schlicht „Konto“, nicht kurz der Gast.

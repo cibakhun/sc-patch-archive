@@ -415,6 +415,8 @@
         nicht; frame.inert gestrichen; der Controller ohne orte (im ersten
         Lauf griff der Eingriff nicht: die Einrueckung im Controller ist
         tiefer; mit einem Muster rot)
+     ae nach dem Review von PR #407 ([6]): der Takt des Ueberblicks ohne
+        malKonto ergab „fragt die Zahlen des Kontos nicht nach“
    Die Meldungen stehen in der PR der vierten Runde.
 
      node scripts/verify-hangar-orte.mjs
@@ -1209,6 +1211,7 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
     [tSrc, /e\.stopImmediatePropagation\(\);\s*suchen\(\);\s*\}, true\);/, 'Strg+K oeffnet am offenen Terminal nicht mehr die Suche des Schirms (Einfangphase vor der Seitensuche)'],
     [tSrc, /box\.classList\.add\('is-on'\);\s*passeLeiste\(\);/, 'ein neues Rechteck misst die Leiste nicht neu (passeLeiste in place): Im schmalen Kasten schnitte sie ihre letzten Bereiche ab'],
     [tSrc, /avatarInto\(who\.querySelector\('\.hgx-term__av'\), id\);\s*passeLeiste\(\);/, 'ein anderer Name des Kontos misst die Leiste nicht neu (passeLeiste in showWho): Ein langer Name schnitte die letzten Bereiche ab'],
+    [tSrc, /function tick\(\) \{[^}]*\}[^}]*malRef\(\);[^}]*malKonto\(\);\s*\}/, 'der Takt des Ueberblicks fragt die Zahlen des Kontos nicht nach (malKonto in tick): Steht er laenger, blieben abgeholte Auftraege der Raffinerie als fertig stehen (Review PR #407)'],
     [tSrc, /box\.toggleAttribute\('data-niedrig', f\.h < TERM_NIEDRIG_H\);/, 'der Kasten sagt dem Stil nicht mehr, dass er niedrig ist (data-niedrig in place): Im Fenster von 1280 x 720 liefe der Ueberblick unten ueber den Rand'],
   ];
   // Die Suche der Hangarseite steht als Inline-Skript in jeder Seite (SearchOverlay.astro)

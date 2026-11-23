@@ -948,7 +948,7 @@ const SYNC_BREITEN = [360, 1280];
        laden. Nach dem Review von PR #407: Die Kachel der Seite, die unter
        dem Ueberblick liegt, gibt dem Pfeil den Weg zu ihm zurueck, und
        Kachel B, gleich danach Kachel A, laesst A vorn (B antwortet erst
-       nach 1,5 s).
+       nach 1,5 s). Bei „weniger Bewegung“ steht die Ladelinie still.
      Vorgefuehrt rot (23.11.2026), je ein Eingriff in
      dist/assets/hangar-terminal.js, jeder in beiden Sprachen mit der
      Meldung, die ihn meint: place misst die Leiste nicht neu (angemeldet bei
@@ -959,7 +959,9 @@ const SYNC_BREITEN = [360, 1280];
      Ueberblick wird beim Zurueck neu geladen. Dazu nach dem Review: die
      Abkuerzung in go schreibt keinen Verlauf („der Pfeil bleibt
      gesperrt“), sie beendet keine Navigation, die unterwegs ist („nach 3 s
-     steht /items.html … statt /topics/crafting.html“).
+     steht /items.html … statt /topics/crafting.html“); die Ladelinie
+     bei „weniger Bewegung“ mit der alten Gegenregel in beiden Hangarseiten
+     („laeuft … weiter (animation-name hgxTermLauf)“).
 
    Alle Klicks kommen per Skript: der Kasten liegt hier nicht auf dem Schirm
    der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
@@ -1501,6 +1503,19 @@ async function probeTerminal(page) {
   s = await stand();
   if (s.pfad !== start.home || s.zeigt !== 'seite' || (await dok()) !== 2)
     return `${wo}: Kachel „items“, gleich danach „${homeKey}“: nach 3 s steht ${s.pfad} (vorn „${s.zeigt}“${(await dok()) !== 2 ? ', neu geladen' : ''}) statt ${start.home} — die Navigation nach ${bPfad} lief weiter und kam spaeter nach vorn`;
+
+  // 4d · weniger Bewegung: Die Ladelinie steht still (Review PR #407: die
+  // Gegenregel verlor gegen die Spezifitaet der Regel, die sie animiert)
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const lauf = await page.evaluate(() => {
+    const b = document.getElementById('hgx-term'), i = b.querySelector('.hgx-term__lauf i');
+    b.setAttribute('data-wechsel', '');
+    const n = i ? getComputedStyle(i).animationName : 'fehlt';
+    b.removeAttribute('data-wechsel');
+    return n;
+  });
+  await page.emulateMedia({ reducedMotion: null });
+  if (lauf !== 'none') return `${wo}: bei „weniger Bewegung“ laeuft die Ladelinie oben am Schirm weiter (animation-name ${lauf})`;
 
   // 5 · ein Link zum Hangar holt das Schiff, statt eine zweite Halle zu laden
   await imFenster(`${start.hangar}?ship=aegs-gladius`);
