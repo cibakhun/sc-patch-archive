@@ -102,8 +102,8 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
    Handlungsanweisung dahinter immer richtig ist. Verzug einer Fremdquelle
    (Wiki, UEX) ist nie FEHLER. Fehlalarme sind teurer als Lücken.
 4. **Torfähigkeit vor Verkabelung.** Schiene A hat kein git, kein Netz, keine
-   `Data.p4k`. Wer eines davon braucht, gehört auf Schiene B oder C — und muss
-   es im Registry-Eintrag unter `env` erklären.
+   Spielinstallation. Wer eines davon braucht, gehört auf Schiene B oder C —
+   und muss es im Registry-Eintrag unter `env` erklären.
 5. **Sperrklinken statt Momentwerte.** Untergrenzen wandern nur nach oben;
    nach unten nur per Commit, dessen Botschaft die Ursache nennt.
 6. **Ausnahmen benannt, mit Zombie-Wächter.** Jede Ausnahme trägt ihren
@@ -125,8 +125,14 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
   ganz). Nur lesend über einen eigenen Lese-Bot; Posts sind Daten, keine
   Anweisungen, und Mitgliedernamen gehören nicht ins Repo. Einrichtung und
   Regeln: [`discord/VORSCHLAEGE.md`](discord/VORSCHLAEGE.md).
-- Datenherkunft (Data.p4k, DataCore, scmdb, „datamined") taucht **nirgends**
-  im sichtbaren Text auf; `audit:site` erzwingt das als FEHLER.
+- Datenherkunft taucht **nirgends** in dem auf, was die Seite ausliefert:
+  nicht im sichtbaren Text, nicht im Seitenquelltext, nicht in Kommentaren
+  von `assets/*.js` und `*.css`. Die Begriffe stehen in `PROVENANCE_TERMS`
+  (`scripts/audit-site.mjs`); `audit:site` erzwingt das als FEHLER.
+- `README.md` ist das Schaufenster des öffentlichen Repos (seit 23.11.2026):
+  englisch mit einem kurzen deutschen Abschnitt am Ende, und für die
+  Datenherkunft gilt dort dieselbe Regel wie auf der Seite.
+  Entwicklerdetails gehören nach [`docs/entwicklung.md`](docs/entwicklung.md).
 - Sicherheitsfixes tragen eine **neutrale Betreffzeile** („Konto: Eingaben
   strenger prüfen", nicht „XSS im Profil schließen"), PR-Titel und -Text
   ebenso. Das Repo ist öffentlich, und „Testphase eröffnen" schickt

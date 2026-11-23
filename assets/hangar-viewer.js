@@ -14148,8 +14148,8 @@ void main() {
   const quality = () => ({ level, start: Q0, why: pick.why, forced: FORCED, pixelRatio, levels: QUALITY_LEVELS.slice() });
   // Schattenkarten in der echten Halle nur neu, wenn sich etwas bewegt, das
   // Schatten wirft: das Schiff (Ein- und Ausfahrt, Aufzug), der
-  // Hallenmaßstab. Die Crew wirft dort keinen. Die gebaute Halle (ohne
-  // Spieldaten) hat laufende Teile mit Schatten: dort jedes Bild.
+  // Hallenmaßstab. Die Crew wirft dort keinen. Die gebaute Halle (prozedural,
+  // ohne Hallenmodelle) hat laufende Teile mit Schatten: dort jedes Bild.
   function shadowsDue() {
     if (!realHall) return true;
     const g = current?.group, l = leaving?.group;

@@ -576,7 +576,8 @@ console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.lengt
 // AUSDRUECKLICH NICHT betroffen: die UEX-Attribution bei Preisen. Geprueft
 // wird sichtbarer Text in HTML (Skript-, Stil- und Kopfbereich fallen vorher
 // raus, damit ein Bezeichner im ausgelieferten JS nicht anschlaegt), das
-// ausgelieferte JS ohne Kommentare — UND seit 13.08.2026 die Kopffelder der
+// ausgelieferte JS samt Kommentaren (seit 23.11.2026, siehe unten) — UND
+// seit 13.08.2026 die Kopffelder der
 // JSON-Datendateien unter dist/assets/. Die galten frueher als Ausnahme
 // ("sollen ihre Herkunft ehrlich nennen"). Das war falsch: die Dateien sind
 // oeffentlich abrufbar, und genau diese Kopfzeilen hat ein Chatbot gelesen und
@@ -605,16 +606,26 @@ const PROVENANCE_TERMS = [
   new RegExp('Spieldatei' + 'en?', 'i'),
 ];
 const provenanceHits = [];
+// Zweite Haelfte derselben Flaeche (seit 23.11.2026): der QUELLTEXT der
+// Seiten. Was fuer den sichtbaren Text herausfaellt (Kopf, Inline-Skripte,
+// Inline-Stile, Kommentare), liest jeder, der "Seitenquelltext anzeigen"
+// waehlt. Anlass: ein CSS-Kommentar in ArmorSets.astro ("die Spieldaten
+// kennen Common..Legendary") stand so auf /armor-sets.html. Gemeldet wird
+// nur, was der sichtbare Text nicht schon gemeldet hat. Kostet rund 7 s fuer
+// den ganzen Bau (gemessen 23.11.2026, 18.656 Seiten).
 for (const f of htmlFiles) {
+  const roh = readFileSync(f, 'utf8');
   const visible = stripTags(
-    readFileSync(f, 'utf8')
+    roh
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
       .replace(/<head[\s\S]*?<\/head>/gi, ' ')
   );
   for (const rx of PROVENANCE_TERMS) {
     const m = visible.match(rx);
-    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft im sichtbaren Text — "${m[0]}"`);
+    if (m) { provenanceHits.push(`${rel(f)}: Datenherkunft im sichtbaren Text — "${m[0]}"`); continue; }
+    const q = roh.match(rx);
+    if (q) provenanceHits.push(`${rel(f)}: Datenherkunft im Seitenquelltext (Kopf, Inline-Skript/-Stil oder Kommentar) — "${q[0]}"`);
   }
 }
 // Zweite Flaeche: die clientseitig gerenderten Oberflaechen (Item Finder,
@@ -624,22 +635,21 @@ for (const f of htmlFiles) {
 // "Katalog-Eintrag aus den Spieldateien …" bereit. Der injizierte i18n-Katalog
 // gewann, also war nichts zu sehen — bis er einmal ausfaellt.
 //
-// KOMMENTARE sind ausgenommen: sie erklaeren im Quelltext das Warum und sind
-// kein Oberflaechentext. Geprueft werden nur die uebrigen Zeilen.
-// CRLF ZUERST normalisieren: `.` matcht in JS keinen Wagenruecklauf, deshalb
-// scheitert `//.*$` auf jeder Zeile einer CRLF-Datei still — der Filter lief
-// dann ins Leere und meldete jeden Quellkommentar als Fund. Das `[^:]` haelt
-// `https://` aus dem Muster heraus.
-const stripJsComments = (src) => src
-  .replace(/\r\n?/g, '\n')
-  .replace(/\/\*[\s\S]*?\*\//g, ' ')
-  .split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
-const jsAssets = allFiles.filter((f) => /[\\/]assets[\\/].*\.js$/i.test(f));
+// SEIT 23.11.2026 AUCH DIE KOMMENTARE. Bis dahin galten sie als Innenleben
+// ("erklaeren das Warum, kein Oberflaechentext") und blieben ungeprueft. Das
+// war zu kurz gedacht: assets/*.js wird unverkleinert ausgeliefert, jeder
+// Kommentar steht also unter verse-base.com/assets/… im Quelltext. Genau dort
+// nannten 18 Zeilen in fuenf Dateien Begriffe aus der Liste oben (Stand
+// 23.11.2026). Warum-Kommentare bleiben erwuenscht, nur ohne diese Begriffe:
+// "Datenlauf" statt des Skriptnamens, "Item-Daten" statt "Spieldaten".
+// Dasselbe gilt fuer die Stilblaetter unter dist/assets/ (auch dort stehen
+// Kommentare unverkleinert im Auslieferungsstand).
+const jsAssets = allFiles.filter((f) => /[\\/]assets[\\/].*\.(js|css)$/i.test(f));
 for (const f of jsAssets) {
-  const code = stripJsComments(readFileSync(f, 'utf8'));
+  const code = readFileSync(f, 'utf8');
   for (const rx of PROVENANCE_TERMS) {
     const m = code.match(rx);
-    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgeliefertem JS — "${m[0]}"`);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgeliefertem JS/CSS (Kommentare zaehlen mit, die Datei ist oeffentlich lesbar) — "${m[0]}"`);
   }
 }
 // Dritte Flaeche: die JSON-Datendateien unter dist/assets/. Sie werden von
@@ -655,7 +665,7 @@ for (const f of jsonAssets) {
     if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgelieferten Daten — "${m[0]}"`);
   }
 }
-console.log(`Datenherkunft: ${htmlFiles.length} Seiten + ${jsAssets.length} JS-Dateien + ${jsonAssets.length} JSON-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
+console.log(`Datenherkunft: ${htmlFiles.length} Seiten (Text und Quelltext) + ${jsAssets.length} JS-/CSS-Dateien + ${jsonAssets.length} JSON-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
 
 // --- Rechnerpfad im Ausgelieferten -----------------------------------------
 // Eigene Klasse, NICHT Teil der Datenherkunft-Pruefung oben: die JSON-Datei
@@ -725,7 +735,7 @@ if (rohtextStellen < ROHTEXT_KLINKE) {
 section('FEHLER Rohtext im sichtbaren Text (NaN, null, {Platzhalter}, %schluessel%)', rohtextHits, errors);
 section('FEHLER Platzhalterwert -1 als angezeigter Wert', platzhalterwertHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
-section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
+section('FEHLER Datenherkunft im Ausgelieferten (Text, Seitenquelltext, JS/CSS, Daten)', provenanceHits, errors);
 section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
