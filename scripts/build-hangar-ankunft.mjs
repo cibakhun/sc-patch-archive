@@ -67,8 +67,9 @@ if (!base) {
     let p;
     try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400).end(); return; }
     let f = path.join(DIST, p.endsWith('/') ? `${p}index.html` : p);
-    // an der Verzeichnisgrenze pruefen: ein blosses Praefix liesse dist-* daneben durch
-    if (f !== DIST && !f.startsWith(DIST + path.sep)) { res.writeHead(403).end(); return; }
+    // an der Verzeichnisgrenze pruefen: ein blosses Praefix liesse dist-* daneben durch,
+    // und dist selbst liesse ueber den .html-Rueckfall dist.html daneben durch
+    if (!f.startsWith(DIST + path.sep)) { res.writeHead(403).end(); return; }
     if (!existsSync(f) || statSync(f).isDirectory()) {
       if (existsSync(`${f}.html`)) f += '.html';
       else { res.writeHead(404).end(); return; }
