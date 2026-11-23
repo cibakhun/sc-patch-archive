@@ -1505,6 +1505,9 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
         X[i * 3 + 2] = (e2 * x + e6 * y + e10 * z + e14) * w;
       }
     }
+    // Pausen auch zwischen den Schritten eines Netzes: Ein großes Stück der
+    // Halle allein stand am PC 122 ms (CPU-Profil vom 23.11.2026)
+    await pause();
     const I = g.index ? g.index.array : null, T = I ? I.length / 3 : Math.floor(n / 3);
     const at = (t, k) => (I ? I[t * 3 + k] : t * 3 + k);
     // je Ecke und Achse: Anteil (2 · f, wie growFrac) und ob sie in einem Streifen liegt
@@ -1518,6 +1521,7 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
         for (let k = 0; k < nz; k++) if (x > zp[k] && x < zq[k]) { Z[i] |= bit; break; }
       }
     }
+    await pause();
     // 0 bleibt, 1 über einer Ebene, 2 berührt einen Streifen, 3 starr
     const cls = new Uint8Array(T), lamp = growLamp(mesh.material);
     // Achsen, deren Ebene ein Dreieck kreuzt (Bits)
@@ -1528,6 +1532,7 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
       if (Z[a] | Z[b] | Z[c]) { cls[t] = 2; touch++; continue; }
       if (crossAx(a, b, c)) { cls[t] = 1; if (lamp) touch++; }
     }
+    await pause();
     // kleine Teile: über Ecken an derselben Stelle (1 mm) zusammenhängend,
     // von den berührenden Dreiecken aus gesucht (bei Leuchten auch von denen
     // über einer Ebene); wird eins zu lang oder ist es eine Platte, zählen
@@ -1565,6 +1570,7 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
         if (hv[h] < 0) { hk[h] = key; hv[h] = nw++; }
         W[i] = hv[h];
       }
+      await pause();
       // Dreiecke je geschweißter Ecke (CSR)
       const cnt = new Int32Array(nw + 1);
       for (let t = 0; t < T; t++) for (let k = 0; k < 3; k++) cnt[W[at(t, k)] + 1]++;
@@ -7606,7 +7612,12 @@ const WERK_LIGHT = {
 // Krisz: „die wände etwas dunkler beleuchten“), danach eine Spur zurück
 // (ab 0,15, rest 0,07; Krisz: „so dass der hintergrund so dunkel ist ist an
 // sich gut, es könnte minimal heller sein“; die Wände etwa 20 % heller).
-const WERK_WAND = { ab: 0.2, rest: 0.1, glow: 0.5 };
+// Seit der Hangar-Politur (23.11.2026, Stelle 6 der Liste „zehn Stellen,
+// die noch nach Alpha aussehen“) rest 0,5 statt 0,1: Die Werkhalle las sich
+// als dunkler, leerer Raum. Wände und Rahmen sind jetzt zu erkennen, der Spot
+// über der Bühne bleibt das Hellste im Bild (mit der ATLS gemessen: in den
+// oberen 40 % des Bilds 41 % fast schwarze Punkte statt 73 %).
+const WERK_WAND = { ab: 0.2, rest: 0.5, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
@@ -8614,7 +8625,7 @@ export async function initHangar(container, opts = {}) {
     // und der Schatten des Schiffs blieb nach dem Wechsel gröber als nach
     // frischem Laden (Carrack nach der Pisces: focus 1 statt 0,77).
     if (t >= 1) scaleLamps();
-    else if (now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
+    else if (now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(statZug++); }
     if (t < 1) return;
     grow.glide = null;
     g.done();
@@ -8623,7 +8634,7 @@ export async function initHangar(container, opts = {}) {
   // Die Halle steht im neuen Zuwachs: Spiegelungskugel, Freiraum der Kamera
   // und Grundflächen der Crew für sie
   function growSettled() {
-    if (hallEnv && !realHall.probe) captureHallEnv(true);
+    if (hallEnv && !realHall.probe) captureHallEnv(true).catch((e) => console.error(e));
     camFree = null; freeDirty = true;
     const deko = realHall.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [];
     life.setBlocks([...(realHall.dienst?.blocks ?? []), ...deko], realHall.dienst?.hull ?? null, crewPlaces(deko));
@@ -8666,7 +8677,7 @@ export async function initHangar(container, opts = {}) {
     const t = Math.min(1, (now - propGlide.t0) / propGlide.dur);
     const b = hallRoot.scale.x;
     layProps(t >= 1 ? b : propGlide.a * Math.pow(b / propGlide.a, inOut3(t)), t < 1);
-    if (t >= 1 || now - propGlide.shade >= PROP_SHADOW_MS) { propGlide.shade = now; statK = ''; renderHallShadows(); }
+    if (t >= 1 || now - propGlide.shade >= PROP_SHADOW_MS) { propGlide.shade = now; statK = ''; renderHallShadows(t >= 1 ? -1 : statZug++); }
     if (t >= 1) propGlide = null;
   };
 
@@ -8683,7 +8694,12 @@ export async function initHangar(container, opts = {}) {
     }
     return L * k;
   };
-  const spanOf = (info) => Math.max(info.len, info.halfW * 2, 6);
+  // Bezugsmaß der Kamera (wantDist). Auf dem Schiffsfeld mindestens 6 m. In
+  // der Werkhalle sieht die Startansicht das Fahrzeug von vorn (WERK_HOME_DIR):
+  // Dort zählt auch die Höhe, und kleine Fahrzeuge (Pulse, PTV, ATLS) stehen
+  // mit 3 m Mindestmaß näher; mit 6 m wirkten sie verloren auf der Bühne
+  // (Hangar-Politur 23.11.2026, Stelle 6).
+  const spanOf = (info) => (ort === 'werk' ? Math.max(info.len, info.halfW * 2, info.height * 1.5, 3) : Math.max(info.len, info.halfW * 2, 6));
   const werkScale = (info) => {
     const F = WERK.feld;
     return Math.max(1, (info.len + 1) / (2 * F.hx), (2 * info.halfW + 1) / (2 * F.hz), (info.height + 0.6) / (-WERK_PAD_DOWN - 0.1), (info.height + 1.2) / WERK.spot.y, wantDist(spanOf(info)) / werkRoom(1));
@@ -8697,7 +8713,7 @@ export async function initHangar(container, opts = {}) {
   // Halle, werkRescale)
   function scaleWorld(shipInfo, hold = false, keep = false) {
     lastInfo = shipInfo;
-    span = Math.max(shipInfo.len, shipInfo.halfW * 2, 6);
+    span = spanOf(shipInfo);
     S = Math.max(1, span / 16);
     if (hall) {
       hall.scale.setScalar(S);
@@ -9132,13 +9148,37 @@ export async function initHangar(container, opts = {}) {
   });
   // target: Zielbild beim späteren Zeichnen (null = Leinwand); world: die
   // Szene, deren Lichter mitzählen (Vollbildpässe zeichnen ohne Lichter).
+  const COMPILE_JE = 4;
   async function compileFor(root, target, world = scene) {
     if (tot) await nieMehr();
     const prev = renderer.getRenderTarget();
     if (PARALLEL) {
-      renderer.setRenderTarget(target);
-      let mats;
-      try { mats = renderer.compile(root, camera, world); } finally { renderer.setRenderTarget(prev); }
+      // In Häppchen (Hangar-Politur 23.11.2026, Stelle 4): renderer.compile
+      // über das ganze Modell legte am PC beim Hallenwechsel zur Carrack bis
+      // 475 ms Programme-Anlegen in eine Aufgabe. Jetzt je COMPILE_JE Teile
+      // ein Aufruf, nach je 8 ms eine Pause. Teile und Welt reichen
+      // Stellvertreter: Die Lichter sind einmal gesammelt (sonst ginge jeder
+      // Aufruf durch die ganze Szene), Dunst und Kugel sind die der Welt.
+      // Die Lichter von root zählen nur, wenn root nicht in world hängt.
+      // Vorher zählte compile sie für die Halle (hallRoot trägt die Lampen)
+      // doppelt, und die vorab übersetzten Programme passten nicht zu denen,
+      // die das Bild dann brauchte.
+      const nodes = [], mats = new Set(), lichter = [];
+      root.traverse((n) => { if (n.isMesh || n.isPoints || n.isLine || n.isSprite) nodes.push(n); });
+      let drin = false;
+      for (let o = root; o && !drin; o = o.parent) drin = o === world;
+      world.traverseVisible((o) => { if (o.isLight) lichter.push(o); });
+      if (!drin) root.traverseVisible((o) => { if (o.isLight) lichter.push(o); });
+      const welt = { isScene: true, fog: world.fog, environment: world.environment, environmentRotation: world.environmentRotation,
+        traverseVisible: (f) => lichter.forEach(f) };
+      let t = performance.now();
+      for (let i = 0; i < nodes.length; i += COMPILE_JE) {
+        const part = nodes.slice(i, i + COMPILE_JE);
+        const teil = { traverse: (f) => part.forEach(f), traverseVisible: () => {} };
+        renderer.setRenderTarget(target);
+        try { for (const m of renderer.compile(teil, camera, welt)) mats.add(m); } finally { renderer.setRenderTarget(prev); }
+        if (performance.now() - t > 8) { await rast(); t = performance.now(); }
+      }
       await fertigUebersetzt(mats);
       return;
     }
@@ -9619,12 +9659,17 @@ export async function initHangar(container, opts = {}) {
   };
   // Die Deko rückt je Zone als Ganzes (layDeko): im zweiten Zug ohne
   // Streckung, nur sie (Ebene STAT_DEKO), in dieselben Karten
-  let statK = '';
+  // nur: im Gleiten (growStep, propStep) je Aufruf nur einer der beiden
+  // Strahler, reihum (statZug). Beide zusammen standen am PC bis 120 ms je
+  // Aufruf, alle 250 ms (Hangar-Politur 23.11.2026, Stelle 4); am Ende des
+  // Gleitens kommen beide genau.
+  let statK = '', statZug = 0;
   const STAT_DEKO = 7;
-  function renderHallShadows() {
+  function renderHallShadows(nur = -1) {
     const k = hallRoot.scale.x, key = `${k}|${grow.d.x}|${grow.d.y}|${grow.d.z}`;
-    if (!realHall?.model || !hallLamps || statK === key) return;
-    statK = key;
+    if (!realHall?.model || !hallLamps || (nur < 0 && statK === key)) return;
+    if (nur < 0) statK = key;
+    else statK = '';
     const t0 = performance.now();
     const lamps = hallLamps.children.filter((q) => shadowLamps.includes(q)).slice(0, 2);
     // Die Decke fehlt in Ruhe ab 70 % der Höhe; was darüber liegt, steigt mit ihr (HALL_GROW)
@@ -9663,6 +9708,7 @@ export async function initHangar(container, opts = {}) {
     renderer.shadowMap.needsUpdate = false; renderer.localClippingEnabled = true;
     const p = new THREE.Vector3(), t = new THREE.Vector3(), d = new THREE.Vector3(), K = new THREE.Matrix4().makeScale(k, k, k);
     lamps.forEach((L, i) => {
+      if (nur >= 0 && i !== nur % lamps.length) return;
       L.getWorldPosition(p); L.target.getWorldPosition(t);
       d.subVectors(t, p).normalize();
       let half = 0;
@@ -9693,7 +9739,7 @@ export async function initHangar(container, opts = {}) {
     renderer.shadowMap.needsUpdate = shadowUpd; renderer.localClippingEnabled = clip;
     for (const o of hide) o.visible = true;
     hallStat.n.value = lamps.length;
-    console.info(`[hangar] Hallenschatten aus ${lamps.length} Strahlern (${HALL_STAT_SIZE}², ${Math.round(performance.now() - t0)} ms)`);
+    if (nur < 0) console.info(`[hangar] Hallenschatten aus ${lamps.length} Strahlern (${HALL_STAT_SIZE}², ${Math.round(performance.now() - t0)} ms)`);
   }
 
   // Licht in der echten Halle. Mit Spiellampen gibt es kein Bühnenlicht
@@ -9771,10 +9817,34 @@ export async function initHangar(container, opts = {}) {
       if (sh?.glow) sh.glow.emissiveIntensity = glow;
     };
   }
-  function captureHallEnv(force = false) {
-    if (!realHall || !HALL_PROBE) return;
-    if (hallEnv && !force) return;
-    const k = hallRoot.scale.x;
+  // Die Shader der Halle mit Kugel vorab übersetzen, ohne die Seite
+  // anzuhalten (compileFor): dieselben Programme braucht die Aufnahme und
+  // danach jedes Bild (die Kugel der Aufnahme hat dieselbe Größe wie envRT).
+  // Danach steht alles wieder wie vorher; die Aufnahme setzt die Kugel selbst.
+  async function envVorab() {
+    // dazu der Filter, der aus der Würfelkarte die Kugel macht (fromCubemap)
+    pmremFor(renderer).compileCubemapShader();
+    if (!realHall || !HALL_PROBE || hallEnv) return;
+    const env = scene.environment, vor = new Map();
+    for (const m of realHall.mats) if (m.isMeshStandardMaterial) vor.set(m, m.envMap);
+    scene.environment = envRT.texture;
+    setHallEnv(envRT.texture);
+    try { await compileFor(hallRoot, composer ? composer.readBuffer : null); } finally {
+      scene.environment = env;
+      for (const [m, e] of vor) m.envMap = e;
+    }
+  }
+  // Eine Seite der Kugel (captureHallEnv), in dem Zustand, den die Aufnahme
+  // immer hatte: ohne Schiff, Crew und Dunst, ohne Spiegelbild, mit der
+  // Ersatzkugel ganz schwach, die Halle in Ruhelage (hallRest), ohne die
+  // Hologramme der Stationen. Danach steht alles wieder wie vorher.
+  // Jede Seite zeichnet dazu die Schatten neu, ohne Schiff und Crew, wie
+  // die Aufnahme sie sieht: Zwischen zwei Seiten kann ein Bild sie mit dem
+  // Schiff neu gezeichnet haben (es fährt ein oder steigt). Danach zeichnet
+  // das nächste Bild sie wieder mit Schiff (shadowSig), sonst fehlte sein
+  // Schatten bis zur nächsten Bewegung. Ohne Schiff wirft dort fast nichts
+  // Schatten (die Halle hat ihre eigenen Karten, renderHallShadows).
+  function envSeite(cam, i) {
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
     for (const o of hide) o.visible = false;
     const fog = scene.fog, { near, far } = fog;
@@ -9782,13 +9852,14 @@ export async function initHangar(container, opts = {}) {
     // die Kugel ohne Spiegelbild des Schiffs (es ist ausgeblendet, das Bild noch vom letzten Mal)
     const reflOn = hallRefl.on.value;
     hallRefl.on.value = 0;
-    const gain = new Map();
-    for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
+    const gain = new Map(), envs = new Map(), env = scene.environment;
+    for (const m of realHall.mats) {
+      gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05);
+      if (m.isMeshStandardMaterial) envs.set(m, m.envMap);
+    }
     scene.environment = envRT.texture;
     setHallEnv(envRT.texture);
-    // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
     renderer.shadowMap.needsUpdate = true;
-    const R = realHall.grow ? grownRoom() : realHall.room;
     // Ohne die Hologramme der Stationen (wie renderMirror): Tafeln und
     // Lichtlinien gehören nicht in das Licht, das die Halle zurückwirft.
     // Bis zum 18.11.2026 lag mit ihnen ein schwarzes Rechteck über dem
@@ -9801,15 +9872,56 @@ export async function initHangar(container, opts = {}) {
     // unter geschlossenem Tor ohne Feld und Wartungsplatz da.
     const unrest = hallRest();
     stLayer?.mirror(true);
-    const rt = pmremFor(renderer).fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
-    stLayer?.mirror(false);
-    unrest();
+    const prev = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), lvl = renderer.getActiveMipmapLevel();
+    const xr = renderer.xr.enabled, ac = renderer.autoClear;
+    try {
+      renderer.xr.enabled = false; renderer.autoClear = true;
+      renderer.setRenderTarget(envCubeRT, i);
+      renderer.render(scene, cam);
+    } finally {
+      renderer.setRenderTarget(prev, face, lvl);
+      renderer.xr.enabled = xr; renderer.autoClear = ac;
+      stLayer?.mirror(false);
+      unrest();
+      scene.environment = env;
+      for (const [m, e] of envs) m.envMap = e;
+      for (const [m, g] of gain) m.envMapIntensity = g;
+      hallRefl.on.value = reflOn;
+      fog.near = near; fog.far = far;
+      for (const o of hide) o.visible = true;
+      shadowSig = '';
+    }
+  }
+  // Die Kugel entsteht Seite für Seite (Hangar-Politur 23.11.2026, Stelle 4):
+  // fromScene zeichnete alle sechs Seiten der ganzen Halle in einem Zug, am
+  // PC 209 bis 396 ms ohne Bild (Hallenwechsel, Fahrt in die Werkhalle;
+  // CPU-Profil). Jetzt eine Seite je Bild in eine Würfelkarte (envSeite),
+  // dazwischen steht die Szene wie sonst; fromCubemap filtert daraus die
+  // Kugel in derselben Größe (256), also mit denselben Programmen. Eine
+  // neuere Aufnahme oder eine andere Halle löst die laufende ab (envJob).
+  let envJob = 0, envCubeRT = null;
+  async function captureHallEnv(force = false) {
+    if (!realHall || !HALL_PROBE) return;
+    if (hallEnv && !force) return;
+    const job = ++envJob, h = realHall;
+    const k = hallRoot.scale.x;
+    const R = realHall.grow ? grownRoom() : realHall.room;
+    envCubeRT ??= new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType });
+    const cube = new THREE.CubeCamera(0.1, Math.max(R.halfL, R.height) * k * 4, envCubeRT);
+    cube.position.set(0, 2.5 * k, 0);
+    cube.coordinateSystem = renderer.coordinateSystem;
+    cube.updateCoordinateSystem();
+    cube.updateMatrixWorld(true);
+    for (let i = 0; i < 6; i++) {
+      if (i) {
+        await rast();
+        if (job !== envJob || realHall !== h) return;
+      }
+      envSeite(cube.children[i], i);
+    }
+    const rt = pmremFor(renderer).fromCubemap(envCubeRT.texture);
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
-    fog.near = near; fog.far = far;
-    for (const [m, g] of gain) m.envMapIntensity = g;
-    hallRefl.on.value = reflOn;
-    for (const o of hide) o.visible = true;
     hallEnv?.dispose();
     hallEnv = rt;
     scene.environment = rt.texture;
@@ -10660,13 +10772,22 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       const img = await lebt(new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; }));
       const W = px * cols, H = px * Math.ceil(n / cols);
       if (img.width !== W || img.height !== H) throw new Error(`Kartenraster ${img.width}×${img.height}, erwartet ${W}×${H}`);
+      // Ausgepackt wird außerhalb des Hauptfadens (decode), gelesen Reihe für
+      // Reihe des Rasters mit einer Pause dazwischen: Das ganze Raster am
+      // Stück (drawImage, getImageData, Umkopieren) stand beim Hallenwechsel
+      // am PC 135 ms (CPU-Profil vom 23.11.2026, Hangar-Politur Stelle 4).
+      await lebt(img.decode().catch(() => {}));
       const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
       const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0);
-      const src = cx.getImageData(0, 0, W, H).data, buf = new Uint8Array(px * px * 4 * n);
+      const buf = new Uint8Array(px * px * 4 * n);
       // Karte i aus dem Raster (Spalte i % cols, Reihe i / cols) als Ebene i
-      for (let i = 0; i < n; i++) for (let y = 0; y < px; y++) {
-        const o = ((Math.floor(i / cols) * px + y) * W + (i % cols) * px) * 4;
-        buf.set(src.subarray(o, o + px * 4), (i * px + y) * px * 4);
+      for (let r = 0; r * cols < n; r++) {
+        if (r) await rast();
+        const src = cx.getImageData(0, r * px, W, px).data;
+        for (let i = r * cols; i < Math.min(n, (r + 1) * cols); i++) for (let y = 0; y < px; y++) {
+          const o = (y * W + (i % cols) * px) * 4;
+          buf.set(src.subarray(o, o + px * 4), (i * px + y) * px * 4);
+        }
       }
       const karten = new THREE.DataArrayTexture(buf, px, px, n);
       karten.wrapS = karten.wrapT = THREE.RepeatWrapping;
@@ -12223,12 +12344,21 @@ void main() {
       settleShip(0.02);
       if (lastInfo) scaleWorld(lastInfo);
       camFree = null; freeDirty = true;
+      // Hallenwechsel und Fahrt in die Werkhalle ruckelten am PC (CPU-Profil
+      // vom 23.11.2026, Hangar-Politur Stelle 4): Bühne, Hallenschatten und
+      // die Aufnahme der Kugel liefen in einem Zug (bis 0,5 s ohne Bild), und
+      // die Aufnahme wartete dazu auf die Shader der Hallenmaterialien mit
+      // Kugel (getProgramInfoLog, getUniforms), die vorher niemand übersetzt
+      // hatte. Jetzt kommt dazwischen ein Bild, und die Varianten mit Kugel
+      // übersetzen im Hintergrund (envVorab), bevor aufgenommen wird.
+      await rast();
       const probe = await probeReady;
       // Abgebaut, während hier auf die Sonde gewartet wurde: Diese
       // Fortsetzung nähme sonst am aufgegebenen Renderer eine Umgebungskugel
       // auf (useHallProbe, captureHallEnv). Das geladene Bild geht mit.
       if (tot) { probe?.tex.dispose(); await nieMehr(); }
-      if (probe) useHallProbe(probe); else captureHallEnv(true);
+      if (probe) useHallProbe(probe);
+      else { await envVorab(); await captureHallEnv(true); }
       // die Kamera stand womöglich für die gebaute (größere) Halle. Im
       // Leitstand (post) gehört sie der Stellung vor dem Schirm oder der
       // Fahrt dorthin: Kommt die Sonde erst, wenn die Kamera schon oben sitzt
@@ -15261,7 +15391,7 @@ void main() {
   // (opts.holo.module), geladen erst, wenn die Seite eine Station in 3D
   // zeigt. Nur in der echten Halle und nicht am Telefon (dort bleibt die
   // Tafel der Seite). Sie stehen, wenn das Schiff ruht: kein Wechsel, keine
-  // Fahrt, der Aufzug oben, nicht drinnen und nicht in der Werkhalle.
+  // Fahrt, der Aufzug oben (in der Werkhalle ihre Hebebühne), nicht drinnen.
   const ST_OK = REAL && !SMALL && !!opts.holo?.module;
   let stWant = null, stLayer = null, stLoad = null, stAct = null, stSafe = null;
   // Ruhe heißt auch: die Lage des Modells hat sich 400 ms nicht geändert.
@@ -15271,7 +15401,9 @@ void main() {
   let stStill = 0;
   function stRest() {
     const c = current;
-    if (!c || !revealed || trip || walk || post || leaving || c.werk || ort === 'werk') return null;
+    if (!c || !revealed || trip || walk || post || leaving) return null;
+    const B = realHall?.werk?.buehne;
+    if (c.werk && B && (B.dur || Math.abs(B.v) > 1e-4)) return null;
     const now = performance.now();
     if (c.lift ? lift.dur || Math.abs(lift.y) > 1e-4 : !reduceMotion && now - c.born < 1300) return null;
     const e = c.model.matrixWorld.elements, at = [e[0], e[12], e[13], e[14]];
