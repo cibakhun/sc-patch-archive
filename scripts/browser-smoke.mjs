@@ -945,7 +945,10 @@ const SYNC_BREITEN = [360, 1280];
        Hangarseite zu verlassen, der Pfeil fuehrt zurueck zum Ueberblick.
        Eine Kachel oeffnet ihren Bereich; „Überblick“ legt ihn ueber eine
        Seite, und der Pfeil zeigt dieselbe Seite wieder, ohne sie neu zu
-       laden.
+       laden. Nach dem Review von PR #407: Die Kachel der Seite, die unter
+       dem Ueberblick liegt, gibt dem Pfeil den Weg zu ihm zurueck, und
+       Kachel B, gleich danach Kachel A, laesst A vorn (B antwortet erst
+       nach 1,5 s).
      Vorgefuehrt rot (23.11.2026), je ein Eingriff in
      dist/assets/hangar-terminal.js, jeder in beiden Sprachen mit der
      Meldung, die ihn meint: place misst die Leiste nicht neu (angemeldet bei
@@ -953,7 +956,10 @@ const SYNC_BREITEN = [360, 1280];
      vbSucheWeg nimmt keinen Treffer (im ersten Lauf nur „Aufruf
      fehlgeschlagen“, weil die Hangarseite ging; seither nennt die Probe den
      Weg); die Sitzung beginnt bei einer Seite; die Seite unter dem
-     Ueberblick wird beim Zurueck neu geladen.
+     Ueberblick wird beim Zurueck neu geladen. Dazu nach dem Review: die
+     Abkuerzung in go schreibt keinen Verlauf („der Pfeil bleibt
+     gesperrt“), sie beendet keine Navigation, die unterwegs ist („nach 3 s
+     steht /items.html … statt /topics/crafting.html“).
 
    Alle Klicks kommen per Skript: der Kasten liegt hier nicht auf dem Schirm
    der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
@@ -1457,6 +1463,44 @@ async function probeTerminal(page) {
   s = await stand();
   if (!s.zurueck) return `${wo}: nach dem Rueckweg auf ${start.home} ist der Pfeil gesperrt — darunter liegt noch der Ueberblick`;
   if (s.verlauf !== start.verlauf) return `${wo}: der Rueckweg schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+
+  // 4b · der Pfeil noch einmal: der Ueberblick. Seine Kachel zeigt die Seite
+  // darunter ohne Neuladen und gibt dem Pfeil den Weg zu ihm zurueck
+  // (Review PR #407: die Abkuerzung in go schrieb keinen Verlauf)
+  const dok = (n) => page.evaluate((x) => {
+    const w = document.getElementById('hgx-term-frame').contentWindow;
+    if (x) w.__probeDok = x;
+    return w.__probeDok ?? 0;
+  }, n);
+  await dok(2);
+  await klick('#hgx-term-back');
+  if (!(await vorn('start', 3000))) return `${wo}: der Pfeil von ${start.home} fuehrt nicht zum Ueberblick zurueck (vorn „${(await stand()).zeigt}“)`;
+  await klick(`#hgx-ts a[data-term-zu="${homeKey}"]`);
+  if (!(await vorn('seite', 2000))) return `${wo}: die Kachel „${homeKey}“ zeigt ${start.home} nicht binnen 2 s — die Seite liegt schon darunter`;
+  s = await stand();
+  if ((await dok()) !== 2) return `${wo}: die Kachel „${homeKey}“ lud ${start.home} neu, statt die Seite darunter zu zeigen`;
+  if (!s.zurueck) return `${wo}: die Kachel „${homeKey}“ zeigt ${start.home} wieder, aber der Pfeil bleibt gesperrt — er fuehrt zum Ueberblick zurueck`;
+
+  // 4c · Kachel B, gleich danach Kachel A (die Seite darunter): A bleibt
+  // vorn, B kommt nicht nach. B antwortet dafuer erst nach 1,5 s.
+  await klick('#hgx-term-start');
+  if (!(await vorn('start', 3000))) return `${wo}: „Überblick“ in der Leiste zeigt den Ueberblick nicht (vorn „${(await stand()).zeigt}“)`;
+  const bPfad = start.bereiche.items;
+  const spaet = (u) => u.pathname === bPfad;
+  const langsam = async (route) => {
+    await new Promise((r) => setTimeout(r, 1500));
+    try { await route.continue(); } catch { /* abgebrochen: so soll es sein */ }
+  };
+  await page.route(spaet, langsam);
+  await page.evaluate((zu) => {
+    document.querySelector('#hgx-ts a[data-term-zu="items"]').click();
+    document.querySelector(`#hgx-ts a[data-term-zu="${zu}"]`).click();
+  }, homeKey);
+  await page.waitForTimeout(3000);
+  await page.unroute(spaet, langsam);
+  s = await stand();
+  if (s.pfad !== start.home || s.zeigt !== 'seite' || (await dok()) !== 2)
+    return `${wo}: Kachel „items“, gleich danach „${homeKey}“: nach 3 s steht ${s.pfad} (vorn „${s.zeigt}“${(await dok()) !== 2 ? ', neu geladen' : ''}) statt ${start.home} — die Navigation nach ${bPfad} lief weiter und kam spaeter nach vorn`;
 
   // 5 · ein Link zum Hangar holt das Schiff, statt eine zweite Halle zu laden
   await imFenster(`${start.hangar}?ship=aegs-gladius`);

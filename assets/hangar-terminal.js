@@ -486,6 +486,8 @@ export function initTerminal(box, hooks = {}) {
   // ziel: Der Ueberblick oeffnet eine Seite und wartet, bis ein anderes Dokument als dieses bedienbar ist
   // (undefined: er wartet auf nichts, null: es stand noch keines im Fenster)
   let zeigt = '', ziel, zielTimer = 0;
+  // unterwegs: eine Navigation des Fensters ist angefordert, ihr Dokument noch nicht da
+  let unterwegs = false;
 
   const frameDoc = () => { try { return frame.contentDocument; } catch { return null; } };
   const urlOf = (d) => `${d.location.pathname}${d.location.search}${d.location.hash}`;
@@ -552,6 +554,7 @@ export function initTerminal(box, hooks = {}) {
     w.addEventListener('pageshow', (e) => { if (e.persisted && gone === d) { gone = null; watch(); } });
     seen = d;
     fails = 0;
+    unterwegs = false;
     if (loadMsg) loadMsg.textContent = loadText;
     box.removeAttribute('data-fehler');
     const url = urlOf(d);
@@ -585,6 +588,7 @@ export function initTerminal(box, hooks = {}) {
     if (r.art === 'tab') { e.preventDefault(); win.open(a.href, '_blank', 'noopener'); return; }
     if (!/^https?:$/.test(a.protocol)) return;
     e.preventDefault();
+    unterwegs = true;
     w.location.replace(a.href);
   }
 
@@ -612,6 +616,20 @@ export function initTerminal(box, hooks = {}) {
     try { anker = new URL(url, here).hash; } catch { /* dann ohne Anker */ }
     // Dieselbe Seite steht schon im Fenster, nur hinter dem Ueberblick: gleich zeigen, statt sie neu zu laden
     if (steht && (!anker || anker === d.location.hash)) {
+      // Wie jeder Klick im Browser beendet sie eine Navigation, die noch
+      // unterwegs ist: sonst kaeme deren Seite spaeter doch noch nach vorn
+      // (Kachel B, gleich danach Kachel A).
+      if (unterwegs) {
+        try { frame.contentWindow.stop(); } catch { /* dann kommt die andere Seite */ }
+        unterwegs = false;
+      }
+      // Wie beim Einrichten (dress): Sie kommt in den Verlauf, wenn sie nicht
+      // schon oben steht. Der Pfeil fuehrt dann zum Ueberblick zurueck.
+      if (!stack.length || page(stack.at(-1)) !== page(url)) {
+        stack.push(urlOf(d));
+        if (stack.length > TERM_STACK) stack.shift();
+      }
+      back.disabled = stack.length < 2;
       if (zeigt !== 'seite') zeigeSeite();
       return;
     }
@@ -623,6 +641,7 @@ export function initTerminal(box, hooks = {}) {
     }
     // Nur der Anker ist anders (Konto #friends, Raffinerie #tracker): Die
     // Seiten lesen ihn beim Laden, also nach dem Ersetzen einmal neu laden.
+    unterwegs = true;
     try {
       frame.contentWindow.location.replace(url);
       if (steht) frame.contentWindow.location.reload();
@@ -678,6 +697,7 @@ export function initTerminal(box, hooks = {}) {
   // weitergeht (data-fail), statt endlos neu zu laden.
   frame.addEventListener('load', () => {
     if (!started) return;
+    unterwegs = false;
     const d = frameDoc();
     if (!d) {
       box.classList.remove('is-ready');
