@@ -232,9 +232,15 @@ function drawTiles(g, d, hover) {
   d.tiles.forEach((t, i) => {
     const x = p + (i % 2) * (tw + gap), y = yt + Math.floor(i / 2) * (th + gap);
     g.save(); rr(g, x, y, tw, th, 6); g.fillStyle = 'rgba(143,211,255,.07)'; g.fill(); g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.22)'; g.stroke(); g.restore();
-    text(g, t.label.toLocaleUpperCase(), x + 12, y + 21, { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' });
     // Rang in der Klasse, oder was das Layout ändert (tone: Bernstein mehr, Rot weniger)
-    if (t.rank) text(g, t.rank, x + tw - 12, y + 21, t.tone ? { f: RAJ, w: 700, s: 13, c: toneOf(t.tone === 'up' ? 1 : -1), al: 'right' } : { f: BAR, s: 12.5, c: C.mut, al: 'right' });
+    const rSt = t.tone ? { f: RAJ, w: 700, s: 13, c: toneOf(t.tone === 'up' ? 1 : -1), al: 'right' } : { f: BAR, s: 12.5, c: C.mut, al: 'right' };
+    // Die Beschriftung weicht dem Rang: Ein langes Wort („Feuerkraft Türme“
+    // bei Schiffen ohne Pilotenwaffen) wird kleiner, statt darunter zu liegen
+    const lab = t.label.toLocaleUpperCase(), lSt = { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' };
+    const lMax = tw - 24 - (t.rank ? measure(g, t.rank, rSt) + 8 : 0);
+    while (lSt.s > 9 && measure(g, lab, lSt) > lMax) lSt.s -= 0.5;
+    text(g, fit(g, lab, lMax, lSt), x + 12, y + 21, lSt);
+    if (t.rank) text(g, t.rank, x + tw - 12, y + 21, rSt);
     // Zahl und Einheit in einer Zeile; zu lang wird die Zahl kleiner, nie gekürzt
     const uSt = { f: RAJ, w: 700, s: 14, c: C.sub }, uw = t.unit ? measure(g, t.unit, uSt) + 5 : 0;
     const vSt = { f: ORB, w: 900, s: 27, glow: GLOW };

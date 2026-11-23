@@ -1898,7 +1898,7 @@ export function initWorkshop(doc, bridge) {
         { label: `${txtOf('hgl-allbtn')} ›`, href: $('hgl-allbtn').getAttribute('href') },
       ],
       toast: toastTxt,
-      totals: { pilot: totals.get('pilot') ?? null, shield: totals.get('shield') ?? null },
+      totals: Object.fromEntries(['pilot', 'manned', 'remote', 'shield'].map((g) => [g, totals.get(g) ?? null])),
     };
   }
   /** Ein Klick auf der Tafel in der Halle: a = [was, womit, …]. Unbekanntes und Unpassendes faellt still weg. */

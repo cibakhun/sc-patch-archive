@@ -14674,6 +14674,9 @@ void main() {
   const innerOf = (u) => (u && opts.interior?.[u.split('?')[0]]) || null;
   const WALK_EYE = 1.65, WALK_R = 0.26, WALK_STEP = 0.45, WALK_SPEED = 1.6, WALK_RUN = 3.6;
   const WALK_CELL = 0.75, WALK_FOV = 70, WALK_MIN_EDGE = 0.12;
+  // Sitzen statt Gehen (Jäger): Auge so hoch über dem Sitzpunkt des Spiels,
+  // und so wenig Boden (Felder zu WALK_REACH_CELL) reicht nicht zum Gehen
+  const WALK_SIT = 0.75, WALK_SIT_MAX = 12;
   // Spielstärke der Innenlampen -> three.js. Die Datei trägt sie in anderer
   // Einheit als die Halle (Railen im Mittel 750, Halle 5); am Render
   // abgeglichen, gedeckelt, damit einzelne Strahler (Freelancer bis
@@ -14681,7 +14684,7 @@ void main() {
   const WALK_LAMP_K = HALL_LIGHT_SCALE * 5 / 750, WALK_LAMP_MAX = 40;
   let walkFn = null;
   const walkCan = () => !!(current?.inner && !current.werk);
-  const walkState = () => walkFn?.({ can: walkCan(), on: !!walk, busy: !!walk && walk.state !== 'on' });
+  const walkState = () => walkFn?.({ can: walkCan(), on: !!walk, busy: !!walk && walk.state !== 'on', sit: !!walk?.sit });
   // Innenraum laden, herrichten wie den Rumpf und neben dessen Modell
   // hängen (dasselbe Elternteil, also derselbe Modellraum). Einmal je
   // Schiff, danach bleibt er bis zum Wechsel geladen, aber außerhalb aus.
@@ -14920,7 +14923,11 @@ void main() {
     // (Cockpits stecken bei manchen Schiffen im Rumpf, Freelancer); darüber
     // hinaus geht niemand
     const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(1), sp = new THREE.Vector3();
-    for (const s of inner.spots) box.union(new THREE.Box3().setFromCenterAndSize(sp.set(...s.p).applyMatrix4(c.model.matrixWorld), new THREE.Vector3(3, 3, 3)));
+    // Einstiegspunkte im Ursprung des Modells hat das Spiel nicht gesetzt
+    // (Gladius: Zugang und Tür bei 0, 0, 0); sie lägen mitten im Rumpf und
+    // führten die Kamera unter das Schiff (Hangar-Politur 22.11.2026)
+    const spots = inner.spots.filter((s) => s.p.some((v) => Math.abs(v) > 1e-3));
+    for (const s of spots) box.union(new THREE.Box3().setFromCenterAndSize(sp.set(...s.p).applyMatrix4(c.model.matrixWorld), new THREE.Vector3(3, 3, 3)));
     const t1 = performance.now();
     const grid = await walkGrid([inner.root, c.model], box, pause);
     if (walk !== me) return false;
@@ -14937,7 +14944,7 @@ void main() {
     // keiner so frei (Jäger: nur das Cockpit), am freiesten.
     const WALK_FREE = 40;
     let at = null, best = null;
-    for (const s of [...inner.spots].sort((a, b) => rank(a) - rank(b)).slice(0, 10)) {
+    for (const s of [...spots].sort((a, b) => rank(a) - rank(b)).slice(0, 10)) {
       const p = new THREE.Vector3(...s.p).applyMatrix4(W);
       let here = null;
       for (const k of [0, 0.6, 1.2]) if ((here = walkStand(grid, p.clone().addScaledVector(back, k)))) break;
@@ -14950,7 +14957,16 @@ void main() {
       if (walk !== me) return false;
     }
     at = best;
-    if (at) console.info(`[hangar] Einstieg bei ${at.s.name} (${at.s.kind}), ${at.n >= WALK_FREE ? `mindestens ${WALK_FREE}` : at.n} Felder Boden frei`);
+    // Jäger: Außer dem Cockpit gibt es nirgends Boden zum Gehen. Dann sitzt
+    // man auf dem Pilotensitz und schaut sich um, statt irgendwo im Rumpf zu
+    // stehen; aufrecht stieße der Kopf an die Haube (walkStand findet dort
+    // keinen Platz).
+    const seat = spots.find((s) => s.kind === 'seat' && /pilot/i.test(s.name));
+    if (seat && (!at || at.n < WALK_SIT_MAX)) {
+      const e = new THREE.Vector3(...seat.p).applyMatrix4(W).addScaledVector(new THREE.Vector3(0, 1, 0).transformDirection(W), WALK_SIT);
+      at = { e, floor: e.y - WALK_EYE, s: seat, n: 0, sit: true };
+      console.info(`[hangar] Einstieg sitzend bei ${seat.name}${best ? ` (nur ${best.n} Felder Boden bei ${best.s.name})` : ''}`);
+    } else if (at) console.info(`[hangar] Einstieg bei ${at.s.name} (${at.s.kind}), ${at.n >= WALK_FREE ? `mindestens ${WALK_FREE}` : at.n} Felder Boden frei`);
     if (!at) {
       // ohne passenden Punkt: Mitte des Innenraums, vom Boden aus
       const m = box.getCenter(new THREE.Vector3());
@@ -14959,7 +14975,7 @@ void main() {
     }
     const fwd = back.clone().negate();
     walk.yaw = Math.atan2(-fwd.x, -fwd.z); walk.pitch = 0;
-    walk.p = at.e.clone(); walk.floor = at.floor;
+    walk.p = at.e.clone(); walk.floor = at.floor; walk.sit = !!at.sit;
     walkLamps(inner.lamps, W);
     const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(walk.pitch, walk.yaw, 0, 'YXZ'));
     walk.flyIn = { p0: camera.position.clone(), q0: camera.quaternion.clone(), q1, t0: performance.now(), dur: reduceMotion ? 0 : 1400, fov0: camera.fov };
@@ -15093,8 +15109,9 @@ void main() {
     const K = w.keys, run = K.has('ShiftLeft') || K.has('ShiftRight') ? WALK_RUN : WALK_SPEED;
     const f = (K.has('KeyW') || K.has('ArrowUp') ? 1 : 0) - (K.has('KeyS') || K.has('ArrowDown') ? 1 : 0);
     const s = (K.has('KeyD') || K.has('ArrowRight') ? 1 : 0) - (K.has('KeyA') || K.has('ArrowLeft') ? 1 : 0);
-    if (f || s) { const l = Math.hypot(f, s); walkMove((f / l) * run * dt, (s / l) * run * dt); wake(300); }
-    if (w.mv.x || w.mv.y) { walkMove(w.mv.y, w.mv.x); w.mv.set(0, 0); wake(300); }
+    // sitzend (Jäger): nur umsehen, gehen geht nicht
+    if ((f || s) && !w.sit) { const l = Math.hypot(f, s); walkMove((f / l) * run * dt, (s / l) * run * dt); wake(300); }
+    if (w.mv.x || w.mv.y) { if (!w.sit) walkMove(w.mv.y, w.mv.x); w.mv.set(0, 0); wake(300); }
     // Augenhöhe gleitet über Stufen
     const want = w.floor + WALK_EYE;
     w.p.y += (want - w.p.y) * (reduceMotion ? 1 : Math.min(1, dt * 12));
@@ -15967,8 +15984,9 @@ void main() {
     project,
     focus,
     // Einsteigen (Innenraum zum Begehen, opts.interior): enter() ->
-    // Promise<bool>, leave(); onWalk(fn): fn({ can, on, busy }) bei jedem
-    // Wechsel, can: das gezeigte Schiff hat einen Innenraum
+    // Promise<bool>, leave(); onWalk(fn): fn({ can, on, busy, sit }) bei jedem
+    // Wechsel, can: das gezeigte Schiff hat einen Innenraum, sit: drinnen
+    // sitzend (Jäger), gehen geht nicht
     enter,
     leave() { leave(); },
     onWalk(fn) { walkFn = fn; walkState(); },

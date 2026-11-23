@@ -86,9 +86,24 @@
     return true;   // nichts dahinter — nichts zu verlieren
   }
 
+  // Steht die Seite im Terminal der Halle (Rahmen "hgx-term-frame",
+  // assets/hangar-terminal.js)? Dann geht keine Erklaerung von selbst auf:
+  // Sie laege ueber dem Inhalt des Monitors, und der Besucher sitzt gerade
+  // erst davor (Hangar-Politur 22.11.2026, Stelle 10). Ausdruecklich NICHT
+  // als gesehen vermerkt: Beim ersten Besuch der Seite selbst geht sie auf.
+  function imHangarTerminal() {
+    try {
+      var f = window.frameElement;
+      return !!f && f.getAttribute('name') === 'hgx-term-frame';
+    } catch (e) {
+      return false;
+    }
+  }
+
   // ---- Erstbesuch: EIN Lesen, EIN Schreiben, danach nichts mehr. ----
   (function openOnFirstVisit() {
     if (window.innerHeight < MIN_HOEHE_FUER_AUTO) return;
+    if (imHangarTerminal()) return;
     var seen = {};
     try {
       var raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');

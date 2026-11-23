@@ -2391,10 +2391,10 @@ export function boot(doc) {
     const before = ortGemalt;
     ortGemalt = at;
     main.dataset.ort = at;
-    // Vor dem Terminal weicht die Erklaerung der Schiffsauswahl, die beim
-    // ersten Besuch von selbst aufgeht: Sie laege sonst ueber dem Monitor.
-    // Beginnt der Aufruf im Leitstand, geht sie gar nicht erst auf
-    // (data-help-auto am Geruest, tool-help.js) und bleibt ungesehen.
+    // Vor dem Terminal weicht die Erklaerung der Schiffsauswahl, wenn sie
+    // offen ist: Sie laege sonst ueber dem Monitor. Von selbst geht sie am
+    // Schreibtisch nicht mehr auf (data-help-auto am Geruest, tool-help.js;
+    // dort zeigen die kurzen Hinweise, tipps).
     if (leit && before !== 'leit') main.querySelector('.hg-dock details.tool-help[open]')?.removeAttribute('open');
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
@@ -2545,8 +2545,15 @@ export function boot(doc) {
   // den Entwuerfen (Tafel 7): Tempo, Feuerkraft, Schild, Rumpf mit dem Platz
   // in der Klasse; links die Systeme mit Nummern, die am Port wiederkehren.
   const HOLO_TILES = [['scm', 'speed'], ['dps', 'fire'], ['shield', 'shield'], ['hull', 'hull']];
-  // Kachel -> Gruppe der Werkstatt, deren Summe sie zeigt (groupTotals)
-  const HOLO_LAYOUT = { dps: 'pilot', shield: 'shield' };
+  // Kachel -> Gruppen der Werkstatt, deren Summe sie zeigt (groupTotals)
+  const HOLO_LAYOUT = { dps: ['pilot'], tdps: ['manned', 'remote'], shield: ['shield'] };
+  // Schiffe ohne Pilotenwaffen (Carrack, Polaris, Hull …): statt „Feuerkraft —“
+  // zeigt die Kachel die Feuerkraft der Tuerme, wenn es welche gibt.
+  const holoTile = (k, w, stat) => (k === 'dps' && !(stat.dps > 0) && stat.tdps > 0 ? ['tdps', 'fireT'] : [k, w]);
+  const sumTotals = (totals, gs) => {
+    const ts = (gs ?? []).map((g) => totals?.[g]).filter(Boolean);
+    return ts.length ? { now: ts.reduce((s, t) => s + t.now, 0), stock: ts.reduce((s, t) => s + t.stock, 0) } : null;
+  };
   const HOLO_SYS_MAX = 8, HOLO_DETAIL_MAX = 6;
   const textOf = (n) => (n?.nodeType === 3 ? n.textContent.trim() : '');
   const nums = (v) => String(v ?? '').trim().split(/\s+/).map(Number);
@@ -2560,13 +2567,14 @@ export function boot(doc) {
     // ihre Daten fehlen: dann stehen links wie zuvor die Systeme.
     const lo = workshop?.board() ?? null;
     const nf = new Intl.NumberFormat(loc);
-    const tiles = HOLO_TILES.map(([k, w]) => {
+    const tiles = HOLO_TILES.map(([k0, w0]) => {
+      const [k, w] = holoTile(k0, w0, me.stat);
       const row = rowOf.get(k) ?? { digits: 0, unit: '' };
       const x = me.stat[k];
       const r = cls && rankIn(dock, cls.ids, id, k);
       // Was das Layout aendert: Feuerkraft (Pilotenwaffen) und Schild mit
       // dem Abstand zur Serie statt des Rangs, der nur fuer die Serie gilt
-      const t = lo?.totals[HOLO_LAYOUT[k]];
+      const t = sumTotals(lo?.totals, HOLO_LAYOUT[k]);
       const d = t && Number.isFinite(x) ? Math.round(t.now) - Math.round(t.stock) : 0;
       if (d) {
         const p = x > 0 ? Math.round((Math.abs(d) / x) * 100) : 0;
@@ -3341,6 +3349,9 @@ export function boot(doc) {
       btn.hidden = !s.can && !s.on;
       btn.setAttribute('aria-pressed', s.on ? 'true' : 'false');
       txt.textContent = s.busy ? btn.dataset.load : s.on ? btn.dataset.out : btn.dataset.in;
+      // sitzend (Jaeger) nennt der Hinweis das Gehen nicht
+      const wh = $('hgx-walkhint');
+      if (wh?.dataset.gehen) wh.textContent = s.sit ? wh.dataset.sitzen : wh.dataset.gehen;
       const was = main.dataset.walk === 'on';
       if (s.on) main.dataset.walk = 'on';
       else delete main.dataset.walk;
@@ -3364,6 +3375,141 @@ export function boot(doc) {
     try { localStorage.setItem(HINT_KEY, '1'); } catch { /* ohne Speicher kommt er beim naechsten Laden wieder */ }
   }
   for (const ev of ['pointerdown', 'wheel']) $('hg-canvas').addEventListener(ev, hintSeen, { once: true, passive: true });
+
+  // Erste Schritte (Hangar-Politur 22.11.2026, Stelle 9): Statt der langen
+  // Erklaerung, die beim ersten Besuch ueber der halben Halle aufging, zeigen
+  // drei kurze Hinweise nacheinander auf die echten Knoepfe: Schiffsauswahl,
+  // Tafeln, Orte. Einmal je Browser (TIPP_KEY), nur auf dem Feld, wenn die
+  // Halle steht, nicht am Telefon (dort geht die Erklaerung wie bisher auf:
+  // Das Geruest schiebt sie nur am Schreibtisch auf, data-help-auto). Die
+  // lange Erklaerung bleibt hinter dem „?“ der Schiffsauswahl.
+  const TIPP_KEY = 'hg-tipps';
+  function tipps() {
+    const box = $('hgx-tipp');
+    if (!box || TELEFON) return;
+    try { if (localStorage.getItem(TIPP_KEY)) return; } catch { return; }
+    const sichtbar = (el) => { const r = el?.getBoundingClientRect(); return r && r.width > 4 && r.height > 4 && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
+    const ziele = [
+      { text: box.dataset.tDock, el: () => $('hgx-docktog') },
+      { text: box.dataset.tTafel, el: () => (sichtbar($('hgx-tafel')) ? $('hgx-tafel') : doc.querySelector('#hgx-st .hgx-st__tabs')) },
+      { text: box.dataset.tOrte, el: () => $('hgx-orte') },
+    ];
+    const txt = $('hgx-tipp-t'), num = $('hgx-tipp-n'), weiter = $('hgx-tipp-weiter');
+    // seit: wann die Halle zuletzt bereit und unberührt wurde (0: gerade
+    // nicht). Gedrueckt ist, was noch keinen Loslass-Ruf hatte, Tasten und
+    // Finger je fuer sich: Das keyup von Tab loest kein gehaltenes Shift und
+    // keinen Finger auf der Buehne.
+    let i = -1, ziel = null, seit = 0, uhr = 0;
+    const t0 = Date.now(), RUHE = 1500, TASTE_HAENGT = 3000;
+    const tasten = new Map(), finger = new Set(); // Taste -> letztes keydown
+    const canvas = $('hg-canvas');
+    // Umschalttasten wiederholen beim Halten kein keydown (je nach System),
+    // ihr Zustand steht aber in jedem Tasten- und Zeigerereignis: Faellt dort
+    // das Flag, ist die Taste los, auch wenn ihr keyup fehlte.
+    const UMSCHALT = { Shift: 'shiftKey', Control: 'ctrlKey', Alt: 'altKey', Meta: 'metaKey', OS: 'metaKey' };
+    const umschalt = (k) => UMSCHALT[k.replace(/(Left|Right)$/, '')];
+    const abgleich = (e) => { for (const k of [...tasten.keys()]) { const flag = umschalt(k); if (flag && !e[flag]) tasten.delete(k); } };
+    const fingerAn = (e) => { abgleich(e); finger.add(e.pointerId); seit = 0; };
+    const fingerLos = (e) => { if (finger.delete(e.pointerId)) seit = 0; abgleich(e); };
+    const tasteAn = (e) => { tasten.set(e.code || e.key, Date.now()); abgleich(e); seit = 0; };
+    const tasteLos = (e) => { if (tasten.delete(e.code || e.key)) seit = 0; abgleich(e); };
+    const allesLos = () => { tasten.clear(); finger.clear(); seit = 0; };
+    const rad = () => { seit = 0; };
+    // Eine gewoehnliche Taste wiederholt keydown, solange sie liegt. Bleibt das
+    // aus, obwohl sie noch als gedrueckt gilt, hat das System ihr keyup
+    // verschluckt (unter macOS jede Taste, die mit Cmd zusammen fiel): nach 3 s
+    // ohne eigenes keydown gilt sie als los, sonst kaemen die Hinweise nie;
+    // jede Taste zaehlt dabei fuer sich. Eine Umschalttaste haelt bis zu
+    // ihrem keyup, dem Abgleich oben oder blur.
+    const druck = () => finger.size > 0 || [...tasten].some(([k, t]) => umschalt(k) || Date.now() - t < TASTE_HAENGT);
+    // Tasten zaehlen wie ein Finger auf der Buehne: Wer in der Suche tippt
+    // oder mit Tab durch die Knoepfe geht, ist beschaeftigt. Gedrueckt haelt
+    // die Frist an, Loslassen beginnt sie neu; verliert das Fenster den
+    // Fokus, kommt kein keyup mehr, dann gilt alles als losgelassen.
+    const lauschen = (on) => {
+      const f = on ? 'addEventListener' : 'removeEventListener';
+      canvas?.[f]('pointerdown', fingerAn, { passive: true });
+      canvas?.[f]('wheel', rad, { passive: true });
+      doc[f]('keydown', tasteAn);
+      for (const ev of ['pointerup', 'pointercancel']) window[f](ev, fingerLos, { passive: true });
+      window[f]('keyup', tasteLos, { passive: true });
+      window[f]('blur', allesLos, { passive: true });
+    };
+    // bereit: die Halle steht und das gewaehlte Schiff auch. Beim Wechsel
+    // bleibt holo noch an und der Ladebalken kommt erst nach einer Weile,
+    // placed faellt aber sofort (wie in syncMarks).
+    const bereit = () => ortGemalt === 'halle' && placed === state.ship && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
+    const markieren = (el) => { ziel?.classList.remove('hgx-tipp-ziel'); ziel = el; ziel?.classList.add('hgx-tipp-ziel'); };
+    const ende = () => {
+      clearInterval(uhr);
+      lauschen(false);
+      box.hidden = true;
+      markieren(null);
+      delete main.dataset.tipp;
+      doc.removeEventListener('keydown', taste);
+      try { localStorage.setItem(TIPP_KEY, '1'); } catch { /* ohne Speicher kommen sie beim naechsten Laden wieder */ }
+    };
+    const taste = (e) => { if (e.key === 'Escape') ende(); };
+    // an den Knopf legen: neben eine hohe, schmale Leiste am linken Rand (die
+    // zugeklappte Schiffsauswahl), sonst ueber ihn, wenn er in der unteren
+    // Haelfte steht, und darunter, wenn in der oberen; die Spitze zeigt auf ihn
+    const legen = () => {
+      const r = sichtbar(ziel), o = box.offsetParent;
+      if (!r || !o) return false;
+      const b = o.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, ow = o.clientWidth, oh = o.clientHeight;
+      const klemm = (v, lo, hi) => Math.round(Math.min(Math.max(lo, v), hi));
+      if (r.height > r.width * 2 && r.left + r.width / 2 < innerWidth / 3) {
+        const my = r.top + r.height / 2 - b.top, t = klemm(my - h / 2, 12, oh - h - 12);
+        box.style.left = `${Math.round(r.right - b.left + 14)}px`;
+        box.style.top = `${t}px`;
+        box.style.setProperty('--y', `${klemm(my - t, 16, h - 16)}px`);
+        box.dataset.seite = 'rechts';
+        return true;
+      }
+      const oben = r.top + r.height / 2 > innerHeight / 2;
+      const mx = r.left + r.width / 2 - b.left, l = klemm(mx - w / 2, 12, ow - w - 12);
+      box.style.left = `${l}px`;
+      box.style.top = `${Math.round(oben ? r.top - b.top - h - 14 : r.bottom - b.top + 14)}px`;
+      box.style.setProperty('--x', `${klemm(mx - l, 16, w - 16)}px`);
+      box.dataset.seite = oben ? 'oben' : 'unten';
+      return true;
+    };
+    const zeige = () => {
+      for (i++; i < ziele.length; i++) {
+        const el = ziele[i].el();
+        if (!sichtbar(el)) continue;
+        markieren(el);
+        txt.textContent = ziele[i].text ?? '';
+        num.textContent = `${i + 1} / ${ziele.length}`;
+        weiter.textContent = i === ziele.length - 1 ? box.dataset.fertig : box.dataset.weiter;
+        box.hidden = false;
+        main.dataset.tipp = String(i + 1);
+        legen();
+        return;
+      }
+      ende();
+    };
+    weiter.addEventListener('click', zeige);
+    $('hgx-tipp-zu').addEventListener('click', ende);
+    // warten, bis die Halle steht und RUHE ms ununterbrochen unberuehrt
+    // bleibt (Ziehen und Zoomen fangen von vorn an; CodeRabbit zu #399: mit
+    // drei gezaehlten Abfragen reichte gut eine Sekunde, auch mitten im
+    // Drehen); offen: dem Knopf folgen, und wer das Feld verlaesst
+    // (Werkhalle, Leitstand, Einsteigen), ist schon unterwegs
+    lauschen(true);
+    uhr = setInterval(() => {
+      if (i < 0) {
+        const jetzt = Date.now();
+        if (jetzt - t0 > 180000) { clearInterval(uhr); lauschen(false); return; }
+        if (!bereit() || druck()) { seit = 0; return; }
+        if (!seit) seit = jetzt;
+        if (jetzt - seit >= RUHE) { doc.addEventListener('keydown', taste); zeige(); }
+        return;
+      }
+      if (ortGemalt !== 'halle' || main.dataset.walk === 'on') { ende(); return; }
+      if (!legen()) zeige();
+    }, 500);
+  }
 
   // Erst der Waechter, dann der Zeichenkontext: Was er abgestellt hat,
   // fasst die Grafik gar nicht erst an.
@@ -3505,6 +3651,7 @@ export function boot(doc) {
         grafikSchalter(v);
         tonSchalter(v);
         walkSchalter(v);
+        tipps();
         // Stationen in 3D, wenn die Buehne sie kann, und Orte, wenn sie einen
         // Leitstand hat (buehneKann)
         v.onStation?.(onStationAct);
