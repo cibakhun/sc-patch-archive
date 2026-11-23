@@ -1,7 +1,7 @@
 // Serienausstattung je Port, verbunden mit den 3D-Hardpoints UEBER DEN
 // PORTNAMEN, im glTF-Modellraum, den /holo/<id>.glb und /hangar/ships/<id>.glb
-// teilen (Messung in .planning/notes/hangar-naht.md). Derselbe Join laeuft
-// inline in ShipDetail.astro; ihn hierher zu ziehen ist bewusst vertagt.
+// teilen (Messung in .planning/notes/hangar-naht.md). Derselbe Join fuer das
+// Hologramm steht in src/lib/holoDaten.ts.
 // Achsregel (toGltf, hullBox) und Auffaechern (fanOut) liest das Hologramm des
 // Datenblatts von hier.
 //

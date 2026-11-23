@@ -32,6 +32,22 @@ const { a } = Astro.props;
           <p class="stempel"><SatzText satz={s.stempel} /></p>
         </div>
       </div>
+      {s.module && (
+        <div class="module">
+          <h4>{s.module.titel}</h4>
+          <ul>
+            {s.module.kacheln.map((k) => (
+              <li class="modul">
+                {k.bild && <Bild bild={k.bild} class="modul__bild" sizes="(max-width: 760px) 100vw, 50vw" />}
+                <p class="modul__name">{k.titel.h ? <a href={k.titel.h}>{k.titel.t}</a> : k.titel.t}</p>
+                <p class="modul__werte">{k.zeile}</p>
+                {k.satz && <p class="modul__satz"><SatzText satz={k.satz} /></p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {s.zweitbild && <Bild bild={s.zweitbild} class="schiff__zweitbild" />}
     </article>
   ))}
 </section>

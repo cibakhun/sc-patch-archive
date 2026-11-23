@@ -1,0 +1,487 @@
+{
+  "bilder": [
+    {
+      "key": "anvl-carrack",
+      "art": "render",
+      "thema": "anvl-carrack",
+      "alt": {
+        "de": "Modell der Anvil Carrack, schräg von vorn",
+        "en": "Model of the Anvil Carrack, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-carrack.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-carrack-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-carrack-expedition",
+      "art": "render",
+      "thema": "anvl-carrack-expedition",
+      "alt": {
+        "de": "Modell der Anvil Carrack Expedition, schräg von vorn",
+        "en": "Model of the Anvil Carrack Expedition, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "misc-starlancer-max",
+      "art": "render",
+      "thema": "misc-starlancer-max",
+      "alt": {
+        "de": "Modell der MISC Starlancer MAX, schräg von vorn",
+        "en": "Model of the MISC Starlancer MAX, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/misc-starlancer-max.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/misc-starlancer-max-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "misc-starlancer-tac",
+      "art": "render",
+      "thema": "misc-starlancer-tac",
+      "alt": {
+        "de": "Modell der MISC Starlancer TAC, schräg von vorn",
+        "en": "Model of the MISC Starlancer TAC, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/misc-starlancer-tac.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/misc-starlancer-tac-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-perseus",
+      "art": "render",
+      "thema": "rsi-perseus",
+      "alt": {
+        "de": "Modell der RSI Perseus, schräg von vorn",
+        "en": "Model of the RSI Perseus, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-perseus.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-perseus-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "aegs-reclaimer",
+      "art": "render",
+      "thema": "aegs-reclaimer",
+      "alt": {
+        "de": "Modell der Aegis Reclaimer, schräg von vorn",
+        "en": "Model of the Aegis Reclaimer, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/aegs-reclaimer.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/aegs-reclaimer-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "argo-moth",
+      "art": "render",
+      "thema": "argo-moth",
+      "alt": {
+        "de": "Modell der Argo MOTH, schräg von vorn",
+        "en": "Model of the Argo MOTH, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/argo-moth.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/argo-moth-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "drak-vulture",
+      "art": "render",
+      "thema": "drak-vulture",
+      "alt": {
+        "de": "Modell der Drake Vulture, schräg von vorn",
+        "en": "Model of the Drake Vulture, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/drak-vulture.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/drak-vulture-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "misc-fortune",
+      "art": "render",
+      "thema": "misc-fortune",
+      "alt": {
+        "de": "Modell der MISC Fortune, schräg von vorn",
+        "en": "Model of the MISC Fortune, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/misc-fortune.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/misc-fortune-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-salvation",
+      "art": "render",
+      "thema": "rsi-salvation",
+      "alt": {
+        "de": "Modell der RSI Salvation, schräg von vorn",
+        "en": "Model of the RSI Salvation, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-salvation.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-salvation-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "aegs-vanguard",
+      "art": "render",
+      "thema": "aegs-vanguard",
+      "alt": {
+        "de": "Modell der Aegis Vanguard Warden, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Warden, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "aegs-vanguard-hoplite",
+      "art": "render",
+      "thema": "aegs-vanguard-hoplite",
+      "alt": {
+        "de": "Modell der Aegis Vanguard Hoplite, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Hoplite, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "aegs-vanguard-sentinel",
+      "art": "render",
+      "thema": "aegs-vanguard-sentinel",
+      "alt": {
+        "de": "Modell der Aegis Vanguard Sentinel, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Sentinel, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "aegs-vanguard-harbinger",
+      "art": "render",
+      "thema": "aegs-vanguard-harbinger",
+      "alt": {
+        "de": "Modell der Aegis Vanguard Harbinger, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Harbinger, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-polaris",
+      "art": "render",
+      "thema": "rsi-polaris",
+      "alt": {
+        "de": "Modell der RSI Polaris, schräg von vorn",
+        "en": "Model of the RSI Polaris, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-polaris.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-polaris-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-ballista",
+      "art": "render",
+      "thema": "anvl-ballista",
+      "alt": {
+        "de": "Modell der Anvil HM6 Ballista, schräg von vorn",
+        "en": "Model of the Anvil HM6 Ballista, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-spartan",
+      "art": "render",
+      "thema": "anvl-spartan",
+      "alt": {
+        "de": "Modell der Anvil HM6 Spartan, schräg von vorn",
+        "en": "Model of the Anvil HM6 Spartan, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-spartan.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-spartan-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-centurion",
+      "art": "render",
+      "thema": "anvl-centurion",
+      "alt": {
+        "de": "Modell der Anvil HM6 Centurion, schräg von vorn",
+        "en": "Model of the Anvil HM6 Centurion, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-centurion.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-centurion-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-constellation-mk5-centaurus",
+      "art": "render",
+      "thema": "rsi-constellation-mk5-centaurus",
+      "alt": {
+        "de": "Modell der RSI Constellation Mk V Centaurus, schräg von vorn",
+        "en": "Model of the RSI Constellation Mk V Centaurus, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-constellation-mk5-centaurus.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-constellation-mk5-centaurus-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-zeus-es",
+      "art": "render",
+      "thema": "rsi-zeus-es",
+      "alt": {
+        "de": "Modell der RSI Zeus Mk II ES, schräg von vorn",
+        "en": "Model of the RSI Zeus Mk II ES, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-zeus-es.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-zeus-es-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-ballista-dunestalker",
+      "art": "render",
+      "thema": "anvl-ballista-dunestalker",
+      "alt": {
+        "de": "Modell der Anvil HM6 Ballista Dunestalker, schräg von vorn",
+        "en": "Model of the Anvil HM6 Ballista Dunestalker, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista-dunestalker.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista-dunestalker-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "anvl-ballista-snowblind",
+      "art": "render",
+      "thema": "anvl-ballista-snowblind",
+      "alt": {
+        "de": "Modell der Anvil HM6 Ballista Snowblind, schräg von vorn",
+        "en": "Model of the Anvil HM6 Ballista Snowblind, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista-snowblind.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/anvl-ballista-snowblind-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-galaxy",
+      "art": "render",
+      "thema": "rsi-galaxy",
+      "alt": {
+        "de": "Modell der RSI Galaxy, schräg von vorn",
+        "en": "Model of the RSI Galaxy, front three-quarter view"
+      },
+      "groessen": [
+        {
+          "w": 1120,
+          "h": 630,
+          "src": "/assets/patch-4-10-3/render/rsi-galaxy.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/render/rsi-galaxy-640.webp"
+        }
+      ]
+    }
+  ]
+}

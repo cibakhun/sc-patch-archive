@@ -9,7 +9,7 @@ const erster = Astro.props.chronik.abschnitte[0];
 const b = erster.art === 'auftakt' ? erster.bild : null;
 ---
 {b && (b.avif
-  ? <link rel="preload" as="image" type="image/avif" imagesrcset={`${b.basis}-1920.avif 1920w`} imagesizes="100vw" fetchpriority="high" />
-  : <link rel="preload" as="image" type="image/webp" imagesrcset={b.breiten.map((w) => `${b.basis}-${w}.webp ${w}w`).join(', ')} imagesizes="100vw" fetchpriority="high" />)}
+  ? <link rel="preload" as="image" type="image/avif" imagesrcset={`${b.avif} ${b.quellen[b.quellen.length - 1].w}w`} imagesizes="100vw" fetchpriority="high" />
+  : <link rel="preload" as="image" type="image/webp" imagesrcset={b.quellen.map((q) => `${q.src} ${q.w}w`).join(', ')} imagesizes="100vw" fetchpriority="high" />)}
 <link rel="preload" href="/assets/fonts/orbitron-500-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/assets/fonts/rajdhani-600-latin.woff2" as="font" type="font/woff2" crossorigin />

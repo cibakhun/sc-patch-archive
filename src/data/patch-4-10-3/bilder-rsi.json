@@ -1,6 +1,35 @@
 {
   "bilder": [
     {
+      "key": "iae-2956-halle",
+      "art": "rsi",
+      "thema": "iae-2956",
+      "alt": {
+        "de": "Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo",
+        "en": "Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo"
+      },
+      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956",
+      "abgerufen": "2026-11-15",
+      "groessen": [
+        {
+          "w": 1920,
+          "h": 960,
+          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp",
+          "avif": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.avif"
+        },
+        {
+          "w": 1200,
+          "h": 600,
+          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 320,
+          "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-640.webp"
+        }
+      ]
+    },
+    {
       "key": "iae-2956-stadt",
       "art": "rsi",
       "thema": "iae-2956",
@@ -58,6 +87,62 @@
       ]
     },
     {
+      "key": "vncl-stinger",
+      "art": "rsi",
+      "thema": "vncl-stinger",
+      "alt": {
+        "de": "Vanduul-Schiffe im Angriffsflug unter bewölktem Himmel",
+        "en": "Vanduul ships in an attack run under a cloudy sky"
+      },
+      "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg",
+      "abgerufen": "2026-11-15",
+      "groessen": [
+        {
+          "w": 1920,
+          "h": 823,
+          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1920.webp"
+        },
+        {
+          "w": 1200,
+          "h": 514,
+          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 274,
+          "src": "/assets/patch-4-10-3/rsi/vncl-stinger-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-polaris",
+      "art": "rsi",
+      "thema": "rsi-polaris",
+      "alt": {
+        "de": "RSI Polaris, eine dunkle Korvette, feuert aus mehreren Türmen zwischen Asteroiden",
+        "en": "RSI Polaris, a dark corvette, firing from several turrets among asteroids"
+      },
+      "quelle": "https://media.robertsspaceindustries.com/oe0wikh6g3ltm/source.jpg",
+      "abgerufen": "2026-11-15",
+      "groessen": [
+        {
+          "w": 1920,
+          "h": 823,
+          "src": "/assets/patch-4-10-3/rsi/rsi-polaris-1920.webp"
+        },
+        {
+          "w": 1200,
+          "h": 514,
+          "src": "/assets/patch-4-10-3/rsi/rsi-polaris-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 274,
+          "src": "/assets/patch-4-10-3/rsi/rsi-polaris-640.webp"
+        }
+      ]
+    },
+    {
       "key": "rsi-galaxy",
       "art": "rsi",
       "thema": "rsi-galaxy",
@@ -83,6 +168,82 @@
           "w": 640,
           "h": 274,
           "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-galaxy-flug",
+      "art": "rsi",
+      "thema": "rsi-galaxy",
+      "alt": {
+        "de": "RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier",
+        "en": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks"
+      },
+      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy",
+      "abgerufen": "2026-11-15",
+      "groessen": [
+        {
+          "w": 1920,
+          "h": 960,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
+        },
+        {
+          "w": 1200,
+          "h": 600,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 320,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-galaxy-modul-fracht",
+      "art": "rsi",
+      "thema": "rsi-galaxy",
+      "alt": {
+        "de": "Frachtmodul von innen: ein großer roter Container unter Traktorstrahlen, davor zwei Personen und Frachtkisten",
+        "en": "Inside the cargo module: a large red container under tractor beams, with two people and cargo crates in front"
+      },
+      "quelle": "https://robertsspaceindustries.com/i/c4ab4ade2bdb585ec4ab434abefdaca4eea609db/resize(1500,643,crop(5120,2194,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseBXMFmxo524s3f7ezPNoZjQNAPtsJn686))/75/rsi-modular-ship-promo-cargomodule-iae22.webp",
+      "seite": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy",
+      "abgerufen": "2026-11-23",
+      "groessen": [
+        {
+          "w": 1200,
+          "h": 514,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-modul-fracht-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 274,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-modul-fracht-640.webp"
+        }
+      ]
+    },
+    {
+      "key": "rsi-galaxy-modul-medizin",
+      "art": "rsi",
+      "thema": "rsi-galaxy",
+      "alt": {
+        "de": "Medizinmodul von innen: eine helle Station mit Betten auf einer tieferen Ebene, Liegen an der Wand und eine Person an einer Trage",
+        "en": "Inside the medical module: a bright ward with beds on a lower level, bunks along the wall and a person at a stretcher"
+      },
+      "quelle": "https://robertsspaceindustries.com/i/b0246c4168df2c495bd6f874494dac0d5fcb89d5/resize(1500,643,crop(5119,2194,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjResjCmt4eJEZFGekLXXzZazFc4YWgqXmg12N))/75/rsi-modular-ship-promo-modulemedical-iae22.webp",
+      "seite": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy",
+      "abgerufen": "2026-11-23",
+      "groessen": [
+        {
+          "w": 1200,
+          "h": 514,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-modul-medizin-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 274,
+          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-modul-medizin-640.webp"
         }
       ]
     },

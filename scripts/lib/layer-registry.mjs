@@ -509,6 +509,34 @@ export const DISCOVERED_REGISTRY = [
       large: { tokenKey: '--on-media', minRatio: 3.0, label: '.ck-tile b (Name)' },
     },
   },
+  {
+    id: 'D-chronik-wort',
+    archetype: 'discovered',
+    label: 'D · .wort__bild (src/components/patch-chronik/Chronik.astro, Vorschau 4-10-3-film) — Bild hinter der Zahl',
+    selectorFamilies: ['.wort__bild::after'],
+    rationale:
+      'Das Vanduul-Bild fuellt die rechten 64 % des Abschnitts; sein Verlauf blendet es nach links in --bg-2 aus. Die Zahl „64 → 250“ ragt an der linken Bildkante hinein, gemessen wird dort.',
+    kind: 'photo',
+    images: [{ id: 'chronik-vanduul-angriff', path: 'assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp', usedBy: 'src/components/patch-chronik/Chronik.astro (.wort__bild)' }],
+    anchor: { xFrac: 0.04, yFrac: 0.42 },
+    scrim: { layers: [{ angle: 90, stops: [{ t: 0, rgba: { r: 11 / 255, g: 12 / 255, b: 18 / 255, alpha: 1 } }, { t: 0.3, rgba: { r: 11 / 255, g: 12 / 255, b: 18 / 255, alpha: 0.5 } }, { t: 0.7, transparent: true }] }] },
+    text: { large: { tokenKey: '#ffffff', minRatio: 3.0, label: '.wort__zahl (64 → 250)' } },
+  },
+  {
+    id: 'D-chronik-tafel',
+    archetype: 'discovered',
+    label: 'D · .tafel (src/components/patch-chronik/Chronik.astro, Vorschau 4-10-3-film) — IAE-Halle, Text unten links auf dem Bild',
+    selectorFamilies: ['.tafel::after'],
+    rationale: 'Zwei Bildtafeln der IAE-Halle, Satz und Listen liegen unten links auf dem Foto hinter einem Verlauf von unten.',
+    kind: 'photo',
+    images: [
+      { id: 'chronik-iae-halle', path: 'assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp', usedBy: 'src/components/patch-chronik/Chronik.astro (.tafel)' },
+      { id: 'chronik-iae-stadt', path: 'assets/patch-4-10-3/rsi/iae-2956-stadt-1920.webp', usedBy: 'src/components/patch-chronik/Chronik.astro (.tafel)' },
+    ],
+    anchor: { xFrac: 0.06, yFrac: 0.82 },
+    scrim: { layers: [{ angle: 0, stops: [{ t: 0, rgba: { r: 5 / 255, g: 6 / 255, b: 11 / 255, alpha: 0.92 } }, { t: 0.38, rgba: { r: 5 / 255, g: 6 / 255, b: 11 / 255, alpha: 0.55 } }, { t: 0.7, transparent: true }] }] },
+    text: { body: { tokenKey: '#e7ebf5', minRatio: 4.5, label: '.tafel__satz' } },
+  },
 ];
 
 /* /archiv verwendet keine 480px-Thumb-Quelle im Baum unter demselben Pfad

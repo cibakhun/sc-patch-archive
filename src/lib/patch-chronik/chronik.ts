@@ -20,24 +20,34 @@ export type Beleg = { t: string; h: string };
 export type Verweis = { t: string; h: string | null };
 /** Ein Satz aus Text und Links; Leerzeichen stehen im Text. */
 export type Satz = (string | Beleg)[];
-/** Eine Zeile Kennwert: Bezeichnung, Wert, wahlweise mit Seite. */
-export type Wert = { k: string; v: string; h?: string | null };
-/** Aussagen, die nur eine Quelle macht (keine eigenen Werte): eine kurze Liste unter einem Link. */
-export type AusQuelle = { titel: Satz; punkte: Satz[] };
+/** Eine Zeile Kennwert: Bezeichnung, Wert, wahlweise mit Seite; bei einer Zahl vorher und nachher zwei Balken wie auf den Schiffsseiten (max = groesster Wert der Gruppe). */
+export type Wert = { k: string; v: string; h?: string | null; balken?: { vorher: number; nachher: number; max: number } };
 /** Der eine ruhige Herkunftsvermerk eines Datenblocks. */
 export type Stempel = Satz;
 
 export type Bild = {
-  /** Pfad ohne Breite und Endung, z. B. /assets/patch-4-10-3/rsi/rsi-galaxy */
-  basis: string;
-  breiten: number[];
-  avif: boolean;
+  /** Die Dateien eines Bildes, nach Breite aufsteigend. */
+  quellen: { w: number; src: string }[];
+  /** Die grosse Fassung als AVIF, wenn es sie gibt. */
+  avif: string | null;
   alt: string;
 };
 
-export type NeuesSchiff = { id: string; name: Verweis; hersteller: string; bild: Bild; text: Satz[]; reiter: { id: string; titel: string; werte: Wert[] }[]; stempel: Stempel };
+export type NeuesSchiff = {
+  id: string; name: Verweis; hersteller: string; bild: Bild; text: Satz[]; reiter: { id: string; titel: string; werte: Wert[] }[]; stempel: Stempel;
+  /** Austauschbare Module, je eines mit Seite, Werten und dem, was es kann; dazu ein zweites Bild ueber die volle Breite. */
+  module: { titel: string; kacheln: Kachel[] } | null; zweitbild: Bild | null;
+};
 export type KaufbarKarte = { name: Verweis; rolle: string; bild: Bild; laeden: string[]; preis: string };
-export type BestandZeile = { name: Verweis; werte: Wert[] };
+/** Eine Zeile im Bestand: alle Schiffe mit derselben Aenderung, dazu deren Werte. */
+export type BestandZeile = { namen: Verweis[]; werte: Wert[] };
+/** Eine Gruppe im Bestand; als Diagramm steht je Schiff eine Zeile mit Name, Wert und Balken. Die Notiz sagt, was nur eine Quelle traegt. */
+export type BestandGruppe = { titel: string; diagramm: boolean; zeilen: BestandZeile[]; notiz: Satz | null };
+/** Ein Schiff, an dessen Modell das geaenderte Teil rot ist: Modelldatei der Halle, Einbauorte im glTF-Raum und ihre Namen,
+ *  das Modell des Bauteils, wenn es im Rumpf sitzt, das ruhende Bild aus demselben Blickwinkel. */
+export type AmSchiff = { name: string; aenderung: string; modell: string; punkte: number[][]; hardpoints: string[]; bauteil: string | null; bild: Bild };
+/** Eine Kachel: Name, wahlweise Bild mit Unterschrift, eine Zeile, Werte, Zeilen „Titel: Eintraege“ und ein Satz. */
+export type Kachel = { titel: Verweis; bild: Bild | null; unterschrift: Satz | null; zeile: string; werte: Wert[]; liste: { titel: Verweis; eintraege: Verweis[] }[]; satz: Satz | null; breit: boolean };
 export type ListenZeile = { art: string; name: Verweis; werte: Wert[] };
 export type Liste = { id: string; titel: string; zeilen: ListenZeile[]; nachsatz: Satz | null };
 
@@ -45,17 +55,19 @@ export type Abschnitt =
   /** Vollbild: offizieller Name, Patch und Datum, ein belegter Satz, die Patch Notes. */
   | { art: 'auftakt'; id: string; titel: string; unterzeile: string; satz: Satz; bild: Bild; notes: Beleg }
   /** Wortkapitel: ein grosses Wort im Hintergrund, davor die eine grosse Zahl der Seite. */
-  | { art: 'wort'; id: string; wort: string; waffe: Verweis; zahl: string; was: string; traeger: string; werte: Wert[]; stempel: Stempel; notiz: Satz }
-  /** Text neben einer ruhigen Liste. */
-  | { art: 'liste'; id: string; titel: string; text: Satz[]; listeTitel: string; gruppen: { titel: string; eintraege: Verweis[] }[]; stempel: Stempel }
+  | { art: 'wort'; id: string; bild: Bild; wort: string; waffe: Verweis; zahl: { vorher: string | null; wert: string }; was: string; traeger: string; werte: Wert[]; stempel: Stempel; notiz: Satz }
+  /** Rangleiter: ein Bildband, dann alle Raenge der Reihe nach, je Rang die Auftraege, die er neu freischaltet. */
+  | { art: 'leiter'; id: string; titel: string; text: Satz[]; bild: Bild; bildSatz: Satz; leiterTitel: string; stufen: { rang: string; eintraege: Verweis[] }[]; stempel: Stempel }
+  /** Kacheln: je Ding ein Name mit Seite, seine Werte, eine kurze Liste, wahlweise ein Satz; breite Kacheln ueber zwei Spalten. */
+  | { art: 'raster'; id: string; titel: string; satz: Satz | null; kacheln: Kachel[]; stempel: Stempel }
   /** Je Schiff ein Vollbild, darunter Kennwerte in Reitern. */
   | { art: 'schiffe'; id: string; titel: string; schiffe: NeuesSchiff[] }
-  /** Text neben Bild. */
-  | { art: 'bild-text'; id: string; titel: string; satz: Satz; bild: Bild; gruppen: { titel: string; eintraege: Verweis[] }[]; stempel: Stempel }
+  /** Halle: Bildtafeln ueber die volle Breite, auf breiten Schirmen seitlich durchlaufen, sonst untereinander. */
+  | { art: 'halle'; id: string; titel: string; satz: Satz; tafeln: { bild: Bild; listen: { titel: string; eintraege: Verweis[] }[] }[]; stempel: Stempel }
   /** Karten mit Bild, Laden und Preis. */
   | { art: 'karten'; id: string; titel: string; satz: Satz; karten: KaufbarKarte[]; stempel: Stempel }
-  /** Ruhige Gruppen wie auf den Schiffsseiten, darunter die Aussagen aus den Patch Notes. */
-  | { art: 'bestand'; id: string; titel: string; gruppen: { titel: string; zeilen: BestandZeile[] }[]; ausQuelle: AusQuelle; stempel: Stempel }
+  /** Das Modell mit dem geaenderten Teil, darunter knappe Gruppen gleicher Aenderungen. */
+  | { art: 'bestand'; id: string; titel: string; amSchiff: { los: string; hinweis: string; schiffe: AmSchiff[] }; gruppen: BestandGruppe[]; stempel: Stempel }
   /** Alle Aenderungen in Reitern. */
   | { art: 'reiter'; id: string; titel: string; listen: Liste[]; stempel: Stempel; weiter: Beleg[] };
 
@@ -90,9 +102,17 @@ export function zahlAusVergleich(v: PatchVergleich, kind: 'ship' | 'item', slug:
 
 /** Ein Bild unter assets/, in den Breiten, die es dort gibt (<basis>-<breite>.webp). */
 export function bild(basis: string, alt: string): Bild {
-  const breiten = [640, 1200, 1920].filter((b) => existsSync(`.${basis}-${b}.webp`));
-  if (!breiten.length) throw new Error(`chronik: Bild ${basis} fehlt`);
-  return { basis, breiten, avif: existsSync(`.${basis}-1920.avif`), alt };
+  const quellen = [640, 1200, 1920].filter((w) => existsSync(`.${basis}-${w}.webp`)).map((w) => ({ w, src: `${basis}-${w}.webp` }));
+  if (!quellen.length) throw new Error(`chronik: Bild ${basis} fehlt`);
+  return { quellen, avif: existsSync(`.${basis}-1920.avif`) ? `${basis}-1920.avif` : null, alt };
+}
+
+/** Ein Bild mit fest benannten Dateien (Renders: <id>.webp und <id>-640.webp). */
+export function bildAus(groessen: { w: number; src: string }[], alt: string): Bild {
+  const quellen = [...groessen].sort((a, b) => a.w - b.w);
+  for (const q of quellen) if (!existsSync(`.${q.src}`)) throw new Error(`chronik: Bild ${q.src} fehlt`);
+  if (!quellen.length) throw new Error('chronik: Bild ohne Dateien');
+  return { quellen, avif: null, alt };
 }
 
 export const zahlText = (x: number, lang: Locale) => x.toLocaleString(lang === 'de' ? 'de-DE' : 'en-US');

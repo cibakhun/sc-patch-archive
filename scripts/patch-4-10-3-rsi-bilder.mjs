@@ -1,8 +1,10 @@
 // Wandelt die offiziellen RSI-Bilder für die Patchseite 4.10.3 in Repo-Assets um.
-// Aufruf: node scripts/patch-4-10-3-rsi-bilder.mjs --roh <Ordner mit den Originalen>
+// Aufruf: node scripts/patch-4-10-3-rsi-bilder.mjs --roh <Ordner mit den Originalen> [--nur key,key]
 // Schreibt assets/patch-4-10-3/rsi/*, assets/patch-4-10-3/HERKUNFT.md
 // und src/data/patch-4-10-3/bilder-rsi.json. Läuft beliebig oft; Ergebnis hängt nur
 // von Liste und Rohdateien ab.
+// --nur rechnet nur die genannten Motive nach und lässt alle anderen Dateien, Manifest-Einträge
+// und Herkunftszeilen stehen: so braucht ein Nachtrag nicht alle Originale.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +28,10 @@ const CL = 'https://robertsspaceindustries.com/en/comm-link/transmission';
 
 // hero: true => zusätzlich AVIF in 1920
 const BILDER = [
+  { key: 'iae-2956-halle', roh: 'cl-twitch.jpg', thema: 'iae-2956', hero: true,
+    quelle: `${CL}/21434-Twitch-Drops-IAE-2956`,
+    de: 'Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo',
+    en: 'Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo' },
   { key: 'iae-2956-stadt', roh: 'cl-patchnotes.jpg', thema: 'iae-2956',
     quelle: 'https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103',
     de: 'Mehrere Raumschiffe fliegen bei Nacht durch eine Hochhausstadt, im Hintergrund das IAE-2956-Zeichen',
@@ -36,10 +42,31 @@ const BILDER = [
     de: 'Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe',
     en: 'Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field' },
 
+  { key: 'vncl-stinger', roh: 'ship-stinger.jpg', thema: 'vncl-stinger',
+    quelle: `${MEDIA}/90r0njd8ob87b/source.jpg`,
+    de: 'Vanduul-Schiffe im Angriffsflug unter bewölktem Himmel',
+    en: 'Vanduul ships in an attack run under a cloudy sky' },
+  { key: 'rsi-polaris', roh: 'ship-polaris.jpg', thema: 'rsi-polaris',
+    quelle: `${MEDIA}/oe0wikh6g3ltm/source.jpg`,
+    de: 'RSI Polaris, eine dunkle Korvette, feuert aus mehreren Türmen zwischen Asteroiden',
+    en: 'RSI Polaris, a dark corvette, firing from several turrets among asteroids' },
   { key: 'rsi-galaxy', roh: 'ship-galaxy.jpg', thema: 'rsi-galaxy', hero: true,
     quelle: `${MEDIA}/bb6z60h2ou5a0/source.jpg`,
     de: 'RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken',
     en: 'RSI Galaxy, a large dark modular ship with blue accents, flying above clouds' },
+  { key: 'rsi-galaxy-flug', roh: 'cl-galaxy-old.jpg', thema: 'rsi-galaxy',
+    quelle: `${CL}/18836-RSI-Galaxy`,
+    de: 'RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier',
+    en: 'RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks' },
+  // RSI nennt die Bilder „RSI Modular Ship Promo CargoModule IAE22“ und „… ModuleMedical IAE22“; Quelle ist die Bilddatei selbst.
+  { key: 'rsi-galaxy-modul-fracht', roh: 'cargo-iae22.webp', thema: 'rsi-galaxy', abgerufen: '2026-11-23', seite: `${CL}/18836-RSI-Galaxy`,
+    quelle: 'https://robertsspaceindustries.com/i/c4ab4ade2bdb585ec4ab434abefdaca4eea609db/resize(1500,643,crop(5120,2194,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseBXMFmxo524s3f7ezPNoZjQNAPtsJn686))/75/rsi-modular-ship-promo-cargomodule-iae22.webp',
+    de: 'Frachtmodul von innen: ein großer roter Container unter Traktorstrahlen, davor zwei Personen und Frachtkisten',
+    en: 'Inside the cargo module: a large red container under tractor beams, with two people and cargo crates in front' },
+  { key: 'rsi-galaxy-modul-medizin', roh: 'medical-iae22.webp', thema: 'rsi-galaxy', abgerufen: '2026-11-23', seite: `${CL}/18836-RSI-Galaxy`,
+    quelle: 'https://robertsspaceindustries.com/i/b0246c4168df2c495bd6f874494dac0d5fcb89d5/resize(1500,643,crop(5119,2194,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjResjCmt4eJEZFGekLXXzZazFc4YWgqXmg12N))/75/rsi-modular-ship-promo-modulemedical-iae22.webp',
+    de: 'Medizinmodul von innen: eine helle Station mit Betten auf einer tieferen Ebene, Liegen an der Wand und eine Person an einer Trage',
+    en: 'Inside the medical module: a bright ward with beds on a lower level, bunks along the wall and a person at a stretcher' },
   { key: 'anvl-liberator', roh: 'ship-liberator.png', thema: 'anvl-liberator',
     quelle: `${MEDIA}/k2zu1md2ulfxn/source.png`,
     de: 'Anvil Liberator mit großen Doppeltriebwerken auf einem Flugfeld, kleine Schiffe fliegen dahinter',
@@ -86,20 +113,25 @@ if (i < 0 || !args[i + 1]) {
   process.exit(2);
 }
 const ROH = path.resolve(args[i + 1]);
+const n = args.indexOf('--nur');
+const NUR = n < 0 ? null : new Set((args[n + 1] ?? '').split(',').filter(Boolean));
 
 const keys = BILDER.map((b) => b.key);
 if (new Set(keys).size !== keys.length) throw new Error('Doppelte key in der Liste');
+if (NUR && (!NUR.size || [...NUR].some((k) => !keys.includes(k)))) throw new Error(`--nur nennt unbekannte Motive: ${[...NUR].join(', ')}`);
+const LAUF = NUR ? BILDER.filter((b) => NUR.has(b.key)) : BILDER;
+const gehoertZu = (datei, key) => new RegExp(`^${key}-\\d+\\.(webp|avif)$`).test(datei);
 
 fs.mkdirSync(AUS_DIR, { recursive: true });
 fs.mkdirSync(path.dirname(MANIFEST), { recursive: true });
-for (const f of fs.readdirSync(AUS_DIR)) fs.rmSync(path.join(AUS_DIR, f));
+for (const f of fs.readdirSync(AUS_DIR)) if (!NUR || LAUF.some((b) => gehoertZu(f, b.key))) fs.rmSync(path.join(AUS_DIR, f));
 
 const kb = (n) => Math.round(n / 1024);
 const manifest = { bilder: [] };
 const zeilen = [];
 let gesamt = 0;
 
-for (const b of BILDER) {
+for (const b of LAUF) {
   const rohPfad = path.join(ROH, b.roh);
   if (!fs.existsSync(rohPfad)) throw new Error(`Rohdatei fehlt: ${rohPfad}`);
   const quellBreite = (await sharp(rohPfad).metadata()).width;
@@ -130,23 +162,32 @@ for (const b of BILDER) {
   manifest.bilder.push({
     key: b.key, art: 'rsi', thema: b.thema,
     alt: { de: b.de, en: b.en },
-    quelle: b.quelle, abgerufen: ABGERUFEN, groessen,
+    quelle: b.quelle, ...(b.seite ? { seite: b.seite } : {}), abgerufen: b.abgerufen ?? ABGERUFEN, groessen,
   });
 }
 
+const zeile = (z) => `- \`${z.datei}\` | ${z.b.quelle}${z.b.seite ? ` (auf ${z.b.seite})` : ''} | ${z.b.de} | ${z.b.abgerufen ?? ABGERUFEN}`;
+if (NUR) {
+  const alt = JSON.parse(fs.readFileSync(MANIFEST, 'utf8')).bilder.filter((x) => !NUR.has(x.key));
+  manifest.bilder = [...alt, ...manifest.bilder].sort((a, b) => keys.indexOf(a.key) - keys.indexOf(b.key));
+  /* Die Herkunftsliste traegt auch Abschnitte, die andere Skripte pflegen: nur die Zeilen der Motive tauschen. */
+  const md = fs.readFileSync(HERKUNFT, 'utf8').split(/\r?\n/).filter((l) => !LAUF.some((b) => l.startsWith(`- \`${b.key}-`) && gehoertZu(l.slice(3, l.indexOf('`', 3)), b.key)));
+  const ende = md.findIndex((l, j) => j > 0 && l.startsWith('- `') && !md[j + 1]?.startsWith('- `'));
+  md.splice(ende + 1, 0, ...zeilen.map(zeile));
+  fs.writeFileSync(HERKUNFT, md.join('\n'));
+} else {
+  fs.writeFileSync(HERKUNFT, [
+    '# Herkunft der RSI-Bilder (Patchseite 4.10.3)',
+    '',
+    'Offizielles Bildmaterial von robertsspaceindustries.com bzw. media.robertsspaceindustries.com, mit Erlaubnis des Seitenbetreibers genutzt. Erzeugt von `scripts/patch-4-10-3-rsi-bilder.mjs`. Bei Comm-Link-Bildern ist die Comm-Link-Seite angegeben, bei Schiffsbildern die Originaldatei auf dem RSI-Medienserver. Abgerufen am ' + ABGERUFEN + '.',
+    '',
+    ...zeilen.map(zeile),
+    '',
+  ].join('\n'));
+}
 fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
 
-const md = [
-  '# Herkunft der RSI-Bilder (Patchseite 4.10.3)',
-  '',
-  'Offizielles Bildmaterial von robertsspaceindustries.com bzw. media.robertsspaceindustries.com, mit Erlaubnis des Seitenbetreibers genutzt. Erzeugt von `scripts/patch-4-10-3-rsi-bilder.mjs`. Bei Comm-Link-Bildern ist die Comm-Link-Seite angegeben, bei Schiffsbildern die Originaldatei auf dem RSI-Medienserver. Abgerufen am ' + ABGERUFEN + '.',
-  '',
-  ...zeilen.map((z) => `- \`${z.datei}\` | ${z.b.quelle} | ${z.b.de} | ${ABGERUFEN}`),
-  '',
-].join('\n');
-fs.writeFileSync(HERKUNFT, md);
-
-console.log(`${BILDER.length} Motive, ${zeilen.length} Dateien`);
+console.log(`${LAUF.length} Motive, ${zeilen.length} Dateien`);
 for (const z of zeilen) console.log(`${String(kb(z.bytes)).padStart(5)} KB  ${z.datei}`);
 console.log(`Gesamt: ${kb(gesamt)} KB (Budget ${BUDGET_KB} KB)`);
 if (kb(gesamt) > BUDGET_KB) {
