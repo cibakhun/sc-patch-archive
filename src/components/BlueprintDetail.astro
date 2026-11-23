@@ -12,12 +12,14 @@ import {
   craftPatch, craftTime, itemForBlueprint, plannerPath, relatedBlueprints,
   resourceNames, slugify, totalScu,
 } from '../lib/crafting';
-import { itemPath, num, pageItemIds } from '../lib/items';
+import { displayName, itemPath, num, pageItemIds } from '../lib/items';
 import { mineralFor, miningLink } from '../lib/miningLinks';
 import { formatResist } from '../lib/itemStats';
 import { blueprintSeo } from '../lib/itemSeo';
 import { missionBySlug, seoTitle } from '../lib/missions';
 import { patchesMentioning } from '../lib/patchMentions';
+import Item3d from './Item3d.astro';
+import { item3dFor } from '../lib/item3d';
 
 interface Props { bp: BlueprintEntry; lang: Locale }
 const { bp, lang } = Astro.props;
@@ -27,6 +29,8 @@ const t = itemT(lang);
 const seo = blueprintSeo(bp, lang, craftPatch, craftDb.snapshot_date);
 const item = itemForBlueprint(bp);
 const linkedItem = item && pageItemIds.has(item.id) ? item : null;
+// Drehbares Modell des Ergebnisses (nur Vorschau-Bau, src/lib/item3d.ts).
+const model3d = item3dFor(linkedItem?.id);
 const related = relatedBlueprints(bp, 12);
 const stats = bp.item_stats ?? {};
 const missions = bp.missions ?? [];
@@ -85,6 +89,8 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   <div class="dp-cta" slot="hero">
     <a class="dp-btn" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')} →</a>
     <span class="dp-note">{t('bpPlannerHint')}</span>
+    {/* Wie sieht das Ergebnis aus? Hinter dem Hinweis, der zum Planer gehoert. */}
+    <Item3d model={model3d} name={linkedItem ? displayName(linkedItem, lang) : bp.name} lang={lang} />
   </div>
 
   <ul class="dp-keys" slot="hero">

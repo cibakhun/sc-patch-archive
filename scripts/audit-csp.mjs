@@ -170,6 +170,10 @@ const PATTERNS = [
   // Umami schickt an data-host-url (fetch, also connect-src); das Skript
   // selbst kommt vom eigenen Ursprung.
   ['connect-src', /\sdata-host-url="(https?:\/\/[^"]+)"/g],
+  // Items in 3D (src/components/Item3d.astro): das Modell holt GLTFLoader
+  // per fetch, die Texturen daneben per fetch oder als <img> — beides.
+  ['connect-src', /\sdata-i3d-model="(https?:\/\/[^"]+)"/g],
+  ['img-src', /\sdata-i3d-model="(https?:\/\/[^"]+)"/g],
 ];
 
 // Inline-Bestand für die Hash-Prüfung.

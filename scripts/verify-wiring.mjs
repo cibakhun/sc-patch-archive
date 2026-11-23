@@ -68,7 +68,9 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // Stand 10.11.2026: 53 — Zugang verify-loot-fundorte.mjs (bestaetigte Fundorte);
 // die Klinke stand bei 49, der Bestand (mit den vier Pruefern ausser der
 // Reihe) bei 52, sie steht jetzt auf dem Ist-Stand.
-const MIN_SCRIPTS = 53;
+// Stand 22.11.2026: 59 — Zugang verify-item3d.mjs (Items in 3D); die Klinke
+// stand bei 53, der Bestand davor bei 58, sie steht jetzt auf dem Ist-Stand.
+const MIN_SCRIPTS = 59;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

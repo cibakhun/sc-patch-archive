@@ -63,6 +63,8 @@ const REQUIRED_FILES = [
   'public/vendor/three/addons/math/ColorSpaces.js',
   'public/vendor/three/addons/libs/basis/basis_transcoder.js',
   'public/vendor/three/addons/libs/basis/basis_transcoder.wasm',
+  // Items in 3D: Umgebungslicht des Item-Betrachters (assets/hangar-item3d.js)
+  'public/vendor/three/addons/environments/RoomEnvironment.js',
 ];
 
 const problems = [];
