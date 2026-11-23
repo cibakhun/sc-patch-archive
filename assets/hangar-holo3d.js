@@ -1214,6 +1214,10 @@ export function holoLayer(ctx) {
   const ZEIGER = typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
   const DIMS = { k: ZEIGER ? 0 : 1 };
   let overShip = false;
+  // letzte Zeigerposition und ob eine Taste gedrückt ist: Nach dem Ziehen und
+  // während die Kamera ohne Zeigerbewegung fährt (Rad, Nachlauf) gilt der
+  // Treffer von dort neu, sonst hielten die Maße den Stand vor dem Ziehen
+  let zeiger = null, gedrueckt = false;
   // Lage und Linse der Kamera im letzten Bild: die Shift-Optik (setViewOffset)
   // gleitet nach einer Drehung weiter, ohne dass sich die Kamera rührt, und
   // schob die Tafeln aus ihrem Platz (Ironclad, 10.11.2026)
@@ -1943,7 +1947,8 @@ export function holoLayer(ctx) {
   }
   // Deckkraft des Bauteil-Hologramms: mit der Station, seiner Tafel und dem eigenen Einblenden
   function partAlpha() {
-    const k = part && built ? alpha * built.sheet.k * (part.t ?? 0) : 0;
+    // ownK: das Bauteil steht auf der rechten Tafel und tritt beim Drehen mit ihr zurueck (MOVE_K)
+    const k = part && built ? alpha * ownK(built.sheet) * (part.t ?? 0) : 0;
     partA.value = k;
     if (built?.partGlow) built.partGlow.material.opacity = 0.2 * k;
   }
@@ -1998,7 +2003,7 @@ export function holoLayer(ctx) {
     return best ? best.act : null;
   }
   let downAt = null;
-  const onDown = (e) => { downAt = [e.clientX, e.clientY]; };
+  const onDown = (e) => { downAt = [e.clientX, e.clientY]; gedrueckt = true; };
   const onClick = (e) => {
     if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
     const act = pick(e);
@@ -2045,15 +2050,25 @@ export function holoLayer(ctx) {
     ray.setFromCamera(ndc, camera);
     return ray.ray.intersectsBox(built.box);
   };
-  const onMove = (e) => {
-    if (e.buttons) return;
-    const act = pick(e);
-    hoverTo(act);
+  const schiffTreffer = (e, act) => {
     const was = overShip;
     overShip = !act && !panelAt(e) && shipUnder(e);
     if (overShip !== was) ctx.wake(DIM_MS + 100);
   };
-  const onLeave = () => { hoverTo(null); if (overShip) { overShip = false; ctx.wake(DIM_MS + 100); } };
+  const onMove = (e) => {
+    zeiger = { clientX: e.clientX, clientY: e.clientY };
+    if (e.buttons) return;
+    const act = pick(e);
+    hoverTo(act);
+    schiffTreffer(e, act);
+  };
+  const onLeave = () => { zeiger = null; hoverTo(null); if (overShip) { overShip = false; ctx.wake(DIM_MS + 100); } };
+  const onUp = (e) => {
+    gedrueckt = false;
+    if (!zeiger) return;
+    zeiger = { clientX: e.clientX, clientY: e.clientY };
+    schiffTreffer(zeiger, pick(zeiger));
+  };
   // Rad über der Ausrüstung rollt ihre Liste (über der Auswahl zuerst die),
   // statt die Kamera zu fahren. Vor dem Viewer: der hört am Canvas selbst.
   const wheelHost = el.parentElement ?? el;
@@ -2076,6 +2091,8 @@ export function holoLayer(ctx) {
   el.addEventListener('click', onClick);
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerleave', onLeave);
+  el.addEventListener('pointerup', onUp);
+  el.addEventListener('pointercancel', onUp);
   wheelHost.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
   // Neue Wörter für dieselbe Station. Links wechselt die Tafel zur
@@ -2141,7 +2158,11 @@ export function holoLayer(ctx) {
       // Größe und Drehung je Bild; neuer Platz erst, wenn die Kamera ruht
       let busy = false;
       if (built) {
-        if (camChanged()) camMoved = now;
+        if (camChanged()) {
+          camMoved = now;
+          // Rad oder Nachlauf unter dem ruhenden Zeiger: Liegt das Schiff noch darunter?
+          if (ZEIGER && zeiger && !gedrueckt) schiffTreffer(zeiger, pick(zeiger));
+        }
         if (now - camMoved > REST_MS && settledAt < camMoved) { retarget(now, false); settledAt = now; }
         if (!settledAt) { retarget(now, false); settledAt = now; }
         // Bilder weiter, bis die Tafeln nach der Fahrt ihren neuen Platz
@@ -2173,6 +2194,8 @@ export function holoLayer(ctx) {
       el.removeEventListener('click', onClick);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerleave', onLeave);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
       wheelHost.removeEventListener('wheel', onWheel, { capture: true });
       clear(); scene.remove(root);
       for (const e of partStore.values()) { e.dead = true; partFree(e); }

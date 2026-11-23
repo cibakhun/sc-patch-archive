@@ -2797,9 +2797,13 @@ export function boot(doc) {
       if (q.width > 0 && q.height > 0 && q.left > b.left + b.width / 2 && getComputedStyle(el).visibility !== 'hidden') r = Math.min(r, q.left);
     }
     ankunftEl.style.setProperty('--ank-dx', `${Math.round((l + r) / 2 - (b.left + b.right) / 2)}px`);
+    // und nicht breiter als das freie Bild: bei schmalen Fenstern lag der Block sonst ueber Dock und Tafel
+    ankunftEl.style.setProperty('--ank-w', `${Math.max(0, Math.round(r - l))}px`);
   }
   window.addEventListener('resize', ankunftMitte, { passive: true });
-  function ankunftAn(id, mitHalle) {
+  // alt: Hallenwechsel (umbauen). Bis halter.ab() spricht noch die alte
+  // Buehne; was sie an Fortschritt meldet, gehoert nicht zur neuen Ankunft.
+  function ankunftAn(id, mitHalle, alt = false) {
     if (!ankunftEl) return;
     clearTimeout(ankWeg);
     // ein Ausblenden, das noch auf ruhige Bilder wartet, gilt nicht mehr
@@ -2815,7 +2819,7 @@ export function boot(doc) {
       ankunftImg.hidden = false;
     } else if (ankunftImg) ankunftImg.hidden = true;
     ankunftEl.toggleAttribute('data-ohne-halle', !mitHalle);
-    ank = { halle: 0, schiff: 0, sahHalle: false, sahSchiff: false, ohneHalle: !mitHalle, steht: false };
+    ank = { halle: 0, schiff: 0, sahHalle: false, sahSchiff: false, ohneHalle: !mitHalle, steht: false, alt };
     ankunftMalen();
     delete ankunftEl.dataset.geht;
     ankunftEl.hidden = false;
@@ -2825,7 +2829,7 @@ export function boot(doc) {
     requestAnimationFrame(ankunftMitte);
   }
   function ankunftSchritt(teile) {
-    if (!ank || !teile) return;
+    if (!ank || !teile || ank.alt) return;
     for (const k of ['halle', 'schiff']) {
       const sah = k === 'halle' ? 'sahHalle' : 'sahSchiff';
       if (teile[k] != null) { ank[k] = Math.max(ank[k], teile[k]); ank[sah] = true; } else if (ank[sah]) ank[k] = 1;
@@ -2881,7 +2885,8 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    if (ank) ankunftSchiff(id);
+    // auch waehrend die Ankunft noch ausblendet (ank schon null): sonst nennt sie das vorige Schiff
+    if (ankunftEl && !ankunftEl.hidden) ankunftSchiff(id);
     const [glb, tex, maker, ort, hangar] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
@@ -2985,7 +2990,7 @@ export function boot(doc) {
         loadEl.dataset.umbau = '';
         loadEl.hidden = false;
         // die neue Halle kuendigt sich an: ihr Bild, der Name des gewaehlten Schiffs
-        ankunftAn(wunsch, !!halle);
+        ankunftAn(wunsch, !!halle, true);
         if (!standbild) {
           // Hoechstens kurz darauf warten: Mit Grafikkarte steht es sofort, ohne
           // sie (Software-GL) kaeme es zu spaet, dann geht der Umbau ohne.
@@ -2999,6 +3004,7 @@ export function boot(doc) {
         }
         viewer = null;
         halter.ab();
+        if (ank) ank.alt = false;
         // der Ort der alten Buehne gilt nicht mehr: Fenster des Terminals zu, bis die neue ihren nennt
         onPlace({ ort: 'halle', state: 'an', rect: null });
         // was der alten Buehne gehoerte: ihr Hologramm und die Tafeln, die sie zeigte
