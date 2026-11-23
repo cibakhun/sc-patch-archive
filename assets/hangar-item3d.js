@@ -28,6 +28,12 @@ const offen = new WeakMap(); // Dialog -> Betrachter
 /** Öffnet (oder zeigt wieder) den Betrachter in diesem Dialog. */
 export function zeige(dialog) {
   let b = offen.get(dialog);
+  // Nach einem Ladefehler (Netz weg, Ablage kurz nicht erreichbar) beim
+  // naechsten Oeffnen ganz neu anfangen; ein geladenes Modell bleibt.
+  if (b?.kaputt) {
+    b.weg();
+    b = null;
+  }
   if (!b) {
     b = baue(dialog);
     offen.set(dialog, b);
@@ -103,7 +109,8 @@ function baue(dialog) {
     cam.updateProjectionMatrix();
     dirty = true;
   };
-  new ResizeObserver(groesse).observe(buehne);
+  const beobachter = new ResizeObserver(groesse);
+  beobachter.observe(buehne);
 
   // Abstand so, dass alle acht Ecken der Hülle mit Rand ins Bild passen.
   let huelle = null;
@@ -152,6 +159,7 @@ function baue(dialog) {
     dirty = true;
   };
   zurueck.addEventListener('click', ansichtZurueck);
+  let kaputt = false;
 
   // Laden: ein Entpacker-Arbeiter genügt für ein Teil; danach wird er beendet.
   const draco = new DRACOLoader().setDecoderPath(DRACO_PFAD).setWorkerLimit(1);
@@ -180,16 +188,29 @@ function baue(dialog) {
     },
     () => {
       draco.dispose();
+      kaputt = true;
       melde(d.fail);
       dialog.dataset.i3dBereit = 'fehler';
     },
   );
 
   return {
+    get kaputt() { return kaputt; },
     weiter() {
       groesse();
       dirty = true;
       if (!raf) raf = requestAnimationFrame(tick);
+    },
+    weg() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      beobachter.disconnect();
+      zurueck.removeEventListener('click', ansichtZurueck);
+      controls.dispose();
+      scene.environment?.dispose();
+      renderer.dispose();
+      renderer.domElement.remove();
+      delete dialog.dataset.i3dBereit;
     },
   };
 }

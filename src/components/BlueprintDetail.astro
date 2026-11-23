@@ -20,6 +20,7 @@ import { missionBySlug, seoTitle } from '../lib/missions';
 import { patchesMentioning } from '../lib/patchMentions';
 import Item3d from './Item3d.astro';
 import { item3dFor } from '../lib/item3d';
+import { HAS_HANGAR } from '../lib/seo';
 
 interface Props { bp: BlueprintEntry; lang: Locale }
 const { bp, lang } = Astro.props;
@@ -86,7 +87,10 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   {/* Suchtreffer landen hier und wollen meist ins Werkzeug. Der Planer-Knopf
       stand nur am Seitenende; ?bp= oeffnet den Planer mit diesem Blueprint.
       Vor den Kennzahlen, weil er dahinter bei 320x640 unter die Falz rutschte. */}
-  <div class="dp-cta" slot="hero">
+  {/* data-bp-item: welches Item dieser Blueprint herstellt — verify:item3d
+      leitet daraus ab, welches Modell hier stehen muss (oder keins). Nur im
+      Vorschau-Bau, wo es die 3D-Ansicht gibt. */}
+  <div class="dp-cta" slot="hero" data-bp-item={HAS_HANGAR ? linkedItem?.id : undefined}>
     <a class="dp-btn" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')} →</a>
     <span class="dp-note">{t('bpPlannerHint')}</span>
     {/* Wie sieht das Ergebnis aus? Hinter dem Hinweis, der zum Planer gehoert. */}

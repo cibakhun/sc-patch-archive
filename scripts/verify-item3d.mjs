@@ -15,7 +15,9 @@
        [3] jede Item-Seite (EN und DE) eines Items aus der Liste traegt
            genau einen Dialog, und der zeigt auf genau diese Datei unter
            der Ablage; keine andere Item-Seite traegt einen
-       [4] Blueprint-Seiten mit Dialog zeigen nur auf Dateien der Liste
+       [4] jede Blueprint-Seite traegt genau dann einen Dialog, wenn ihr
+           Ergebnis-Item (data-bp-item) ein Modell hat, und zwar mit genau
+           dieser Datei
        [5] der Betrachter und sein Umgebungslicht liegen in dist/
 
    Selbstauskunft: wie viele Seiten gelesen und wie viele mit Dialog
@@ -25,7 +27,7 @@
      node scripts/verify-item3d.mjs [--dist <Ordner>]
    ============================================================ */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,7 +47,14 @@ if (!existsSync(stempel)) {
   console.error('verify-item3d: dist/build.json fehlt — erst bauen (npm run build).');
   process.exit(1);
 }
-const vorschau = JSON.parse(readFileSync(stempel, 'utf8')).staging === true;
+// Ohne eindeutigen Stempel waehlte das Tor womoeglich den falschen Zweig
+// (ein Vorschau-Bau ohne Betrachter bestuende dann als Live-Bau).
+const stagingWert = JSON.parse(readFileSync(stempel, 'utf8')).staging;
+if (typeof stagingWert !== 'boolean') {
+  console.error(`verify-item3d: dist/build.json nennt staging=${JSON.stringify(stagingWert)} statt true/false — Stempel kaputt, neu bauen.`);
+  process.exit(1);
+}
+const vorschau = stagingWert;
 const liste = JSON.parse(readFileSync(LISTE, 'utf8'));
 // Ein Probebau darf die Ablage umlenken (ITEM3D_BASE, src/lib/item3d.ts);
 // dann muss das Tor mit demselben Wert laufen.
@@ -57,10 +66,14 @@ console.log(`verify-item3d: ${vorschau ? 'Vorschau-Bau — 3D-Knopf, wo es ein M
 const DIALOG = /<dialog\b[^>]*\bdata-i3d\b[^>]*>/g;
 const MODELL = /\sdata-i3d-model="([^"]*)"/;
 const dialoge = (html) => [...html.matchAll(DIALOG)].map((m) => MODELL.exec(m[0])?.[1] ?? '');
+// Relativ zu dist/, immer mit / getrennt (auch unter Windows); die Item-ID
+// ist der Dateiname ohne .html.
 const ordnerHtml = (rel) => {
   const d = join(DIST, rel);
-  return existsSync(d) ? readdirSync(d).filter((f) => f.endsWith('.html')).map((f) => join(rel, f)) : [];
+  return existsSync(d) ? readdirSync(d).filter((f) => f.endsWith('.html')).map((f) => `${rel}/${f}`) : [];
 };
+const idVon = (s) => basename(s, '.html');
+const BP_ITEM = /\sdata-bp-item="([^"]*)"/g;
 
 const itemSeiten = [...ordnerHtml('items'), ...ordnerHtml('de/items')];
 const bpSeiten = [...ordnerHtml('crafting'), ...ordnerHtml('de/crafting')];
@@ -93,7 +106,14 @@ if (!vorschau) {
   console.log(`  [1] ${gelesen} Seiten gelesen: ${treffer} mit 3D-Dialog oder Ablage`);
 } else {
   // [2]
-  if (!/^https:\/\/[^/]+\/$/.test(liste.base)) fail(`[2] Ablage ${liste.base}: erwartet https://<host>/`);
+  // Ablage: https, Wurzelpfad, ohne Zugangsdaten, Query oder Fragment — sonst
+  // landete der angehaengte Dateiname nicht im Pfad.
+  let basisOk = false;
+  try {
+    const u = new URL(liste.base);
+    basisOk = u.protocol === 'https:' && u.pathname === '/' && !u.username && !u.password && !u.search && !u.hash && u.href === liste.base;
+  } catch { /* basisOk bleibt false */ }
+  if (!basisOk) fail(`[2] Ablage ${liste.base}: erwartet https://<host>/ ohne Pfad, Zugangsdaten, Query oder Fragment`);
   const dateien = new Map();
   for (const [id, e] of eintraege) {
     if (!Array.isArray(e) || e.length !== 2) { fail(`[2] ${id}: Eintrag ist nicht [Datei, KB]`); continue; }
@@ -108,7 +128,7 @@ if (!vorschau) {
   // [3]
   let ohneSeite = 0;
   for (const s of itemSeiten) {
-    const id = s.replace(/^(?:de\/)?items\//, '').replace(/\.html$/, '');
+    const id = idVon(s);
     const gefunden = dialoge(readFileSync(join(DIST, s), 'utf8'));
     const soll = dateien.get(id);
     if (gefunden.length) mitDialog++;
@@ -116,20 +136,32 @@ if (!vorschau) {
     else if (soll && gefunden[0] !== soll) fail(`[3] ${s}: Dialog zeigt auf ${gefunden[0] || '(nichts)'}, erwartet ${soll}`);
     else if (!soll && gefunden.length) fail(`[3] ${s}: 3D-Dialog ohne Eintrag in src/data/item-3d.json`);
   }
-  const seitenIds = new Set(itemSeiten.map((s) => s.replace(/^(?:de\/)?items\//, '').replace(/\.html$/, '')));
+  const seitenIds = new Set(itemSeiten.map(idVon));
   for (const [id] of eintraege) if (!seitenIds.has(id)) ohneSeite++;
   console.log(`  [3] ${itemSeiten.length} Item-Seiten gelesen: ${mitDialog} mit 3D-Dialog (Soll ${2 * (eintraege.length - ohneSeite)}), ${ohneSeite} Modelle ohne eigene Item-Seite`);
   if (mitDialog !== 2 * (eintraege.length - ohneSeite)) fail(`[3] ${mitDialog} Item-Seiten mit Dialog, erwartet ${2 * (eintraege.length - ohneSeite)} (EN und DE je Modell mit Seite)`);
 
-  // [4]
-  const erlaubt = new Set(dateien.values());
+  // [4] Die Seite nennt ihr Ergebnis-Item (data-bp-item); daraus folgt, ob
+  // und welches Modell hier stehen muss.
+  let bpMitItem = 0;
+  let bpSoll = 0;
   for (const s of bpSeiten) {
-    const gefunden = dialoge(readFileSync(join(DIST, s), 'utf8'));
+    const html = readFileSync(join(DIST, s), 'utf8');
+    const gefunden = dialoge(html);
+    const items = [...html.matchAll(BP_ITEM)].map((m) => m[1]);
+    if (items.length > 1) { fail(`[4] ${s}: ${items.length}× data-bp-item, erwartet hoechstens eins`); continue; }
+    if (items.length) bpMitItem++;
+    const soll = items.length ? dateien.get(items[0]) : undefined;
+    if (soll) bpSoll++;
     if (gefunden.length) bpMitDialog++;
-    if (gefunden.length > 1) fail(`[4] ${s}: ${gefunden.length} 3D-Dialoge, hoechstens einer`);
-    for (const u of gefunden) if (!erlaubt.has(u)) fail(`[4] ${s}: Dialog zeigt auf ${u || '(nichts)'}, das steht nicht in der Liste`);
+    if (soll && (gefunden.length !== 1 || gefunden[0] !== soll))
+      fail(`[4] ${s}: ${gefunden.length} 3D-Dialog(e) mit ${gefunden.join(', ') || '(nichts)'}, erwartet genau einen mit ${soll}`);
+    else if (!soll && gefunden.length)
+      fail(`[4] ${s}: 3D-Dialog, aber ${items.length ? `das Ergebnis-Item ${items[0]} hat kein Modell in der Liste` : 'kein Ergebnis-Item (data-bp-item)'}`);
   }
-  console.log(`  [4] ${bpSeiten.length} Blueprint-Seiten gelesen: ${bpMitDialog} mit 3D-Dialog`);
+  // Nennt keine Seite mehr ihr Item, liefe [4] leer — das waere kein Befund, sondern Blindheit.
+  if (bpSeiten.length && !bpMitItem) fail('[4] keine Blueprint-Seite nennt ihr Ergebnis-Item (data-bp-item) — BlueprintDetail.astro geaendert?');
+  console.log(`  [4] ${bpSeiten.length} Blueprint-Seiten gelesen, ${bpMitItem} mit Ergebnis-Item: ${bpMitDialog} mit 3D-Dialog (Soll ${bpSoll})`);
 
   // [5]
   for (const f of ['assets/hangar-item3d.js', 'vendor/three/addons/environments/RoomEnvironment.js'])
