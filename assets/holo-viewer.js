@@ -2,7 +2,7 @@
 // Eingebettet in der Hangar-Bühne (kein Toggle-Popup mehr): lädt das
 // Draco-glTF von FleetYards, rendert es als Hologramm (Cyan-Emissive,
 // Scanlines, Projektions-Kegel, Materialisierungs-Sweep) und legt die
-// Komponenten-Marker darüber — Positionen stammen aus den Spieldateien
+// Komponenten-Marker darüber — Positionen aus den Hardpoint-Daten
 // (COMPILED_BONES), im Buildstep aufs Mesh kalibriert. Keine Auto-Rotation:
 // OrbitControls, Hover + Klick auf Marker.
 //

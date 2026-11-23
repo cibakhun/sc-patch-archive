@@ -30,7 +30,7 @@
   var searchTerm = '';
   var sortCriteria = 'name_asc';
 
-  // Seltenheit ist eine ORDINALE Skala — die Reihenfolge kommt aus den Spieldaten,
+  // Seltenheit ist eine ORDINALE Skala — die Reihenfolge kommt aus den Item-Daten,
   // nicht aus dem Alphabet (sonst stünde „Common" vor „Legendary" vor „Rare").
   var RARITY_ORDER = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
   var WEIGHT_ORDER = { Undersuit: 1, Light: 2, Medium: 3, Heavy: 4, SuperHeavy: 5, Flightsuit: 6 };
@@ -90,7 +90,7 @@
   }
 
   // ---- Tag-Facetten: Anzeige-Labels ----
-  // Die Werte kommen englisch aus den Spieldaten; die UI uebersetzt sie ueber
+  // Die Werte kommen englisch aus den Item-Daten; die UI uebersetzt sie ueber
   // einen Schluessel. Fehlt einer, wird der Rohwert gezeigt statt zu raten.
   function weightLabel(w) { return w ? tr('w' + w.replace(/[^A-Za-z]/g, ''), w.replace(/\./g, ' ')) : ''; }
   function rarityLabel(r) { return r ? tr('r' + r, r) : ''; }
@@ -497,7 +497,7 @@
           priceHtml += '<span class="uif-card-avg">Ø ' + fmtNum(avgCard) + '</span>';
         }
       } else if (item.obtain.length) {
-        // Ein Item, das laut Spieldaten gar nicht droppen kann, ist nicht „nur
+        // Ein Item, das laut Item-Daten gar nicht droppen kann, ist nicht „nur
         // Loot" — es ist exklusiv. Sonst widerspraeche die Karte ihrer eigenen
         // Quellenzeile („Promo-Gegenstand").
         var onlyExcl = item.obtain.every(function (o) { return o.kind === 'exclusive'; });
@@ -537,7 +537,7 @@
       }
       var ps = primaryStat(item);
       var statBadge = ps ? '<span class="uif-card-stat" title="' + esc(ps.l) + '">' + esc(ps.v) + '</span>' : '';
-      // Seltenheit als farbiger Punkt-Badge — nur wo die Spieldaten sie fuehren
+      // Seltenheit als farbiger Punkt-Badge — nur wo die Item-Daten sie fuehren
       var rar = item.game && item.game.rarity;
       var rarBadge = rar
         ? '<span class="uif-rarity uif-rarity--' + esc(rar.toLowerCase()) + '" title="' + esc(tr('facetRarity', 'Seltenheit')) + '">' + esc(rarityLabel(rar)) + '</span>'
@@ -574,7 +574,7 @@
         '<div class="uif-card-footer">' +
           '<div class="uif-card-price">' + priceHtml + '</div>' +
           // Tooltip = derselbe Text wie sichtbar: eine Exklusiv-Zeile traegt in
-          // `loc` den englischen Satz der Datenquelle (deutsche Karten zeigten
+          // `loc` den englischen Satz aus den Daten (deutsche Karten zeigten
           // ihn bis 04.11.2026 im Tooltip; verify:clienttext).
           '<div class="uif-card-location" title="' + esc(item.obtain.length ? obtainText(item.obtain[0]) : '') + '">' + locHtml + '</div>' +
         '</div>' +
@@ -706,7 +706,7 @@
     return KIND_LABEL[kind] || kind;
   }
 
-  // ---- Technische Daten (Spieldaten aus dem DataCore) ----
+  // ---- Technische Daten ----
   var DMG_LABEL = null;
   function dmgLabels() {
     if (!DMG_LABEL) DMG_LABEL = {
@@ -816,7 +816,7 @@
     return s.length ? s.map(function (n) { return 'S' + n; }).join(' / ') : null;
   }
   // Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
-  // Spieldaten auf das Logo statt auf einen Hersteller, und der Name ist
+  // Item-Daten auf das Logo statt auf einen Hersteller, und der Name ist
   // dann der interne Schluessel ("Paint_Defender_Silver_Red_Logo",
   // verify:clienttext 04.11.2026). Gleiche Regel in src/lib/itemStats.ts.
   function mfrName(m) { return m && !/^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/.test(m) ? m : null; }
@@ -834,7 +834,7 @@
     return chips;
   }
 
-  // Crafting-Rezept (aus crafting-db.json, siehe scripts/datamine-crafting.mjs).
+  // Crafting-Rezept (aus crafting-db.json).
   // Eigene Funktion, weil der Abschnitt nachgereicht werden kann: die
   // Rezeptdatei (2,1 MB roh) laedt erst, wenn das erste Modal aufgeht —
   // vorher brauchte sie niemand, geparst wurde sie trotzdem beim Start.
@@ -891,7 +891,7 @@
         : '') +
     '</div>';
 
-    // Technische Daten (Spieldaten) — zuerst: was IST das Item, was kann es
+    // Technische Daten — zuerst: was IST das Item, was kann es
     var chips = specChips(item), stats = statEntries(item);
     var descText = item.game ? (CFG.lang === 'de' && item.game.descDe ? item.game.descDe : item.game.desc) : null;
     // Ohne deutsche Fassung steht auf DE der englische Spieltext: als

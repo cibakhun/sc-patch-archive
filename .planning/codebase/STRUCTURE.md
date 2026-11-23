@@ -171,8 +171,8 @@ sc-patch-archive/
 - Generated: Yes (`datamine-*`) · Committed: No — machine-specific and absent in CI
 
 **`docs/`:**
-- Purpose: long-form datamining deep dives (`item-finder-datacore-deep-dive.md`, `item-finder-armor-sets-deep-dive.md`, `item-crafting-static-pages.md`)
-- Committed: Yes. Root-level `PATCH-DATA.md`, `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` hold source-of-truth notes for the data layer.
+- Purpose: current developer documentation (`entwicklung.md`, `maschinelle-validierung.md`, `betrieb/`); dated deep dives moved to `.planning/archiv/` on 2026-11-23
+- Committed: Yes. `PATCH-DATA.md`, `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` (formerly at the root) hold source-of-truth notes for the data layer in `.planning/archiv/`.
 
 ---
 

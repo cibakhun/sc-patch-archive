@@ -1,246 +1,126 @@
+<div align="center">
+
 # VerseBase
 
-Inoffizielles Star-Citizen-Kompendium unter [verse-base.com](https://verse-base.com):
-Item Finder, Bergbau- und Crafting-Datenbank, Schiffs-Datenblätter mit
-3D-Hologramm, Missionen, Wikelo-Handel, Aaron-Halo-Routenrechner — und das
-komplette Patch-Archiv von Alpha 4.0.0 bis 4.9.0, jede Version mit einer eigenen,
-zum Inhalt passenden Design-Welt.
+**An unofficial Star Citizen companion: ships, items, crafting, mining, missions
+and the complete patch archive of the Alpha 4 era.**
 
-Zweisprachig: **Englisch ist die Standardsprache und liegt präfixlos auf der
-Wurzel**, Deutsch unter `/de/…` (die deutsche Startseite ist `/de.html`).
+[**verse-base.com**](https://verse-base.com) · English and German · free to use, no account needed
 
-## Technik
+<img src="docs/bilder/readme-start.webp" alt="VerseBase start page" width="880">
 
-**[Astro](https://astro.build) 5**, statischer Build, kein Server-Rendering. Der
-letzte Build umfasst **17.368 Seiten**. Alle Daten werden zur *Bauzeit*
-eingebacken — die ausgelieferte Seite ruft keine API auf, hat keine Laufzeit-
-Schlüssel und keine Ratelimits.
+</div>
 
-`build.format: 'file'` heißt: jede Seite ist eine echte Datei
-(`src/pages/patches/sc-4-8-2.astro` → `/patches/sc-4-8-2.html`). Die
-`.html`-Endung ist Teil der URL und steht so auch in jedem internen Link.
+## What's inside
 
-Benutzerkonten (Profil, Favoriten, Refinery-Aufträge, Crafting-Besitz) laufen
-clientseitig gegen **Supabase**; die Seite bleibt statisch. Row Level Security
-schützt die Daten, nicht der Schlüssel — der Publishable Key steht bewusst im
-Quelltext.
+| | |
+|---|---|
+| **Ships** | Ships and ground vehicles with specs, stock loadouts, components, an interactive 3D hologram and in-game prices. |
+| **Item Finder** | Weapons, armour and components with their stats, where to buy them and where they turn up in the 'verse. Armour sets on their own page. |
+| **Crafting** | Blueprints with ingredients, craft times and the missions that reward them, plus a planner for what you want to build. |
+| **Mining** | Ores and where to find them, a fracturing calculator for laser, module and gadget setups, and refinery yields with a tracker for your work orders. |
+| **Missions** | A searchable mission database with mission givers, rewards and locations. |
+| **Wikelo's Emporium** | What the Banu trader wants for each deal and what you get in return. |
+| **Aaron Halo** | A route calculator that tells you where to drop out of quantum to hit the density band you want. |
+| **Patch archive** | Every Alpha 4 release since Destination Pyro, each with its own visual theme, topic deep dives and a timeline of changes per game system. |
 
-```
-src/pages/        Seitenbaum (EN auf der Wurzel, DE unter de/)
-src/components/   geteilte Bausteine (SiteNav, ItemFinderApp, ShipDetail …)
-src/lib/          Bau-Zeit-Logik (SEO, Archiv-Modell, Routen-Zwillinge …)
-src/i18n/         UI-String-Kataloge DE/EN
-src/data/         Daten-Schnappschüsse (Patches, Schiffe, Preise)
-src/content.config.ts  typisierte Patch-Collection (Zod-Schema)
-assets/           kanonische Bilder/CSS/Client-JS  → wird nach public/ gespiegelt
-public/           was 1:1 ausgeliefert wird (inkl. vendortes three.js)
-scripts/          Datamining, Sync, Bau-Helfer, Prüfungen
-tests/e2e/        node:test — Verhalten, Datenbank, gebautes Layout, Konfig
-nginx/            Auslieferungs-Konfiguration des Origins
-supabase/         Migrationen + Edge Function (verify-rsi)
-discord/          Server-Builder + Dauer-Bot (eigenes Deployment)
-docs/             Tiefen-Analysen und Vorhaben
-```
+An optional account keeps favourites, your fleet, refinery work orders and owned
+blueprints in sync across devices.
 
-## Loslegen
+<p align="center">
+  <img src="docs/bilder/readme-schiff.webp" alt="Ship page with specs and 3D hologram" width="290">
+  <img src="docs/bilder/readme-fracturing.webp" alt="Fracturing calculator" width="290">
+  <img src="docs/bilder/readme-patch.webp" alt="Patch page for Alpha 4.10" width="290">
+</p>
+
+## How it's built
+
+- **[Astro](https://astro.build), fully static.** Every one of the more than
+  18,000 pages is a real HTML file, generated at build time. All content is baked in, so
+  there is no content API at runtime, no runtime keys and no rate limits.
+- **Two languages, one tree.** English lives at the root, German under `/de/`;
+  the language switch finds each page's twin on its own.
+- **Data as versioned snapshots.** The project's own scripts prepare the data and
+  commit it to the repository. Building the site needs no game installation and
+  no API keys; refreshing the data after a patch happens on the maintainer's
+  machine.
+- **Accounts** run client-side against [Supabase](https://supabase.com) with row
+  level security; the site itself stays static.
+- **3D** with [three.js](https://threejs.org), served from the site's own origin.
+- **Delivery:** GitHub Actions builds a Docker image (nginx plus the static
+  build), pushes it to `ghcr.io`, and [Coolify](https://coolify.io) rolls it out
+  behind Cloudflare. Nothing is built on the server.
+
+Some content comes from community sources and is credited on the site: in-game
+prices from [UEX Corp](https://uexcorp.space), 3D hologram files, paints and
+variants from [FleetYards](https://fleetyards.net), and wiki text from
+[starcitizen.tools](https://starcitizen.tools) under CC BY-SA 4.0.
+
+## Nothing ships without the gate
+
+`npm run gate` runs about fifty automated checks against the finished build:
+end-to-end tests, links and anchors, SEO and `hreflang`, accessibility, Content
+Security Policy coverage, data consistency, parity between English and German,
+and a type check. The same chain runs inside the Docker build, so a failing check
+means no image and the live site keeps its last good state. Before an image is
+pushed, a headless browser additionally loads the key pages of both languages in
+the finished container.
+
+Checks report how many items they actually inspected, and a new check is shown
+failing once on purpose before it counts. The approach is described in
+[`docs/maschinelle-validierung.md`](docs/maschinelle-validierung.md) (German).
+
+## Getting started
+
+Requires Node.js 22.
 
 ```bash
 npm ci
-npm run dev
+npm run dev       # development server on http://localhost:4321
+npm run build     # full static build into dist/ (a few minutes)
+npm run preview   # serve the build locally
+npm run gate      # the delivery gate, same chain as in the Docker build
 ```
 
-`dev` und `build` erzeugen vorab Thumbnails, die Downloads-Übersicht und
-spiegeln `assets/` nach `public/assets/` — deshalb immer über die npm-Skripte
-gehen, nie `astro dev` direkt aufrufen.
+Always go through the npm scripts: they prepare thumbnails and mirror `assets/`
+into `public/` before Astro runs.
 
-```bash
-npm run build          # vollständiger Build nach dist/ (~3 Minuten)
-npm run preview        # den Build lokal ausliefern
+## Repository layout
+
+```
+src/pages/        page tree (English at the root, German under de/)
+src/components/   shared building blocks
+src/lib/          build-time logic (SEO, search index, route twins, …)
+src/i18n/         UI strings in English and German
+src/data/         data snapshots
+assets/           images, styles and client scripts, mirrored into public/
+scripts/          data preparation, build helpers and the checks of the gate
+tests/e2e/        node:test suites against the built site
+nginx/            origin configuration (headers, CSP, rewrites)
+supabase/         database migrations and edge functions
+discord/          Discord server builder and bot
+docs/             developer documentation (German)
 ```
 
-## Prüfen
+The developer guide (in German) is in [`docs/entwicklung.md`](docs/entwicklung.md);
+[`docs/README.md`](docs/README.md) lists all documents.
 
-**Ein Befehl, und es ist derselbe wie im Dockerfile:**
+## Security
 
-```bash
-npm run gate
-```
+Please report vulnerabilities privately, not as a public issue or pull request.
+How to reach us is described in [`SECURITY.md`](SECURITY.md).
 
-Das ist das Auslieferungs-Tor (Schiene A). Läuft nach einem Build und prüft
-alles, was auch der CI-Build prüft, bevor ein Image entsteht — schlägt eine
-Strecke fehl, entsteht dort kein Image und Coolify liefert weiter den letzten
-guten Stand. **Vor jedem Push auf `staging` einmal grün gesehen haben.**
+## Deutsch
 
-```bash
-npm run gate -- --list            # nur zeigen, was liefe
-npm run gate -- --only verify:fx  # eine einzelne Strecke, zur Diagnose
-npm run gate -- --continue        # nicht beim ersten Fehler abbrechen
-npm run gate:data                 # Schiene B: nach jedem Datamine-/Sync-Lauf
-```
+VerseBase ist ein inoffizielles Star-Citizen-Kompendium auf Deutsch und Englisch:
+Schiffe, Item Finder, Crafting, Bergbau, Missionen und das Patch-Archiv der
+Alpha-4-Ära. Die Entwickler-Doku ist deutsch und beginnt bei
+[`docs/entwicklung.md`](docs/entwicklung.md).
 
-Jeder Lauf sagt in der Kopfzeile, **woran** er grün war: gegen den Live-Build
-oder gegen den Vorschau-Build. Die beiden unterscheiden sich in der
-SEO-Oberfläche (`STAGING=1` → site-weit `noindex`, gesperrte `robots.txt`,
-absichtlich leere Sitemaps), und das reicht, damit dieselbe Kette lokal grün
-und in CI rot sein kann — genau so passiert am 09.08.2026. Den staging-Build
-lokal nachstellen:
+---
 
-```bash
-$env:STAGING = '1'; npm run build; npm run gate   # PowerShell
-```
-
-Welche Strecken zu welcher Schiene gehören, steht in
-[`scripts/lib/gate-registry.mjs`](scripts/lib/gate-registry.mjs) — und nur
-dort. `verify:wiring` (erste Strecke im Tor) schlägt fehl, sobald ein
-Prüfskript ohne Eintrag im Bestand liegt, ein Eintrag ins Leere zeigt oder
-eine Strecke git/Netz/Kindprozess anfasst, ohne es zu erklären. Schiene B
-läuft nur lokal: sie braucht die `Data.p4k`, den installierten Client oder
-freien UEX-Zugang — aus GitHub Actions ist UEX gesperrt.
-
-Eine Strecke kann im Verzeichnis **ausgesetzt** sein (`disabled`), wenn sie aus
-einem benannten Grund gerade rot ist — ein rotes Tor scharfzuschalten erzieht
-nur zum Wegsehen. Jeder Lauf druckt diese Schuldenposten am Ende, damit sie
-niemand vergisst; `npm run gate -- --only <name>` ruft eine ausgesetzte Strecke
-gezielt auf, um sie abzutragen.
-
-### Browser-Rauchtest (Schiene C)
-
-Das einzige Verfahren, das eine Seite in einem **echten Browser** lädt — gegen
-die Klasse „HTML korrekt, Browser macht trotzdem etwas anderes":
-
-```bash
-npm run preview                                      # Terminal 1
-npm run smoke -- --base http://localhost:4321        # Terminal 2
-```
-
-15 Leitseiten je EN und DE in drei Varianten (dunkel 1280, dunkel 360, hell
-1280): keine JS-Ausnahme, keine eigene Ressource ≥ 400, kein CSP-Verstoß,
-Leitelement wirklich sichtbar, kein waagerechter Überlauf — dazu
-Interaktionsproben (filtert der Item Finder wirklich? zählt der Schiffsfilter
-runter?). Braucht `playwright-core` (schon als devDependency) und einen
-installierten Chrome oder Edge; ein anderer Pfad geht über `CHROME_PATH`.
-
-In CI läuft er in `deploy-staging.yml` gegen den **fertigen Container**, und
-zwar vor dem Push — die CSP ist ein nginx-Header und existiert nur dort. Für
-eine schon ausgelieferte Seite: `npm run smoke -- --base https://staging.verse-base.com`.
-
-### Liefert die Seite wirklich den neuen Stand? (Schiene C)
-
-```bash
-npm run check:staging     # gegen staging.verse-base.com
-npm run check:live        # gegen verse-base.com
-npm run check:headers     # Sicherheits-Kopfzeilen und CSP der ausgelieferten Seite
-```
-
-Jeder Build schreibt `dist/build.json` mit der Commit-Kennung. `check:*` holt
-sie von der ausgelieferten Seite und vergleicht sie mit `origin/staging` bzw.
-`origin/main` — und prüft nebenbei, dass Vorschau und Live nicht vertauscht
-sind. **Das ist die einzige belastbare Antwort auf „ist es draußen?"**: „CI
-grün" ist keine — staging hat schon vier Stunden den Vortagsstand
-ausgeliefert, während alle Commits an Ort und Stelle lagen.
-
-⚠ Und zwar **vom Entwicklungsrechner aus**: Cloudflare weist den
-GitHub-Runner mit `403` ab (dieselbe Sperre gegen Rechenzentren wie bei UEX,
-am 09.08.2026 gemessen). Der Schritt in den Workflows bleibt bestehen, bricht
-bei `403` aber sofort ab und meldet ehrlich „NICHT geprüft" statt grün zu
-tun.
-
-Einzeln aufrufbar bleibt weiterhin alles:
-
-```bash
-npm run test:e2e       # node:test — braucht einen Build (sagt es sonst)
-npm run verify         # jede lokale href/src/url() in dist/ zeigt auf eine Datei
-npm run verify:vendor  # vendortes three.js passt zur devDependency
-npm run audit:csp      # die CSP in nginx/default.conf deckt alles ab, was lädt
-npm run audit:site     # Links, Anker, Sitemap, hreflang, SEO, A11y, Gewichte
-```
-
-`audit:site` unterscheidet **FEHLER** (blockiert die Veröffentlichung) von
-WARNUNG und INFO. Es kennt die Rewrites aus `nginx/default.conf`, meldet also
-keine Links als tot, die der Server sehr wohl ausliefert.
-
-`audit:csp` misst die Content-Security-Policy gegen den fertigen Build: welche
-externen Hosts, Blob-Worker und WebAssembly-Nutzungen tatsächlich vorkommen und
-ob die Richtlinie sie deckt. Eine zu enge CSP bricht nicht beim Deploy, sondern
-still im Browser des Besuchers — deshalb läuft die Prüfung im Qualitätstor mit.
-
-Inline-Skripte laufen seit 29.10.2026 per Hash statt `'unsafe-inline'`: der
-letzte Schritt von `npm run build` (`scripts/_write-csp-hashes.mjs`) rechnet
-die sha256 aller Inline-Skripte nach `dist/_csp/`, nginx liest sie per
-`include`. `audit:csp` sichert zu, dass jedes Inline-Skript seinen Hash hat
-und kein Inline-Handler (`onclick=…`) ohne benannte Ausnahme im Build steht —
-neue Handler gehören als Listener nach `assets/`, Bild-Rückfälle als
-`data-img-fail` ans `<img>`. Der Umami-Zähler kommt als gepinnte Kopie vom
-eigenen Ursprung (`public/vendor/zaehler/zaehler.js`, erneuern mit
-`node scripts/vendor-umami.mjs <tag>`, Anleitung im Kopf der Datei). Der Pfad
-trägt bewusst nicht „umami“: Werbeblocker-Listen sperren `/umami/script.js`.
-
-## Ausliefern
-
-Push auf `main` → GitHub Actions baut das Docker-Image (viel RAM) → `ghcr.io` →
-Coolify zieht das fertige Image. **Auf dem Server wird nicht gebaut** (er hat zu
-wenig Speicher). Der Ablauf steht in
-[`.github/workflows/deploy-image.yml`](.github/workflows/deploy-image.yml).
-
-Das Qualitätstor sitzt im [`Dockerfile`](Dockerfile), nicht im Workflow: nach
-`npm run build` laufen dort e2e-Tests, `_verify` und die three.js-Prüfung. Fällt
-eine durch, entsteht kein Image und Coolify behält den letzten guten Stand.
-
-Vor der Kante steht Cloudflare (TLS). Sicherheits-Header, Cache-Control und die
-Rewrites setzt der Origin in [`nginx/default.conf`](nginx/default.conf).
-
-`.github/workflows/build.yml` ist ein separater **Knopf für den Patch-Day**: er
-zieht frische Daten-Schnappschüsse, committet sie nach `main` und baut. Sync-
-Schritte sind absichtlich nicht fatal — fällt eine Fremd-API aus, baut die Seite
-mit dem letzten guten Schnappschuss weiter.
-
-## Daten
-
-Der überwiegende Teil ist **spiel-akkurat aus der eigenen `Data.p4k`-Extraktion**
-(`scripts/lib/p4k.mjs` liest den Zip64-Container mit zstd-Nutzlast direkt in
-Node, `scripts/lib/datacore.mjs` den `Game2.dcb`-Datensatz — beides ohne unp4k
-oder unforge). Preise stammen von UEX Corp, Schiffs-Specs von FleetYards und der
-Star-Citizen-Wiki-API.
-
-Die `datamine:*`-Skripte brauchen eine **lokale Star-Citizen-Installation**:
-
-```bash
-SC_P4K="D:/…/StarCitizen/LIVE/Data.p4k" npm run datamine:items
-```
-
-Ohne die Variable wird `F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k`
-versucht. Alle daraus erzeugten Datendateien liegen als Schnappschuss im Repo —
-**für Bauen und Entwickeln ist keine Spielinstallation nötig**, nur für den
-Daten-Refresh am Patch-Day.
-
-| Bereich | Skript |
-|---|---|
-| Items + Preise | `npm run datamine:items`, `npm run sync:items` |
-| Bergbau | `npm run sync:mining`, `npm run verify:mining` |
-| Crafting | `npm run datamine:crafting` |
-| Missionen | `npm run datamine:missions` |
-| Schiffe / Specs | `npm run sync:vehicles`, `npm run sync:ships`, `npm run sync:extras` |
-| 3D-Hologramme | `npm run extract:hardpoints`, `npm run build:holo-meshes`, `npm run calibrate:holo` |
-| Raffinerie | `npm run sync:refinery` |
-
-## Mitschreiben
-
-- Interne Links sind **root-relativ und tragen `.html`** (`/schiffe/x.html`).
-  Verschiebt sich das Deploy-Ziel, ändern sich nur `site` in
-  `astro.config.mjs` und `SITE.url` in `src/consts.ts`.
-- Handverlinkte Dateien unter `/assets/` brauchen einen **Content-Hash als
-  `?v=`** (siehe `ItemFinderApp.astro`). Ohne ihn bekommen wiederkehrende
-  Besucher bis zu 24 Stunden lang das alte Skript zum neuen HTML.
-- Der Sprachumschalter ermittelt selbst, ob es die Seite in der anderen Sprache
-  gibt (`src/lib/routeTwins.ts`) — es ist nichts von Hand zu pflegen.
-- „Fertig" heißt **DE und EN**. Der Audit zählt beide Bäume getrennt.
-- Keine erfundenen Werte. Fehlt eine Angabe, wird das im UI gesagt („Nur
-  Katalog", „Kein Fundort bekannt") statt geschätzt.
-
-## Hinweis
-
-Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC & Ltd. —
-keine Verbindung zu CIG. Eingebettete Trailer, Standbilder und Schiff-/
-System-Bilder stammen von offiziellen bzw. Community-Quellen (© Cloud Imperium
-Games) und werden im Rahmen der Fan-Content-Nutzung zu Dokumentationszwecken
-eingebunden.
+<sub>Unofficial fan project for documentation purposes. Star Citizen® and all
+related marks are property of Cloud Imperium Rights LLC & Ltd. Not affiliated with
+or endorsed by Cloud Imperium Games. Wiki content from starcitizen.tools is
+licensed under CC BY-SA 4.0; embedded trailers and stills © Cloud Imperium Games
+(fan-content use).</sub>

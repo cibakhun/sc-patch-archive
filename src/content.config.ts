@@ -9,7 +9,7 @@ import { VORSCHAU_PATCH_DATEIEN } from '../scripts/lib/vorschau-patches.mjs';
 const fact = z.object({
   label: z.string(),
   value: z.string(),
-  /** carried over from PATCH-DATA.md "(unbestätigt)" markers */
+  /** carried over from .planning/archiv/PATCH-DATA.md "(unbestätigt)" markers */
   unverified: z.boolean().optional(),
 });
 

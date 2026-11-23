@@ -784,8 +784,9 @@ die Lieferung auf `staging` liegt.
 > **Zweite Lehre, allgemeiner:** „Tor lokal grün" hieß nicht „Tor in CI grün",
 > weil beide gegen *verschiedene Artefakte* liefen. `npm run gate` nennt
 > deshalb ab jetzt in seiner Kopfzeile, woran es geprüft hat (`Artefakt:
-> Live-Build` bzw. `Vorschau-Build (STAGING=1)`), und `README.md` zeigt den
-> Befehl, um den staging-Build lokal nachzustellen. Das ist derselbe
+> Live-Build` bzw. `Vorschau-Build (STAGING=1)`), und `docs/entwicklung.md`
+> (bis 23.11.2026 `README.md`) zeigt den Befehl, um den staging-Build lokal
+> nachzustellen. Das ist derselbe
 > Grundsatz 7, der Stufe 2 gegen das fertige Image prüfen lässt statt gegen
 > `dist/`.
 >
