@@ -700,6 +700,11 @@ export const EXCLUSIONS = [
     reason: 'src/components/hangar/HangarApp.astro: .hg-canvas::after ist eine Randabdunklung (radial-gradient, Mitte durchsichtig, Rand var(--bg) 55 %) ueber der 3D-Leinwand des Hangars, kein Scrim unter Text. Titel, Werte-Panel und Bedienknoepfe sind Geschwister ueber der Leinwand mit eigener Flaeche bzw. Textschatten; die Abdunklung kann ihren Kontrast nur heben. Die Leinwand selbst ist ein laufendes WebGL-Bild -- ein statischer Kontrastwert koennte sie ohnehin nicht zertifizieren.',
   },
   {
+    id: 'X-hangar-ankunft',
+    selectorFamilies: ['.hg-ankunft::after'],
+    reason: 'src/components/hangar/HangarApp.astro: .hg-ankunft ist die Ladeszene des Hangars (Standbild der Halle, darauf Hersteller, Name, Groesse und drei Ladeschritte), sie steht nur, bis die 3D-Halle steht, und blendet dann ins Live-Bild. .hg-ankunft::after ist eine RADIALE Randabdunklung (Mitte rgb(3 6 10) 5 %, Rand 72 %), kein Scrim unter Text, sie kann den Kontrast nur heben; das Bild darunter ist zusaetzlich mit brightness(.62) gedaempft, jede Textzeile traegt einen eigenen dunklen Textschatten. Der Compositor dieses Tors kennt nur achsparallele Verlaeufe und keine Filter, ein Eintrag waere hier nicht messbar. Einmal von Hand nachgemessen (23.11.2026, alle fuenf Bilder unter public/hangar/ankunft/, Textflaeche 25..75 % x 30..62 %, 95. Perzentil der Leuchtdichte nach Filter und Abdunklung): Name #f2f8fc mindestens 9.9:1, selbst am hellsten Pixel 3.9:1 (grosse Schrift, Marke 3:1); Groesse 6.7:1; fertiger Ladeschritt 5.7:1. Die Bilder sind wie die Leinwand ein Abbild der laufenden WebGL-Halle (X-hangar-vignette) und werden mit scripts/build-hangar-ankunft.mjs neu erzeugt; verify-hangar-hallen [6] haelt Zahl, Groesse und Format.',
+  },
+  {
     id: 'X-rec-banner-dead',
     selectorFamilies: ['.rec-banner::after'],
     reason: 'assets/account-dossier.css: .rec-banner (samt .bmeta/.bchip/.barcode) ist TOTES CSS -- 0 Fundstellen in src/ (grep bestaetigt), die Klasse wird auf keiner Seite verwendet. Keine tatsaechliche Rendering-Instanz zu messen.',

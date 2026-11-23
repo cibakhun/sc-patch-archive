@@ -239,6 +239,16 @@ const logos = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
   return l && f.makerCode ? [[f.makerCode, { url: `/assets/manufacturers/${l.file}`, ar: Math.round((l.w / l.h) * 1000) / 1000, full: !!l.full }]] : [];
 }));
 
+// Ankunftsbild je Halle (Hangar-Politur 22.11.2026, scripts/build-hangar-ankunft.mjs):
+// ein kleines, weichgezeichnetes Standbild der leeren Halle, das beim ersten
+// Laden und beim Hallenwechsel unter Name und Ladeschritten steht
+// (ankunftAn in hangar-overview.js). Schluessel: die Id der Halle, 'werk'
+// fuer die Werkhalle der Bodenfahrzeuge.
+const ankunftDir = 'public/hangar/ankunft';
+const ankunft: Record<string, string> = Object.fromEntries((existsSync(ankunftDir) ? readdirSync(ankunftDir) : [])
+  .filter((f) => f.endsWith('.webp'))
+  .map((f) => [f.slice(0, -5), `/hangar/ankunft/${f}?v=${contentV([`${ankunftDir}/${f}`])}`]));
+
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // Stationen als Hologramme in der Halle (ROADMAP Phase 22): der Viewer lädt
 // das Modul erst, wenn die Seite eine Station in 3D zeigt
@@ -248,6 +258,7 @@ const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo
 const stage = {
   viewer: viewerSrc,
   halls,
+  ankunft,
   opts: { hall, crew, gear, texBytes, logos, interior, holo },
   models: Object.fromEntries(HANGAR_IDS.map((id) => {
     // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die
@@ -331,6 +342,38 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-load em{display:none}
 .hg-load[data-umbau]{width:min(220px,60%);opacity:1}
 .hg-load[data-umbau] em{display:block;margin-top:.7rem;font-style:normal;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;text-align:center;white-space:nowrap;color:var(--hg-dim);text-shadow:0 1px 6px rgb(0 0 0/.9)}
+/* Ankunft: liegt ueber der Leinwand und dem Standbild eines Umbaus, unter
+   allem, was die Seite auf die Buehne legt (der <slot /> folgt im Dokument).
+   Steht das Schiff, blendet sie aus (data-geht); die Schritte fuellen sich je
+   fuer sich, Licht laeuft ohne Groesse, bis das Schiff steht. */
+.hg-ankunft{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,#101a24,#05080c 78%);transition:opacity .6s ease}
+.hg-ankunft[hidden]{display:none}
+.hg-ankunft[data-geht]{opacity:0}
+.hg-ankunft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.62) saturate(.85);opacity:0;transition:opacity .45s ease}
+.hg-ankunft img[data-da]{opacity:1}
+.hg-ankunft img[hidden]{display:none}
+.hg-ankunft::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,rgb(3 6 10/.05),rgb(3 6 10/.72) 85%)}
+.hg-ankunft__t{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;max-width:min(36rem,90%);padding:1rem;text-align:center;transform:translateY(-8%);translate:var(--ank-dx,0px) 0}
+.hg-ankunft__t p{margin:0}
+.hg-ankunft__m{font-family:var(--font-ui);font-size:var(--fs-4);font-weight:600;letter-spacing:var(--ls-13);text-transform:uppercase;color:rgb(205 230 246/.75);text-shadow:0 1px 8px rgb(0 0 0/.9)}
+.hg-ankunft__m:empty{display:none}
+.hg-ankunft__n{margin-top:.2rem!important;font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,3.4vw,2.7rem);line-height:1.05;text-wrap:balance;color:#f2f8fc;text-shadow:0 2px 22px rgb(0 0 0/.85)}
+.hg-ankunft__g{margin-top:.45rem!important;font-family:var(--font-ui);font-size:var(--fs-4);font-weight:600;letter-spacing:var(--ls-13);text-transform:uppercase;color:rgb(170 226 255/.92);text-shadow:0 1px 8px rgb(0 0 0/.9)}
+.hg-ankunft__g:empty{display:none}
+.hg-ankunft__s{display:flex;gap:clamp(.9rem,2vw,1.6rem);margin:1.3rem 0 0;padding:0;list-style:none}
+.hg-ankunft__s li{width:clamp(64px,8vw,96px);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:600;letter-spacing:var(--ls-13);text-transform:uppercase;color:rgb(205 230 246/.42);text-shadow:0 1px 6px rgb(0 0 0/.9);transition:color var(--dur-slow) var(--ease-ui)}
+.hg-ankunft__s b{display:block;height:2px;margin-bottom:.5rem;border-radius:2px;background:rgb(205 230 246/.16);overflow:hidden}
+.hg-ankunft__s b i{display:block;height:100%;width:calc(var(--p,0) * 100%);background:var(--hg-amber);transition:width var(--dur-slow) linear}
+.hg-ankunft__s li[data-an]{color:#f2f8fc}
+.hg-ankunft__s li[data-fertig]{color:rgb(205 230 246/.78)}
+.hg-ankunft__s li[data-fertig] b i{width:100%;background:rgb(170 226 255/.85)}
+.hg-ankunft[data-ohne-halle] [data-s="halle"]{display:none}
+.hg-ankunft__s li[data-s="licht"][data-an]:not([data-fertig]) b i{width:45%;animation:hg-ank-lauf 1.3s ease-in-out infinite}
+@keyframes hg-ank-lauf{from{transform:translateX(-100%)}to{transform:translateX(225%)}}
+/* der leise Balken weicht der Ankunft; fuer Vorleser bleibt sein Satz */
+.hg-ankunft:not([hidden])~.hg-load{opacity:0}
+@media (max-width:760px){.hg-ankunft__t{transform:translateY(4%)}}
+@media (prefers-reduced-motion:reduce){.hg-ankunft,.hg-ankunft img,.hg-ankunft__s b i{transition:none}.hg-ankunft__s li[data-s="licht"][data-an]:not([data-fertig]) b i{animation:none;width:100%;opacity:.55}}
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
 @media (max-width:760px){
@@ -343,6 +386,23 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 
     <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
       <div class="hg-canvas" id="hg-canvas"></div>
+      {/* Ankunft (ankunftAn in hangar-overview.js): Standbild der Halle, Hersteller,
+          Name und drei Schritte mit eigenem Fortschritt; der Balken darunter
+          (#hg-load) traegt dann nur noch den Satz fuer Vorleser. data-werk:
+          das Wort fuer Bodenfahrzeuge. */}
+      <div class="hg-ankunft" id="hg-ankunft" aria-hidden="true" hidden>
+        <img alt="" decoding="async" hidden />
+        <div class="hg-ankunft__t">
+          <p class="hg-ankunft__m"></p>
+          <p class="hg-ankunft__n"></p>
+          <p class="hg-ankunft__g"></p>
+          <ol class="hg-ankunft__s">
+            <li data-s="halle"><b><i></i></b>{de ? 'Halle' : 'Hangar'}</li>
+            <li data-s="schiff" data-werk={de ? 'Fahrzeug' : 'Vehicle'} data-halle={de ? 'Schiff' : 'Ship'}><b><i></i></b><span>{de ? 'Schiff' : 'Ship'}</span></li>
+            <li data-s="licht"><b><i></i></b>{de ? 'Licht' : 'Lights'}</li>
+          </ol>
+        </div>
+      </div>
       <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b><em>{de ? 'Hangar wird gewechselt …' : 'Switching hangar …'}</em></div>
       {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt.
           data-crash: der Wächter der Seite hat die Bühne abgestellt, data-retry beschriftet seinen Knopf,
