@@ -72,6 +72,7 @@ class El {
     if (k.startsWith('data-')) this.dataset[k.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = String(v);
   }
   getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
+  hasAttribute(k) { return k in this.attrs; }
   removeAttribute(k) { delete this.attrs[k]; }
   getBoundingClientRect() { return { top: 300, bottom: 370, left: 0, right: 720, width: 720, height: 70 }; }
   contains(x) { return x === this || this.children.some((c) => c.contains && c.contains(x)); }

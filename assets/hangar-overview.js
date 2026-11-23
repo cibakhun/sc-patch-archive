@@ -2038,6 +2038,8 @@ export function boot(doc) {
     syncFleetBtn();
     if (state.fleetOnly) applyDock();
     announceFleet(before, fleetIds);
+    // die Flotte im Ueberblick des Schirms
+    terminal?.auffrischen?.();
   }
 
   // Spalten aus den Dock-Daten, keine Bucht; cmp[0] ist die Basis. Jedes
@@ -2526,6 +2528,11 @@ export function boot(doc) {
         // Wer angemeldet ist, nennt auch der Monitor der Halle (setTerminal:
         // eine Einstellung, die eine neu gebaute Buehne wieder bekommt)
         wer: (id) => viewer?.setTerminal?.(id),
+        // Der Ueberblick des Schirms (23.11.2026): was an den Orten steht,
+        // ein Ort als Klick (wie in der Leiste der Buehne), die Flotte
+        orte: termOrte,
+        ort: (to) => goPlace(to),
+        flotte: () => [...fleetIds].filter((id) => dock.has(id)).map((id) => ({ id, name: dock.get(id).name, feld: id === state.ship })),
       });
       nachAnkunft(() => terminal.place(termRect));
     }, () => { terminalLoad = null; });
@@ -2541,6 +2548,14 @@ export function boot(doc) {
       schiff: dock.get(state.ship)?.name ?? '',
       halle: e?.size ? m[e.size.toLowerCase()] ?? '' : '',
     };
+  }
+  // Was die Orte der Halle im Ueberblick nennen: das Fahrzeug, das ein Klick
+  // dorthin holte (placeShip, wie goPlace), und die Hangargroesse des Felds
+  function termOrte() {
+    const c = { ids: items.map((li) => li.dataset.id), werk: ctx.werk, defaultShip: ctx.defaultShip };
+    const feld = placeShip('halle', state.ship, ortMemo, c), werk = placeShip('werk', state.ship, ortMemo, c);
+    const e = feld ? grOf.get(feld) : null, m = msg('gr');
+    return { feld: dock.get(feld)?.name ?? '', halle: e?.size ? m[e.size.toLowerCase()] ?? '' : '', werk: dock.get(werk)?.name ?? '' };
   }
 
   // Die Uebersicht als Hologramm (viewer.station): Woerter und Zahlen aus der

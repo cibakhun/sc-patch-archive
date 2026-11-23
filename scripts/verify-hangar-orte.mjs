@@ -49,11 +49,25 @@
          Karte stehen die drei Wege des Gasts (#hgx-term-lwahl): Anmelden
          und Konto erstellen als Links ins Fenster auf Seiten, die in
          dist/ liegen, „Als Gast weiter“ als Knopf.
+         Seit der vierten Runde (23.11.2026, Krisz: „bildschirm control
+         panel mal richtig ausbauen“): vorn in der Leiste der Knopf des
+         Ueberblicks, im Fenster der Ueberblick (#hgx-ts) mit allen
+         Worten, die das Modul einsetzt ({n}, {name}, {ort} dort, wo eine
+         Zahl oder ein Name hineingehoert), der Startseite der Website
+         fuer „eigener Tab“, den drei Orten in der Folge der Leiste und
+         der Suche der Seite als festem Feld (#hs mit data-hs-fest, genau
+         eines je Seite: assets/search-overlay.js nimmt das erste).
      [3] Reiter: mindestens MIN_BEREICHE je Seite, Schluessel einmalig,
          jeder zielt ins Fenster, fuehrt auf eine Seite, die in dist/
          liegt, in der Sprache der Hangarseite, bleibt im Fenster
          (termRoute) und markiert sich selbst (termTool mit seinen
          Pfad-Anfaengen); data-home nennt einen von ihnen.
+         Vierte Runde: Die Werkzeuge des Ueberblicks sind genau die
+         Reiter der Leiste, in derselben Folge und mit demselben Ziel;
+         jeder andere Link des Ueberblicks (Zahlen des Kontos, Patch, die
+         Wege des Gasts, wer davor sitzt) zielt ins Fenster, fuehrt auf
+         eine Seite in dist/ in der Sprache der Halle und bleibt im
+         Fenster (termRoute).
      [4] Reine Funktionen des ausgelieferten Terminals: Der Kasten deckt
          das Rechteck des Schirms (Breite mal Massstab), steht in voller
          Breite, solange der Massstab TERM_MIN_K haelt, darunter schmaler
@@ -81,6 +95,13 @@
          Breite des Schirms (zwei zu eins, etwa 550 px hoch), geprueft
          gegen das Markup der ausgelieferten Kontoseiten: Ein Muster, das
          dort nichts mehr traefe, reisst.
+         Vierte Runde: termErste beginnt eine Sitzung beim Ueberblick und
+         nimmt aus dem Gedaechtnis nur eine Seite, die ins Fenster und in
+         die Sprache der Halle gehoert; termRest zaehlt wie der Tracker
+         und zeigt nie 00:00:00, solange etwas laeuft; termRaffinerie,
+         termCrafting und termFreunde zaehlen die Zeilen des Kontos so wie
+         Tracker, Crafting-Seite und Konto-Knopf und lassen fremde Zeilen
+         liegen.
      [5] Geometrie der Buehne: Fuer viele Fenstergroessen und freie
          Rechtecke steht die Kamera aus leitFit so, dass das Fenster der
          Seite im Bild genau das gemeldete Rechteck ist (nachgerechnet mit
@@ -136,6 +157,13 @@
          vor dem ersten Bild (data-ort="leit"): Es laeuft hier mit
          nachgestellter Adresse, Sitzung und Fenstergroesse und muss in
          jeder Probe sagen, was der Controller sagt.
+         Vierte Runde: Der Controller reicht dem Ueberblick Orte, Flotte
+         und den Klick auf einen Ort und meldet ihm eine neue Flotte; das
+         Terminal beginnt beim Ueberblick, laesst ihn erst gehen, wenn die
+         Seite steht, die er geoeffnet hat, und nimmt die Treffer der
+         Suche auf den Schirm (vbSucheWeg), die Suche der Hangarseite
+         fragt danach und laesst ein festes Feld an seinem Platz; im Stil
+         ist der Ueberblick nur vorn zu sehen und zu erreichen.
      [7] Rahmen: Dieser Bau erlaubt der eigenen Seite das Rahmen
          (dist/_csp/, scripts/lib/rahmen.mjs). Sonst bliebe der Schirm
          leer; audit:csp prueft dieselben Dateien in beide Richtungen.
@@ -363,6 +391,34 @@
         Review), setzt die Kamera dort weiter selbst, rechnet den
         gemerkten Platz in Weltmetern.
 
+   VORGEFUEHRT ROT (23.11.2026, vierte Runde: der Ueberblick als Startseite
+   des Schirms und die Politur), 24 Eingriffe am gebauten dist/, jeder fuer
+   sich, alle rot:
+     aa dist/de/hangar.html ([2]): den Knopf „Überblick“ aus der Leiste
+        genommen; data-l-ref-aktiv geleert; {name} aus data-l-hol
+        gestrichen; data-site auf "/" (die englische Startseite); dem
+        Suchfeld #hs data-hs-fest genommen (im ersten Lauf GRUEN: der
+        Eingriff traf das erste Vorkommen, einen Kommentar im Skript der
+        Suche; am Feld rot); in der englischen Seite den Ort halle in
+        feld umbenannt
+     ab dist/de/hangar.html ([3]): die Kachel Items auf eine Seite, die es
+        nicht gibt; die Patch-Karte in einen eigenen Tab; eine Zahl-Kachel
+        auf die englische Seite
+     ac dist/assets/hangar-terminal.js ([4]): termErste nimmt die Seite der
+        anderen Sprache; termRaffinerie zaehlt erledigte Auftraege und
+        klemmt den Anteil nicht; termCrafting zaehlt jede Menge; termRest
+        ohne Tage; TERM_CSS ohne --nav:0 (der Streifen ueber der Kontoseite)
+     ad Naht und Stil ([6]): place und showWho messen die Leiste nicht neu
+        (passeLeiste); place setzt data-niedrig nicht; der Kopf des
+        Ueberblicks ohne eigene Ebene; die Stufe 3 der Leiste ohne Regel;
+        inlineHere ohne checkVisibility; die Suche kennt das feste Feld
+        nicht; frame.inert gestrichen; der Controller ohne orte (im ersten
+        Lauf griff der Eingriff nicht: die Einrueckung im Controller ist
+        tiefer; mit einem Muster rot)
+     ae nach dem Review von PR #407 ([6]): der Takt des Ueberblicks ohne
+        malKonto ergab „fragt die Zahlen des Kontos nicht nach“
+   Die Meldungen stehen in der PR der vierten Runde.
+
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -388,6 +444,8 @@ const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete
 const MIN_GAST_WEGE = 6;     // Wege des Gasts auf dem Sperrbild, beschriftet und mit Ziel, in [2] (15.11.2026: 3 je Seite)
 const MIN_SITZ_PROBEN = 37;  // Pfade, Zeitstempel und Sitzungen, die [4] durch termKonto, termAnmeldung, termGruss und termBlende schickt (15.11.2026: 9 + 10 + 8 + 10)
 const MIN_START_PROBEN = 141; // Adressen und Besuche, die [6] durch startAmSchirm schickt (15.11.2026: 17 + 23 Schluessel) und durch den Vorentscheid im Geruest beider Seiten (je 15 + 23 + 7; 16.11.2026 je 15 + 23 + 10, mit der Sitzung, die sich nur lesen laesst), dazu die Frage von guess3d nach dem Telefon und 4 Laeufe des Erstbesuchs in tool-help.js
+const MIN_UEB_ZIELE = 30;    // Links des Ueberblicks mit Ziel in dist/, die [3] prueft (23.11.2026: 7 Werkzeuge, 4 Zahlen, Patch, 2 Wege des Gasts, wer davor sitzt, je Seite)
+const MIN_UEB_PROBEN = 34;   // Proben, die [4] durch termErste, termRest, termRaffinerie, termCrafting und termFreunde schickt (23.11.2026: 9 + 7 + 8 + 4 + 6)
 const MIN_KONTO_SEITEN = 6;  // Kontoseiten (Anmelden, Registrieren, Konto, je Sprache), deren ausgelieferte Skripte [6] nach dem Kennzeichen des Terminals durchsucht (15.11.2026: 6)
 
 const fehler = [];
@@ -449,7 +507,7 @@ say(`    ${orte} beschriftete Orte auf ${PAGES.length} Seiten`);
 
 /* ---------- [2] Terminal im Markup ---------- */
 say('[2] Terminal: Kasten, Fenster ohne Adresse, Modul mit Version des Inhalts');
-let kaesten = 0, gastWege = 0;
+let kaesten = 0, gastWege = 0, ueberblicke = 0;
 const boxOf = (page) => /<section[^>]*\bid="hgx-term"[^>]*>[\s\S]*?<\/section>/.exec(page.html)?.[0] ?? '';
 for (const page of PAGES) {
   const sec = boxOf(page), kopf = /^<section[^>]*>/.exec(sec)?.[0] ?? '';
@@ -545,14 +603,39 @@ for (const page of PAGES) {
     for (const n of ['data-l-login', 'data-l-acct', 'data-a-guest', 'data-a-user', 'aria-label']) if (!wert(wer, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-who ohne ${n}`);
     if (!(wert(wer, 'data-a-user') ?? '').includes('{name}')) fail(`[2] ${page.file}: #hgx-term-who data-a-user nennt den Platz fuer den Namen nicht ({name}): Vorleser erfuehren nicht, wer angemeldet ist`);
   }
+  // Vierte Runde (23.11.2026): der Ueberblick, die Startseite des Schirms
+  const nav = /<nav class="hgx-term__nav"[^>]*>([\s\S]*?)<\/nav>/.exec(sec)?.[1] ?? '';
+  const startKnopf = /^\s*<button[^>]*\bid="hgx-term-start"[^>]*>([\s\S]*?)<\/button>/.exec(nav);
+  if (!startKnopf) fail(`[2] ${page.file}: vorn in der Leiste steht nicht der Knopf des Ueberblicks (#hgx-term-start als erstes Kind von .hgx-term__nav): Von einer Seite fuehrte kein Weg zurueck zum Ueberblick`);
+  else if (wert(/^\s*<button[^>]*>/.exec(startKnopf[0])[0], 'type') !== 'button' || !text(startKnopf[1])) fail(`[2] ${page.file}: der Knopf des Ueberblicks ist kein beschrifteter Knopf vom Typ button`);
+  const ueb = /<div[^>]*\bid="hgx-ts"[^>]*>/.exec(sec)?.[0];
+  if (!ueb) fail(`[2] ${page.file}: der Ueberblick (#hgx-ts, TermStart.astro) fehlt im Fenster des Terminals: Der Schirm begaenne leer`);
+  else {
+    if (sec.indexOf('id="hgx-ts"') < sec.indexOf('<iframe')) fail(`[2] ${page.file}: der Ueberblick steht vor dem Fenster der Seite im Dokument: Er laege unter ihr statt darueber`);
+    const WORTE = ['data-l-zurueck', 'data-l-hallo', 'data-l-gast', 'data-l-gastsub', 'data-l-kontosub', 'data-l-acct', 'data-l-ort-a', 'data-f-schiff1', 'data-f-schiffn', 'data-f-leer', 'data-l-hol', 'data-l-mehr', 'data-l-ref-aktiv', 'data-l-ref-fertig1', 'data-l-ref-fertign', 'data-l-ref-leer', 'data-l-ref-alle', 'data-l-craft-besitz', 'data-l-craft-plan', 'data-l-craft-leer', 'data-l-anfrage1', 'data-l-anfragen', 'data-l-nachricht1', 'data-l-nachrichten', 'data-l-ruhig', 'data-l-nichtda'];
+    for (const n of WORTE) if (!wert(ueb, n)?.trim()) fail(`[2] ${page.file}: #hgx-ts ohne ${n}: eine Zeile des Ueberblicks stuende ohne Worte da`);
+    const PLATZ = { 'data-f-schiffn': '{n}', 'data-l-mehr': '{n}', 'data-l-ref-aktiv': '{n}', 'data-l-ref-fertign': '{n}', 'data-l-craft-besitz': '{n}', 'data-l-craft-plan': '{n}', 'data-l-anfragen': '{n}', 'data-l-nachrichten': '{n}', 'data-l-hol': '{name}', 'data-l-ort-a': '{ort}' };
+    for (const [n, platz] of Object.entries(PLATZ)) if (wert(ueb, n)?.trim() && !wert(ueb, n).includes(platz)) fail(`[2] ${page.file}: #hgx-ts ${n} nennt den Platz ${platz} nicht: Zahl oder Name fehlten im Ueberblick`);
+    const site = wert(ueb, 'data-site') ?? '';
+    if (site !== (page.de ? '/de.html' : '/')) fail(`[2] ${page.file}: #hgx-ts data-site="${site}" ist nicht die Startseite der Website in der Sprache der Halle: „In eigenem Tab öffnen“ fuehrte vom Ueberblick woandershin`);
+    const orte = [...sec.matchAll(/<button[^>]*\bclass="hgx-ts__ort"[^>]*>/g)].map((m) => wert(m[0], 'data-ort'));
+    if (orte.join() !== ORTE.join()) fail(`[2] ${page.file}: die Orte des Ueberblicks (${orte.join(', ') || '—'}) sind nicht ${ORTE.join(', ')} wie in der Leiste der Buehne`);
+    const hs = /<div[^>]*\bid="hs"[^>]*>/.exec(sec)?.[0];
+    if (!hs || !hat(hs, 'data-hs-fest')) fail(`[2] ${page.file}: die Suche des Ueberblicks (#hs) fehlt oder steht ohne data-hs-fest: Beim Antippen scrollte die Hangarseite, um das Feld unter ihre Kopfleiste zu holen`);
+    for (const id of ['hs-field', 'hs-in', 'hs-list']) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: der Suche des Ueberblicks fehlt #${id}: assets/search-overlay.js liesse das Feld liegen`);
+    const einmal = (page.html.match(/\bid="hs"/g) ?? []).length;
+    if (einmal !== 1) fail(`[2] ${page.file}: #hs steht ${einmal}-mal auf der Seite: Die Suche naehme das erste Feld, vielleicht nicht das des Schirms`);
+    else ueberblicke++;
+  }
   kaesten++;
 }
 if (gastWege < MIN_GAST_WEGE) fail(`[2] nur ${gastWege} Wege des Gasts mit Beschriftung und Ziel, Klinke ${MIN_GAST_WEGE}`);
-say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, ${gastWege} Wege des Gasts (Klinke ${MIN_GAST_WEGE}), Modulversion ${termV || '—'}`);
+if (ueberblicke < PAGES.length) fail(`[2] nur ${ueberblicke} von ${PAGES.length} Seiten mit vollstaendigem Ueberblick`);
+say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, ${ueberblicke} mit Ueberblick, ${gastWege} Wege des Gasts (Klinke ${MIN_GAST_WEGE}), Modulversion ${termV || '—'}`);
 
 /* ---------- [3] Reiter ---------- */
 say('[3] Reiter: Ziele in dist/, in der Sprache der Seite, bleiben im Fenster, markieren sich selbst');
-let reiter = 0, ziele = 0;
+let reiter = 0, ziele = 0, uebZiele = 0;
 for (const page of PAGES) {
   const sec = boxOf(page);
   const links = [...sec.matchAll(/<a[^>]*\bdata-term="[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map((m) => {
@@ -583,8 +666,28 @@ for (const page of PAGES) {
       if (key !== l.key) fail(`${wo}: auf seiner eigenen Seite ${pfad} waere „${key ?? 'keiner'}“ markiert (data-pre ${l.pre.join(' ') || '—'})`);
     }
   }
+  // Vierte Runde: die Links des Ueberblicks. Die Werkzeuge sind die Reiter, in
+  // ihrer Folge und mit ihrem Ziel; jeder Link oeffnet seine Seite im Fenster.
+  const ueb = /<div[^>]*\bid="hgx-ts"[^>]*>[\s\S]*?(?=<div[^>]*\bid="hgx-term-login")/.exec(sec)?.[0] ?? '';
+  if (!ueb) continue; // [2] hat es gemeldet
+  const kacheln = [...ueb.matchAll(/<a[^>]*\bdata-term-zu="[^"]*"[^>]*>/g)].map((m) => ({ key: wert(m[0], 'data-term-zu'), href: wert(m[0], 'href') ?? '' }));
+  if (kacheln.map((k) => k.key).join() !== keys.join()) fail(`[3] ${page.file}: die Werkzeuge des Ueberblicks (${kacheln.map((k) => k.key).join(', ') || '—'}) sind nicht die Reiter der Leiste (${keys.join(', ')})`);
+  for (const k of kacheln) {
+    const l = links.find((x) => x.key === k.key);
+    if (l && k.href !== l.href) fail(`[3] ${page.file}: das Werkzeug ${k.key} im Ueberblick fuehrt nach ${k.href}, sein Reiter nach ${l.href}`);
+  }
+  for (const m of ueb.matchAll(/<a\b[^>]*>/g)) {
+    const tag = m[0], ziel = wert(tag, 'href') ?? '', pfad = ziel.split(/[?#]/)[0];
+    const wo = `[3] ${page.file}: Link ${ziel || '—'} im Ueberblick (${wert(tag, 'class') ?? '—'})`;
+    if (wert(tag, 'target') !== 'hgx-term-frame') { fail(`${wo} zielt nicht ins Fenster (target ${wert(tag, 'target') ?? '—'}): ohne Skript verliesse er die Halle`); continue; }
+    if (!/^\/(?!\/)/.test(pfad) || /^\/de\//.test(pfad) !== page.de) { fail(`${wo}: kein Pfad dieser Seite in der Sprache der Halle`); continue; }
+    if (!existsSync(join(DIST, pfad))) { fail(`${wo}: ${pfad} liegt nicht in dist/`); continue; }
+    if (term && term.termRoute(ziel, `https://probe.invalid/${page.file}`).art !== 'innen') { fail(`${wo}: bliebe nicht im Fenster (termRoute)`); continue; }
+    uebZiele++;
+  }
 }
-say(`    ${reiter} Reiter, ${ziele} Ziele in dist/ gefunden (Klinke ${MIN_BEREICHE} je Seite)`);
+if (uebZiele < MIN_UEB_ZIELE) fail(`[3] nur ${uebZiele} Links des Ueberblicks mit Ziel in dist/, Klinke ${MIN_UEB_ZIELE}`);
+say(`    ${reiter} Reiter, ${ziele} Ziele in dist/ gefunden (Klinke ${MIN_BEREICHE} je Seite), ${uebZiele} Links des Ueberblicks (Klinke ${MIN_UEB_ZIELE})`);
 
 /* ---------- [4] Reine Funktionen des Terminals ---------- */
 say('[4] Terminal: Kasten deckt den Schirm, Wege aus dem Fenster, Stil fuer die Seite');
@@ -629,6 +732,15 @@ if (term) {
   const marke = /<div[^>]*\blang="de"[^>]*style="[^"]*2147483647[^"]*"[^>]*>/.test(PAGES[0].html);
   if (!marke) fail('[4] die Vorschau-Marke aus Layout.astro traegt nicht mehr lang und z-index 2147483647: TERM_CSS faende sie nicht');
   if (!/<nav[^>]*\bid="topbar"/.test(PAGES[0].html)) fail('[4] die Kopfzeile der Seite heisst nicht mehr #topbar: TERM_CSS faende sie nicht');
+  // Das Konto haelt den Platz unter der Kopfzeile mit einer eigenen Variable
+  // frei (account-dossier.css: .dsr{padding-top:var(--nav)}). Im Fenster gibt
+  // es die Kopfzeile nicht, also muss TERM_CSS auch diese auf 0 setzen; sonst
+  // steht die Kontoseite unter einem leeren Streifen (Bild vom PC, 23.11.2026).
+  const dossier = existsSync(join(DIST, 'assets/account-dossier.css')) ? readFileSync(join(DIST, 'assets/account-dossier.css'), 'utf8') : '';
+  const kontoAbstand = [...new Set([...dossier.matchAll(/\.dsr\{[^}]*padding-top:var\((--[\w-]+)\)/g)].map((m) => m[1]))];
+  if (!dossier) fail('[4] dist/assets/account-dossier.css fehlt: die Probe der Kontoseite im Fenster griffe ins Leere');
+  else if (!kontoAbstand.length) fail('[4] die Kontoseite (.dsr) haelt den Platz unter der Kopfzeile nicht mehr ueber eine Variable frei: Pruefe, ob sie im Fenster ohne Streifen steht, und nimm diese Probe dann heraus');
+  for (const v of kontoAbstand) if (!new RegExp(`${v}:0`).test(TERM_CSS ?? '')) fail(`[4] TERM_CSS setzt ${v} nicht auf 0: Die Kontoseite (.dsr{padding-top:var(${v})}) stuende im Fenster unter einem leeren Streifen, so hoch wie die Kopfzeile, die es dort nicht gibt`);
   // Schlanke Datenseiten (DataShell): der Pfad bleibt, Startlink, Suchknopf
   // und Sprachschalter gehen. Die Suche holt das Terminal ueber den Knopf
   // der Seite (data-scs-boot), also muss es ihn dort geben.
@@ -782,6 +894,69 @@ if (term) {
   }
 }
 if (faktProben < MIN_FAKT_PROBEN) fail(`[4] nur ${faktProben} Karten durch termFakten geschickt, Klinke ${MIN_FAKT_PROBEN}`);
+// Vierte Runde (23.11.2026): womit der Schirm beginnt, und die Zahlen des Kontos im Ueberblick
+let uebProben = 0;
+if (term) {
+  const { termErste, termRest, termRaffinerie, termCrafting, termFreunde, TERM_START } = term;
+  if ([termErste, termRest, termRaffinerie, termCrafting, termFreunde].some((f) => typeof f !== 'function') || typeof TERM_START !== 'string' || !TERM_START || /^\//.test(TERM_START))
+    fail('[4] dist/assets/hangar-terminal.js liefert termErste, termRest, termRaffinerie, termCrafting, termFreunde oder TERM_START (kein Pfad) nicht');
+  else {
+    const probe = (name, fn, args, soll, was) => {
+      uebProben++;
+      let ist;
+      try { ist = fn(...args); } catch (e) { fail(`[4] ${name}(${args.map((a) => JSON.stringify(a)).join(', ')}) wirft (${e.message})`); return; }
+      if (JSON.stringify(ist) !== JSON.stringify(soll)) fail(`[4] ${name}(${args.map((a) => JSON.stringify(a)).join(', ')}) → ${JSON.stringify(ist)} statt ${JSON.stringify(soll)}: ${was}`);
+    };
+    const DE = 'https://probe.invalid/de/hangar.html?ort=leit', EN = 'https://probe.invalid/hangar.html';
+    for (const [last, here, soll, was] of [
+      [null, DE, TERM_START, 'eine neue Sitzung beginnt beim Ueberblick'],
+      ['', EN, TERM_START, 'ein leeres Gedaechtnis ist keins'],
+      [TERM_START, DE, TERM_START, 'stand zuletzt der Ueberblick da, beginnt der Schirm wieder mit ihm'],
+      ['/de/items.html?q=x#y', DE, '/de/items.html?q=x#y', 'die zuletzt gezeigte Seite kommt wieder, mit Abfrage und Anker'],
+      ['/account.html#friends', EN, '/account.html#friends', 'auch das Konto steht wieder im Fenster'],
+      ['/items.html', DE, TERM_START, 'eine Seite in der anderen Sprache gehoert nicht in diese Halle'],
+      ['//probe.invalid.evil.test/de/items.html', DE, TERM_START, 'eine fremde Adresse gehoert nicht ins Fenster'],
+      ['/de/hangar.html?ship=x', DE, TERM_START, 'die Halle gehoert nicht ins Fenster'],
+      ['javascript:alert(1)', DE, TERM_START, 'nur ein Pfad gilt'],
+    ]) probe('termErste', termErste, [last, here], soll, was);
+    for (const [ms, soll, was] of [
+      [3 * 3600e3 + 12 * 60e3 + 45e3, '03:12:45', 'Stunden, Minuten, Sekunden wie im Tracker'],
+      [2 * 86400e3 + 61e3, '2d 00:01:01', 'Tage stehen davor'],
+      [400, '00:00:01', 'was noch laeuft, zeigt nie 00:00:00'],
+      [0, '00:00:00', 'fertig ist null'],
+      [-5000, '00:00:00', 'eine vergangene Zeit ist fertig'],
+      [NaN, '00:00:00', 'was keine Zahl ist, ist fertig'],
+      [59 * 60e3 + 59e3 + 1, '01:00:00', 'aufgerundet auf die naechste Sekunde'],
+    ]) probe('termRest', termRest, [ms], soll, was);
+    const J = Date.parse('2026-11-23T10:00:00Z'), job = (ab, am, mehr = {}) => ({ station: 'ARC-L1 Wide Forest Station', started_at: ab, ready_at: am, status: 'active', ...mehr });
+    for (const [jobs, soll, was] of [
+      [[job('2026-11-23T08:00:00Z', '2026-11-23T12:00:00Z')], { aktiv: 1, fertig: 0, naechster: { station: 'ARC-L1', rest: 7200000, anteil: 0.5 } }, 'ein laufender Auftrag: Station kurz, Restzeit, halber Weg'],
+      [[job('2026-11-23T08:00:00Z', '2026-11-23T09:00:00Z'), job('2026-11-23T08:00:00Z', '2026-11-23T14:00:00Z', { station: 'CRU-L1 Ambitious Dream Station' }), job('2026-11-23T09:00:00Z', '2026-11-23T11:00:00Z', { station: 'HUR-L2' })], { aktiv: 2, fertig: 1, naechster: { station: 'HUR-L2', rest: 3600000, anteil: 0.5 } }, 'fertige zaehlen fuer sich, der naechste ist der, der zuerst fertig wird'],
+      [[job('2026-11-23T08:00:00Z', '2026-11-23T10:00:00Z')], { aktiv: 0, fertig: 1, naechster: null }, 'genau jetzt fertig ist fertig'],
+      [[job('2026-11-23T08:00:00Z', '2026-11-23T12:00:00Z', { status: 'done' })], { aktiv: 0, fertig: 0, naechster: null }, 'ein abgeholter Auftrag zaehlt nicht'],
+      [[{ display_name: 'Probe Pilot' }, job('kaputt', '2026-11-23T12:00:00Z', { station: '  Orbituary Port Olisar mit sehr langem Namen  ' })], { aktiv: 1, fertig: 0, naechster: { station: 'Orbituary Port Olisar mit sehr langem N…', rest: 7200000, anteil: 0 } }, 'fremde Zeilen fallen weg, ohne lesbaren Beginn steht kein Fortschritt da, ein langer Name endet nach 40 Zeichen'],
+      [[job('2026-11-23T08:00:00Z', 'morgen')], { aktiv: 0, fertig: 0, naechster: null }, 'ohne lesbares ready_at zaehlt ein Auftrag nicht'],
+      [null, { aktiv: 0, fertig: 0, naechster: null }, 'ohne Zeilen nichts'],
+      [[job('2026-11-23T11:00:00Z', '2026-11-23T12:00:00Z')], { aktiv: 1, fertig: 0, naechster: { station: 'ARC-L1', rest: 7200000, anteil: 0 } }, 'ein Beginn in der Zukunft ist kein Fortschritt unter null'],
+    ]) probe('termRaffinerie', termRaffinerie, [jobs, J], soll, was);
+    for (const [rows, soll, was] of [
+      [[{ owned: true, plan_qty: 0 }, { owned: false, plan_qty: 3 }, { owned: true, plan_qty: 1 }], { besitz: 2, plan: 2 }, 'Besitz und Planer zaehlen je fuer sich'],
+      [[{ owned: 'true', plan_qty: '2' }, { owned: 1, plan_qty: 2.5 }], { besitz: 0, plan: 0 }, 'nur echte Wahrheitswerte und ganze Zahlen zaehlen'],
+      [[{ display_name: 'Probe Pilot' }, null], { besitz: 0, plan: 0 }, 'fremde Zeilen fallen weg'],
+      [undefined, { besitz: 0, plan: 0 }, 'ohne Zeilen nichts'],
+    ]) probe('termCrafting', termCrafting, [rows], soll, was);
+    const ICH = 'ich';
+    for (const [args, soll, was] of [
+      [[[{ id: 1 }], [{ sender_id: 'a' }, { sender_id: 'x' }], [{ user_id: ICH, friend_id: 'a' }], ICH], { anfragen: 1, ungelesen: 1 }, 'nur Nachrichten von Freunden zaehlen'],
+      [[[], [{ sender_id: 'a' }, { sender_id: 'a' }], [{ user_id: 'a', friend_id: ICH }], ICH], { anfragen: 0, ungelesen: 2 }, 'die Freundschaft zaehlt in beiden Richtungen, jede Nachricht fuer sich'],
+      [[[{ id: 1 }, { id: 2 }], [{ sender_id: 'x' }], [], ICH], { anfragen: 2, ungelesen: 0 }, 'ein Ex-Freund laesst nichts Ungelesenes stehen'],
+      [[null, null, null, ICH], { anfragen: 0, ungelesen: 0 }, 'ohne Zeilen nichts'],
+      [[[], [{ sender_id: 'a' }], [{ user_id: 'b', friend_id: 'a' }], ICH], { anfragen: 0, ungelesen: 0 }, 'eine Freundschaft zweier anderer zaehlt nicht'],
+      [[[], [{ sender_id: 'a' }], [{ user_id: '', friend_id: 'a' }], ''], { anfragen: 0, ungelesen: 0 }, 'ohne eigenes Konto keine Freunde'],
+    ]) probe('termFreunde', termFreunde, args, soll, was);
+  }
+}
+if (uebProben < MIN_UEB_PROBEN) fail(`[4] nur ${uebProben} Proben zu Beginn, Countdown und Zahlen des Ueberblicks, Klinke ${MIN_UEB_PROBEN}`);
 // Sperrbild: wer aufs Glas der Halle darf, und was leitFenster in ein Fenster zeichnet
 let bildProben = 0;
 if (viewer) {
@@ -844,7 +1019,7 @@ if (viewer) {
   }
 }
 if (bildProben < MIN_BILD_PROBEN) fail(`[4] nur ${bildProben} Proben am Sperrbild, Klinke ${MIN_BILD_PROBEN}`);
-say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${sitzProben} Proben zu Konto und Sitzung (Klinke ${MIN_SITZ_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN})`);
+say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${sitzProben} Proben zu Konto und Sitzung (Klinke ${MIN_SITZ_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN}), ${uebProben} Proben am Ueberblick (Klinke ${MIN_UEB_PROBEN})`);
 
 /* ---------- [5] Geometrie der Buehne ---------- */
 say('[5] Buehne: Kamera vor dem Monitor, Fenster der Seite im Bild genau das gemeldete Rechteck und auf dem Glas');
@@ -1018,7 +1193,51 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
     // auf (tool-help.js). Vor dem Terminal laege sie ueber dem Anmeldebild.
     [cSrc, /const before = ortGemalt;\s*ortGemalt = at;\s*main\.dataset\.ort = at;/, 'der Controller liest den alten Ort wieder aus dem Dokument (paintStation): Das Seitengeruest setzt data-ort="leit" schon vor dem ersten Bild, der erste Durchlauf hielte den Leitstand fuer den alten Ort, und eine offene Erklaerung der Schiffsauswahl bliebe ueber dem Monitor'],
     [cSrc, /if \(leit && before !== 'leit'\) main\.querySelector\('\.hg-dock details\.tool-help\[open\]'\)\?\.removeAttribute\('open'\);/, 'der Controller schliesst die Erklaerung der Schiffsauswahl nicht mehr, wenn die Kamera in den Leitstand geht: Sie laege ueber dem Monitor'],
+    // Vierte Runde (23.11.2026): der Ueberblick. Was davon nur im Browser mit
+    // der Halle zu sehen ist (die Kamera faehrt, das Schiff kommt aufs Feld,
+    // die Flotte folgt), steht hier als Zeile; den Rest prueft der Rauchtest.
+    [cSrc, /\n\s+orte: termOrte,/, 'der Controller sagt dem Ueberblick nicht mehr, was an den Orten der Halle steht (orte: termOrte)'],
+    [cSrc, /\n\s+ort: \(to\) => goPlace\(to\),/, 'ein Ort im Ueberblick faehrt die Kamera nicht mehr wie die Leiste der Buehne (ort: goPlace)'],
+    [cSrc, /\n\s+flotte: \(\) => \[\.\.\.fleetIds\]\.filter\(\(id\) => dock\.has\(id\)\)/, 'der Controller reicht dem Ueberblick die Flotte nicht mehr (flotte aus fleetIds, nur Schiffe der Seite)'],
+    [cSrc, /announceFleet\(before, fleetIds\);\s*(?:\/\/[^\n]*\n\s*)*terminal\?\.auffrischen\?\.\(\);/, 'eine neue Flotte erreicht den Ueberblick nicht mehr (terminal.auffrischen in onFleet): Er nennte die Schiffe von vorhin'],
+    [cSrc, /const feld = placeShip\('halle', state\.ship, ortMemo, c\), werk = placeShip\('werk', state\.ship, ortMemo, c\);/, 'die Orte des Ueberblicks nennen nicht mehr das Fahrzeug, das ein Klick dorthin holte (placeShip wie goPlace)'],
+    [tSrc, /const erste = termErste\(last, here\);\s*if \(erste === TERM_START && zeigeStart\(\)\) return;/, 'eine neue Sitzung beginnt nicht mehr beim Ueberblick (termErste in start)'],
+    [tSrc, /if \(ziel !== undefined && seen && seen !== ziel && seen !== gone\) zeigeSeite\(\);/, 'der Ueberblick wartet nicht mehr auf die Seite, die er geoeffnet hat (bereit): Er ginge, bevor sie steht, oder vor der alten'],
+    [tSrc, /if \(steht && \(!anker \|\| anker === d\.location\.hash\)\) \{/, 'steht die gewaehlte Seite schon hinter dem Ueberblick, laedt das Terminal sie trotzdem neu (go)'],
+    [tSrc, /if \(to === TERM_START\) zeigeStart\(false\);/, 'der Pfeil zurueck fuehrt nicht mehr zum Ueberblick'],
+    [tSrc, /win\.vbSucheWeg = \(url\) => \{/, 'das Terminal nimmt die Treffer der Suche nicht mehr auf den Schirm (vbSucheWeg): Ein Treffer verliesse die Halle'],
+    [tSrc, /if \(r\.art !== 'innen'\) return false;\s*go\(url\);\s*return true;/, 'vbSucheWeg nimmt auch Adressen auf den Schirm, die nicht ins Fenster gehoeren'],
+    [tSrc, /frame\.inert = true;/, 'hinter dem Ueberblick bleibt die Seite mit der Tabulatortaste erreichbar (frame.inert)'],
+    [tSrc, /e\.stopImmediatePropagation\(\);\s*suchen\(\);\s*\}, true\);/, 'Strg+K oeffnet am offenen Terminal nicht mehr die Suche des Schirms (Einfangphase vor der Seitensuche)'],
+    [tSrc, /box\.classList\.add\('is-on'\);\s*passeLeiste\(\);/, 'ein neues Rechteck misst die Leiste nicht neu (passeLeiste in place): Im schmalen Kasten schnitte sie ihre letzten Bereiche ab'],
+    [tSrc, /avatarInto\(who\.querySelector\('\.hgx-term__av'\), id\);\s*passeLeiste\(\);/, 'ein anderer Name des Kontos misst die Leiste nicht neu (passeLeiste in showWho): Ein langer Name schnitte die letzten Bereiche ab'],
+    [tSrc, /function tick\(\) \{[^}]*\}[^}]*malRef\(\);[^}]*malKonto\(\);\s*\}/, 'der Takt des Ueberblicks fragt die Zahlen des Kontos nicht nach (malKonto in tick): Steht er laenger, blieben abgeholte Auftraege der Raffinerie als fertig stehen (Review PR #407)'],
+    [tSrc, /box\.toggleAttribute\('data-niedrig', f\.h < TERM_NIEDRIG_H\);/, 'der Kasten sagt dem Stil nicht mehr, dass er niedrig ist (data-niedrig in place): Im Fenster von 1280 x 720 liefe der Ueberblick unten ueber den Rand'],
   ];
+  // Die Suche der Hangarseite steht als Inline-Skript in jeder Seite (SearchOverlay.astro)
+  for (const page of PAGES) {
+    for (const [muster, was] of [
+      [/var weg = window\.vbSucheWeg;/, 'fragt nicht mehr nach vbSucheWeg: Ein Treffer am Schirm verliesse die Halle'],
+      [/var fest = hr\.hasAttribute\('data-hs-fest'\);/, 'kennt das feste Feld nicht mehr (data-hs-fest): Beim Antippen am Schirm scrollte die Hangarseite'],
+      [/f\.checkVisibility\(\{ visibilityProperty: true, checkVisibilityCSS: true \}\)/, 'haelt ein unsichtbares Feld fuer benutzbar (checkVisibility in inlineHere): Strg+K fokussierte das Feld des Ueberblicks hinter einer Seite'],
+    ]) {
+      if (muster.test(page.html)) naht++;
+      else fail(`[6] ${page.file}: die Suche der Seite ${was}`);
+    }
+    // Im Stil steht der Ueberblick nur vorn: sonst unsichtbar und unerreichbar
+    const aus = /\.hgx-ts\{([^}]*)\}/.exec(page.html)?.[1] ?? '', an = /\.hgx-term\[data-zeigt="start"\] \.hgx-ts\{([^}]*)\}/.exec(page.html)?.[1] ?? '';
+    if (!/(?:^|;)visibility:hidden/.test(aus) || !/(?:^|;)opacity:0/.test(aus)) fail(`[6] ${page.file}: der Ueberblick (.hgx-ts) ist nicht unsichtbar und unerreichbar, solange eine Seite vorn steht (opacity:0, visibility:hidden)`);
+    else if (!/(?:^|;)visibility:visible/.test(an) || !/(?:^|;)opacity:1/.test(an)) fail(`[6] ${page.file}: der Ueberblick erscheint nicht, wenn das Terminal auf ihm steht (.hgx-term[data-zeigt="start"] .hgx-ts)`);
+    else naht++;
+    // Die Treffer der Suche klappen ueber die Felder darunter. Deren
+    // Aufsteigen (Animation mit transform) gibt jedem eine eigene Ebene, die
+    // spaeter gemalt wird: Der Kopf mit der Suche muss darueber liegen.
+    const kopf = /\.hgx-ts__kopf\{([^}]*)\}/.exec(page.html)?.[1] ?? '';
+    if (!/(?:^|;)position:relative/.test(kopf) || !(Number(/(?:^|;)z-index:(\d+)/.exec(kopf)?.[1]) > 0)) fail(`[6] ${page.file}: der Kopf des Ueberblicks (.hgx-ts__kopf) liegt nicht ueber den Feldern (position:relative und z-index ueber 0): Die Treffer der Suche stuenden unter Halle, Mein Verse und Patch`);
+    else if (!/\.hgx-term\[data-leiste\] \.hgx-term__end>span\{display:none\}/.test(page.html) || !/\.hgx-term\[data-leiste="3"\] \.hgx-term__start>span\{display:none\}/.test(page.html)) fail(`[6] ${page.file}: die Stufen der Leiste (data-leiste) lassen Spielversion oder das Wort „Überblick“ nicht weichen: Im schmalen Kasten schnitte sie Bereiche ab`);
+    else if (!/\.hgx-term\[data-niedrig\] \.hgx-ts__/.test(page.html)) fail(`[6] ${page.file}: der Ueberblick hat keine enge Fassung fuer den niedrigen Kasten (.hgx-term[data-niedrig] .hgx-ts__…)`);
+    else naht++;
+  }
   for (const [src, muster, was] of NAHT) {
     if (muster.test(src)) naht++;
     else fail(`[6] ${was}`);
