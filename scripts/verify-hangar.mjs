@@ -784,6 +784,12 @@
     ec  dort splitFresh() aus canSplit nehmen (CodeRabbit zu
         #396: kehrt derselbe Block zurück, lebte eine alte Sperre
         wieder auf)                                                 -> [21]
+    ed  dort die Liste wieder am ganzen freien Platz bemessen
+        (loBodyH(contentH, room); Hangar-Politur 23.11.2026: die
+        Tafel ist im Grundzustand kurz, „Alle zeigen“ gibt ihr den
+        Platz)                                                      -> [21]
+    ee  dort loKurz kürzt schon ab LO_KURZ (contentH >= LO_KURZ:
+        eine Liste, die passt, bekäme „Alle zeigen“ ohne Gewinn)    -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2933,7 +2939,10 @@ const KANTE_ANGESEHEN = 0.065;
         // Block frei ist, bis hinab zu einer Gruppe mit einer Zeile (CodeRabbit
         // zu #396: mit wenigstens 150 px ragte sie dort wieder ueber den Namen)
         if (typeof hm.loBodyH !== 'function' || !(hm.LO_MIN_BODY >= 40 && hm.LO_MIN_BODY <= 120)) falsch.push('dist/assets/hangar-holo3d.js exportiert loBodyH oder LO_MIN_BODY (40 bis 120 px, eine Gruppe mit einer Zeile) nicht mehr');
-        else if (!/let H = yBody \+ loBodyH\(contentH, \(ui\.maxH \?\? 640\) - yBody - LO\.foot\) \+ LO\.foot;/.test(src)) falsch.push('dist/assets/hangar-holo3d.js: loLayout bemisst die Liste nicht mehr mit loBodyH am freien Platz (ui.maxH)');
+        // Kurz im Grundzustand (Hangar-Politur 22.11.2026): höchstens LO_KURZ,
+        // nie mehr als frei ist; „Alle zeigen“ gibt den ganzen Platz
+        else if (!/const room = \(ui\.maxH \?\? 640\) - yBody - LO\.foot;\s*let H = yBody \+ loBodyH\(contentH, mehr && !ui\.full \? Math\.min\(room, LO_KURZ\) : room\) \+ LO\.foot;/.test(src)) falsch.push('dist/assets/hangar-holo3d.js: loLayout bemisst die Liste nicht mehr mit loBodyH am freien Platz (ui.maxH, kurz höchstens LO_KURZ)');
+        else if (!(hm.LO_KURZ >= hm.LO_MIN_BODY && hm.LO_KURZ <= 400) || typeof hm.loKurz !== 'function' || hm.loKurz(hm.LO_KURZ) || !hm.loKurz(hm.LO_KURZ + 200)) falsch.push('dist/assets/hangar-holo3d.js exportiert LO_KURZ (zwischen einer Zeile und 400 px) oder loKurz nicht mehr, oder loKurz kürzt eine Liste, die schon passt');
         else for (const inhalt of [20, 68, 110, 300, 900]) for (let room = -60; room <= 700; room += 4) {
           titelLagen++;
           const b = hm.loBodyH(inhalt, room), wo = `Liste mit ${inhalt} px Inhalt, ${room} px frei`;

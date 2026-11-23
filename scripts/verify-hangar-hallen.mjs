@@ -81,6 +81,16 @@
        Lauf: Am Bezugspunkt jeder Zone (er liegt auf ihrer Wand) trifft
        dieselbe Messung die Halle; täte sie es nirgends, liefe sie leer.
        Klinken und Obergrenzen je Halle (KLINKE_DEKO, OBERGRENZE_DEKO)
+   [6] Ankunft (22.11.2026, Hangar-Politur): Die Ladeszene zeigt beim
+       ersten Laden und beim Hallenwechsel ein Standbild der Halle, in die
+       das Schiff kommt (ankunftAn in hangar-overview.js). Fehlt es, steht
+       sie vor leerem Grund, und niemand merkt es, bis er hinsieht. Je
+       ausgelieferter Halle fester Größe und für die Werkhalle ('werk',
+       sobald ein Fahrzeug dort steht) nennen beide Seiten dasselbe Bild,
+       es liegt als WebP in dist/, seine Version ist die seines Inhalts,
+       und es bleibt unter ANKUNFT_MAX; Klinke MIN_ANKUNFT. Ein Bild ohne
+       ausgelieferte Halle ist nur eine WARNUNG. Neue Bilder:
+       scripts/build-hangar-ankunft.mjs
 
    Schiene A: liest dist/ und für [3] das Manifest
    src/data/hangar-assets.json. Kein git, kein Netz, kein Kindprozess. Im
@@ -673,6 +683,17 @@
        WINDOWS.md #185), und dass die Bühne im Browser alle 119 Stücke
        stellt (check:hangar-shader, Klinke szenen in KLINKE_FEST, dort
        viermal vorgeführt rot).
+   (z) 23.11.2026, die Ankunftsbilder ([6]) im Cloud-Rechner gegen den
+       Vorschau-Bau, jede Gegenprobe in dist/ und danach zurückgestellt:
+       util-xltop.webp gelöscht, werk.webp durch das Bild der Medium-Halle
+       ersetzt und in de/hangar.html die Version von util-smltop um eine
+       Stelle geändert, 4 FEHLER: „[6] hangar.html und de/hangar.html
+       nennen verschiedene Ankunftsbilder …“, „[6] util-xltop:
+       /hangar/ankunft/util-xltop.webp?v=66e44123 fehlt in dist/ …“, „[6]
+       werk: … traegt die Version 5a61ec87, der Inhalt 2713c2b9 …“, „[6]
+       nur 3 Ankunftsbild(er) in Ordnung, Klinke 5“; dazu `ankunft` aus
+       beiden Seiten gestrichen, 6 FEHLER: je Halle „[6] util-smltop: kein
+       Ankunftsbild (StageConfig ankunft) …“ und „[6] nur 0 … Klinke 5“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -685,6 +706,7 @@
      node scripts/verify-hangar-hallen.mjs
    ============================================================ */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeIO } from '@gltf-transform/core';
@@ -703,6 +725,8 @@ const DIST = join(ROOT, 'dist');
 const STUFEN = ['S', 'M', 'L', 'XL'];
 
 // Klinken (Grundsatz 5: nur nach oben; nach unten per Commit mit Ursache)
+// [6] Ankunftsbilder: vier Hallen und die Werkhalle (22.11.2026); Obergrenze je Bild in Bytes
+const MIN_ANKUNFT = 5, ANKUNFT_MAX = 100 * 1024;
 const MIN_HALLEN = 4; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle; 18.11.2026: 4, dazu Small, Medium und XL)
 const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff (18.11.2026: alle vier)
 // je Halle, gemessen am gebauten Stand: Lampen des Spiels, Teile des Bodentors, Dreiecke der Schrift im Modell,
@@ -1406,6 +1430,36 @@ for (const [id, plan] of Object.entries(DEKO_FEST ?? {})) {
 }
 for (const z of dekoZeilen) say(z);
 if (!dekoZeilen.length) say(`    ${DEKO_FEST && Object.keys(DEKO_FEST).length ? 'keine Halle vollstaendig gemessen' : 'keine Halle fester Groesse traegt Arbeitsszenen, nichts zu messen'}`);
+
+/* ---------- [6] Ankunft ---------- */
+say('[6] Ankunft: je ausgelieferter Halle fester Groesse und fuer die Werkhalle ein Standbild der Ladeszene, in beiden Sprachen gleich, als WebP in dist/ mit der Version seines Inhalts');
+const ankSeiten = PAGES.map((page) => {
+  try { return JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html)?.[1] ?? 'null'); } catch { return null; }
+});
+if (JSON.stringify(ankSeiten[0]?.ankunft ?? null) !== JSON.stringify(ankSeiten[1]?.ankunft ?? null)) fail(`[6] ${PAGES[0].file} und ${PAGES[1].file} nennen verschiedene Ankunftsbilder — je nach Sprache kaeme ein anderes Bild`);
+const ank = ankSeiten[0]?.ankunft ?? {};
+const mitWerk = Object.values(ankSeiten[0]?.models ?? {}).some((e) => e?.[3] === 'werk');
+const ankBrauchen = [...HALLEN.keys(), ...(mitWerk ? ['werk'] : [])];
+let ankGut = 0, ankBytes = 0;
+for (const key of ankBrauchen) {
+  const url = ank[key];
+  const neu = `node scripts/build-hangar-ankunft.mjs --only ${key}`;
+  if (typeof url !== 'string' || !url) { fail(`[6] ${key}: kein Ankunftsbild (StageConfig ankunft) — die Ladeszene stuende vor leerem Grund; ${neu}`); continue; }
+  const f = inDist(url);
+  if (!existsSync(f)) { fail(`[6] ${key}: ${url} fehlt in dist/ — die Ladeszene stuende vor leerem Grund; ${neu}`); continue; }
+  const buf = readFileSync(f);
+  const v = /\?v=([0-9a-f]+)$/.exec(url)?.[1] ?? null;
+  const sha = createHash('sha1').update(buf).digest('hex').slice(0, 8);
+  if (v !== sha) { fail(`[6] ${key}: ${url} traegt die Version ${v ?? '(keine)'}, der Inhalt ${sha} — der Jahres-Cache hielte ein altes Bild`); continue; }
+  if (buf.toString('latin1', 0, 4) !== 'RIFF' || buf.toString('latin1', 8, 12) !== 'WEBP') { fail(`[6] ${key}: ${url} ist kein WebP`); continue; }
+  if (buf.length > ANKUNFT_MAX) { fail(`[6] ${key}: ${(buf.length / 1024).toFixed(1)} KB, Obergrenze ${ANKUNFT_MAX / 1024} KB — das Bild kaeme spaet neben der Halle, auf die es wartet; BILD in build-hangar-ankunft.mjs kleiner`); continue; }
+  ankGut++;
+  ankBytes += buf.length;
+}
+const ankLose = Object.keys(ank).filter((k) => !ankBrauchen.includes(k));
+if (ankGut < MIN_ANKUNFT) fail(`[6] nur ${ankGut} Ankunftsbild(er) in Ordnung, Klinke ${MIN_ANKUNFT}`);
+say(`    ${ankGut} von ${ankBrauchen.length} Ankunftsbild(ern) in Ordnung (Klinke ${MIN_ANKUNFT}), zusammen ${(ankBytes / 1024).toFixed(1)} KB, das groesste hoechstens ${ANKUNFT_MAX / 1024} KB${ankBrauchen.length ? `: ${ankBrauchen.join(', ')}` : ''}`);
+if (ankLose.length) say(`    WARNUNG: Ankunftsbild(er) ohne ausgelieferte Halle: ${ankLose.join(', ')} (public/hangar/ankunft/), laedt niemand`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-hallen: ${fehler.length} FEHLER`);

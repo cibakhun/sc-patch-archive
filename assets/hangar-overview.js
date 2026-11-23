@@ -2737,6 +2737,148 @@ export function boot(doc) {
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
 
+  // Ankunft (Hangar-Politur 22.11.2026; Krisz: „alles noch sehr alpha vibey“):
+  // Beim ersten Laden und beim Hallenwechsel stand ein leeres Bild mit einem
+  // 2 px duennen Balken. Jetzt steht dort ein Standbild der Halle
+  // (stageCfg.ankunft), darauf Hersteller und Name des Schiffs und drei
+  // benannte Schritte: Halle und Schiff fuellen sich je fuer sich aus dem
+  // zweiten Argument von onProgress, Licht (Auspacken, Hochladen, erstes
+  // Bild) laeuft ohne Groesse, bis das Schiff steht. Dann blendet sie ins
+  // Live-Bild. Ein Schiffswechsel in derselben Halle bleibt beim leisen Balken.
+  const ankunftEl = $('hg-ankunft');
+  const ankunftImg = ankunftEl?.querySelector('img');
+  const ankunftSchritte = ankunftEl ? Object.fromEntries([...ankunftEl.querySelectorAll('[data-s]')].map((li) => [li.dataset.s, li])) : {};
+  // Stand der Schritte: was einmal geladen war, bleibt es (der Viewer nimmt
+  // fertige Dateien aus seiner Liste, dann meldet er null statt 1)
+  let ank = null, ankWeg = 0;
+  const ankunftBild = (id) => {
+    const m = stageCfg.models[id];
+    const key = m?.[3] === 'werk' ? 'werk' : hallOf(id)?.id;
+    return (key && stageCfg.ankunft?.[key]) || null;
+  };
+  function ankunftMalen() {
+    if (!ank) return;
+    const { halle, schiff, licht } = ankunftSchritte;
+    const setz = (li, p, an, fertig) => {
+      if (!li) return;
+      li.style.setProperty('--p', String(Math.max(0, Math.min(1, p))));
+      li.toggleAttribute('data-an', an);
+      li.toggleAttribute('data-fertig', fertig);
+    };
+    const hFertig = ank.ohneHalle || ank.halle >= 1, sFertig = ank.schiff >= 1;
+    setz(halle, ank.halle, true, hFertig);
+    setz(schiff, ank.schiff, hFertig || ank.schiff > 0, sFertig);
+    setz(licht, 0, hFertig && sFertig, ank.steht);
+  }
+  // Name und Hersteller des Schiffs, das kommt; waehlt jemand waehrend der
+  // Ankunft ein anderes in derselben Halle, beginnt sein Schritt von vorn
+  function ankunftSchiff(id) {
+    const l = id && stageCfg.models[id] ? labelOf(id) : null;
+    ankunftEl.querySelector('.hg-ankunft__m').textContent = l?.maker ?? '';
+    ankunftEl.querySelector('.hg-ankunft__n').textContent = l?.name ?? '';
+    // die Halle beim Namen, wie das Hologramm sie spaeter nennt (gr.*)
+    const stufe = stageCfg.models[id]?.[4];
+    ankunftEl.querySelector('.hg-ankunft__g').textContent = (stufe && msg('gr')[stufe.toLowerCase()]) || '';
+    const wort = ankunftSchritte.schiff?.querySelector('span');
+    if (wort) wort.textContent = ankunftSchritte.schiff.dataset[stageCfg.models[id]?.[3] === 'werk' ? 'werk' : 'halle'] ?? wort.textContent;
+    if (ank) { ank.schiff = 0; ank.sahSchiff = false; ankunftMalen(); }
+  }
+  // Mitte des freien Bilds: Links liegt die Schiffsauswahl ueber der Buehne,
+  // rechts oft eine Tafel der Seite (Werkhalle, Als Tafel). Der Block steht
+  // in der Mitte dazwischen, nicht in der Mitte der Leinwand.
+  function ankunftMitte() {
+    if (!ankunftEl || ankunftEl.hidden) return;
+    const b = ankunftEl.getBoundingClientRect();
+    let l = b.left, r = b.right;
+    const dock = doc.querySelector('.hg-dock')?.getBoundingClientRect();
+    if (dock && dock.width > 0 && dock.right < b.left + b.width / 2 && dock.bottom > b.top) l = Math.max(l, dock.right);
+    for (const el of doc.querySelectorAll('.hg-side > *')) {
+      const q = el.getBoundingClientRect();
+      if (q.width > 0 && q.height > 0 && q.left > b.left + b.width / 2 && getComputedStyle(el).visibility !== 'hidden') r = Math.min(r, q.left);
+    }
+    ankunftEl.style.setProperty('--ank-dx', `${Math.round((l + r) / 2 - (b.left + b.right) / 2)}px`);
+    // und nicht breiter als das freie Bild: bei schmalen Fenstern lag der Block sonst ueber Dock und Tafel
+    ankunftEl.style.setProperty('--ank-w', `${Math.max(0, Math.round(r - l))}px`);
+  }
+  window.addEventListener('resize', ankunftMitte, { passive: true });
+  // alt: Hallenwechsel (umbauen). Bis halter.ab() spricht noch die alte
+  // Buehne; was sie an Fortschritt meldet, gehoert nicht zur neuen Ankunft.
+  function ankunftAn(id, mitHalle, alt = false) {
+    if (!ankunftEl) return;
+    clearTimeout(ankWeg);
+    // ein Ausblenden, das noch auf ruhige Bilder wartet, gilt nicht mehr
+    ankTok++;
+    ankunftSchiff(id);
+    const src = mitHalle ? ankunftBild(id) : null;
+    if (src && ankunftImg) {
+      if (ankunftImg.getAttribute('src') !== src) {
+        delete ankunftImg.dataset.da;
+        ankunftImg.onload = () => { ankunftImg.dataset.da = ''; };
+        ankunftImg.src = src;
+      }
+      ankunftImg.hidden = false;
+    } else if (ankunftImg) ankunftImg.hidden = true;
+    ankunftEl.toggleAttribute('data-ohne-halle', !mitHalle);
+    ank = { halle: 0, schiff: 0, sahHalle: false, sahSchiff: false, ohneHalle: !mitHalle, steht: false, alt };
+    ankunftMalen();
+    delete ankunftEl.dataset.geht;
+    ankunftEl.hidden = false;
+    main.dataset.ankunft = 'on';
+    ankunftMitte();
+    // die Tafel der Seite kann erst nach dem naechsten Bild stehen (Station, Werkhalle)
+    requestAnimationFrame(ankunftMitte);
+  }
+  function ankunftSchritt(teile) {
+    if (!ank || !teile || ank.alt) return;
+    for (const k of ['halle', 'schiff']) {
+      const sah = k === 'halle' ? 'sahHalle' : 'sahSchiff';
+      if (teile[k] != null) { ank[k] = Math.max(ank[k], teile[k]); ank[sah] = true; } else if (ank[sah]) ank[k] = 1;
+    }
+    ankunftMalen();
+  }
+  // Ausblenden abbrechen und die Ankunft dem naechsten Schiff derselben Halle
+  // geben: die Halle steht schon, Schiff und Licht beginnen von vorn
+  function ankunftWeiter() {
+    ++ankTok;
+    clearTimeout(ankWeg);
+    delete ankunftEl.dataset.geht;
+    ank = { halle: 1, schiff: 0, sahHalle: true, sahSchiff: false, ohneHalle: ankunftEl.hasAttribute('data-ohne-halle'), steht: false, alt: false };
+  }
+  // steht: das Schiff steht, die Schritte enden gefuellt; sonst (Fehler,
+  // Abbruch) geht die Ankunft, wie sie ist. sofort: ohne Ausblenden.
+  // Steht das Schiff, blendet sie erst, wenn das Bild ruhig laeuft: Gleich
+  // nach dem ersten Bild stand es am PC jedes Mal rund 0,4 s (Messung vom
+  // 22.11.2026), und mitten im Ueberblenden sah das aus wie ein Ruckeln des
+  // Hangars. ANK_RUHIG Bilder hintereinander unter ANK_BILD ms, hoechstens
+  // ANK_WARTE ms gewartet (ohne Grafikkarte ist kein Bild so schnell).
+  const ANK_RUHIG = 8, ANK_BILD = 40, ANK_WARTE = 1500;
+  let ankTok = 0;
+  function ankunftAus({ steht = false, sofort = false } = {}) {
+    if (!ankunftEl || ankunftEl.hidden) return;
+    if (ank && steht) { ank.halle = ank.schiff = 1; ank.steht = true; ankunftMalen(); }
+    ank = null;
+    clearTimeout(ankWeg);
+    const tok = ++ankTok;
+    const fort = () => { ankunftEl.hidden = true; delete ankunftEl.dataset.geht; delete main.dataset.ankunft; };
+    if (sofort || reduce) { fort(); return; }
+    const blenden = () => {
+      if (tok !== ankTok) return;
+      ankunftEl.dataset.geht = '';
+      ankWeg = setTimeout(() => { if (tok === ankTok) fort(); }, 650);
+    };
+    if (!steht) { blenden(); return; }
+    let n = 0, last = performance.now();
+    const t0 = last;
+    const tick = (t) => {
+      if (tok !== ankTok) return;
+      n = t - last < ANK_BILD ? n + 1 : 0;
+      last = t;
+      if (n >= ANK_RUHIG || t - t0 > ANK_WARTE) blenden();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   // show() loest auch auf, wenn ein neueres show() es ueberholt hat: nur der
   // eigene Zaehler sagt, ob das Modell dieser Auswahl wirklich steht.
   let showTok = 0;
@@ -2744,13 +2886,17 @@ export function boot(doc) {
   let wunsch = null, umbau = false;
   function viewerShow(id) {
     wunsch = id;
-    // ohne Buehne und waehrend eines Umbaus nur der Wunsch: Der Umbau zeigt ihn am Ende
-    if (!viewer || umbau) return;
+    // ohne Buehne und waehrend eines Umbaus nur der Wunsch: Der Umbau zeigt ihn am Ende.
+    // Die Ankunft nennt ihn schon jetzt (eine andere Halle bringt der Umbau mit ankunftAn).
+    if (!viewer || umbau) { if (ank && !ankunftEl.hidden) ankunftSchiff(id); return; }
     const hallWant = hallOf(id)?.id ?? null;
     if (hallNow && hallWant && hallWant !== hallNow && buehneNeu) { umbauen(); return; }
     const my = ++showTok;
     placed = null;
     syncMarks();
+    // Ist die Ankunft noch zu sehen, gilt sie dem neuen Schiff, auch wenn sie
+    // fuer das vorige schon ausblendete (ank null): sie bleibt, bis es steht
+    if (ankunftEl && !ankunftEl.hidden) { if (!ank) ankunftWeiter(); ankunftSchiff(id); }
     const [glb, tex, maker, ort, hangar] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
@@ -2785,6 +2931,7 @@ export function boot(doc) {
         if (my !== showTok) return;
         loadEl.hidden = true;
         standbildWeg();
+        ankunftAus({ steht: placed === id });
       });
   }
 
@@ -2827,7 +2974,7 @@ export function boot(doc) {
   // Halle. Gefragt wird vor jedem Durchgang und noch einmal nach dem Warten
   // auf das Standbild, der letzten Pause vor dem Abbau.
   const verloren = () => main.dataset.lost === 'on';
-  const umbauAus = () => { umbau = false; standbildWeg(true); loadEl.hidden = true; };
+  const umbauAus = () => { umbau = false; standbildWeg(true); ankunftAus({ sofort: true }); loadEl.hidden = true; };
   async function umbauen() {
     if (umbau) return;
     umbau = true;
@@ -2852,6 +2999,8 @@ export function boot(doc) {
         // der Balken nennt den Hallenwechsel beim Wort (.hg-load[data-umbau] em), bis das Schiff steht
         loadEl.dataset.umbau = '';
         loadEl.hidden = false;
+        // die neue Halle kuendigt sich an: ihr Bild, der Name des gewaehlten Schiffs
+        ankunftAn(wunsch, !!halle, true);
         if (!standbild) {
           // Hoechstens kurz darauf warten: Mit Grafikkarte steht es sofort, ohne
           // sie (Software-GL) kaeme es zu spaet, dann geht der Umbau ohne.
@@ -2865,6 +3014,7 @@ export function boot(doc) {
         }
         viewer = null;
         halter.ab();
+        if (ank) ank.alt = false;
         // der Ort der alten Buehne gilt nicht mehr: Fenster des Terminals zu, bis die neue ihren nennt
         onPlace({ ort: 'halle', state: 'an', rect: null });
         // was der alten Buehne gehoerte: ihr Hologramm und die Tafeln, die sie zeigte
@@ -2882,6 +3032,7 @@ export function boot(doc) {
     } catch (e) {
       umbau = false;
       standbildWeg(true);
+      ankunftAus({ sofort: true });
       noStage('failed', e);
       return;
     }
@@ -3193,6 +3344,7 @@ export function boot(doc) {
   function noStage(why, detail) {
     loadEl.hidden = true;
     standbildWeg(true);
+    ankunftAus({ sofort: true });
     delete main.dataset.holo;
     laufEnde();
     leichtWeg();
@@ -3529,6 +3681,7 @@ export function boot(doc) {
     if (leicht) leichtZeigen();
     const halle = hallOf(state.ship);
     hallNow = leicht ? null : halle?.id ?? null;
+    ankunftAn(state.ship, !leicht && !!halle);
     const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : { ...stageCfg.opts, hall: halle };
     // mit: was ein Umbau anders gibt (umbauen: die Halle der neuen Stufe)
     const bauen = (mit) => import(stageCfg.viewer)
@@ -3543,9 +3696,10 @@ export function boot(doc) {
         buehneNeu = leicht ? null : (h) => bauen({ hall: h, wechsel: true });
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
         // ab 90 % sind die Dateien da, der Rest ist Auspacken, Uebersetzen und Hochladen
-        v.onProgress((p) => {
+        v.onProgress((p, teile) => {
           bar.style.setProperty('--p', `${p}%`);
           if (p >= 90) laufPhase('bauen');
+          ankunftSchritt(teile);
         });
         v.onFrame(placeMarks);
         // Kontext weg: die Meldung steht ueber der Buehne, und der Waechter
@@ -3618,7 +3772,10 @@ export function boot(doc) {
           };
           const p = on(side), d = on(dockEl), b = on(nav), t = on(title), a = t && on(acts);
           const rects = keep.map(on);
-          if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + a.height });
+          // samt ihrem Abstand nach oben (margin-top): Bis 22.11.2026 endete
+          // das Rechteck 15 px über den Knöpfen, und bei 1280 × 720 lag der
+          // Kopf der Ausrüstung unter Stern, Vergleich und Link (Hangar-Politur, Stelle 5)
+          if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + (parseFloat(getComputedStyle(acts).marginTop) || 0) + a.height });
           // Fand das Hologramm keinen Platz, steht der ganze Block im Bild:
           // Name, Rolle, Groesse und darunter die Knoepfe. Die Tafeln bleiben
           // darunter (titel, roomTop in hangar-holo3d.js); das Hologramm sieht

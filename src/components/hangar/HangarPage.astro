@@ -185,6 +185,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Steht der Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js,
    buildHolo), bleibt vom Titelblock nur die Knopfreihe im Bild; Titel und
    Name bleiben fuer Vorleser im Dokument. Ohne 3D-Ansicht bleibt er, wie er ist. */
+/* Ebenso waehrend der Ankunft (#hg-ankunft, hangar-overview.js): Name und
+   Hersteller stehen dann gross in der Mitte der Buehne. Die Ankunft nimmt
+   ihr Merkmal erst nach dem Ausblenden ab, bis dahin hat das Hologramm
+   entschieden, ob der Titelblock zurueckkommt. */
+.hg[data-ankunft="on"] .hg-title :is(.hgx-head,.hg-gr),
 .hg[data-holo="on"] .hg-title :is(.hgx-head,.hg-gr){position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* Die Spalte rechts: Schalter oben, darunter die gewaehlte Tafel. Werkstatt
    fuellt sie bis zum Buehnenfuss, die Schiffsdaten nur so weit wie ihr Inhalt;
@@ -262,7 +267,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    gehen (die Marker stuenden sonst an ihrer letzten Stelle ueber ihr). Die
    Zeichenflaeche wird unsichtbar: Stand das Schiff schon, blieb sie weiss
    zurueck, mit dem Namens-Hologramm darin. Sie behaelt ihren Platz. */
-.hg[data-lost="on"] #hg-load,.hg[data-lost="on"] #hg-tools,.hg[data-lost="on"] .hg-hint,.hg[data-lost="on"] .hgx-marks{display:none}
+.hg[data-lost="on"] #hg-load,.hg[data-lost="on"] #hg-ankunft,.hg[data-lost="on"] #hg-tools,.hg[data-lost="on"] .hg-hint,.hg[data-lost="on"] .hgx-marks{display:none}
 .hg[data-lost="on"] #hg-canvas{visibility:hidden}
 #hgx-walk[aria-pressed="true"]{color:var(--hg-amber,var(--accent))}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */

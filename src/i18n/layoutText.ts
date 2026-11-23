@@ -87,6 +87,9 @@ const DE = {
   'holo.rename': 'Umbenennen',
   'holo.saveNew': 'Als neues Layout speichern',
   'holo.moreSaved': '{n} weitere: „Als Tafel“ zeigt alle',
+  // Knopf am Fuß der kurzen Liste (LO_KURZ in assets/hangar-holo3d.js)
+  'holo.more': 'Alle zeigen',
+  'holo.less': 'Weniger',
   // Datenblatt des Bauteils auf der rechten Tafel der Halle (sheetOf in
   // assets/hangar-layouts.js). sheet.cls.* steht nach „Unter den“ (Dativ).
   'sheet.head': 'Bauteil an Slot {n}',
@@ -365,6 +368,8 @@ const EN: Readonly<Record<LayoutKey, string>> = {
   'holo.rename': 'Rename',
   'holo.saveNew': 'Save as a new loadout',
   'holo.moreSaved': '{n} more: “As panel” shows all',
+  'holo.more': 'Show all',
+  'holo.less': 'Less',
   'sheet.head': 'Component in slot {n}',
   'sheet.preview': 'Preview',
   'sheet.cls.gun': '{n} ship weapons of size {s}',

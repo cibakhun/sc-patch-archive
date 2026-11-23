@@ -1871,7 +1871,7 @@ export function initWorkshop(doc, bridge) {
     const mine = store.list().filter((e) => e.ship === draft.ship);
     const stateTxt = (k) => (k ? plural('state.changed', k) : m('saved.stock'));
     return {
-      title: m('holo.title'), icons: ICON,
+      title: m('holo.title'), icons: ICON, more: m('holo.more'), less: m('holo.less'),
       // Name des Layouts: getippt, sonst der, unter dem Speichern es ablegt, sonst Serie
       chip: draft.name || (n ? placeholder() : m('saved.stock')), nameEdit, name: draft.name,
       cats: present.size > 1 ? catBtns.filter((b) => present.has(b.dataset.cat)).map((b) => ({ id: b.dataset.cat, label: b.firstChild.textContent.trim(), n: catCount(b.dataset.cat), on: b.dataset.cat === cat })) : [],

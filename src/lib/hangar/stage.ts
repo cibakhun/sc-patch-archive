@@ -80,6 +80,8 @@ export interface StageConfig {
   readonly viewer: string;
   /** Eigene Halle je Hangargroesse (HALL_OF_SIZE), nur fuer Stufen, deren Halle gebaut ist. Der Controller startet die Buehne mit der Halle des gezeigten Schiffs und wechselt sie mit der Stufe; ohne Eintrag gilt opts.hall. */
   readonly halls?: Readonly<Partial<Record<HangarSize, HallConfig>>>;
+  /** Ankunftsbild je Halle (Id der Halle, 'werk' fuer die Werkhalle): kleines Standbild der leeren Halle mit ?v=, das der Controller beim ersten Laden und beim Hallenwechsel zeigt (ankunftAn). Fehlt eins, steht die Ankunft ohne Bild. */
+  readonly ankunft?: Readonly<Record<string, string>>;
   /** Wird unverändert in initHangar(container, { reduceMotion, ...opts }) gespreizt: neue Szenen-Optionen brauchen keine Oberflaechen-Aenderung. */
   readonly opts: { readonly hall?: HallConfig | null; readonly crew?: { url: string } | null } & Readonly<Record<string, unknown>>;
   /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Geometrie aus geo, sonst Holo; ob das Schiff auf dem Fahrwerk steht, sagt opts.gear), Werkslack-glb oder null, Herstellerkuerzel, Ort, Hangargroesse] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. Hangargroesse: die Stufe des Schiffs (hangarOfClass), null in der Werkhalle und ohne Groessenklasse. */

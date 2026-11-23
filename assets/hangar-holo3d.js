@@ -103,6 +103,14 @@ export function panelSpread(f, c, at, yaw) {
   return Math.max(0.5, ux * rx + uz * rz - ((px * rx + pz * rz) / depth) * (ux * f.x + uz * f.z));
 }
 const FADE_MS = 360, GLIDE_MS = 420, REST_MS = 280, HOP_MS = 180;
+// Dreht oder zoomt man, treten die Tafeln auf MOVE_K zurück und geben das
+// Schiff frei; steht die Kamera MOVE_HOLD ms, kommen sie wieder (Hangar-Politur
+// 22.11.2026, Stelle 1). Ein: MOVE_IN ms, aus: MOVE_OUT ms.
+export const MOVE_K = 0.3;
+const MOVE_HOLD = 140, MOVE_IN = 140, MOVE_OUT = 320;
+// Maße am Boden nur, solange der Zeiger auf dem Schiff steht (Stelle 5);
+// ohne Zeiger (Telefon, Tablet) wie bisher immer. Ein/aus in DIM_MS ms.
+const DIM_MS = 220;
 // Steht die Kamera über dem Rumpf (Carrack, Idris: kein freier Boden in den
 // unteren Bildecken), schwebt die Tafel ohne Projektor so weit vor der Kamera
 // und folgt ihr wie eine Anzeige im Helm (gesehen 10.11.2026: ohne das
@@ -377,6 +385,14 @@ const LO = { p: 12, top: 40, tabs: 34, gh: 26, rh: 42, was: 14, foot: 68, oh: 36
 // Tafel wäre die Ausrüstung am Schiff ganz weg (dann hilft „Als Tafel“).
 export const LO_MIN_BODY = LO.gh + LO.rh;
 export const loBodyH = (contentH, room) => Math.min(contentH, Math.max(LO_MIN_BODY, room));
+// Kurz im Grundzustand (Hangar-Politur 22.11.2026, Stelle 1): Bei 1280 × 720
+// deckte die Ausrüstung samt Kennwerten rund ein Drittel des Bildes und lag
+// über dem Schiff. Die Liste zeigt erst eine Gruppe mit vier Zeilen und rollt;
+// „Alle zeigen“ am Fuß der Liste gibt ihr den ganzen freien Platz, bis das
+// Schiff wechselt. Eine offene Zeile (Auswahl in der Liste) und das Menü
+// brauchen die Höhe und bekommen sie. Lohnt nur, wenn mehr als eine Zeile fehlt.
+export const LO_KURZ = LO.gh + 4 * LO.rh + 8;
+export const loKurz = (contentH) => contentH > LO_KURZ + LO.rh;
 const AMBER = '#f5a623', DOWN = '#ff9b8a', INK = '#04121d';
 // Farbton je Bauteilart: Energiewaffen blauviolett, ballistische sandhell,
 // Raketen und Bomben glutrot, Schild blau, Generator gelb, Kühler eisig,
@@ -539,7 +555,10 @@ function loLayout(g, d, ui) {
   if (d.empty) { items.push({ t: 'empty', y, h: 44 }); y += 44; }
   const contentH = y + 2;
   const menu = ui.menu ? loMenu(g, d.menu) : null;
-  let H = yBody + loBodyH(contentH, (ui.maxH ?? 640) - yBody - LO.foot) + LO.foot;
+  // „Alle zeigen“ / „Weniger“ am Fuß der Liste, solange keine Zeile offen ist
+  const mehr = loKurz(contentH) && !d.pick && !menu && !!d.more;
+  const room = (ui.maxH ?? 640) - yBody - LO.foot;
+  let H = yBody + loBodyH(contentH, mehr && !ui.full ? Math.min(room, LO_KURZ) : room) + LO.foot;
   if (menu) H = Math.max(H, menu.y + menu.h + 10);
   const hBody = H - yBody - LO.foot, max = Math.max(0, contentH - hBody);
   // eine frisch geöffnete Zeile samt Auswahl ins Bild rollen, die eingebaute Zeile in die Mitte ihrer Liste
@@ -555,7 +574,7 @@ function loLayout(g, d, ui) {
     ui.pscroll = clamp(ui.pscroll ?? 0, 0, pmax);
     pick.pmax = pmax;
   }
-  return { W, H, yBody, hBody, contentH, max, items, pick, openRow, menu, footY: H - LO.foot };
+  return { W, H, yBody, hBody, contentH, max, items, pick, openRow, menu, footY: H - LO.foot, mehr: mehr && (ui.full || max > 0) };
 }
 function drawLoadout(g, d, hover, ui = {}) {
   const L = loLayout(g, d, ui), W = LO_W, { p } = LO;
@@ -710,12 +729,25 @@ function drawLoadout(g, d, hover, ui = {}) {
   {
     const y = L.footY, s = d.state;
     g.save(); g.fillStyle = 'rgba(143,211,255,.22)'; g.fillRect(p, y + 2, W - 2 * p, 1); g.restore();
+    // Alle zeigen / Weniger (LO_KURZ): rechts in der Zeile des Stands, nicht
+    // auf der Liste, wo er Zahlen verdeckte
+    let mw = 0;
+    if (L.mehr) {
+      const st = { f: RAJ, w: 700, s: 12.5 }, lab = `${ui.full ? d.less : d.more} ${ui.full ? '▴' : '▾'}`, act = 'ui|mehr', hot = hover === act;
+      const bw = Math.ceil(measure(g, lab, st)) + 20, bh = 22, bx = W - p - bw, by = y + 7;
+      g.save(); rr(g, bx, by, bw, bh, 11);
+      if (hot) { g.fillStyle = 'rgba(143,211,255,.16)'; g.fill(); }
+      g.lineWidth = 1; g.strokeStyle = hot ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.38)'; g.stroke(); g.restore();
+      text(g, lab, bx + bw / 2, by + 15.5, { ...st, c: hot ? C.txt : C.sub, al: 'center' });
+      hits.push({ x: bx, y: by, w: bw, h: bh, act });
+      mw = bw + 8;
+    }
     let x = p;
     if (s.s === 'saved') x += text(g, '✓', x, y + 22, { f: RAJ, w: 700, s: 13, c: AMBER }) + 5;
     else { g.save(); g.beginPath(); g.arc(x + 4, y + 17.5, 3.5, 0, Math.PI * 2); g.fillStyle = s.s === 'changed' ? AMBER : C.mut; if (s.s === 'changed') { g.shadowColor = AMBER; g.shadowBlur = 5 * S; } g.fill(); g.restore(); x += 14; }
     const st = { f: BAR, w: 500, s: 12.5, c: C.txt };
-    x += text(g, fit(g, s.text, W - p - x, st), x, y + 22, st);
-    if (s.sub) text(g, fit(g, ` · ${s.sub}`, W - p - x, { f: BAR, s: 12.5 }), x, y + 22, { f: BAR, s: 12.5, c: s.s === 'saved' ? AMBER : C.mut });
+    x += text(g, fit(g, s.text, W - p - mw - x, st), x, y + 22, st);
+    if (s.sub) text(g, fit(g, ` · ${s.sub}`, W - p - mw - x, { f: BAR, s: 12.5 }), x, y + 22, { f: BAR, s: 12.5, c: s.s === 'saved' ? AMBER : C.mut });
     // Knöpfe von links: Speichern trägt die Fläche
     const bSt = { f: RAJ, w: 700, s: 13.5 };
     let total = -6;
@@ -1151,6 +1183,9 @@ export function holoLayer(ctx) {
   // auf einer Fläche, schreiben keine Tiefe, und was additiv mischt, hängt
   // ohnehin nicht an der Reihenfolge. Ein Material mit Karte auf einem
   // gewölbten Körper bräuchte wieder beide Züge.
+  // Deckkraft, die ein Eigentümer beiträgt: Tafeln ihr k mal das Zurücktreten
+  // beim Drehen, die Maße ihr eigenes k, alles andere 1
+  const ownK = (o) => (o ? o.k * (o.isPanel ? moveK : 1) : 1);
   const basic = (o, base = o.opacity ?? 1, owner = null) => {
     const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, forceSinglePass: true, ...o });
     mats.push([m, base, owner]); return m;
@@ -1173,6 +1208,16 @@ export function holoLayer(ctx) {
   let safe = { l: 0, t: 0, r: 0, rects: [] };
   let alpha = 0, alphaTo = 0, fadeAt = 0, alphaFrom = 0;
   let restKey = null, camMoved = 0, settledAt = 0;
+  // Zurücktreten beim Drehen (MOVE_K) und Maße unter dem Zeiger (DIM_MS):
+  // DIMS ist der Eigentümer der Maßlinien und -schilder in mats wie eine Tafel
+  let moveK = 1, lastTick = 0;
+  const ZEIGER = typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const DIMS = { k: ZEIGER ? 0 : 1 };
+  let overShip = false;
+  // letzte Zeigerposition und ob eine Taste gedrückt ist: Nach dem Ziehen und
+  // während die Kamera ohne Zeigerbewegung fährt (Rad, Nachlauf) gilt der
+  // Treffer von dort neu, sonst hielten die Maße den Stand vor dem Ziehen
+  let zeiger = null, gedrueckt = false;
   // Lage und Linse der Kamera im letzten Bild: die Shift-Optik (setViewOffset)
   // gleitet nach einer Drehung weiter, ohne dass sich die Kamera rührt, und
   // schob die Tafeln aus ihrem Platz (Ironclad, 10.11.2026)
@@ -1228,7 +1273,7 @@ export function holoLayer(ctx) {
   // ── Tafel ──
   function makePanel(draw, data, side, fly = false) {
     const cv = sheetCanvas(1, 1), g = cv.getContext('2d');
-    const P = { draw, data, side, fly, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null, ui: { scroll: 0, pscroll: 0, menu: false } };
+    const P = { draw, data, side, fly, isPanel: true, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null, ui: { scroll: 0, pscroll: 0, menu: false } };
     P.tex = new THREE.CanvasTexture(cv); P.tex.colorSpace = THREE.SRGBColorSpace;
     P.tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() ?? 1);
     P.tex.minFilter = THREE.LinearMipmapLinearFilter; P.tex.generateMipmaps = true;
@@ -1416,7 +1461,7 @@ export function holoLayer(ctx) {
     const sp = { pos: pos.clone(), px: 0, py: 0, kind: o.kind ?? '' };
     // Nummern am Port durch den Rumpf (xray), Maße verdeckt das Schiff
     const spr = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: !o.xray, fog: false }));
-    mats.push([spr.material, 1]);
+    mats.push([spr.material, 1, o.owner ?? null]);
     spr.renderOrder = RO.sprite; spr.center.set(0.5, o.anchorY ?? 0.5);
     sp.redraw = () => {
       delete cv.dataset.h;
@@ -1441,8 +1486,9 @@ export function holoLayer(ctx) {
   // additiv und schmal.
   function floorBand(a, b, w, op) {
     const d = b.clone().sub(a), len = d.length();
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(len, w), basic({ color: C.line, opacity: op }, op));
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(len + w * 4, w * 6), basic({ map: bandTex, color: C.cy, opacity: op * 0.35, blending: THREE.AdditiveBlending }, op * 0.35));
+    // nur die Maßlinien (layDims): Eigentümer DIMS
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(len, w), basic({ color: C.line, opacity: op }, op, DIMS));
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(len + w * 4, w * 6), basic({ map: bandTex, color: C.cy, opacity: op * 0.35, blending: THREE.AdditiveBlending }, op * 0.35, DIMS));
     m.rotation.x = -Math.PI / 2; m.renderOrder = RO.line;
     halo.rotation.x = -Math.PI / 2; halo.renderOrder = RO.line - 1; halo.position.y = -0.002;
     const g = new THREE.Group(); g.add(halo, m);
@@ -1452,7 +1498,7 @@ export function holoLayer(ctx) {
   }
   function thread(a, b, r, op) {
     const d = b.clone().sub(a), len = d.length();
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 8, 1, true), basic({ color: C.line, opacity: op }, op));
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 8, 1, true), basic({ color: C.line, opacity: op }, op, DIMS));
     m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
     m.renderOrder = RO.line; root.add(m); return m;
   }
@@ -1699,12 +1745,14 @@ export function holoLayer(ctx) {
     built.sprites = built.sprites.filter((sp) => sp.kind !== 'dim');
     // Schilder: mehrere Plätze an ihrer Linie, placeLabels nimmt den ersten,
     // den keine Tafel verdeckt
-    const lab = (s, at) => { const sp = makeSprite((g) => drawLabel(g, s), at[0], { kind: 'dim' }); sp.at = at; lines.push(sp.obj); built.sprites.push(sp); };
+    const lab = (s, at) => { const sp = makeSprite((g) => drawLabel(g, s), at[0], { kind: 'dim', owner: DIMS }); sp.at = at; lines.push(sp.obj); built.sprites.push(sp); };
     const along = (fs, f) => fs.map(f);
     if (d.len) lab(d.len, along([0.65, 0.5, 0.8, 0.35, 0.2], (t) => P3(xEdge, B.min.z * (1 - t) + B.max.z * t, 0.9)));
     if (d.wid) lab(d.wid, along([0.6, 0.45, 0.75, 0.3, 0.15], (t) => P3(B.min.x * (1 - t) + B.max.x * t, zEdge, 0.9)));
     if (d.hgt) lab(d.hgt, along([0.5, 0.7, 0.3], (t) => P3(xEdge, zFar, B.max.y * t)));
     built.lines = lines;
+    // neu gebaut mit voller Deckkraft: gleich auf den Stand von alpha und DIMS
+    for (const [m, base, o] of mats) if (o === DIMS) m.opacity = base * alpha * DIMS.k;
   }
   function placeLabels() {
     const W = ctx.W(), H = ctx.H(), m = 36;
@@ -1894,19 +1942,20 @@ export function holoLayer(ctx) {
   }
 
   function setAlpha(a) {
-    for (const [m, base, P] of mats) m.opacity = base * a * (P ? P.k : 1);
+    for (const [m, base, P] of mats) m.opacity = base * a * ownK(P);
     root.visible = a > 0.001;
   }
   // Deckkraft des Bauteil-Hologramms: mit der Station, seiner Tafel und dem eigenen Einblenden
   function partAlpha() {
-    const k = part && built ? alpha * built.sheet.k * (part.t ?? 0) : 0;
+    // ownK: das Bauteil steht auf der rechten Tafel und tritt beim Drehen mit ihr zurueck (MOVE_K)
+    const k = part && built ? alpha * ownK(built.sheet) * (part.t ?? 0) : 0;
     partA.value = k;
     if (built?.partGlow) built.partGlow.material.opacity = 0.2 * k;
   }
   function setK(P, k) {
     if (P.k === k) return;
     P.k = k;
-    for (const [m, base, o] of mats) if (o === P) m.opacity = base * alpha * k;
+    for (const [m, base, o] of mats) if (o === P) m.opacity = base * alpha * ownK(o);
   }
 
   // ── Zeiger: Knöpfe auf den Tafeln, Zeilen der Systeme, Nummern am Schiff ──
@@ -1954,7 +2003,7 @@ export function holoLayer(ctx) {
     return best ? best.act : null;
   }
   let downAt = null;
-  const onDown = (e) => { downAt = [e.clientX, e.clientY]; };
+  const onDown = (e) => { downAt = [e.clientX, e.clientY]; gedrueckt = true; };
   const onClick = (e) => {
     if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
     const act = pick(e);
@@ -1964,6 +2013,7 @@ export function holoLayer(ctx) {
     if (!act) return;
     if (act === 'ui|menu') { if (!menu) { ui.menu = true; redraw(built.left); settledAt = 0; ctx.wake(300); } }
     else if (act === 'ui|rename') ctx.act({ act: 'lo', a: ['rename'] });
+    else if (act === 'ui|mehr') { ui.full = !ui.full; ui.scroll = 0; redraw(built.left); settledAt = 0; ctx.wake(300); }
     else if (act.startsWith('ui|')) return;
     else if (act.startsWith('it|')) {
       // Datenblatt des Bauteils: Knopf (Einbauen, Crafting, Item-Seite) oder Weg mit Adresse
@@ -1992,8 +2042,33 @@ export function holoLayer(ctx) {
     if (pk) ctx.act({ act: 'lo', a: ['peek', pk[2], pk[3]] });
     ctx.wake(300);
   };
-  const onMove = (e) => { if (!e.buttons) hoverTo(pick(e)); };
-  const onLeave = () => hoverTo(null);
+  // Zeiger über dem Schiff (Hüllquader, nicht hinter einer Tafel): die Maße kommen
+  const shipUnder = (e) => {
+    if (!built || !ZEIGER) return false;
+    const r = el.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    return ray.ray.intersectsBox(built.box);
+  };
+  const schiffTreffer = (e, act) => {
+    const was = overShip;
+    overShip = !act && !panelAt(e) && shipUnder(e);
+    if (overShip !== was) ctx.wake(DIM_MS + 100);
+  };
+  const onMove = (e) => {
+    zeiger = { clientX: e.clientX, clientY: e.clientY };
+    if (e.buttons) return;
+    const act = pick(e);
+    hoverTo(act);
+    schiffTreffer(e, act);
+  };
+  const onLeave = () => { zeiger = null; hoverTo(null); if (overShip) { overShip = false; ctx.wake(DIM_MS + 100); } };
+  const onUp = (e) => {
+    gedrueckt = false;
+    if (!zeiger) return;
+    zeiger = { clientX: e.clientX, clientY: e.clientY };
+    schiffTreffer(zeiger, pick(zeiger));
+  };
   // Rad über der Ausrüstung rollt ihre Liste (über der Auswahl zuerst die),
   // statt die Kamera zu fahren. Vor dem Viewer: der hört am Canvas selbst.
   const wheelHost = el.parentElement ?? el;
@@ -2016,6 +2091,8 @@ export function holoLayer(ctx) {
   el.addEventListener('click', onClick);
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerleave', onLeave);
+  el.addEventListener('pointerup', onUp);
+  el.addEventListener('pointercancel', onUp);
   wheelHost.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
   // Neue Wörter für dieselbe Station. Links wechselt die Tafel zur
@@ -2081,7 +2158,11 @@ export function holoLayer(ctx) {
       // Größe und Drehung je Bild; neuer Platz erst, wenn die Kamera ruht
       let busy = false;
       if (built) {
-        if (camChanged()) camMoved = now;
+        if (camChanged()) {
+          camMoved = now;
+          // Rad oder Nachlauf unter dem ruhenden Zeiger: Liegt das Schiff noch darunter?
+          if (ZEIGER && zeiger && !gedrueckt) schiffTreffer(zeiger, pick(zeiger));
+        }
         if (now - camMoved > REST_MS && settledAt < camMoved) { retarget(now, false); settledAt = now; }
         if (!settledAt) { retarget(now, false); settledAt = now; }
         // Bilder weiter, bis die Tafeln nach der Fahrt ihren neuen Platz
@@ -2093,7 +2174,16 @@ export function holoLayer(ctx) {
       }
       const t = reduceMotion ? 1 : Math.min(1, (now - fadeAt) / FADE_MS);
       const a = alphaFrom + (alphaTo - alphaFrom) * ease(t);
-      if (Math.abs(a - alpha) > 1e-4 || (built && alpha === 0 && a === 0 && alphaTo === 1)) { alpha = a; setAlpha(alpha); }
+      // Tafeln treten beim Drehen zurück, Maße kommen unter dem Zeiger (MOVE_K, DIMS)
+      const dt = lastTick ? Math.min(100, now - lastTick) : 16;
+      lastTick = now;
+      const toward = (cur, to, msIn, msOut) => (reduceMotion ? to : cur + Math.sign(to - cur) * Math.min(Math.abs(to - cur), dt / (to < cur ? msIn : msOut)));
+      const mk = toward(moveK, built && now - camMoved < MOVE_HOLD ? MOVE_K : 1, MOVE_IN, MOVE_OUT);
+      const dk = toward(DIMS.k, !ZEIGER || overShip ? 1 : 0, DIM_MS * 1.5, DIM_MS);
+      const ownMoved = Math.abs(mk - moveK) > 1e-4 || Math.abs(dk - DIMS.k) > 1e-4;
+      moveK = mk; DIMS.k = dk;
+      if (Math.abs(a - alpha) > 1e-4 || ownMoved || (built && alpha === 0 && a === 0 && alphaTo === 1)) { alpha = a; setAlpha(alpha); }
+      if (ownMoved || (built && now - camMoved < MOVE_HOLD)) busy = true;
       partAlpha();
       if (t < 1) busy = true;
       if (built && alphaTo === 0 && alpha <= 0.001 && want === null) { clear(); dimCorner = ''; }
@@ -2104,6 +2194,8 @@ export function holoLayer(ctx) {
       el.removeEventListener('click', onClick);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerleave', onLeave);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
       wheelHost.removeEventListener('wheel', onWheel, { capture: true });
       clear(); scene.remove(root);
       for (const e of partStore.values()) { e.dead = true; partFree(e); }

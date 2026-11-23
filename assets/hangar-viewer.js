@@ -9010,11 +9010,22 @@ export async function initHangar(container, opts = {}) {
   // Halle (bis 90 %), der Rest ist Übersetzen und Hochladen.
   const prog = new Map();          // Schlüssel -> [geladen, gesamt]
   let progressFn = null;
+  // Zweites Argument (Ladebild der Seite, Hangar-Politur 22.11.2026): wie weit
+  // Halle und Schiff je für sich sind, 0..1, oder null, solange gerade nichts
+  // davon lädt (noch nicht begonnen oder schon fertig). Der Innenraum zählt
+  // nicht, er kommt erst beim Einsteigen.
   function report() {
     if (!progressFn) return;
     let a = 0, b = 0;
-    for (const [l, t] of prog.values()) { a += l; b += t; }
-    progressFn(b ? Math.min(90, Math.round((a / b) * 90)) : 0);
+    const teil = { halle: [0, 0], schiff: [0, 0] };
+    for (const [k, [l, t]] of prog) {
+      a += l; b += t;
+      if (k === 'interior') continue;
+      const g = teil[k === 'ship' || k === 'ship-tex' ? 'schiff' : 'halle'];
+      g[0] += l; g[1] += t;
+    }
+    const anteil = ([l, t]) => (t ? Math.min(1, l / t) : null);
+    progressFn(b ? Math.min(90, Math.round((a / b) * 90)) : 0, { halle: anteil(teil.halle), schiff: anteil(teil.schiff) });
   }
   // Bilder des Werkslacks aus der gemeinsamen Ablage: ihre Summe kennt die
   // Seite (opts.texBytes je Datei, Pfad ohne ?v=), der Balken zählt sie von
