@@ -44,7 +44,9 @@ export const HANGAR_ROUTES = [
 
 /** Was im Live-Bau nicht in dist/ stehen darf, relativ zu dist/. Ordner
  *  enden auf '/'; `assets/hangar-*.js` sind die Skripte, die nur die
- *  Hangar-Seiten laden. */
+ *  Hangar-Seiten laden — und der Item-Betrachter (assets/hangar-item3d.js,
+ *  „In 3D ansehen“ auf Item- und Blueprint-Seiten, src/lib/item3d.ts), der
+ *  aus demselben Grund nur in den Vorschau-Bau gehoert. */
 export const HANGAR_DIST_DIRS = ['hangar/', 'hangar-bay/', 'de/hangar-bay/', 'hangar-innen/'];
 export const HANGAR_DIST_FILES = /^(?:de\/)?hangar(?:-loadout)?\.html$|^hangar-layouts\.json$|^assets\/hangar-[\w-]+\.js$/;
 

@@ -141,17 +141,24 @@ const policy = Object.fromEntries(
 /** Quellenliste einer Direktive, mit dem Rückfall auf default-src. */
 const srcFor = (name) => policy[name] ?? policy['default-src'] ?? [];
 const LOADING = ['img-src', 'script-src', 'frame-src', 'media-src', 'connect-src', 'style-src'];
+// `host` ist der Host einer https-Adresse — oder, bei einer unverschluesselten
+// Adresse, `http://host`: die deckt nur eine Quelle mit genau diesem Schema
+// (bzw. `http:`), denn ein schemaloser Host gilt auf einer https-Seite nur
+// fuer https, und `https://host` deckt kein http.
 const allows = (name, host) =>
-  srcFor(name).some((s) => s === `https://${host}` || s === host);
+  host.startsWith('http://')
+    ? srcFor(name).some((s) => s === host || s === 'http:')
+    : srcFor(name).some((s) => s === `https://${host}` || s === host);
 const covers = (name, host) =>
   name === '(inline-js)' ? LOADING.some((d) => allows(d, host)) : allows(name, host);
 
 // ------------------------------------------------------------------ Messung --
-const found = new Map();   // "direktive host" -> {n, sample}
+const found = new Map();   // "direktive host" -> {n, sample}; host mit http:// davor, wenn unverschluesselt
 const note = (directive, url, page) => {
-  let host;
-  try { host = new URL(url).host; } catch { return; }
-  if (host === 'verse-base.com') return;              // die eigene Domain
+  let u;
+  try { u = new URL(url); } catch { return; }
+  if (u.host === 'verse-base.com' && u.protocol === 'https:') return;   // die eigene Domain
+  const host = u.protocol === 'http:' ? `http://${u.host}` : u.host;
   const k = `${directive}|${host}`;
   if (!found.has(k)) found.set(k, { n: 0, sample: page });
   found.get(k).n++;
@@ -170,6 +177,10 @@ const PATTERNS = [
   // Umami schickt an data-host-url (fetch, also connect-src); das Skript
   // selbst kommt vom eigenen Ursprung.
   ['connect-src', /\sdata-host-url="(https?:\/\/[^"]+)"/g],
+  // Items in 3D (src/components/Item3d.astro): das Modell holt GLTFLoader
+  // per fetch, die Texturen daneben per fetch oder als <img> — beides.
+  ['connect-src', /\sdata-i3d-model="(https?:\/\/[^"]+)"/g],
+  ['img-src', /\sdata-i3d-model="(https?:\/\/[^"]+)"/g],
 ];
 
 // Inline-Bestand für die Hash-Prüfung.

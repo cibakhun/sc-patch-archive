@@ -1,0 +1,5 @@
+{
+ "_": "Items in 3D: Modelldatei und Größe (KB) je Item-ID. Erzeugt aus dem Bauprotokoll des Massenlaufs; die Dateien liegen unter base, nicht im Repo (src/lib/item3d.ts).",
+ "base": "https://items.verse-base.com/",
+ "items": {}
+}

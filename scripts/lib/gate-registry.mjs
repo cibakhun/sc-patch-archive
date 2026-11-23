@@ -245,6 +245,17 @@ export const CHECKS = [
       'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (22.11.2026): Items in 3D, derselbe STAGING-Schalter am
+    // Artefakt, aber in beiden Bauten mit eigener Aussage — darum ohne
+    // nurMitHangar. Kein env-Feld: nur dist/ und src/data/item-3d.json.
+    id: 'verify:item3d',
+    npm: 'verify:item3d',
+    script: 'scripts/verify-item3d.mjs',
+    rail: 'A',
+    checks:
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+  },
+  {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach
     // dem Hangar-Schalter, derselbe STAGING-Schalter am Artefakt. Liest jede
     // Textdatei in dist/ einmal, wenige Sekunden. Kein env-Feld: kein git,
