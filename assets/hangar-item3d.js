@@ -22,6 +22,13 @@ const DRACO_PFAD = '/vendor/three/addons/libs/draco/gltf/';
 // Erster Blick: leicht von rechts und von oben, wie im Prototyp.
 const YAW = THREE.MathUtils.degToRad(25);
 const PITCH = THREE.MathUtils.degToRad(8);
+// Lange Teile (Waffen, Zielfernrohre: Mündung zeigt nach +Z) von der Seite,
+// Mündung nach rechts, leicht von vorn; sonst sähe man in den Lauf.
+const YAW_LANG = THREE.MathUtils.degToRad(-65);
+const istLang = (box) => {
+  const s = box.getSize(new THREE.Vector3());
+  return s.z > 1.6 * Math.max(s.x, s.y);
+};
 
 const offen = new WeakMap(); // Dialog -> Betrachter
 
@@ -146,7 +153,8 @@ function baue(dialog) {
   const ansichtZurueck = () => {
     if (!huelle) return;
     groesse();
-    const richtung = new THREE.Vector3(Math.sin(YAW) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(YAW) * Math.cos(PITCH));
+    const yaw = istLang(huelle) ? YAW_LANG : YAW;
+    const richtung = new THREE.Vector3(Math.sin(yaw) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(yaw) * Math.cos(PITCH));
     const r = abstand(huelle, richtung);
     controls.target.set(0, 0, 0);
     cam.position.copy(richtung).multiplyScalar(r);
