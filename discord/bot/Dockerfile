@@ -14,7 +14,7 @@
 #  Both stages use the SAME base image, pinned by digest, so a native module
 #  built in `deps` matches the runtime exactly. Dependabot bumps the digest.
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da AS deps
+FROM node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS deps
 
 # better-sqlite3 / @napi-rs/canvas ship prebuilt linux-x64 binaries; the build
 # toolchain is only a fallback in case a prebuild is ever unavailable.
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY discord/bot/package.json discord/bot/package-lock.json ./
 RUN npm ci --omit=dev
 
-FROM node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
+FROM node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

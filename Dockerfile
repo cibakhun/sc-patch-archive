@@ -5,7 +5,7 @@
 # morgen auf ein anderes Image, und was dann gebaut wird, hat niemand
 # geprueft. Dependabot (.github/dependabot.yml) hebt den Digest woechentlich
 # als PR an, verify:supply-chain reisst bei einem FROM ohne Digest.
-FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS build
+FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -54,7 +54,7 @@ RUN npm run build
 # den letzten guten Stand.
 RUN npm run gate
 
-FROM nginx:alpine@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698d2aed0606
+FROM nginx:alpine@sha256:fb4658584bd9a916ffb6f6e365f97c25cfdb2923801f551ea08356e695f14ff7
 # Testpilot-Tuersteher (Phase 14 Plan 01, D-23): dasselbe Blech wie live, nur
 # der Schalter unten entscheidet, ob er greift. OHNE Bedingung installiert —
 # D-23 verlangt ausdruecklich dasselbe Image fuer live und Vorschau; ein
