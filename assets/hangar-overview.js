@@ -3399,21 +3399,29 @@ export function boot(doc) {
     // nicht). Gedrueckt ist, was noch keinen Loslass-Ruf hatte, Tasten und
     // Finger je fuer sich: Das keyup von Tab loest kein gehaltenes Shift und
     // keinen Finger auf der Buehne.
-    let i = -1, ziel = null, seit = 0, uhr = 0, tasteZuletzt = 0;
+    let i = -1, ziel = null, seit = 0, uhr = 0;
     const t0 = Date.now(), RUHE = 1500, TASTE_HAENGT = 3000;
-    const tasten = new Set(), finger = new Set();
+    const tasten = new Map(), finger = new Set(); // Taste -> letztes keydown
     const canvas = $('hg-canvas');
-    const fingerAn = (e) => { finger.add(e.pointerId); seit = 0; };
-    const fingerLos = (e) => { if (finger.delete(e.pointerId)) seit = 0; };
-    const tasteAn = (e) => { tasten.add(e.code || e.key); tasteZuletzt = Date.now(); seit = 0; };
-    const tasteLos = (e) => { if (tasten.delete(e.code || e.key)) seit = 0; tasteZuletzt = Date.now(); };
+    // Umschalttasten wiederholen beim Halten kein keydown (je nach System),
+    // ihr Zustand steht aber in jedem Tasten- und Zeigerereignis: Faellt dort
+    // das Flag, ist die Taste los, auch wenn ihr keyup fehlte.
+    const UMSCHALT = { Shift: 'shiftKey', Control: 'ctrlKey', Alt: 'altKey', Meta: 'metaKey', OS: 'metaKey' };
+    const umschalt = (k) => UMSCHALT[k.replace(/(Left|Right)$/, '')];
+    const abgleich = (e) => { for (const k of [...tasten.keys()]) { const flag = umschalt(k); if (flag && !e[flag]) tasten.delete(k); } };
+    const fingerAn = (e) => { abgleich(e); finger.add(e.pointerId); seit = 0; };
+    const fingerLos = (e) => { if (finger.delete(e.pointerId)) seit = 0; abgleich(e); };
+    const tasteAn = (e) => { tasten.set(e.code || e.key, Date.now()); abgleich(e); seit = 0; };
+    const tasteLos = (e) => { if (tasten.delete(e.code || e.key)) seit = 0; abgleich(e); };
     const allesLos = () => { tasten.clear(); finger.clear(); seit = 0; };
     const rad = () => { seit = 0; };
-    // Eine gehaltene Taste wiederholt keydown. Bleibt das aus, obwohl noch eine
-    // als gedrueckt gilt, hat das System ihr keyup verschluckt (unter macOS
-    // etwa jede Taste, die mit Cmd zusammen fiel): nach 3 s gilt sie als los,
-    // sonst kaemen die Hinweise nie.
-    const druck = () => finger.size > 0 || (tasten.size > 0 && Date.now() - tasteZuletzt < TASTE_HAENGT);
+    // Eine gewoehnliche Taste wiederholt keydown, solange sie liegt. Bleibt das
+    // aus, obwohl sie noch als gedrueckt gilt, hat das System ihr keyup
+    // verschluckt (unter macOS jede Taste, die mit Cmd zusammen fiel): nach 3 s
+    // ohne eigenes keydown gilt sie als los, sonst kaemen die Hinweise nie;
+    // jede Taste zaehlt dabei fuer sich. Eine Umschalttaste haelt bis zu
+    // ihrem keyup, dem Abgleich oben oder blur.
+    const druck = () => finger.size > 0 || [...tasten].some(([k, t]) => umschalt(k) || Date.now() - t < TASTE_HAENGT);
     // Tasten zaehlen wie ein Finger auf der Buehne: Wer in der Suche tippt
     // oder mit Tab durch die Knoepfe geht, ist beschaeftigt. Gedrueckt haelt
     // die Frist an, Loslassen beginnt sie neu; verliert das Fenster den
