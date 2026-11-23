@@ -130,8 +130,9 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
   von `assets/*.js` und `*.css`. Die Begriffe stehen in `PROVENANCE_TERMS`
   (`scripts/audit-site.mjs`); `audit:site` erzwingt das als FEHLER.
 - `README.md` ist das Schaufenster des öffentlichen Repos (seit 23.11.2026):
-  englisch, und für die Datenherkunft gilt dort dieselbe Regel wie auf der
-  Seite. Entwicklerdetails gehören nach [`docs/entwicklung.md`](docs/entwicklung.md).
+  englisch mit einem kurzen deutschen Abschnitt am Ende, und für die
+  Datenherkunft gilt dort dieselbe Regel wie auf der Seite.
+  Entwicklerdetails gehören nach [`docs/entwicklung.md`](docs/entwicklung.md).
 - Sicherheitsfixes tragen eine **neutrale Betreffzeile** („Konto: Eingaben
   strenger prüfen", nicht „XSS im Profil schließen"), PR-Titel und -Text
   ebenso. Das Repo ist öffentlich, und „Testphase eröffnen" schickt
