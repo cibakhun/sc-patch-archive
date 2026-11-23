@@ -417,6 +417,12 @@
         tiefer; mit einem Muster rot)
      ae nach dem Review von PR #407 ([6]): der Takt des Ueberblicks ohne
         malKonto ergab „fragt die Zahlen des Kontos nicht nach“
+     af nach der Sichtpruefung von WINDOWS #190 auf dem PC (vier Eingriffe
+        am gebauten dist/, alle rot): termGespeichert ohne Loadouts ([4],
+        5 FEHLER); holen ohne hangar_layouts ([6] „zaehlt die Loadouts nicht
+        mehr mit“); die Kachel Items mit 5.821 auf der deutschen Seite ([3]
+        „nennt 5.821 Items, ihre Seite /de/items.html im Titel 9518“); die
+        Kachel Missionen mit 1,367 auf der englischen ([3] „im Titel 1366“)
    Die Meldungen stehen in der PR der vierten Runde.
 
      node scripts/verify-hangar-orte.mjs
@@ -444,8 +450,9 @@ const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete
 const MIN_GAST_WEGE = 6;     // Wege des Gasts auf dem Sperrbild, beschriftet und mit Ziel, in [2] (15.11.2026: 3 je Seite)
 const MIN_SITZ_PROBEN = 37;  // Pfade, Zeitstempel und Sitzungen, die [4] durch termKonto, termAnmeldung, termGruss und termBlende schickt (15.11.2026: 9 + 10 + 8 + 10)
 const MIN_START_PROBEN = 141; // Adressen und Besuche, die [6] durch startAmSchirm schickt (15.11.2026: 17 + 23 Schluessel) und durch den Vorentscheid im Geruest beider Seiten (je 15 + 23 + 7; 16.11.2026 je 15 + 23 + 10, mit der Sitzung, die sich nur lesen laesst), dazu die Frage von guess3d nach dem Telefon und 4 Laeufe des Erstbesuchs in tool-help.js
+const MIN_UEB_ZAHLEN = 4;    // Werkzeug-Kacheln, deren Zahl [3] gegen den Titel ihrer Seite haelt (23.11.2026: Items und Missionen je Sprache)
 const MIN_UEB_ZIELE = 30;    // Links des Ueberblicks mit Ziel in dist/, die [3] prueft (23.11.2026: 7 Werkzeuge, 4 Zahlen, Patch, 2 Wege des Gasts, wer davor sitzt, je Seite)
-const MIN_UEB_PROBEN = 34;   // Proben, die [4] durch termErste, termRest, termRaffinerie, termCrafting und termFreunde schickt (23.11.2026: 9 + 7 + 8 + 4 + 6)
+const MIN_UEB_PROBEN = 39;   // Proben, die [4] durch termErste, termRest, termRaffinerie, termCrafting, termFreunde und termGespeichert schickt (23.11.2026: 9 + 7 + 8 + 4 + 6 + 5)
 const MIN_KONTO_SEITEN = 6;  // Kontoseiten (Anmelden, Registrieren, Konto, je Sprache), deren ausgelieferte Skripte [6] nach dem Kennzeichen des Terminals durchsucht (15.11.2026: 6)
 
 const fehler = [];
@@ -635,7 +642,7 @@ say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, ${ueb
 
 /* ---------- [3] Reiter ---------- */
 say('[3] Reiter: Ziele in dist/, in der Sprache der Seite, bleiben im Fenster, markieren sich selbst');
-let reiter = 0, ziele = 0, uebZiele = 0;
+let reiter = 0, ziele = 0, uebZiele = 0, uebZahlen = 0;
 for (const page of PAGES) {
   const sec = boxOf(page);
   const links = [...sec.matchAll(/<a[^>]*\bdata-term="[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map((m) => {
@@ -676,6 +683,20 @@ for (const page of PAGES) {
     const l = links.find((x) => x.key === k.key);
     if (l && k.href !== l.href) fail(`[3] ${page.file}: das Werkzeug ${k.key} im Ueberblick fuehrt nach ${k.href}, sein Reiter nach ${l.href}`);
   }
+  // Die Zahl einer Werkzeug-Kachel ist die, die ihre Seite im Titel nennt,
+  // wenn sie dort eine nennt (Sichtpruefung WINDOWS #190: die Kachel sagte
+  // 5.821 Items, die Seite dahinter „alle 9.518 Items“). Versionen wie
+  // 4.10.3 und Zeichen wie &#38; sind keine Zahl.
+  for (const m of ueb.matchAll(/<a[^>]*\bdata-term-zu="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) {
+    const zahl = /<em>([^<]*)<\/em>/.exec(m[2])?.[1];
+    const ziel = (wert(m[0].slice(0, m[0].indexOf('>') + 1), 'href') ?? '').split(/[?#]/)[0];
+    if (!zahl || !ziel || !existsSync(join(DIST, ziel))) continue; // ohne Ziel meldet es die Schleife darunter
+    const titel = (/<title>([^<]*)<\/title>/.exec(readFileSync(join(DIST, ziel), 'utf8'))?.[1] ?? '').replace(/&#?\w+;/g, ' ');
+    const imTitel = [...titel.replace(/\d+(?:\.\d+){2,}/g, ' ').matchAll(/\d{1,3}(?:[.,\u202f]\d{3})+|\d+/g)].map((x) => x[0].replace(/\D/g, ''));
+    if (!imTitel.length) continue;
+    uebZahlen++;
+    if (!imTitel.includes(zahl.replace(/\D/g, ''))) fail(`[3] ${page.file}: die Kachel ${m[1]} des Ueberblicks nennt ${zahl.trim()}, ihre Seite ${ziel} im Titel ${imTitel.join(', ')} („${titel.trim()}“)`);
+  }
   for (const m of ueb.matchAll(/<a\b[^>]*>/g)) {
     const tag = m[0], ziel = wert(tag, 'href') ?? '', pfad = ziel.split(/[?#]/)[0];
     const wo = `[3] ${page.file}: Link ${ziel || '—'} im Ueberblick (${wert(tag, 'class') ?? '—'})`;
@@ -687,7 +708,8 @@ for (const page of PAGES) {
   }
 }
 if (uebZiele < MIN_UEB_ZIELE) fail(`[3] nur ${uebZiele} Links des Ueberblicks mit Ziel in dist/, Klinke ${MIN_UEB_ZIELE}`);
-say(`    ${reiter} Reiter, ${ziele} Ziele in dist/ gefunden (Klinke ${MIN_BEREICHE} je Seite), ${uebZiele} Links des Ueberblicks (Klinke ${MIN_UEB_ZIELE})`);
+if (uebZahlen < MIN_UEB_ZAHLEN) fail(`[3] nur ${uebZahlen} Zahlen der Werkzeug-Kacheln gegen den Titel ihrer Seite gehalten, Klinke ${MIN_UEB_ZAHLEN}`);
+say(`    ${reiter} Reiter, ${ziele} Ziele in dist/ gefunden (Klinke ${MIN_BEREICHE} je Seite), ${uebZiele} Links des Ueberblicks (Klinke ${MIN_UEB_ZIELE}), ${uebZahlen} Kachel-Zahlen wie im Titel ihrer Seite (Klinke ${MIN_UEB_ZAHLEN})`);
 
 /* ---------- [4] Reine Funktionen des Terminals ---------- */
 say('[4] Terminal: Kasten deckt den Schirm, Wege aus dem Fenster, Stil fuer die Seite');
@@ -897,9 +919,9 @@ if (faktProben < MIN_FAKT_PROBEN) fail(`[4] nur ${faktProben} Karten durch termF
 // Vierte Runde (23.11.2026): womit der Schirm beginnt, und die Zahlen des Kontos im Ueberblick
 let uebProben = 0;
 if (term) {
-  const { termErste, termRest, termRaffinerie, termCrafting, termFreunde, TERM_START } = term;
-  if ([termErste, termRest, termRaffinerie, termCrafting, termFreunde].some((f) => typeof f !== 'function') || typeof TERM_START !== 'string' || !TERM_START || /^\//.test(TERM_START))
-    fail('[4] dist/assets/hangar-terminal.js liefert termErste, termRest, termRaffinerie, termCrafting, termFreunde oder TERM_START (kein Pfad) nicht');
+  const { termErste, termRest, termRaffinerie, termCrafting, termFreunde, termGespeichert, TERM_START } = term;
+  if ([termErste, termRest, termRaffinerie, termCrafting, termFreunde, termGespeichert].some((f) => typeof f !== 'function') || typeof TERM_START !== 'string' || !TERM_START || /^\//.test(TERM_START))
+    fail('[4] dist/assets/hangar-terminal.js liefert termErste, termRest, termRaffinerie, termCrafting, termFreunde, termGespeichert oder TERM_START (kein Pfad) nicht');
   else {
     const probe = (name, fn, args, soll, was) => {
       uebProben++;
@@ -954,6 +976,13 @@ if (term) {
       [[[], [{ sender_id: 'a' }], [{ user_id: 'b', friend_id: 'a' }], ICH], { anfragen: 0, ungelesen: 0 }, 'eine Freundschaft zweier anderer zaehlt nicht'],
       [[[], [{ sender_id: 'a' }], [{ user_id: '', friend_id: 'a' }], ''], { anfragen: 0, ungelesen: 0 }, 'ohne eigenes Konto keine Freunde'],
     ]) probe('termFreunde', termFreunde, args, soll, was);
+    for (const [args, soll, was] of [
+      [[[{ id: 'a' }, { id: 'b' }, { id: 'c' }], []], { loadouts: 3, favoriten: 0 }, 'Loadouts zaehlen mit (vorher stand bei drei Loadouts eine 0 da, die Kontoseite zeigte drei)'],
+      [[[{ id: 'a' }, { id: 'b', deleted: true }], [{ id: 1 }, { id: 2 }]], { loadouts: 1, favoriten: 2 }, 'ein geloeschtes Loadout zaehlt nicht, Favoriten fuer sich'],
+      [[null, [{ id: 1 }]], null, 'fehlen die Loadouts, zaehlt die Kachel nicht halb'],
+      [[[{ id: 'a' }], 'kaputt'], null, 'fehlen die Favoriten, zaehlt die Kachel nicht halb'],
+      [[[null, 'x', { id: 'a' }], [null, { id: 1 }]], { loadouts: 1, favoriten: 1 }, 'fremde Zeilen fallen weg'],
+    ]) probe('termGespeichert', termGespeichert, args, soll, was);
   }
 }
 if (uebProben < MIN_UEB_PROBEN) fail(`[4] nur ${uebProben} Proben zu Beginn, Countdown und Zahlen des Ueberblicks, Klinke ${MIN_UEB_PROBEN}`);
@@ -1212,6 +1241,7 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
     [tSrc, /box\.classList\.add\('is-on'\);\s*passeLeiste\(\);/, 'ein neues Rechteck misst die Leiste nicht neu (passeLeiste in place): Im schmalen Kasten schnitte sie ihre letzten Bereiche ab'],
     [tSrc, /avatarInto\(who\.querySelector\('\.hgx-term__av'\), id\);\s*passeLeiste\(\);/, 'ein anderer Name des Kontos misst die Leiste nicht neu (passeLeiste in showWho): Ein langer Name schnitte die letzten Bereiche ab'],
     [tSrc, /function tick\(\) \{[^}]*\}[^}]*malRef\(\);[^}]*malKonto\(\);\s*\}/, 'der Takt des Ueberblicks fragt die Zahlen des Kontos nicht nach (malKonto in tick): Steht er laenger, blieben abgeholte Auftraege der Raffinerie als fertig stehen (Review PR #407)'],
+    [tSrc, /get\(`hangar_layouts\?select=id,deleted&deleted=is\.false&user_id=eq\.\$\{q\}[^`]*`\)[\s\S]{0,400}fav: termGespeichert\(lo, fav\)/, 'der Ueberblick zaehlt unter „Gespeichert“ die Loadouts nicht mehr mit (hangar_layouts und termGespeichert in holen): Bei drei Loadouts stuende dort wieder eine 0, waehrend die Kontoseite drei zeigt (Sichtpruefung WINDOWS #190)'],
     [tSrc, /box\.toggleAttribute\('data-niedrig', f\.h < TERM_NIEDRIG_H\);/, 'der Kasten sagt dem Stil nicht mehr, dass er niedrig ist (data-niedrig in place): Im Fenster von 1280 x 720 liefe der Ueberblick unten ueber den Rand'],
   ];
   // Die Suche der Hangarseite steht als Inline-Skript in jeder Seite (SearchOverlay.astro)

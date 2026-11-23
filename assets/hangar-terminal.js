@@ -223,6 +223,25 @@ export function termFreunde(anfragen, ungelesen, freunde, ich) {
 }
 
 /**
+ * Die Kachel „Gespeichert“, gezaehlt wie der Bereich „Gespeichert“ am Konto
+ * (src/scripts/account-saved.ts): die Loadouts des Hangars (geloeschte
+ * nicht) und die Favoriten. Wer nur Loadouts hat, sah vorher eine 0, und die
+ * Kontoseite zeigte daneben drei. Fehlt eine der beiden Listen, zaehlt die
+ * Kachel nicht halb: null, dann steht „Gerade nicht erreichbar“ da.
+ *   termGespeichert([{ id: 'a' }, { id: 'b', deleted: true }], [{ id: 1 }]) → { loadouts: 1, favoriten: 1 }
+ *   termGespeichert(null, [{ id: 1 }]) → null
+ * @param {unknown} loadouts @param {unknown} favoriten
+ * @returns {{ loadouts: number, favoriten: number } | null}
+ */
+export function termGespeichert(loadouts, favoriten) {
+  if (!Array.isArray(loadouts) || !Array.isArray(favoriten)) return null;
+  return {
+    loadouts: loadouts.filter((r) => r && typeof r === 'object' && r.deleted !== true).length,
+    favoriten: favoriten.filter((r) => r && typeof r === 'object').length,
+  };
+}
+
+/**
  * Kasten des Terminals fuer das Rechteck des Schirms im Bild. Ist der Schirm
  * schmaler als TERM_MIN_W, steht die Seite in voller Breite und verkleinert
  * (k), damit sie ihr Layout behaelt. Unter TERM_MIN_K wuerde die Schrift
@@ -1237,17 +1256,18 @@ export function initTerminal(box, hooks = {}) {
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((x) => (Array.isArray(x) ? x : Promise.reject(new Error('Form'))))
         .catch(() => null);
-      const [ref, craft, anf, dm, fav] = await Promise.all([
+      const [ref, craft, anf, dm, fav, lo] = await Promise.all([
         get(`refinery_jobs?select=station,started_at,ready_at,status&status=eq.active&user_id=eq.${q}&order=ready_at&limit=50`),
         get(`crafting_entries?select=owned,plan_qty&user_id=eq.${q}&limit=5000`),
         get(`friend_requests?select=id&receiver_id=eq.${q}&status=eq.pending&limit=100`),
         get(`direct_messages?select=sender_id&receiver_id=eq.${q}&read_at=is.null&limit=500`),
         get(`favorites?select=id&user_id=eq.${q}&limit=1000`),
+        get(`hangar_layouts?select=id,deleted&deleted=is.false&user_id=eq.${q}&limit=1000`),
       ]);
       // die Freunde nur, wenn es Ungelesenes gibt: Sie entscheiden, welche Nachrichten zaehlen
       const fr = dm?.length ? await get('friends?select=user_id,friend_id&limit=1000') : [];
       if (n !== datenLauf) return;
-      daten = { uid, t: Date.now(), ref, craft: craft && termCrafting(craft), freunde: anf && dm && fr ? termFreunde(anf, dm, fr, uid) : null, fav: fav && fav.length };
+      daten = { uid, t: Date.now(), ref, craft: craft && termCrafting(craft), freunde: anf && dm && fr ? termFreunde(anf, dm, fr, uid) : null, fav: termGespeichert(lo, fav) };
       if (zeigt === 'start') malZahlen();
     } finally {
       win.clearTimeout(frist);
@@ -1266,7 +1286,6 @@ export function initTerminal(box, hooks = {}) {
     for (const a of zahlenEl.querySelectorAll('a[data-z]')) {
       const k = a.dataset.z, v = daten[k];
       if (k === 'ref') { malRef(); continue; }
-      a.dataset.sub ??= a.querySelector('small')?.textContent ?? '';
       let wert = '—', unter = '', ton = '';
       if (v === null) unter = T.lNichtda ?? '';
       else if (v !== undefined && k === 'craft') {
@@ -1278,8 +1297,16 @@ export function initTerminal(box, hooks = {}) {
         if (!anf && !msg) { wert = T.lRuhig ?? ''; ton = 'leer'; }
         else { wert = anf || msg; unter = anf ? msg : ''; ton = 'an'; }
       } else if (v !== undefined && k === 'fav') {
-        wert = v >= 1000 ? `${nf.format(1000)}+` : nf.format(v);
-        unter = a.dataset.sub;
+        // Eine nackte 0 las sich in der Schrift der Zahlen wie ein Zeichen
+        // („Ø“); leer sagt die Kachel es in Worten wie ihre Nachbarn.
+        const n = v.loadouts + v.favoriten;
+        if (!n) { wert = T.lFavLeer ?? ''; ton = 'leer'; }
+        else {
+          wert = n >= 1000 ? `${nf.format(1000)}+` : nf.format(n);
+          const lo = v.loadouts ? (v.loadouts === 1 ? T.lFavLo1 : fuell(T.lFavLon, v.loadouts)) : '';
+          const fa = v.favoriten ? (v.favoriten === 1 ? T.lFavFa1 : fuell(T.lFavFan, v.favoriten)) : '';
+          unter = [lo, fa].filter(Boolean).join(' · ');
+        }
       }
       setzeZahl(a, wert ?? '', unter ?? '', ton);
     }
