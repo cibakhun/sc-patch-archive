@@ -3396,23 +3396,36 @@ export function boot(doc) {
     ];
     const txt = $('hgx-tipp-t'), num = $('hgx-tipp-n'), weiter = $('hgx-tipp-weiter');
     // seit: wann die Halle zuletzt bereit und unberührt wurde (0: gerade
-    // nicht); druck: eine Taste oder ein Finger liegt auf der Bühne
-    let i = -1, ziel = null, seit = 0, druck = false, uhr = 0;
-    const t0 = Date.now(), RUHE = 1500;
+    // nicht). Gedrueckt ist, was noch keinen Loslass-Ruf hatte, Tasten und
+    // Finger je fuer sich: Das keyup von Tab loest kein gehaltenes Shift und
+    // keinen Finger auf der Buehne.
+    let i = -1, ziel = null, seit = 0, uhr = 0, tasteZuletzt = 0;
+    const t0 = Date.now(), RUHE = 1500, TASTE_HAENGT = 3000;
+    const tasten = new Set(), finger = new Set();
     const canvas = $('hg-canvas');
-    const an = () => { druck = true; seit = 0; };
-    const los = () => { druck = false; seit = 0; };
+    const fingerAn = (e) => { finger.add(e.pointerId); seit = 0; };
+    const fingerLos = (e) => { if (finger.delete(e.pointerId)) seit = 0; };
+    const tasteAn = (e) => { tasten.add(e.code || e.key); tasteZuletzt = Date.now(); seit = 0; };
+    const tasteLos = (e) => { if (tasten.delete(e.code || e.key)) seit = 0; tasteZuletzt = Date.now(); };
+    const allesLos = () => { tasten.clear(); finger.clear(); seit = 0; };
     const rad = () => { seit = 0; };
+    // Eine gehaltene Taste wiederholt keydown. Bleibt das aus, obwohl noch eine
+    // als gedrueckt gilt, hat das System ihr keyup verschluckt (unter macOS
+    // etwa jede Taste, die mit Cmd zusammen fiel): nach 3 s gilt sie als los,
+    // sonst kaemen die Hinweise nie.
+    const druck = () => finger.size > 0 || (tasten.size > 0 && Date.now() - tasteZuletzt < TASTE_HAENGT);
     // Tasten zaehlen wie ein Finger auf der Buehne: Wer in der Suche tippt
     // oder mit Tab durch die Knoepfe geht, ist beschaeftigt. Gedrueckt haelt
     // die Frist an, Loslassen beginnt sie neu; verliert das Fenster den
-    // Fokus, kommt kein keyup mehr, dann gilt das als Loslassen.
+    // Fokus, kommt kein keyup mehr, dann gilt alles als losgelassen.
     const lauschen = (on) => {
       const f = on ? 'addEventListener' : 'removeEventListener';
-      canvas?.[f]('pointerdown', an, { passive: true });
+      canvas?.[f]('pointerdown', fingerAn, { passive: true });
       canvas?.[f]('wheel', rad, { passive: true });
-      doc[f]('keydown', an);
-      for (const ev of ['pointerup', 'pointercancel', 'keyup', 'blur']) window[f](ev, los, { passive: true });
+      doc[f]('keydown', tasteAn);
+      for (const ev of ['pointerup', 'pointercancel']) window[f](ev, fingerLos, { passive: true });
+      window[f]('keyup', tasteLos, { passive: true });
+      window[f]('blur', allesLos, { passive: true });
     };
     const bereit = () => ortGemalt === 'halle' && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
     const markieren = (el) => { ziel?.classList.remove('hgx-tipp-ziel'); ziel = el; ziel?.classList.add('hgx-tipp-ziel'); };
@@ -3477,7 +3490,7 @@ export function boot(doc) {
       if (i < 0) {
         const jetzt = Date.now();
         if (jetzt - t0 > 180000) { clearInterval(uhr); lauschen(false); return; }
-        if (!bereit() || druck) { seit = 0; return; }
+        if (!bereit() || druck()) { seit = 0; return; }
         if (!seit) seit = jetzt;
         if (jetzt - seit >= RUHE) { doc.addEventListener('keydown', taste); zeige(); }
         return;
