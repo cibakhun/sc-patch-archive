@@ -2894,7 +2894,9 @@ export function boot(doc) {
     const aus = (ms) => { clearTimeout(uhr); uhr = setTimeout(() => { if (!unten) delete main.dataset.dreh; }, ms); };
     box?.addEventListener('pointerdown', (e) => { clearTimeout(uhr); unten = true; x0 = e.clientX; y0 = e.clientY; }, { passive: true });
     box?.addEventListener('pointermove', (e) => { if (unten && !main.dataset.dreh && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) an(); }, { passive: true });
-    for (const ev of ['pointerup', 'pointercancel']) window.addEventListener(ev, () => { if (!unten) return; unten = false; if (main.dataset.dreh) aus(500); }, { passive: true });
+    // Verlaesst der Fokus das Fenster mitten im Ziehen, kommt kein pointerup:
+    // blur gilt dann als Loslassen, sonst bliebe der Kopf zurueckgetreten
+    for (const ev of ['pointerup', 'pointercancel', 'blur']) window.addEventListener(ev, () => { if (!unten) return; unten = false; if (main.dataset.dreh) aus(500); }, { passive: true });
     box?.addEventListener('wheel', () => { an(); aus(700); }, { passive: true });
   }
 
