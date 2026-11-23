@@ -2836,6 +2836,14 @@ export function boot(doc) {
     }
     ankunftMalen();
   }
+  // Ausblenden abbrechen und die Ankunft dem naechsten Schiff derselben Halle
+  // geben: die Halle steht schon, Schiff und Licht beginnen von vorn
+  function ankunftWeiter() {
+    ++ankTok;
+    clearTimeout(ankWeg);
+    delete ankunftEl.dataset.geht;
+    ank = { halle: 1, schiff: 0, sahHalle: true, sahSchiff: false, ohneHalle: ankunftEl.hasAttribute('data-ohne-halle'), steht: false, alt: false };
+  }
   // steht: das Schiff steht, die Schritte enden gefuellt; sonst (Fehler,
   // Abbruch) geht die Ankunft, wie sie ist. sofort: ohne Ausblenden.
   // Steht das Schiff, blendet sie erst, wenn das Bild ruhig laeuft: Gleich
@@ -2878,15 +2886,17 @@ export function boot(doc) {
   let wunsch = null, umbau = false;
   function viewerShow(id) {
     wunsch = id;
-    // ohne Buehne und waehrend eines Umbaus nur der Wunsch: Der Umbau zeigt ihn am Ende
-    if (!viewer || umbau) return;
+    // ohne Buehne und waehrend eines Umbaus nur der Wunsch: Der Umbau zeigt ihn am Ende.
+    // Die Ankunft nennt ihn schon jetzt (eine andere Halle bringt der Umbau mit ankunftAn).
+    if (!viewer || umbau) { if (ank && !ankunftEl.hidden) ankunftSchiff(id); return; }
     const hallWant = hallOf(id)?.id ?? null;
     if (hallNow && hallWant && hallWant !== hallNow && buehneNeu) { umbauen(); return; }
     const my = ++showTok;
     placed = null;
     syncMarks();
-    // auch waehrend die Ankunft noch ausblendet (ank schon null): sonst nennt sie das vorige Schiff
-    if (ankunftEl && !ankunftEl.hidden) ankunftSchiff(id);
+    // Ist die Ankunft noch zu sehen, gilt sie dem neuen Schiff, auch wenn sie
+    // fuer das vorige schon ausblendete (ank null): sie bleibt, bis es steht
+    if (ankunftEl && !ankunftEl.hidden) { if (!ank) ankunftWeiter(); ankunftSchiff(id); }
     const [glb, tex, maker, ort, hangar] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
