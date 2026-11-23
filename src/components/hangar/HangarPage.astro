@@ -957,6 +957,36 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
      zeigt sie ohnehin nie; den Namen traegt aria-label. */
   .hgx-rand .hgx-tip{display:none}
 }
+/* Hangar-Modus (Hangar-Politur 23.11.2026, Stelle 3 der Liste „zehn Stellen,
+   die noch nach Alpha aussehen“; Krisz 22.11.2026: „arbeite die punkte ab
+   die du meinst“). Im selben Bild standen vier Bildsprachen: der Kopf der
+   Webseite, Hologramme in Cyan, Knoepfe und Leisten als graue Kaesten mit
+   12 px Rundung und die Schiffsauswahl als dritte Art Kasten. Ab 761 px
+   (dort liegt alles auf der Buehne) sprechen Knoepfe, Leisten, Auswahl und
+   Tafeln die Sprache der Hologramme: dunkles Glas, Haarlinie in Cyan,
+   kleine Rundung, aktive Orte mit Lichtkante wie die Reiter der Tafeln.
+   Amber bleibt, was handelt (Speichern, Balken, Fokus). Der Seitenkopf wird
+   ein schmaler Streifen ohne Weichzeichner ueber der Halle (der rechnete
+   jedes Bild der Leinwand mit) und tritt zurueck, solange man dreht
+   (data-dreh, hangar-overview.js), wie die Tafeln (MOVE_K). */
+@media (min-width:761px){
+  .hg{--hg-top:62px}
+  .hg-stagewrap,.hg .hg-dock{--hg-panel:rgb(7 13 20/.76);--hg-hair:rgb(150 215 245/.2);--hg-rim:inset 0 1px 0 rgb(170 226 255/.07);--hg-hud:rgb(140 214 255);--hg-hud-on:rgb(222 245 255)}
+  .hg .hg-dock{background:var(--hg-panel);border-color:var(--hg-hair);border-radius:6px;box-shadow:var(--hg-rim),0 18px 44px -22px var(--shadow-color)}
+  .hg-stats,.hg .hgl,.hgx-st{border-radius:6px}
+  .hgx-ico{border-radius:6px}
+  .hgx-ico:hover,.hgx-ico:focus-visible{color:var(--hg-hud-on);border-color:rgb(150 220 255/.55);background:rgb(12 24 34/.9)}
+  .hg-btn:hover,.hg-btn:focus-visible{border-color:rgb(150 220 255/.55)}
+  .hgx-st button{border-radius:4px;font-size:var(--fs-6);letter-spacing:var(--ls-10);text-transform:uppercase}
+  .hgx-st button:hover,.hgx-st button:focus-visible{color:var(--hg-hud-on);background:rgb(120 200 255/.07)}
+  .hgx-st button[aria-selected="true"],.hgx-st button[aria-pressed="true"],.hgx-st button[aria-current="true"]{color:var(--hg-hud-on);background:rgb(120 200 255/.1);box-shadow:inset 0 -2px 0 var(--hg-hud)}
+  .hgx-st button[aria-selected="true"] svg,.hgx-st button[aria-pressed="true"] svg,.hgx-st button[aria-current="true"] svg{color:var(--hg-hud)}
+  .hgx-st__flat{border-radius:0 4px 4px 0!important}
+  body:has(main.hg) .snav{padding-block:.35rem;background:linear-gradient(180deg,color-mix(in srgb,var(--chrome-solid) 82%,transparent),transparent);backdrop-filter:none;transition:opacity var(--dur-slow) var(--ease-ui)}
+  body:has(main.hg) .snav .snav__progress-bar{display:none}
+  body:has(main.hg) .snav :is(.snav__acct,.snav__search,.snav__menu-btn){padding-block:.3rem}
+  body:has(main.hg[data-dreh="on"]) .snav:not(:hover,:focus-within){opacity:.22}
+}
 @media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-qv:not([hidden]){animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg,.hgx-term,.hgx-term__view iframe,.hgx-term__who,.hgx-term__login,.hgx-term__ring,.hgx-term__lstep span,.hgx-term__lbar,.hgx-term__lbar i,.hgx-term__lid,.hgx-term__lav circle,.hgx-term__lok,.hgx-term__lfakt li,.hgx-term__lwahl,.hgx-term__lweg,.hgx-term__lfuss,.hgx-term__lkante,.hgx-term__login[data-step="out"] :is(.hgx-term__lbody,.hgx-term__mark,.hgx-term__lfuss){transition:none}.hgx-term__login[data-step="auth"] :is(.hgx-term__ring,.hgx-term__lscan),.hgx-term__who.is-hint{animation:none}}</style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
