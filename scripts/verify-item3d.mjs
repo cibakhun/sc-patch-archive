@@ -37,7 +37,7 @@ const LISTE = resolve(ROOT, 'src/data/item-3d.json');
 
 // Klinken (nur nach oben; nach unten nur per Commit mit Ursache).
 const MIN_ITEMSEITEN = 11000; // gelesene Item-Seiten EN+DE (22.11.2026: 11 642)
-const MIN_MODELLE = 0;         // Eintraege der Liste; steigt mit dem ersten Hochladen
+const MIN_MODELLE = 2400;      // Eintraege der Liste (23.11.2026 nach dem ersten Hochladen: 2 422 Ruestungsteile)
 // Blueprint-Seiten EN+DE, die ihr Ergebnis-Item nennen (23.11.2026: 3 246 von
 // 3 252; ohne Item nur Scraper-Module und ein Antrieb ohne eigene Item-Seite).
 // Attribut und Dialog haengen am selben linkedItem in BlueprintDetail.astro;

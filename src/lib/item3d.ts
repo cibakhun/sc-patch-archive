@@ -16,11 +16,13 @@
 import DATA from '../data/item-3d.json';
 import { HAS_HANGAR } from './seo';
 
-type Eintrag = [datei: string, kb: number];
-const items = (DATA as { items: Record<string, Eintrag> }).items;
+// Je Item [Datei, KB]. JSON-Importe kennen keine Tupel, darum ohne Umwandlung
+// gelesen und beim Zugriff in die erwarteten Typen gebracht; die Form selbst
+// prueft verify:item3d [2] am gebauten Stand.
+const items: Record<string, readonly (string | number)[]> = DATA.items;
 
 const basisRoh =
-  (typeof process !== 'undefined' && process.env?.ITEM3D_BASE) || (DATA as { base: string }).base;
+  (typeof process !== 'undefined' && process.env?.ITEM3D_BASE) || DATA.base;
 /** Wurzel der Ablage, immer mit / am Ende. */
 export const ITEM3D_BASE = basisRoh.endsWith('/') ? basisRoh : `${basisRoh}/`;
 
@@ -35,7 +37,7 @@ export interface Item3d {
 export function item3dFor(id: string | null | undefined): Item3d | null {
   if (!HAS_HANGAR || !id) return null;
   const e = items[id];
-  return e ? { url: ITEM3D_BASE + e[0], kb: e[1] } : null;
+  return e ? { url: ITEM3D_BASE + String(e[0]), kb: Number(e[1]) } : null;
 }
 
 /** Wie viele Items ein Modell haben (für Selbstauskünfte). */
