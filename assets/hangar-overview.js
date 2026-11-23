@@ -2301,9 +2301,11 @@ export function boot(doc) {
   // stellen (viewer.canStation: echte Halle, ab 761 px), ist sie die eine
   // Oberflaeche: Datenblatt rechts, links die Werkstatt als Tafel
   // „Ausruestung“. Die Tafeln der Seite weichen, die Station Loadout faellt
-  // aus der Leiste. Mit „Als Tafel“, am Telefon, ohne 3D, drinnen und bei
-  // Bodenfahrzeugen in der Werkhalle waehlt die Leiste wie bisher, was rechts
-  // steht (Loadout: die Werkstatt, Uebersicht: die Schiffsdaten).
+  // aus der Leiste. Mit „Als Tafel“, am Telefon, ohne 3D und drinnen waehlt
+  // die Leiste wie bisher, was rechts steht (Loadout: die Werkstatt,
+  // Uebersicht: die Schiffsdaten). In der Werkhalle stehen die Tafeln wie auf
+  // dem Schiffsfeld (Hangar-Politur, Stelle 6: vorher hing dort als einziger
+  // Ort das flache Panel).
   // Bis die Buehne antwortet, gilt die Vorhersage (dieselben Bedingungen wie
   // im Viewer): sonst stuende beim Laden erst die flache Werkstatt da und
   // wiche nach Sekunden dem Hologramm. Ohne Buehne (noStage) gilt die Tafel.
@@ -2311,7 +2313,7 @@ export function boot(doc) {
   let stage3d = null;
   // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
   // und im Leitstand keine: dort steht das Terminal im Bild
-  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on' && state.ort !== 'leit';
+  const canHolo = () => (stage3d ?? guess3d()) && main.dataset.walk !== 'on' && state.ort !== 'leit';
   const holoOn = () => canHolo() && !state.flat;
   // Orte (placeOf): die Leiste nennt Schiffsfeld, Werkhalle und Leitstand,
   // sobald die Buehne einen Leitstand hat (viewer.canPlace, bis sie
@@ -2502,7 +2504,9 @@ export function boot(doc) {
     // Geht das Fenster zu, waehrend der Fokus in ihm steht, wandert er auf den
     // Ort in der Leiste statt in einem verborgenen Rahmen zu bleiben.
     if (!oben && termBox.contains(doc.activeElement)) (ortBox?.querySelector('[aria-current="true"]') ?? ortBtns[0])?.focus({ preventScroll: true });
-    if (terminal) { terminal.place(termRect); return; }
+    // Ueber dem Schirm liegt noch die Ankunft (Aufruf im Leitstand): Das
+    // Fenster geht erst auf, wenn sie weg ist, mit dem Rechteck von dann
+    if (terminal) { if (termRect) nachAnkunft(() => terminal.place(termRect)); else terminal.place(null); return; }
     if (e.ort !== 'leit' || terminalLoad) return;
     // Das Modul der Buehne ist laengst geladen (sie steht); von ihm kommt das
     // Sperrbild des Monitors als reine Funktion (leitFenster), damit die
@@ -2523,7 +2527,7 @@ export function boot(doc) {
         // eine Einstellung, die eine neu gebaute Buehne wieder bekommt)
         wer: (id) => viewer?.setTerminal?.(id),
       });
-      terminal.place(termRect);
+      nachAnkunft(() => terminal.place(termRect));
     }, () => { terminalLoad = null; });
   }
   // Was die Seite fuer die Karte der Anmeldung weiss (termFakten in
@@ -2550,6 +2554,16 @@ export function boot(doc) {
   // Schiffe ohne Pilotenwaffen (Carrack, Polaris, Hull …): statt „Feuerkraft —“
   // zeigt die Kachel die Feuerkraft der Tuerme, wenn es welche gibt.
   const holoTile = (k, w, stat) => (k === 'dps' && !(stat.dps > 0) && stat.tdps > 0 ? ['tdps', 'fireT'] : [k, w]);
+  // Kacheln ohne Wert (Bodenfahrzeuge ohne Tempo, Fahrzeuge ohne Waffen, die
+  // ATLS ohne Rumpfwert) standen als „—“ da; sie nehmen der Reihe nach einen
+  // Kennwert, den das Fahrzeug hat und keine andere Kachel zeigt.
+  const HOLO_SPARE = [['cargo', 'cargo'], ['crew', 'crew'], ['mass', 'mass'], ['len', 'len']];
+  const holoKeys = (stat) => {
+    const ks = HOLO_TILES.map(([k, w]) => holoTile(k, w, stat));
+    const used = new Set(ks.map(([k]) => k));
+    const spare = HOLO_SPARE.filter(([k]) => stat[k] > 0 && !used.has(k));
+    return ks.map(([k, w]) => (stat[k] == null && spare.length ? spare.shift() : [k, w]));
+  };
   const sumTotals = (totals, gs) => {
     const ts = (gs ?? []).map((g) => totals?.[g]).filter(Boolean);
     return ts.length ? { now: ts.reduce((s, t) => s + t.now, 0), stock: ts.reduce((s, t) => s + t.stock, 0) } : null;
@@ -2567,11 +2581,12 @@ export function boot(doc) {
     // ihre Daten fehlen: dann stehen links wie zuvor die Systeme.
     const lo = workshop?.board() ?? null;
     const nf = new Intl.NumberFormat(loc);
-    const tiles = HOLO_TILES.map(([k0, w0]) => {
-      const [k, w] = holoTile(k0, w0, me.stat);
-      const row = rowOf.get(k) ?? { digits: 0, unit: '' };
+    const tiles = holoKeys(me.stat).map(([k, w]) => {
+      const row = rowOf.get(k) ?? { digits: 0, unit: '', better: 1 };
       const x = me.stat[k];
-      const r = cls && rankIn(dock, cls.ids, id, k);
+      // Rang nur, wo mehr besser ist: „3. von 9“ bei Masse oder Laenge
+      // laese sich als Wertung, die es nicht gibt
+      const r = cls && row.better !== 0 && rankIn(dock, cls.ids, id, k);
       // Was das Layout aendert: Feuerkraft (Pilotenwaffen) und Schild mit
       // dem Abstand zur Serie statt des Rangs, der nur fuer die Serie gilt
       const t = sumTotals(lo?.totals, HOLO_LAYOUT[k]);
@@ -2772,10 +2787,17 @@ export function boot(doc) {
   }
   // Name und Hersteller des Schiffs, das kommt; waehlt jemand waehrend der
   // Ankunft ein anderes in derselben Halle, beginnt sein Schritt von vorn
+  // Beginnt der Aufruf im Leitstand (Einstieg am Schirm), nennt sie den Ort
+  // statt des Schiffs, und ohne das Standbild des Felds: Das erste Bild sitzt
+  // vor dem Monitor, nicht ueber dem Feld (Befund vom 23.11.2026 beim Pruefen
+  // des Einstiegs: Feld-Standbild mit „Gladius“, waehrend die Leiste schon
+  // „Leitstand“ nannte).
+  const ankunftLeit = () => state.ort === 'leit';
   function ankunftSchiff(id) {
     const l = id && stageCfg.models[id] ? labelOf(id) : null;
-    ankunftEl.querySelector('.hg-ankunft__m').textContent = l?.maker ?? '';
-    ankunftEl.querySelector('.hg-ankunft__n').textContent = l?.name ?? '';
+    const leit = ankunftLeit() && ortBtns.find((b) => b.dataset.ort === 'leit')?.textContent.trim();
+    ankunftEl.querySelector('.hg-ankunft__m').textContent = leit ? '' : l?.maker ?? '';
+    ankunftEl.querySelector('.hg-ankunft__n').textContent = leit || (l?.name ?? '');
     // die Halle beim Namen, wie das Hologramm sie spaeter nennt (gr.*)
     const stufe = stageCfg.models[id]?.[4];
     ankunftEl.querySelector('.hg-ankunft__g').textContent = (stufe && msg('gr')[stufe.toLowerCase()]) || '';
@@ -2809,7 +2831,7 @@ export function boot(doc) {
     // ein Ausblenden, das noch auf ruhige Bilder wartet, gilt nicht mehr
     ankTok++;
     ankunftSchiff(id);
-    const src = mitHalle ? ankunftBild(id) : null;
+    const src = mitHalle && !ankunftLeit() ? ankunftBild(id) : null;
     if (src && ankunftImg) {
       if (ankunftImg.getAttribute('src') !== src) {
         delete ankunftImg.dataset.da;
@@ -2851,22 +2873,27 @@ export function boot(doc) {
   // 22.11.2026), und mitten im Ueberblenden sah das aus wie ein Ruckeln des
   // Hangars. ANK_RUHIG Bilder hintereinander unter ANK_BILD ms, hoechstens
   // ANK_WARTE ms gewartet (ohne Grafikkarte ist kein Bild so schnell).
+  // eilig: ohne auf ruhige Bilder zu warten. Im Leitstand steht die Kamera
+  // still vor dem Monitor, und die Anmeldung am Schirm wartet, bis die
+  // Ankunft weg ist (nachAnkunft): Sonst lag sie bis gut 2 s darueber.
   const ANK_RUHIG = 8, ANK_BILD = 40, ANK_WARTE = 1500;
   let ankTok = 0;
-  function ankunftAus({ steht = false, sofort = false } = {}) {
+  const ankWarten = [];
+  const nachAnkunft = (f) => { if (ankunftEl && !ankunftEl.hidden) ankWarten.push(f); else f(); };
+  function ankunftAus({ steht = false, sofort = false, eilig = false } = {}) {
     if (!ankunftEl || ankunftEl.hidden) return;
     if (ank && steht) { ank.halle = ank.schiff = 1; ank.steht = true; ankunftMalen(); }
     ank = null;
     clearTimeout(ankWeg);
     const tok = ++ankTok;
-    const fort = () => { ankunftEl.hidden = true; delete ankunftEl.dataset.geht; delete main.dataset.ankunft; };
+    const fort = () => { ankunftEl.hidden = true; delete ankunftEl.dataset.geht; delete main.dataset.ankunft; for (const r of ankWarten.splice(0)) r(); };
     if (sofort || reduce) { fort(); return; }
     const blenden = () => {
       if (tok !== ankTok) return;
       ankunftEl.dataset.geht = '';
       ankWeg = setTimeout(() => { if (tok === ankTok) fort(); }, 650);
     };
-    if (!steht) { blenden(); return; }
+    if (!steht || eilig) { blenden(); return; }
     let n = 0, last = performance.now();
     const t0 = last;
     const tick = (t) => {
@@ -2927,6 +2954,7 @@ export function boot(doc) {
     // dauert: ein schneller Wechsel zeigt gar nichts.
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 1200);
     // sitz: Der Aufruf beginnt im Leitstand, das erste Bild wartet dafuer laenger auf die Halle (startSitz)
+    let ankLeit = false;
     viewer.show(glb, { maker, tex, ort, id, hangar, label: labelOf(id), sitz: startSitz })
       .then(() => {
         if (my !== showTok) return;
@@ -2937,8 +2965,14 @@ export function boot(doc) {
         syncMarks();
         applyFit();
         applyPaintSel();
-        // der Leitstand aus der Adresse oder von der Werkhalle aus: jetzt steht das Schiff
-        if (state.ort === 'leit') applyOrt();
+        // der Leitstand aus der Adresse oder von der Werkhalle aus: jetzt
+        // steht das Schiff. Die Kamera sitzt vor dem Monitor, die Ankunft
+        // geht gleich (die Anmeldung am Schirm wartet auf sie, onPlace).
+        if (state.ort === 'leit') {
+          applyOrt();
+          ankLeit = true;
+          ankunftAus({ steht: true, eilig: true });
+        }
       })
       .catch((e) => {
         if (my !== showTok) return;
@@ -2952,7 +2986,7 @@ export function boot(doc) {
         if (my !== showTok) return;
         loadEl.hidden = true;
         standbildWeg();
-        ankunftAus({ steht: placed === id });
+        if (!ankLeit) ankunftAus({ steht: placed === id });
       });
   }
 
