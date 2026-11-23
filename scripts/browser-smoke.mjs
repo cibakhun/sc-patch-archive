@@ -936,12 +936,39 @@ const SYNC_BREITEN = [360, 1280];
      · „Suche“ oeffnet die Suche der Seite im Fenster, auf Datenseiten ueber
        deren eigenen Knopf;
      · ein Link zum Hangar laedt keine zweite Halle ins Fenster, einer nach
-       draussen verlaesst es nicht.
+       draussen verlaesst es nicht;
+     · (vierte Runde, 23.11.2026) eine neue Sitzung beginnt beim Ueberblick
+       (#hgx-ts): der Knopf „Überblick“ ist aktiv, kein Bereich markiert, der
+       Pfeil gesperrt, das Fenster darunter nicht bedienbar (inert), „In
+       eigenem Tab öffnen“ zeigt auf die Startseite der Website. Strg+K setzt
+       den Fokus in seine Suche, ein Treffer kommt auf den Schirm, ohne die
+       Hangarseite zu verlassen, der Pfeil fuehrt zurueck zum Ueberblick.
+       Eine Kachel oeffnet ihren Bereich; „Überblick“ legt ihn ueber eine
+       Seite, und der Pfeil zeigt dieselbe Seite wieder, ohne sie neu zu
+       laden. Nach dem Review von PR #407: Die Kachel der Seite, die unter
+       dem Ueberblick liegt, gibt dem Pfeil den Weg zu ihm zurueck, und
+       Kachel B, gleich danach Kachel A, laesst A vorn (B antwortet erst
+       nach 1,5 s). Bei „weniger Bewegung“ steht die Ladelinie still.
+     Vorgefuehrt rot (23.11.2026), je ein Eingriff in
+     dist/assets/hangar-terminal.js, jeder in beiden Sprachen mit der
+     Meldung, die ihn meint: place misst die Leiste nicht neu (angemeldet bei
+     840 bis 1013 px Kasten 74 bis 175 px abgeschnitten, s. probeAnmeldung);
+     vbSucheWeg nimmt keinen Treffer (im ersten Lauf nur „Aufruf
+     fehlgeschlagen“, weil die Hangarseite ging; seither nennt die Probe den
+     Weg); die Sitzung beginnt bei einer Seite; die Seite unter dem
+     Ueberblick wird beim Zurueck neu geladen. Dazu nach dem Review: die
+     Abkuerzung in go schreibt keinen Verlauf („der Pfeil bleibt
+     gesperrt“), sie beendet keine Navigation, die unterwegs ist („nach 3 s
+     steht /items.html … statt /topics/crafting.html“); die Ladelinie
+     bei „weniger Bewegung“ mit der alten Gegenregel in beiden Hangarseiten
+     („laeuft … weiter (animation-name hgxTermLauf)“).
 
    Alle Klicks kommen per Skript: der Kasten liegt hier nicht auf dem Schirm
    der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
    was gerade darueber liegt. */
 const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
+// Breiten des Monitors im Bild, an denen die Leiste angemeldet keinen Bereich abschneiden darf (23.11.2026: vom schmalsten Kasten 840 px bis 1324 px, dem Monitor bei 1600 x 900)
+const TERM_LEISTE_BREITEN = [560, 700, 760, 1000, 1080, 1240, 1324];
 
 /* Anmeldung am Terminal (14.11.2026, Krisz: „son user anmeldung kurz loadin
    animation beim bildschirm also wenn man sich davor hockt, und dann soll
@@ -1083,6 +1110,19 @@ async function probeAnmeldung(page, warte) {
   if (s.wer !== 'user' || s.ziel !== s.soll.dash || s.text !== 'Probe Pilot' || !s.ansage.includes('Probe Pilot') || s.ansage.includes('{name}')) return `angemeldet nennt die Leiste „${s.text}“ (${s.wer || '—'}, Ansage „${s.ansage}“) mit Ziel ${s.ziel} — Soll: der Name zum Konto ${s.soll.dash}`;
   if (s.gemeldet?.name !== 'Probe Pilot' || s.gemeldet.zeichen !== 'P' || s.gemeldet.farbe !== '#2dd4ff') return `der Monitor der Halle erfaehrt als Sitzung ${JSON.stringify(s.gemeldet)} statt „Probe Pilot“ mit Zeichen „P“ in #2dd4ff`;
   if (s.an !== 'probe-konto') return `nach der Begruessung des Kontos merkt sich die Sitzung „${s.an}“ statt „probe-konto“ (sessionStorage hg-term-an)`;
+  // die Leiste schneidet angemeldet keinen Bereich ab, vom schmalsten Kasten
+  // bis zum breiten (passeLeiste: Spielversion, Name, Wort „Überblick“ weichen)
+  const abgeschnitten = await page.evaluate(async ({ kasten, breiten }) => {
+    const box = document.getElementById('hgx-term'), nav = box.querySelector('.hgx-term__nav'), weg = [];
+    for (const b of breiten) {
+      window.__term.place({ l: kasten.l, t: kasten.t, r: kasten.l + b, b: kasten.t + Math.round(b / 2) });
+      await new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)));
+      if (nav.scrollWidth > nav.clientWidth + 1) weg.push(`${b} px (Kasten ${box.style.width}, Stufe ${box.dataset.leiste ?? '—'}): ${nav.scrollWidth - nav.clientWidth} px`);
+    }
+    window.__term.place(kasten);
+    return weg;
+  }, { kasten: TERM_PROBE_KASTEN, breiten: TERM_LEISTE_BREITEN });
+  if (abgeschnitten.length) return `angemeldet („Probe Pilot“) schneidet die Leiste ihre letzten Bereiche ab: ${abgeschnitten.join('; ')} — Soll: Spielversion, Name und das Wort „Überblick“ weichen vorher (data-leiste)`;
 
   // 3 · abgemeldet: die Blende faehrt zu und bleibt beim Gast stehen, bis er einen Weg waehlt
   await neuZaehlen();
@@ -1259,6 +1299,7 @@ async function probeTerminal(page) {
     return {
       home: new URL(home.href).pathname,
       bereiche: Object.fromEntries([...box.querySelectorAll('a[data-term]')].map((a) => [a.dataset.term, new URL(a.href).pathname])),
+      kacheln: Object.fromEntries([...box.querySelectorAll('#hgx-ts a[data-term-zu]')].map((a) => [a.dataset.termZu, new URL(a.href).pathname])),
       verlauf: history.length,
       hangar: location.pathname,
     };
@@ -1288,6 +1329,10 @@ async function probeTerminal(page) {
       text: document.getElementById('hgx-term-load')?.textContent.trim() ?? '',
       verlauf: history.length, schiff: window.__termShip, tab: window.__termTab,
       rahmenCsp: (window.__cspVerstoesse ?? []).filter((v) => /frame/.test(v)),
+      // der Ueberblick (vierte Runde): was vorn steht, ob er zu sehen ist, ob das Fenster darunter ruht
+      zeigt: box.dataset.zeigt ?? '', ueb: (() => { const t = document.getElementById('hgx-ts'); return !!t && getComputedStyle(t).visibility === 'visible'; })(),
+      start: document.getElementById('hgx-term-start')?.getAttribute('aria-current') === 'page',
+      inert: !!f.inert, site: document.getElementById('hgx-ts')?.dataset.site ?? null, hier: location.pathname,
     };
   });
   const steht = (pfad, ms = 45000) => warte((p) => {
@@ -1307,22 +1352,69 @@ async function probeTerminal(page) {
     a.remove();
   }, href);
 
-  // 1 · die Startseite des Terminals steht im Fenster
-  if (!(await steht(start.home))) {
+  const homeKey = Object.keys(start.bereiche).find((k) => start.bereiche[k] === start.home);
+  // vorn steht, was data-zeigt sagt, und der Ueberblick ist zu sehen oder fertig ausgeblendet (er geht in --dur-fast)
+  const vorn = (was, ms) => warte((w) => { const b = document.getElementById('hgx-term'), t = document.getElementById('hgx-ts'); return b.dataset.zeigt === w && !!t && getComputedStyle(t).visibility === (w === 'start' ? 'visible' : 'hidden'); }, ms, was);
+
+  // 1 · eine neue Sitzung beginnt beim Ueberblick
+  if (!(await vorn('start', 15000))) {
     const s = await stand();
-    return `${wo}: ${start.home} steht nach 45 s nicht im Fenster (Pfad ${s.pfad}, bereit ${s.bereit}, Meldung „${s.text}“${s.rahmenCsp.length ? `, CSP ${s.rahmenCsp.join(', ')}` : ''}) — laesst der Server die eigene Seite im Rahmen zu (dist/_csp/, X-Frame-Options)?`;
+    return `${wo}: nach dem Start steht der Ueberblick (#hgx-ts) nicht vorn (data-zeigt „${s.zeigt}“, zu sehen ${s.ueb}, im Fenster ${s.pfad}) — eine neue Sitzung beginnt bei ihm`;
   }
   let s = await stand();
   if (s.zu) return `${wo}: der Kasten ist nach place() noch verborgen`;
-  if (s.kopf) return `${wo}: die Kopfzeile der Seite (#topbar) steht im Fenster unter der Leiste des Terminals`;
-  if (s.marke !== Object.keys(start.bereiche).find((k) => start.bereiche[k] === start.home)) return `${wo}: nach dem Start ist „${s.marke}“ markiert statt des Startbereichs`;
-  if (s.zurueck) return `${wo}: der Zurueck-Pfeil ist auf der ersten Seite bedienbar`;
+  if (!s.start || s.marke) return `${wo}: vor dem Ueberblick ist ${s.marke ? `„${s.marke}“` : 'kein Knopf'} markiert${s.start ? ' neben „Überblick“' : ''} — Soll: nur „Überblick“`;
+  if (s.zurueck) return `${wo}: der Zurueck-Pfeil ist auf dem Ueberblick einer neuen Sitzung bedienbar`;
+  if (!s.inert) return `${wo}: das Fenster unter dem Ueberblick ist bedienbar (inert fehlt) — Tab und Vorleser liefen in eine Seite, die nicht zu sehen ist`;
+  if (!s.site || s.eigen !== new URL(s.site, 'https://x.test').pathname) return `${wo}: „In eigenem Tab öffnen“ zeigt vor dem Ueberblick auf ${s.eigen} statt auf die Startseite der Website (${s.site})`;
+  if (!homeKey || start.kacheln[homeKey] !== start.home) return `${wo}: der Ueberblick hat keine Kachel fuer den Startbereich „${homeKey}“ (${JSON.stringify(start.kacheln)})`;
   const soll = [TERM_PROBE_KASTEN.l, TERM_PROBE_KASTEN.t, TERM_PROBE_KASTEN.r, TERM_PROBE_KASTEN.b];
   if (s.kasten.some((v, i) => Math.abs(v - soll[i]) > 2)) return `${wo}: der Kasten liegt bei ${s.kasten.join(', ')} statt auf dem genannten Rechteck ${soll.join(', ')}`;
 
   // 1b · die Anmeldung: wer vor dem Terminal sitzt
   const anmeldung = await probeAnmeldung(page, warte);
   if (anmeldung) return `${wo}, Anmeldung: ${anmeldung}`;
+
+  // 1c · die Suche des Ueberblicks: Strg+K setzt den Fokus in ihr Feld, ein
+  // Treffer kommt auf den Schirm (window.vbSucheWeg), die Hangarseite bleibt
+  await page.evaluate(() => { document.activeElement?.blur?.(); });
+  await page.keyboard.press('Control+k');
+  if (!(await warte(() => document.activeElement?.id === 'hs-in', 3000))) return `${wo}: Strg+K vor dem Ueberblick setzt den Fokus nicht in dessen Suchfeld (Fokus auf ${await page.evaluate(() => document.activeElement?.id || document.activeElement?.tagName)}) — oeffnete die Suche der Hangarseite?`;
+  await page.keyboard.type('gladius');
+  if (!(await warte(() => !!document.querySelector('#hs-list .scs__hit'), 20000))) return `${wo}: die Suche des Ueberblicks findet zu „gladius“ nach 20 s nichts`;
+  await klick('#hs-list .scs__hit');
+  if (!(await warte(() => {
+    const b = document.getElementById('hgx-term');
+    let d = null;
+    try { d = document.getElementById('hgx-term-frame').contentDocument; } catch { /* s. o. */ }
+    return b.dataset.zeigt === 'seite' && b.classList.contains('is-ready') && !!d && d.location.href !== 'about:blank' && d.readyState !== 'loading' && d.documentElement.hasAttribute('data-vb-terminal');
+  }, 45000))) {
+    // ohne vbSucheWeg ginge der Treffer wie auf jeder Seite: die Halle verlassen
+    const jetzt = new URL(page.url()).pathname;
+    if (jetzt !== start.hangar) return `${wo}: ein Treffer der Suche im Ueberblick verliess die Hangarseite (jetzt ${jetzt}) — nimmt window.vbSucheWeg ihn nicht mehr auf den Schirm?`;
+    s = await stand();
+    return `${wo}: der erste Treffer der Suche im Ueberblick kam nicht auf den Schirm (vorn „${s.zeigt}“, im Fenster ${s.pfad}, Hangarseite ${s.hier}, Schiff ${s.schiff})`;
+  }
+  s = await stand();
+  if (s.hier !== start.hangar || s.verlauf !== start.verlauf) return `${wo}: ein Treffer der Suche im Ueberblick verliess die Hangarseite oder schrieb in ihren Verlauf (${s.hier}, ${start.verlauf} → ${s.verlauf} Eintraege)`;
+  if (!s.zurueck || s.start || s.inert) return `${wo}: nach dem Treffer ist der Pfeil ${s.zurueck ? 'frei' : 'gesperrt'}, „Überblick“ ${s.start ? 'noch markiert' : 'frei'}, das Fenster ${s.inert ? 'inert' : 'bedienbar'} — Soll: Pfeil frei, Fenster bedienbar`;
+  await klick('#hgx-term-back');
+  if (!(await vorn('start', 5000))) return `${wo}: der Pfeil fuehrt vom Treffer nicht zurueck zum Ueberblick (vorn „${(await stand()).zeigt}“)`;
+  s = await stand();
+  if (s.zurueck || !s.start) return `${wo}: zurueck auf dem Ueberblick ist der Pfeil ${s.zurueck ? 'noch frei' : 'gesperrt'} und „Überblick“ ${s.start ? 'markiert' : 'nicht markiert'}`;
+
+  // 1d · eine Kachel des Ueberblicks oeffnet ihren Bereich auf dem Schirm
+  await klick(`#hgx-ts a[data-term-zu="${homeKey}"]`);
+  if (!(await steht(start.home)) || !(await vorn('seite', 5000))) {
+    const s = await stand();
+    return `${wo}: die Kachel „${homeKey}“ des Ueberblicks brachte ${start.home} nicht auf den Schirm (vorn „${s.zeigt}“, Pfad ${s.pfad}, bereit ${s.bereit}, Meldung „${s.text}“${s.rahmenCsp.length ? `, CSP ${s.rahmenCsp.join(', ')}` : ''}) — laesst der Server die eigene Seite im Rahmen zu (dist/_csp/, X-Frame-Options)?`;
+  }
+  s = await stand();
+  if (s.kopf) return `${wo}: die Kopfzeile der Seite (#topbar) steht im Fenster unter der Leiste des Terminals`;
+  if (s.marke !== homeKey || s.start) return `${wo}: nach der Kachel ist „${s.marke}“${s.start ? ' und „Überblick“' : ''} markiert statt „${homeKey}“`;
+  if (!s.zurueck) return `${wo}: nach der Kachel bleibt der Zurueck-Pfeil gesperrt — darunter liegt der Ueberblick`;
+  if (s.inert || s.ueb) return `${wo}: nach der Kachel ist das Fenster ${s.inert ? 'nicht bedienbar (inert)' : 'bedienbar'}, der Ueberblick ${s.ueb ? 'noch zu sehen' : 'weg'}`;
+  if (s.verlauf !== start.verlauf) return `${wo}: die Kachel schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
 
   // 2 · Bereich wechseln (eine schlanke Datenseite), ohne Eintrag im Verlauf
   if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht eine Datenseite`;
@@ -1354,12 +1446,76 @@ async function probeTerminal(page) {
   if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
     return `${wo}: „Suche“ oeffnete auf der Datenseite nichts`;
 
-  // 4 · der Pfeil fuehrt zurueck
+  // 3b · „Überblick“ legt den Ueberblick ueber die Seite; der Pfeil zeigt
+  // dieselbe Seite wieder, ohne sie neu zu laden (die Abkuerzung in go)
+  await page.evaluate(() => { document.getElementById('hgx-term-frame').contentWindow.__probeDok = 1; });
+  await klick('#hgx-term-start');
+  if (!(await vorn('start', 3000))) return `${wo}: „Überblick“ in der Leiste zeigt den Ueberblick nicht (vorn „${(await stand()).zeigt}“)`;
+  s = await stand();
+  if (!s.start || s.marke || !s.inert || !s.zurueck) return `${wo}: nach „Überblick“ ist ${s.start ? '' : 'der Knopf nicht markiert, '}${s.marke ? `„${s.marke}“ noch markiert, ` : ''}das Fenster ${s.inert ? 'inert' : 'bedienbar'}, der Pfeil ${s.zurueck ? 'frei' : 'gesperrt'} — Soll: „Überblick“ markiert, Fenster inert, Pfeil frei`;
+  await klick('#hgx-term-back');
+  if (!(await vorn('seite', 2000))) return `${wo}: der Pfeil vom Ueberblick zurueck zu ${start.bereiche.items} braucht laenger als 2 s — die Seite liegt schon darunter`;
+  s = await stand();
+  if (s.pfad !== start.bereiche.items || s.marke !== 'items') return `${wo}: der Pfeil vom Ueberblick zurueck zeigt ${s.pfad} („${s.marke}“) statt ${start.bereiche.items}`;
+  if (!(await page.evaluate(() => document.getElementById('hgx-term-frame').contentWindow.__probeDok === 1))) return `${wo}: der Pfeil vom Ueberblick zurueck lud ${start.bereiche.items} neu, statt die Seite darunter zu zeigen`;
+
+  // 4 · der Pfeil fuehrt zurueck; darunter liegt noch der Ueberblick
   await klick('#hgx-term-back');
   if (!(await steht(start.home))) return `${wo}: der Zurueck-Pfeil brachte ${start.home} nicht zurueck (dort steht ${(await stand()).pfad})`;
   s = await stand();
-  if (s.zurueck) return `${wo}: nach dem Rueckweg auf die erste Seite ist der Pfeil noch bedienbar`;
+  if (!s.zurueck) return `${wo}: nach dem Rueckweg auf ${start.home} ist der Pfeil gesperrt — darunter liegt noch der Ueberblick`;
   if (s.verlauf !== start.verlauf) return `${wo}: der Rueckweg schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+
+  // 4b · der Pfeil noch einmal: der Ueberblick. Seine Kachel zeigt die Seite
+  // darunter ohne Neuladen und gibt dem Pfeil den Weg zu ihm zurueck
+  // (Review PR #407: die Abkuerzung in go schrieb keinen Verlauf)
+  const dok = (n) => page.evaluate((x) => {
+    const w = document.getElementById('hgx-term-frame').contentWindow;
+    if (x) w.__probeDok = x;
+    return w.__probeDok ?? 0;
+  }, n);
+  await dok(2);
+  await klick('#hgx-term-back');
+  if (!(await vorn('start', 3000))) return `${wo}: der Pfeil von ${start.home} fuehrt nicht zum Ueberblick zurueck (vorn „${(await stand()).zeigt}“)`;
+  await klick(`#hgx-ts a[data-term-zu="${homeKey}"]`);
+  if (!(await vorn('seite', 2000))) return `${wo}: die Kachel „${homeKey}“ zeigt ${start.home} nicht binnen 2 s — die Seite liegt schon darunter`;
+  s = await stand();
+  if ((await dok()) !== 2) return `${wo}: die Kachel „${homeKey}“ lud ${start.home} neu, statt die Seite darunter zu zeigen`;
+  if (!s.zurueck) return `${wo}: die Kachel „${homeKey}“ zeigt ${start.home} wieder, aber der Pfeil bleibt gesperrt — er fuehrt zum Ueberblick zurueck`;
+
+  // 4c · Kachel B, gleich danach Kachel A (die Seite darunter): A bleibt
+  // vorn, B kommt nicht nach. B antwortet dafuer erst nach 1,5 s.
+  await klick('#hgx-term-start');
+  if (!(await vorn('start', 3000))) return `${wo}: „Überblick“ in der Leiste zeigt den Ueberblick nicht (vorn „${(await stand()).zeigt}“)`;
+  const bPfad = start.bereiche.items;
+  const spaet = (u) => u.pathname === bPfad;
+  const langsam = async (route) => {
+    await new Promise((r) => setTimeout(r, 1500));
+    try { await route.continue(); } catch { /* abgebrochen: so soll es sein */ }
+  };
+  await page.route(spaet, langsam);
+  await page.evaluate((zu) => {
+    document.querySelector('#hgx-ts a[data-term-zu="items"]').click();
+    document.querySelector(`#hgx-ts a[data-term-zu="${zu}"]`).click();
+  }, homeKey);
+  await page.waitForTimeout(3000);
+  await page.unroute(spaet, langsam);
+  s = await stand();
+  if (s.pfad !== start.home || s.zeigt !== 'seite' || (await dok()) !== 2)
+    return `${wo}: Kachel „items“, gleich danach „${homeKey}“: nach 3 s steht ${s.pfad} (vorn „${s.zeigt}“${(await dok()) !== 2 ? ', neu geladen' : ''}) statt ${start.home} — die Navigation nach ${bPfad} lief weiter und kam spaeter nach vorn`;
+
+  // 4d · weniger Bewegung: Die Ladelinie steht still (Review PR #407: die
+  // Gegenregel verlor gegen die Spezifitaet der Regel, die sie animiert)
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const lauf = await page.evaluate(() => {
+    const b = document.getElementById('hgx-term'), i = b.querySelector('.hgx-term__lauf i');
+    b.setAttribute('data-wechsel', '');
+    const n = i ? getComputedStyle(i).animationName : 'fehlt';
+    b.removeAttribute('data-wechsel');
+    return n;
+  });
+  await page.emulateMedia({ reducedMotion: null });
+  if (lauf !== 'none') return `${wo}: bei „weniger Bewegung“ laeuft die Ladelinie oben am Schirm weiter (animation-name ${lauf})`;
 
   // 5 · ein Link zum Hangar holt das Schiff, statt eine zweite Halle zu laden
   await imFenster(`${start.hangar}?ship=aegs-gladius`);

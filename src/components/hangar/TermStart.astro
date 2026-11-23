@@ -1,0 +1,327 @@
+---
+// Der Ueberblick: die Startseite des Bildschirms im Leitstand (23.11.2026,
+// Krisz: „bildschirm control panel mal richtig ausbauen“; Etappe 2 des
+// Konzepts „VerseBase in der Halle“, 15.11.2026: „man meldet sich an seinem
+// bildschirm an, man hat so alles im überblick und je nach dem was man halt
+// machen möchte kann man alles in der halle machen“).
+//
+// Keine eigene Seite im Fenster, sondern ein Teil des Terminals selbst: Er
+// steht sofort (kein Laden), kennt die Halle (welches Schiff auf dem Feld
+// steht, welche Orte es gibt) und dieselbe Sitzung wie die Seite. Gefuellt
+// wird er von assets/hangar-terminal.js (startMalen); hier stehen nur das
+// Geruest, die Woerter und was der Bau schon weiss (Zahlen der Werkzeuge,
+// der neueste Patch).
+//
+// Die Suche ist die Suche der Seite: dasselbe Register und dieselben Zeilen
+// wie Strg+K (assets/search-overlay.js findet das Feld an den ids hs,
+// hs-field, hs-in und hs-list, data-hs-fest haelt es an seinem Platz).
+// Treffer kommen auf den Bildschirm (window.vbSucheWeg im Terminal).
+import { getCollection } from 'astro:content';
+import { existsSync } from 'node:fs';
+import { href, useTranslations, type Locale } from '../../i18n/ui';
+import { hangarT } from '../../i18n/hangarText';
+import { mergePatchEn } from '../../i18n/patchText';
+import { patchSeiteHref } from '../../lib/patchPages';
+import { pageItems } from '../../lib/items';
+import { blueprints } from '../../lib/crafting';
+import { missions } from '../../lib/missions';
+import vehiclesSnapshot from '../../data/vehicles.json';
+
+interface Tool { key: string; label: string; path: string }
+interface Props { lang: Locale; tools: readonly Tool[] }
+const { lang, tools } = Astro.props;
+const t = hangarT(lang);
+const ui = useTranslations(lang);
+const loc = lang === 'de' ? 'de-DE' : 'en-GB';
+const nf = new Intl.NumberFormat(loc);
+
+const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date));
+const neu = patches.at(-1)!;
+const neuDaten = mergePatchEn(neu.id, neu.data, lang);
+const neuHref = patchSeiteHref(neu.id, lang) ?? href('/archiv.html', lang);
+
+// Kleine Vorschaubilder (scripts/build-thumbs.mjs, 480 px WebP, je rund
+// 7 KB): Fehlt eines, steht die Kachel ohne Bild.
+const daumen = (bild: string | undefined) => {
+  const name = String(bild ?? '').replace(/^\/assets\//, '').replace(/\.(jpe?g|png|webp)$/i, '');
+  return name && !name.includes('/') && existsSync(`public/assets/thumb/${name}.webp`) ? `/assets/thumb/${name}.webp` : '';
+};
+const patchBild = daumen(neu.data.heroImage);
+
+// Was die Werkzeuge kennen, gezaehlt aus denselben Listen, aus denen ihre
+// Seiten entstehen. Die Bilder sind die der Startseite.
+const ZAHL: Record<string, number> = {
+  schiffe: Number(vehiclesSnapshot.count) || 0,
+  items: pageItems.length,
+  crafting: blueprints.length,
+  missionen: missions.length,
+  archiv: patches.length,
+};
+const BILD: Record<string, string> = {
+  schiffe: 't-perseus-1', items: 'cz-combat', finder: 'cz-loot', crafting: 't-craft-1',
+  missionen: 't-tsg-4', mining: 't-align-1', archiv: 'trailer-4-0-0',
+};
+const SUB: Record<string, Parameters<typeof t>[0]> = {
+  schiffe: 'term.start.w.schiffe', items: 'term.start.w.items', finder: 'term.start.w.finder', crafting: 'term.start.w.crafting',
+  missionen: 'term.start.w.missionen', mining: 'term.start.w.mining', archiv: 'term.start.w.archiv',
+};
+const NZAHL: Record<string, Parameters<typeof t>[0]> = {
+  schiffe: 'term.start.n.schiffe', items: 'term.start.n.items', crafting: 'term.start.n.crafting', missionen: 'term.start.n.missionen', archiv: 'term.start.n.archiv',
+};
+const ICON: Record<string, string> = {
+  schiffe: 'M12 3.5l7 16-7-3.6-7 3.6z',
+  items: 'M5 8.5l7-4 7 4v7l-7 4-7-4zM5 8.5l7 4 7-4M12 12.5v7',
+  finder: 'M10.5 4.5a6 6 0 110 12 6 6 0 010-12zM15 15l5 5',
+  crafting: 'M14.5 4.5l5 5-9.5 9.5H5v-5zM12.5 6.5l5 5',
+  missionen: 'M6 20.5V4M6 4.5h11l-2.2 4 2.2 4H6',
+  mining: 'M4 20l7-7M9.5 5.5c3-2.5 7.5-2 10 1l-4 4M14 9l-3.5-3.5',
+  archiv: 'M4.5 5h15v4h-15zM6 9v10h12V9M10 13h4',
+};
+const werkzeuge = tools.map((x) => ({
+  ...x,
+  href: href(x.path, lang),
+  sub: SUB[x.key] ? t(SUB[x.key]) : '',
+  zahl: NZAHL[x.key] && ZAHL[x.key] ? t(NZAHL[x.key], { n: nf.format(ZAHL[x.key]) }) : '',
+  bild: daumen(`/assets/${BILD[x.key] ?? ''}.jpg`),
+  icon: ICON[x.key] ?? ICON.items,
+}));
+const kbd = lang === 'de' ? 'Strg' : 'Ctrl';
+---
+<style is:inline>
+/* Ueberblick (TermStart.astro). Er liegt im Fenster des Terminals ueber der
+   Seite (.hgx-term__view), so gross wie sie, und zeigt sich, solange das
+   Terminal auf ihm steht (data-zeigt="start" am Kasten). Raster fuer einen
+   breiten, niedrigen Schirm (zwei zu eins bis vier zu eins, mindestens etwa
+   1184 × 500 px): oben wer davor sitzt, die Suche und die Uhr, in der Mitte
+   Halle, Mein Verse und der neueste Patch, unten die Werkzeuge in einer
+   Reihe. Die Ecken wiederholen die Klammern des Sperrbilds. */
+.hgx-ts{--ts-gap:14px;--ts-licht:rgb(170 232 255/.9);position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.3fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"kopf kopf kopf" "halle mein patch" "werk werk werk";gap:var(--ts-gap);padding:16px 22px 18px;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--hg-on) 4%,var(--bg)),var(--bg) 70%);color:var(--hg-on);opacity:0;visibility:hidden;transition:opacity var(--dur-fast) var(--ease-ui),visibility 0s linear var(--dur-fast)}
+/* Kommt der Ueberblick, blendet er auf; geht er, dann schnell: Zwei volle
+   Fassungen uebereinander lesen sich nicht (die Seite steht darunter schon) */
+.hgx-term[data-zeigt="start"] .hgx-ts{opacity:1;visibility:visible;transition:opacity var(--dur-base) var(--ease-ui)}
+.hgx-ts__ecke{position:absolute;width:22px;height:22px;border:solid color-mix(in srgb,var(--ts-licht) 45%,transparent);pointer-events:none}
+.hgx-ts__ecke--lo{left:7px;top:7px;border-width:1.5px 0 0 1.5px}.hgx-ts__ecke--ro{right:7px;top:7px;border-width:1.5px 1.5px 0 0}
+.hgx-ts__ecke--lu{left:7px;bottom:7px;border-width:0 0 1.5px 1.5px}.hgx-ts__ecke--ru{right:7px;bottom:7px;border-width:0 1.5px 1.5px 0}
+/* Ueberschriften der Felder: klein, gesperrt, im Licht des Schirms */
+.hgx-ts h2,.hgx-ts__k{display:flex;align-items:center;gap:.5rem;margin:0 0 .55rem;color:var(--ts-licht);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;line-height:1.2;letter-spacing:var(--ls-15);text-transform:uppercase}
+.hgx-ts h2::after{content:"";flex:1;height:1px;background:var(--hg-hair)}
+.hgx-ts h2 small{color:var(--hg-dim);font-size:inherit;font-weight:600;letter-spacing:var(--ls-10);text-transform:none}
+/* :where haelt die Grundregel der Links schwach, sonst schluege sie die
+   Farbe der Knoepfe (Anmelden: dunkle Schrift auf Bernstein) */
+.hgx-ts :where(a){color:inherit;text-decoration:none}
+.hgx-ts :is(a,button):focus-visible{outline:2px solid var(--hg-amber);outline-offset:2px}
+/* Kopf: ueber den Feldern darunter (z-index), sonst laegen sie ueber den
+   Treffern der Suche, denn ihr Aufsteigen gibt jedem eine eigene Ebene */
+.hgx-ts__kopf{grid-area:kopf;position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,1.35fr) minmax(0,1fr);align-items:center;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--hg-hair)}
+.hgx-ts__ich{display:flex;align-items:center;gap:12px;min-width:0;padding:4px 10px 4px 4px;margin-left:-4px;border-radius:10px;transition:background var(--dur-fast) var(--ease-ui)}
+.hgx-ts__ich:is(:hover,:focus-visible){background:color-mix(in srgb,var(--hg-on) 6%,transparent)}
+.hgx-ts__ich .hgx-term__av{width:46px;height:46px;border-width:2px;font-size:var(--fs-12)}
+.hgx-ts__wer{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.hgx-ts__wer em{color:var(--hg-amber);font-family:var(--font-ui);font-size:var(--fs-4);font-style:normal;font-weight:700;letter-spacing:var(--ls-13);text-transform:uppercase}
+.hgx-ts__wer b{overflow:hidden;font-family:var(--font-ui);font-size:var(--fs-14);font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__wer small{overflow:hidden;color:var(--hg-dim);font-size:var(--fs-5);text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__wer :is(em,small):empty{display:none}
+.hgx-ts__zeit{display:flex;flex-direction:column;align-items:flex-end;margin:0;line-height:1.1;text-align:right}
+.hgx-ts__zeit b{font-family:var(--font-display);font-size:var(--fs-15);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-8)}
+.hgx-ts__zeit span{color:var(--hg-dim);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:600;letter-spacing:var(--ls-10);text-transform:uppercase}
+/* Suche: Feld und Treffer sind ein Kasten, die Treffer klappen ueber die
+   Felder darunter (Zeilen aus assets/search-overlay.css). */
+.hgx-ts__suche{position:relative;z-index:4;min-width:0}
+.hgx-ts__fld{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px 0 14px;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--bg-2) 92%,transparent);cursor:text;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-ts__fld>svg{flex:none;color:var(--hg-dim)}
+.hgx-ts__fld:focus-within,.hgx-ts__suche.is-open .hgx-ts__fld{border-color:var(--hg-amber);background:var(--bg-2)}
+.hgx-ts__suche.is-open .hgx-ts__fld{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.hgx-ts .hs__in{flex:1;min-width:0;padding:0;border:0;outline:0;background:none;color:var(--hg-on);caret-color:var(--hg-amber);font:inherit;font-size:var(--fs-9)}
+.hgx-ts .hs__in::placeholder{color:var(--hg-dim);opacity:1}
+.hgx-ts .hs__in::-webkit-search-cancel-button{display:none}
+.hgx-ts__fld .k{display:inline-flex;gap:3px;color:var(--hg-dim);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:700}
+.hgx-ts__fld kbd{padding:1px 6px;border:1px solid var(--hg-hair);border-bottom-width:2px;border-radius:4px;font:inherit}
+.hgx-ts .hs__x{display:none;appearance:none;padding:3px 8px;border:1px solid var(--hg-hair);border-radius:5px;background:none;color:var(--hg-on);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:700;cursor:pointer}
+.hgx-ts__suche.is-open .hs__x{display:inline-flex}
+.hgx-ts__suche.is-open .k{display:none}
+.hgx-ts .hs__panel{display:none;position:absolute;left:0;right:0;top:100%;border:1px solid var(--hg-amber);border-top-color:var(--hg-hair);border-radius:0 0 10px 10px;background:var(--bg-2);box-shadow:0 24px 50px -20px rgb(0 0 0/.8)}
+.hgx-ts__suche.is-open .hs__panel{display:block}
+.hgx-ts .hs__list{max-height:max(180px,calc(var(--term-h,620px) - 150px));margin:0;overflow-y:auto;overscroll-behavior:contain}
+/* Felder der Mitte: dieselbe Flaeche, eine Haarlinie, oben die Ueberschrift */
+.hgx-ts__fach{min-width:0;min-height:0;display:flex;flex-direction:column}
+/* Halle: drei Orte, ein Klick faehrt die Kamera dorthin */
+.hgx-ts__halle{grid-area:halle}
+.hgx-ts__orte{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;margin:0;padding:0;list-style:none}
+.hgx-ts__orte li{flex:1 1 0;min-height:0;display:flex}
+.hgx-ts__ort{appearance:none;flex:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:12px;min-height:54px;padding:8px 14px 8px 12px;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--hg-on) 3%,transparent);color:var(--hg-on);font:inherit;text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-ts__ort:is(:hover,:focus-visible){border-color:color-mix(in srgb,var(--hg-amber) 70%,transparent);background:color-mix(in srgb,var(--hg-amber) 7%,transparent)}
+.hgx-ts__ort>svg{color:var(--ts-licht)}
+.hgx-ts__ort b{display:block;font-family:var(--font-ui);font-size:var(--fs-11);font-weight:700;line-height:1.15}
+.hgx-ts__ort small{display:block;overflow:hidden;color:var(--hg-dim);font-size:var(--fs-6);line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__ort i{color:var(--hg-dim);font-style:normal;transition:transform var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgx-ts__ort:is(:hover,:focus-visible) i{color:var(--hg-amber);transform:translateX(3px)}
+.hgx-ts__ort[aria-current]{border-color:color-mix(in srgb,var(--hg-amber) 55%,transparent);background:color-mix(in srgb,var(--hg-amber) 9%,transparent);cursor:default}
+.hgx-ts__ort[aria-current]>svg,.hgx-ts__ort[aria-current] small{color:var(--hg-amber)}
+.hgx-ts__ort[aria-current] i{visibility:hidden}
+/* Mein Verse */
+.hgx-ts__mein{grid-area:mein}
+.hgx-ts__flotte{display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--hg-on) 3%,transparent)}
+.hgx-ts__fkopf{display:flex;align-items:baseline;gap:10px;margin:0}
+.hgx-ts__fkopf .hgx-ts__k{margin:0}
+.hgx-ts__fkopf b{font-family:var(--font-ui);font-size:var(--fs-10);font-weight:700}
+/* zwei Zeilen Schiffe (2 x 28 px und die Luecke), was nicht passt, steht als „+n“ */
+.hgx-ts__chips{display:flex;flex-wrap:wrap;gap:6px;max-height:62px;margin:0;padding:0;overflow:hidden;list-style:none}
+.hgx-ts__chips[hidden]{display:none}
+.hgx-ts__chips li{display:flex}
+.hgx-ts__chip{appearance:none;display:inline-flex;align-items:center;gap:6px;max-width:15rem;min-height:28px;padding:0 10px;border:1px solid var(--hg-hair);border-radius:999px;background:var(--bg);color:var(--hg-on);font-family:var(--font-ui);font-size:var(--fs-7);font-weight:600;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgx-ts__chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__chip:is(:hover,:focus-visible){border-color:var(--hg-amber);color:var(--hg-amber)}
+.hgx-ts__chip[aria-current]{border-color:color-mix(in srgb,var(--hg-amber) 60%,transparent)}
+.hgx-ts__chip--mehr{cursor:default;color:var(--hg-dim)}
+.hgx-ts__fleer{margin:0;color:var(--hg-dim);font-size:var(--fs-6);line-height:1.4}
+.hgx-ts__zahlen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;flex:1;min-height:0;margin:8px 0 0;padding:0;list-style:none}
+.hgx-ts__zahlen li{display:flex;min-height:0}
+.hgx-ts__z{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;min-height:58px;padding:8px 12px;overflow:hidden;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--hg-on) 3%,transparent);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-ts__z:is(:hover,:focus-visible){border-color:color-mix(in srgb,var(--hg-amber) 70%,transparent);background:color-mix(in srgb,var(--hg-amber) 6%,transparent)}
+.hgx-ts__z .hgx-ts__k{margin:0;font-size:var(--fs-4)}
+.hgx-ts__z b{overflow:hidden;font-family:var(--font-display);font-size:var(--fs-11);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__z small{overflow:hidden;color:var(--hg-dim);font-size:var(--fs-5);line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__z[data-ton="an"] b,.hgx-ts__z[data-ton="an"] small{color:var(--hg-amber)}
+.hgx-ts__z[data-ton="leer"] b{color:var(--hg-dim);font-family:var(--font-ui);font-size:var(--fs-9)}
+/* Fortschritt des naechsten Raffinerie-Auftrags: eine Linie am Fuss der Kachel */
+.hgx-ts__lauf{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--hg-hair)}
+.hgx-ts__lauf i{display:block;width:var(--w,0%);height:100%;background:var(--hg-amber)}
+.hgx-ts__lauf[hidden]{display:none}
+.hgx-ts__gast{display:flex;flex-direction:column;justify-content:center;gap:10px;flex:1;margin:8px 0 0;padding:14px 16px;border:1px dashed color-mix(in srgb,var(--hg-hair) 100%,var(--hg-dim) 30%);border-radius:10px}
+.hgx-ts__gast[hidden],.hgx-ts__zahlen[hidden]{display:none}
+.hgx-ts__gast p{margin:0;color:var(--hg-dim);font-size:var(--fs-7);line-height:1.45}
+.hgx-ts__gast p b{display:block;margin-bottom:2px;color:var(--hg-on);font-family:var(--font-ui);font-size:var(--fs-10)}
+.hgx-ts__wege{display:flex;flex-wrap:wrap;gap:8px}
+.hgx-ts__weg{display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border:1px solid var(--hg-hair);border-radius:8px;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-ts__weg:is(:hover,:focus-visible){border-color:var(--hg-amber);color:var(--hg-amber)}
+.hgx-ts__weg--an{border-color:var(--hg-amber);background:var(--hg-amber);color:var(--bg)}
+.hgx-ts__weg--an:is(:hover,:focus-visible){background:color-mix(in srgb,var(--hg-amber) 82%,var(--hg-on));color:var(--bg)}
+/* Neuester Patch: das Bild des Patches als Grund, darauf Version und Kern */
+.hgx-ts__patch{grid-area:patch}
+.hgx-ts__pk{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;min-height:0;padding:14px 16px;overflow:hidden;border:1px solid var(--hg-hair);border-radius:10px;background:var(--bg-2);isolation:isolate;transition:border-color var(--dur-fast) var(--ease-ui)}
+.hgx-ts__pk:is(:hover,:focus-visible){border-color:color-mix(in srgb,var(--hg-amber) 70%,transparent)}
+.hgx-ts__pk>img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;opacity:.5;transition:transform var(--dur-slow) var(--ease-ui)}
+.hgx-ts__pk:is(:hover,:focus-visible)>img{transform:scale(1.03)}
+.hgx-ts__pk>span[aria-hidden]{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 25%,transparent),color-mix(in srgb,var(--bg) 70%,transparent) 45%,var(--bg) 96%)}
+.hgx-ts__pk em{color:var(--hg-amber);font-family:var(--font-ui);font-size:var(--fs-5);font-style:normal;font-weight:700;letter-spacing:var(--ls-13);text-transform:uppercase}
+.hgx-ts__pk b{font-family:var(--font-display);font-size:var(--fs-15);font-weight:700;line-height:1.1}
+.hgx-ts__pk>small{color:var(--hg-dim);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:600;letter-spacing:var(--ls-8)}
+.hgx-ts__pk p{display:-webkit-box;margin:2px 0 0;overflow:hidden;font-size:var(--fs-7);line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.hgx-ts__pk ul{display:flex;flex-direction:column;gap:3px;margin:6px 0 0;padding:8px 0 0;border-top:1px solid var(--hg-hair);list-style:none}
+.hgx-ts__pk li{display:flex;gap:8px;min-width:0;font-size:var(--fs-6);line-height:1.35}
+.hgx-ts__pk li span{flex:none;color:var(--ts-licht);font-weight:600}
+.hgx-ts__pk li i{overflow:hidden;color:var(--hg-dim);font-style:normal;text-overflow:ellipsis;white-space:nowrap}
+/* Werkzeuge: eine Reihe Kacheln, jede oeffnet ihre Seite auf dem Schirm */
+.hgx-ts__werk{grid-area:werk;min-width:0}
+.hgx-ts__werk ul{display:grid;grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.hgx-ts__wz{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;height:84px;padding:9px 11px;overflow:hidden;border:1px solid var(--hg-hair);border-radius:10px;background:var(--bg-2);isolation:isolate;transition:border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
+.hgx-ts__wz>img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;opacity:.32;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-ts__wz>span[aria-hidden]{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--bg) 85%,transparent) 70%)}
+.hgx-ts__wz:is(:hover,:focus-visible){border-color:var(--hg-amber);transform:translateY(-2px)}
+.hgx-ts__wz:is(:hover,:focus-visible)>img{opacity:.5}
+.hgx-ts__wz svg{position:absolute;top:9px;left:11px;color:var(--ts-licht)}
+.hgx-ts__wz b{font-family:var(--font-ui);font-size:var(--fs-10);font-weight:700;line-height:1.15;letter-spacing:var(--ls-8);text-transform:uppercase}
+.hgx-ts__wz small{overflow:hidden;color:var(--hg-dim);font-size:var(--fs-4);line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+.hgx-ts__wz em{position:absolute;top:9px;right:11px;color:var(--hg-amber);font-family:var(--font-ui);font-size:var(--fs-4);font-style:normal;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-8)}
+/* Beim Erscheinen steigen die Felder nacheinander auf (einmal je Zeigen) */
+.hgx-term[data-zeigt="start"] .hgx-ts>:is(.hgx-ts__kopf,.hgx-ts__fach,.hgx-ts__werk){animation:hgxTsAuf .45s cubic-bezier(.2,.7,.2,1) both}
+.hgx-term[data-zeigt="start"] .hgx-ts>:nth-child(6){animation-delay:.05s}
+.hgx-term[data-zeigt="start"] .hgx-ts>:nth-child(7){animation-delay:.1s}
+.hgx-term[data-zeigt="start"] .hgx-ts>:nth-child(8){animation-delay:.15s}
+.hgx-term[data-zeigt="start"] .hgx-ts>:nth-child(9){animation-delay:.2s}
+@keyframes hgxTsAuf{from{opacity:0;transform:translateY(8px)}}
+/* Schmaler Schirm (Kasten unter 1240 px): die Werkzeuge ohne Unterzeile */
+@container hgxterm (max-width:1240px){.hgx-ts__wz small{display:none}.hgx-ts__wz{height:70px}.hgx-ts__kopf{grid-template-columns:minmax(0,1fr) minmax(300px,1.4fr) auto}}
+/* Niedriger Schirm (Kasten unter TERM_NIEDRIG_H, setzt das Terminal): der
+   Patch ohne Kernpunkte, die Flotte in einer Zeile, die Werkzeuge flacher */
+.hgx-term[data-niedrig] .hgx-ts__pk ul{display:none}
+.hgx-term[data-niedrig] .hgx-ts__chips{max-height:28px}
+@media (prefers-reduced-motion:reduce){.hgx-ts,.hgx-ts__ich,.hgx-ts__fld,.hgx-ts__ort,.hgx-ts__ort i,.hgx-ts__chip,.hgx-ts__z,.hgx-ts__weg,.hgx-ts__pk,.hgx-ts__pk>img,.hgx-ts__wz,.hgx-ts__wz>img{transition:none}.hgx-term[data-zeigt="start"] .hgx-ts>*{animation:none}}
+</style>
+<div class="hgx-ts" id="hgx-ts" role="region" aria-label={t('term.start.label')} data-l-zurueck={t('term.login.zurueck')} data-l-hallo={t('term.login.hallo')} data-l-gast={t('term.login.gast')} data-l-gastsub={t('term.start.gast.sub')} data-l-kontosub={t('term.start.konto.sub')} data-l-acct={ui('nav.account')} data-l-ort-a={t('term.start.ort.a')} data-f-schiff1={t('term.fakt.schiff1')} data-f-schiffn={t('term.fakt.schiffn')} data-f-leer={t('term.fakt.leer')} data-l-hol={t('term.start.flotte.hol')} data-l-mehr={t('term.start.flotte.mehr')} data-l-ref-aktiv={t('term.start.ref.aktiv')} data-l-ref-fertig1={t('term.start.ref.fertig1')} data-l-ref-fertign={t('term.start.ref.fertign')} data-l-ref-leer={t('term.start.ref.leer')} data-l-ref-alle={t('term.start.ref.alle')} data-l-craft-besitz={t('term.start.craft.besitz')} data-l-craft-plan={t('term.start.craft.plan')} data-l-craft-leer={t('term.start.craft.leer')} data-l-anfrage1={t('term.start.freunde.anfrage1')} data-l-anfragen={t('term.start.freunde.anfragen')} data-l-nachricht1={t('term.start.freunde.nachricht1')} data-l-nachrichten={t('term.start.freunde.nachrichten')} data-l-ruhig={t('term.start.freunde.ruhig')} data-l-nichtda={t('term.start.nichtda')} data-site={href('/', lang)}>
+  <span class="hgx-ts__ecke hgx-ts__ecke--lo" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--ro" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--lu" aria-hidden="true"></span><span class="hgx-ts__ecke hgx-ts__ecke--ru" aria-hidden="true"></span>
+  <header class="hgx-ts__kopf">
+    {/* Wer davor sitzt: fuehrt zum Konto auf dem Schirm, ohne Konto zur Anmeldung (Ziel setzt das Terminal) */}
+    <a class="hgx-ts__ich" id="hgx-ts-ich" href={href('/account/login.html', lang)} target="hgx-term-frame" data-login={href('/account/login.html', lang)} data-dash={href('/account.html', lang)}>
+      <span class="hgx-term__av" aria-hidden="true"><span>◆</span><img alt="" width="46" height="46" hidden /></span>
+      <span class="hgx-ts__wer"><em id="hgx-ts-gruss"></em><b id="hgx-ts-name">{t('term.login.gast')}</b><small id="hgx-ts-sub">{t('term.start.gast.sub')}</small></span>
+    </a>
+    <div class="hs hgx-ts__suche" id="hs" data-hs-fest>
+      <div class="hgx-ts__fld" id="hs-field">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10.5 4.5a6 6 0 110 12 6 6 0 010-12zM15 15l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <input id="hs-in" class="hs__in" type="search" role="combobox" aria-expanded="false" aria-controls="hs-list" aria-autocomplete="list" aria-label={t('term.start.suche.a')} placeholder={t('term.start.suche')} autocomplete="off" spellcheck="false" enterkeyhint="search" />
+        <span class="k" aria-hidden="true"><kbd>{kbd}</kbd><kbd>K</kbd></span>
+        <button class="hs__x" type="button" data-hs-close aria-label={t('term.start.schliessen')}>Esc</button>
+      </div>
+      <div class="hs__panel"><ul class="scs__list hs__list" id="hs-list" role="listbox" aria-label={t('term.start.ergebnis')}></ul></div>
+    </div>
+    <p class="hgx-ts__zeit" aria-hidden="true"><b id="hgx-ts-uhr">--:--</b><span id="hgx-ts-tag"></span></p>
+  </header>
+  <div class="hgx-ts__fach hgx-ts__halle" role="group" aria-labelledby="hgx-ts-h-halle">
+    <h2 id="hgx-ts-h-halle">{t('term.start.halle')}</h2>
+    {/* Die Orte wie in der Leiste der Buehne (#hgx-orte): ein Klick faehrt die Kamera dorthin */}
+    <ul class="hgx-ts__orte">
+      <li><button type="button" class="hgx-ts__ort" data-ort="halle">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 4l6.5 15L12 15.8 5.5 19z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+        <span><b>{t('ort.halle')}</b><small data-ts-ort>{t('term.start.feld')}</small></span><i aria-hidden="true">›</i>
+      </button></li>
+      <li><button type="button" class="hgx-ts__ort" data-ort="werk">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.5 10.5L12 5l8.5 5.5V19h-17zM8 19v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+        <span><b>{t('ort.werk')}</b><small data-ts-ort>{t('term.start.werkhalle')}</small></span><i aria-hidden="true">›</i>
+      </button></li>
+      <li><button type="button" class="hgx-ts__ort" data-ort="leit" aria-current="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 5.5h16v10H4zM9 19.5h6M12 15.5v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span><b>{t('ort.leit')}</b><small data-ts-ort>{t('term.start.hier')}</small></span><i aria-hidden="true">›</i>
+      </button></li>
+    </ul>
+  </div>
+  <div class="hgx-ts__fach hgx-ts__mein" role="group" aria-labelledby="hgx-ts-h-mein">
+    <h2 id="hgx-ts-h-mein">{t('term.start.mein')}</h2>
+    <div class="hgx-ts__flotte">
+      <p class="hgx-ts__fkopf"><span class="hgx-ts__k">{t('term.fakt.flotte')}</span><b id="hgx-ts-fn">{t('term.fakt.leer')}</b></p>
+      {/* Ein Schiff der Flotte: ein Klick holt es aufs Feld (die Kamera faehrt mit) */}
+      <ul class="hgx-ts__chips" id="hgx-ts-chips"></ul>
+      <p class="hgx-ts__fleer" id="hgx-ts-fleer">{t('term.start.flotte.leer')}</p>
+    </div>
+    <ul class="hgx-ts__zahlen" id="hgx-ts-zahlen" hidden>
+      <li><a class="hgx-ts__z" data-z="ref" href={href('/refinery.html', lang) + '#tracker'} target="hgx-term-frame"><span class="hgx-ts__k">{t('term.start.ref')}</span><b>—</b><small></small><span class="hgx-ts__lauf" hidden><i></i></span></a></li>
+      <li><a class="hgx-ts__z" data-z="craft" href={href('/topics/crafting.html', lang)} target="hgx-term-frame"><span class="hgx-ts__k">{t('term.start.craft')}</span><b>—</b><small></small></a></li>
+      <li><a class="hgx-ts__z" data-z="freunde" href={href('/account.html', lang) + '#friends'} target="hgx-term-frame"><span class="hgx-ts__k">{t('term.start.freunde')}</span><b>—</b><small></small></a></li>
+      <li><a class="hgx-ts__z" data-z="fav" href={href('/account.html', lang) + '#favs'} target="hgx-term-frame"><span class="hgx-ts__k">{t('term.start.fav')}</span><b>—</b><small>{t('term.start.fav.sub')}</small></a></li>
+    </ul>
+    <div class="hgx-ts__gast" id="hgx-ts-gast">
+      <p><b>{t('term.start.gast')}</b>{t('term.start.gast.text')}</p>
+      <p class="hgx-ts__wege">
+        <a class="hgx-ts__weg hgx-ts__weg--an" href={href('/account/login.html', lang)} target="hgx-term-frame">{t('term.login.an')}</a>
+        <a class="hgx-ts__weg" href={href('/account/register.html', lang)} target="hgx-term-frame">{t('term.login.neu')}</a>
+      </p>
+    </div>
+  </div>
+  <div class="hgx-ts__fach hgx-ts__patch" role="group" aria-labelledby="hgx-ts-h-patch">
+    <h2 id="hgx-ts-h-patch">{t('term.start.patch')}</h2>
+    <a class="hgx-ts__pk" href={neuHref} target="hgx-term-frame">
+      {patchBild && <img src={patchBild} alt="" loading="lazy" decoding="async" />}
+      <span aria-hidden="true"></span>
+      <em>{neuDaten.dateDisplay}</em>
+      <b>Alpha {neu.data.version}</b>
+      <small>{neuDaten.codename}</small>
+      <p>{neuDaten.tagline}</p>
+      <ul>{neuDaten.keyFacts.slice(0, 3).map((f) => <li><span>{f.label}</span><i>{f.value}</i></li>)}</ul>
+    </a>
+  </div>
+  <nav class="hgx-ts__werk" aria-labelledby="hgx-ts-h-werk">
+    <h2 id="hgx-ts-h-werk">{t('term.start.werk')}</h2>
+    <ul style={`--n:${werkzeuge.length}`}>
+      {werkzeuge.map((w) => (
+        <li><a class="hgx-ts__wz" href={w.href} target="hgx-term-frame" data-term-zu={w.key}>
+          {w.bild && <img src={w.bild} alt="" loading="lazy" decoding="async" />}
+          <span aria-hidden="true"></span>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={w.icon} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          {w.zahl && <em>{w.zahl}</em>}
+          <b>{w.label}</b>
+          {w.sub && <small>{w.sub}</small>}
+        </a></li>
+      ))}
+    </ul>
+  </nav>
+</div>

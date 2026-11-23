@@ -87,6 +87,34 @@ function idsOf(path) {
   return idCache.get(path);
 }
 
+// Reiter per Anker (23.11.2026): Die Kontoseite schaltet ihre Reiter nach dem
+// Anker (/account.html#friends, #favs; activateSection in
+// src/scripts/account-dashboard.ts sucht dafuer id="tab-panel-<anker>").
+// Ein solcher Anker hat kein id="friends" und ist trotzdem echt, aber nur,
+// solange beides gilt: Die Seite hat das Feld tab-panel-<anker>, UND eines
+// ihrer eigenen Skripte liest location.hash und kennt "tab-panel-". Liest
+// das Skript den Anker nicht mehr, zaehlen dieselben Links wieder als tot.
+// Vorgefuehrt rot am Vorschau-Bau: #friends -> #frends im Hangar ergab
+// "Anker #frends fehlt in /de/account.html"; location.hash im gebauten
+// Skript der Kontoseite umbenannt ergab alle vier Links des Ueberblicks tot.
+const reiterCache = new Map();
+function liestReiterAnker(path) {
+  if (!reiterCache.has(path)) {
+    const html = readFileSync(join(DIST, path.slice(1)), 'utf8');
+    let ja = false;
+    for (const m of html.matchAll(/<script[^>]*\ssrc="(\/_astro\/[^"]+\.js)"/g)) {
+      const f = join(DIST, m[1].slice(1));
+      if (!existsSync(f)) continue;
+      const js = readFileSync(f, 'utf8');
+      if (js.includes('tab-panel-') && js.includes('location.hash')) { ja = true; break; }
+    }
+    reiterCache.set(path, ja);
+  }
+  return reiterCache.get(path);
+}
+const ankerDa = (path, frag) =>
+  idsOf(path).has(frag) || (idsOf(path).has(`tab-panel-${frag}`) && liestReiterAnker(path));
+
 const errors = [];   // publish-blockierend
 const warns = [];    // sollte gefixt werden
 const infos = [];    // Hinweise
@@ -330,7 +358,7 @@ for (const f of htmlFiles) {
     let url = decodeEntities(m[1]);
     if (/^(https?:|mailto:|tel:|data:|javascript:|#$)/.test(url)) continue;
     if (url.startsWith('#')) {
-      if (!idsOf(page).has(url.slice(1))) anchorErrors.push(`${page}: Anker ${url} existiert nicht auf der Seite`);
+      if (!ankerDa(page, url.slice(1))) anchorErrors.push(`${page}: Anker ${url} existiert nicht auf der Seite`);
       continue;
     }
     // relative -> absolut
@@ -344,7 +372,7 @@ for (const f of htmlFiles) {
     }
     // Für die Anker-Prüfung zählt die Datei, die nginx tatsächlich ausliefert.
     const served = fileSet.has(path) ? path : servedBy(path);
-    if (frag && served.endsWith('.html') && !idsOf(served).has(frag)) {
+    if (frag && served.endsWith('.html') && !ankerDa(served, frag)) {
       anchorErrors.push(`${page}: ${url} — Anker #${frag} fehlt in ${served}`);
     }
   }
