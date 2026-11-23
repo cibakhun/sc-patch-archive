@@ -3403,11 +3403,16 @@ export function boot(doc) {
     const an = () => { druck = true; seit = 0; };
     const los = () => { druck = false; seit = 0; };
     const rad = () => { seit = 0; };
+    // Tasten zaehlen wie ein Finger auf der Buehne: Wer in der Suche tippt
+    // oder mit Tab durch die Knoepfe geht, ist beschaeftigt. Gedrueckt haelt
+    // die Frist an, Loslassen beginnt sie neu; verliert das Fenster den
+    // Fokus, kommt kein keyup mehr, dann gilt das als Loslassen.
     const lauschen = (on) => {
       const f = on ? 'addEventListener' : 'removeEventListener';
       canvas?.[f]('pointerdown', an, { passive: true });
       canvas?.[f]('wheel', rad, { passive: true });
-      for (const ev of ['pointerup', 'pointercancel']) window[f](ev, los, { passive: true });
+      doc[f]('keydown', an);
+      for (const ev of ['pointerup', 'pointercancel', 'keyup', 'blur']) window[f](ev, los, { passive: true });
     };
     const bereit = () => ortGemalt === 'halle' && main.dataset.holo === 'on' && main.dataset.walk !== 'on' && loadEl.hidden && !doc.hidden;
     const markieren = (el) => { ziel?.classList.remove('hgx-tipp-ziel'); ziel = el; ziel?.classList.add('hgx-tipp-ziel'); };
