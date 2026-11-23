@@ -80,6 +80,24 @@
 //   Seite ihre Anmeldung zu Ende (zweiter Faktor): Die Begruessung kommt,
 //   wenn sie weitergeht (termAnmeldung), nicht ueber der Frage nach dem Code.
 //
+// Vierte Runde, der Ueberblick (Krisz 23.11.2026: „unseren bildschirm control
+// panel mal richtig ausbauen und gleich politur runde starten“; Etappe 2 des
+// Konzepts „VerseBase in der Halle“): Der Bildschirm beginnt nicht mehr auf
+// einer Seite der Website, sondern auf seinem eigenen Ueberblick
+// (#hgx-ts, src/components/hangar/TermStart.astro). Er liegt im Fenster ueber
+// der Seite und steht sofort, ohne zu laden:
+// - wer davor sitzt, die Suche der Seite, Uhr und Tag;
+// - die Orte der Halle (ein Klick faehrt die Kamera: hooks.ort), die Flotte
+//   (ein Klick holt das Schiff aufs Feld: hooks.ship), mit Konto die eigenen
+//   Zahlen (Raffinerie mit Countdown, Crafting, Freunde, Gespeichertes);
+// - der neueste Patch und die Werkzeuge, die je ihre Seite oeffnen.
+// Der erste Knopf der Leiste fuehrt zurueck zum Ueberblick; im Verlauf des
+// Fensters und im Gedaechtnis der Sitzung steht er als TERM_START. Waehlt man
+// eine Seite, bleibt der Ueberblick stehen, bis die Seite bedienbar ist (kein
+// leeres Fenster dazwischen). Die Suche des Ueberblicks ist die der Website
+// (assets/search-overlay.js); ihre Treffer kommen ueber window.vbSucheWeg auf
+// den Schirm, auch die des Dialogs (Strg+K), solange das Terminal offen ist.
+//
 // Beim Import passiert nichts; die Pruefung (scripts/verify-hangar-orte.mjs)
 // ruft die reinen Funktionen.
 
@@ -95,6 +113,114 @@ export const TERM_AN = 'hg-term-an';
 export const TERM_GAST = '-';
 /** So viele Seiten merkt sich der Pfeil zurueck */
 export const TERM_STACK = 40;
+/** Der Ueberblick im Verlauf des Fensters und im Gedaechtnis der Sitzung: keine Adresse, das Terminal selbst */
+export const TERM_START = 'start:';
+/** So lange (ms) gelten die Zahlen des Kontos im Ueberblick; danach holt ihn das naechste Zeigen neu */
+export const TERM_DATEN_MS = 60000;
+/** Hoechstens so lange (ms) bleibt der Ueberblick vor einer Seite stehen, die er oeffnet; danach zeigt das Fenster, wie weit sie ist */
+export const TERM_WECHSEL_MS = 12000;
+/** Unter dieser Hoehe (Layout-Pixel) steht der Ueberblick in der engen Fassung (data-niedrig) */
+export const TERM_NIEDRIG_H = 660;
+
+/**
+ * Womit das Terminal in diesem Seitenaufruf beginnt: mit der Seite, die es
+ * in dieser Sitzung zuletzt zeigte, sonst mit dem Ueberblick. Eine Seite gilt
+ * nur als Pfad dieser Website in der Sprache der Halle, und nur, wenn sie ins
+ * Fenster gehoert.
+ *   termErste(null, 'https://x.test/de/hangar.html') === TERM_START
+ *   termErste('/de/items.html?q=x', 'https://x.test/de/hangar.html') === '/de/items.html?q=x'
+ *   termErste('/items.html', 'https://x.test/de/hangar.html') === TERM_START   (andere Sprache)
+ *   termErste('//x.evil/de/items.html', 'https://x.test/de/hangar.html') === TERM_START
+ *   termErste('/de/hangar.html?ship=x', 'https://x.test/de/hangar.html') === TERM_START
+ * @param {string|null} last Wert aus TERM_KEY @param {string} here Adresse der Halle
+ * @returns {string} TERM_START oder ein Pfad
+ */
+export function termErste(last, here) {
+  if (typeof last !== 'string' || !last || last === TERM_START) return TERM_START;
+  let pfad;
+  try { pfad = new URL(here).pathname; } catch { return TERM_START; }
+  const de = (p) => /^\/de(\/|$)/.test(p);
+  return /^\/(?!\/)/.test(last) && termRoute(last, here).art === 'innen' && de(last) === de(pfad) ? last : TERM_START;
+}
+
+/**
+ * Restzeit als Countdown wie im Raffinerie-Tracker, auf die Sekunde
+ * aufgerundet: Was noch nicht fertig ist, zeigt nie 00:00:00.
+ *   termRest(3 * 3600e3 + 12 * 60e3 + 45e3) === '03:12:45'
+ *   termRest(2 * 86400e3 + 61e3) === '2d 00:01:01'
+ *   termRest(400) === '00:00:01'
+ *   termRest(-5) === '00:00:00'
+ * @param {number} ms @returns {string}
+ */
+export function termRest(ms) {
+  const s = Math.max(0, Math.ceil((Number(ms) || 0) / 1000));
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d > 0 ? `${d}d ` : ''}${p(h)}:${p(m)}:${p(sec)}`;
+}
+
+/**
+ * Die Kachel „Raffinerie“: wie viele Auftraege laufen, wie viele abholbereit
+ * sind, und der naechste, der fertig wird (Station kurz, Restzeit, Anteil
+ * 0..1). Gezaehlt wird nur, was ein lesbares ready_at hat; ein anderer Status
+ * als active zaehlt nicht.
+ *   termRaffinerie([{ station: 'ARC-L1 Wide Forest Station', started_at: '2026-11-23T08:00:00Z', ready_at: '2026-11-23T12:00:00Z' }], Date.parse('2026-11-23T10:00:00Z'))
+ *     → { aktiv: 1, fertig: 0, naechster: { station: 'ARC-L1', rest: 7200000, anteil: 0.5 } }
+ * @param {unknown} jobs Zeilen aus refinery_jobs @param {number} jetzt
+ * @returns {{ aktiv: number, fertig: number, naechster: { station: string, rest: number, anteil: number }|null }}
+ */
+export function termRaffinerie(jobs, jetzt = Date.now()) {
+  let aktiv = 0, fertig = 0, best = null;
+  for (const j of Array.isArray(jobs) ? jobs : []) {
+    if (!j || typeof j !== 'object' || (j.status !== undefined && j.status !== 'active')) continue;
+    const am = typeof j.ready_at === 'string' ? Date.parse(j.ready_at) : NaN;
+    if (!Number.isFinite(am)) continue;
+    if (am <= jetzt) { fertig++; continue; }
+    aktiv++;
+    if (!best || am < best.am) best = { am, ab: typeof j.started_at === 'string' ? Date.parse(j.started_at) : NaN, station: j.station };
+  }
+  if (!best) return { aktiv, fertig, naechster: null };
+  const name = typeof best.station === 'string' ? best.station.trim() : '';
+  const station = /^([A-Z]{3}-L\d)\b/.exec(name)?.[1] ?? ([...name].length > 40 ? `${[...name].slice(0, 39).join('')}…` : name);
+  const span = best.am - best.ab;
+  const anteil = Number.isFinite(span) && span > 0 ? Math.min(1, Math.max(0, (jetzt - best.ab) / span)) : 0;
+  return { aktiv, fertig, naechster: { station, rest: best.am - jetzt, anteil } };
+}
+
+/**
+ * Die Kachel „Crafting“: Blueprints im Besitz und im Planer (Menge ueber 0).
+ *   termCrafting([{ owned: true, plan_qty: 0 }, { owned: false, plan_qty: 3 }, { owned: true, plan_qty: 1 }]) → { besitz: 2, plan: 2 }
+ *   termCrafting(null) → { besitz: 0, plan: 0 }
+ * @param {unknown} rows Zeilen aus crafting_entries @returns {{ besitz: number, plan: number }}
+ */
+export function termCrafting(rows) {
+  let besitz = 0, plan = 0;
+  for (const r of Array.isArray(rows) ? rows : []) {
+    if (r?.owned === true) besitz++;
+    if (Number.isInteger(r?.plan_qty) && r.plan_qty > 0) plan++;
+  }
+  return { besitz, plan };
+}
+
+/**
+ * Die Kachel „Freunde“, gezaehlt wie am Konto-Knopf der Seite
+ * (assets/account-lite.js): offene Anfragen an mich, ungelesene Nachrichten
+ * nur von Freunden (die eines Ex-Freundes stehen in keiner Liste mehr und
+ * liessen sich nie wegklicken).
+ *   termFreunde([{ id: 1 }], [{ sender_id: 'a' }, { sender_id: 'x' }], [{ user_id: 'ich', friend_id: 'a' }], 'ich') → { anfragen: 1, ungelesen: 1 }
+ * @param {unknown} anfragen @param {unknown} ungelesen @param {unknown} freunde @param {string} ich
+ * @returns {{ anfragen: number, ungelesen: number }}
+ */
+export function termFreunde(anfragen, ungelesen, freunde, ich) {
+  const mine = new Set();
+  for (const f of Array.isArray(freunde) ? freunde : []) {
+    if (!ich || !f) continue;
+    if (f.user_id === ich) mine.add(f.friend_id);
+    else if (f.friend_id === ich) mine.add(f.user_id);
+  }
+  const n = Array.isArray(ungelesen) ? ungelesen.filter((m) => m && typeof m.sender_id === 'string' && mine.has(m.sender_id)).length : 0;
+  return { anfragen: Array.isArray(anfragen) ? anfragen.length : 0, ungelesen: n };
+}
 
 /**
  * Kasten des Terminals fuer das Rechteck des Schirms im Bild. Ist der Schirm
@@ -285,7 +411,9 @@ export function termFakten(roh, t, seit, lang, jetzt = Date.now()) {
 // traegt im Leitstand die Halle. --nav-h ist der Platz, den die Seiten unter
 // der Kopfzeile frei lassen.
 export const TERM_CSS = [
-  'html[data-vb-terminal]{--nav-h:0px!important;scroll-padding-top:0!important}',
+  // --nav-h: die Kopfzeile der Seite; --nav: dieselbe im Konto (account-dossier.css: .dsr{padding-top:var(--nav)}),
+  // ohne sie stand die Kontoseite 64 px unter der Leiste des Terminals (23.11.2026)
+  'html[data-vb-terminal]{--nav-h:0px!important;--nav:0px!important;scroll-padding-top:0!important}',
   'html[data-vb-terminal] #topbar,html[data-vb-terminal] body>div[lang][style*="2147483647"]{display:none!important}',
   // Schlanke Datenseiten (DataShell): der Pfad bleibt als Wegweiser stehen,
   // Startlink, Suchknopf und Sprachschalter traegt die Leiste des Fensters.
@@ -334,16 +462,19 @@ export const TERM_CSS = [
 
 /**
  * @param {HTMLElement} box #hgx-term
- * @param {{ ship?: (id: string|null) => void, bild?: (cv: HTMLCanvasElement, o: { uhr: string }) => boolean, fakten?: () => { flotte?: number, schiff?: string, halle?: string }|null, wer?: (id: { name: string, zeichen: string, farbe: string }|null) => void }} hooks
- *   ship: ein Link zum Hangar wurde im Fenster gewaehlt; bild: zeichnet das Sperrbild des Monitors auf die Leinwand der Blende (true: gezeichnet);
- *   fakten: was die Seite fuer die Karte weiss; wer: wer jetzt angemeldet ist (null: Gast), fuer das Bild auf dem Monitor
- * @returns {{ place: (rect: { l: number, t: number, r: number, b: number }|null) => void }}
+ * @param {{ ship?: (id: string|null) => void, bild?: (cv: HTMLCanvasElement, o: { uhr: string }) => boolean, fakten?: () => { flotte?: number, schiff?: string, halle?: string }|null, wer?: (id: { name: string, zeichen: string, farbe: string }|null) => void, orte?: () => { feld?: string, halle?: string, werk?: string }|null, ort?: (to: 'halle'|'werk') => void, flotte?: () => Array<{ id: string, name: string, feld?: boolean }> }} hooks
+ *   ship: ein Link zum Hangar wurde im Fenster gewaehlt, oder ein Schiff der Flotte im Ueberblick; bild: zeichnet das Sperrbild des Monitors auf die Leinwand der Blende (true: gezeichnet);
+ *   fakten: was die Seite fuer die Karte weiss; wer: wer jetzt angemeldet ist (null: Gast), fuer das Bild auf dem Monitor;
+ *   orte: was an den Orten der Halle steht (Schiff auf dem Feld, Hangargroesse, Fahrzeug der Werkhalle); ort: ein Ort im Ueberblick wurde gewaehlt;
+ *   flotte: die Schiffe der Flotte, die die Seite kennt, mit Namen (feld: steht gerade auf dem Feld)
+ * @returns {{ place: (rect: { l: number, t: number, r: number, b: number }|null) => void, auffrischen: () => void }}
  */
 export function initTerminal(box, hooks = {}) {
   const doc = box.ownerDocument, win = doc.defaultView;
   const frame = box.querySelector('iframe');
   const links = [...box.querySelectorAll('a[data-term]')];
   const back = box.querySelector('#hgx-term-back'), search = box.querySelector('#hgx-term-search'), ext = box.querySelector('#hgx-term-ext');
+  const startBtn = box.querySelector('#hgx-term-start'), ts = box.querySelector('#hgx-ts');
   const tools = links.map((a) => ({ key: a.dataset.term, pre: (a.dataset.pre ?? '').split(' ').filter(Boolean), href: a.href }));
   const home = tools.find((t) => t.key === box.dataset.home)?.href ?? tools[0]?.href;
   const here = win.location.href;
@@ -351,20 +482,30 @@ export function initTerminal(box, hooks = {}) {
   const loadMsg = box.querySelector('#hgx-term-load'), loadText = loadMsg?.textContent ?? '';
   // seen: das eingerichtete Dokument; gone: eines, das gerade geht (pagehide)
   let seen = null, gone = null, poll = 0, started = false, offTimer = 0, fails = 0;
+  // zeigt: 'start' (der Ueberblick steht vorn), 'seite' (die Seite im Fenster), '' (noch nichts);
+  // ziel: Der Ueberblick oeffnet eine Seite und wartet, bis ein anderes Dokument als dieses bedienbar ist
+  // (undefined: er wartet auf nichts, null: es stand noch keines im Fenster)
+  let zeigt = '', ziel, zielTimer = 0;
 
   const frameDoc = () => { try { return frame.contentDocument; } catch { return null; } };
   const urlOf = (d) => `${d.location.pathname}${d.location.search}${d.location.hash}`;
   // dieselbe Seite: Pfad und Abfrage, der Anker zaehlt nicht
-  const page = (url) => { try { const u = new URL(url, here); return `${u.pathname}${u.search}`; } catch { return url; } };
+  const page = (url) => { if (url === TERM_START) return url; try { const u = new URL(url, here); return `${u.pathname}${u.search}`; } catch { return url; } };
+  // die juengste Seite im Verlauf des Fensters (der Ueberblick ist keine)
+  const letzteSeite = () => stack.findLast((u) => u !== TERM_START) ?? home;
   const remember = () => {
-    const d = frameDoc();
-    if (!d || d !== seen) return;
-    try { win.sessionStorage.setItem(TERM_KEY, urlOf(d)); } catch { /* ohne Speicher beginnt das Terminal bei seiner Startseite */ }
+    let v = null;
+    if (zeigt === 'start') v = TERM_START;
+    else { const d = frameDoc(); if (d && d === seen) v = urlOf(d); }
+    if (v === null) return;
+    try { win.sessionStorage.setItem(TERM_KEY, v); } catch { /* ohne Speicher beginnt das Terminal beim Ueberblick */ }
   };
-  // Ziel von „In eigenem Tab öffnen“: die Seite, die im Fenster steht
+  // Ziel von „In eigenem Tab öffnen“: die Seite, die im Fenster steht; vor dem Ueberblick die Startseite der Website
   const syncExt = () => {
+    if (!ext) return;
+    if (zeigt === 'start') { if (ts?.dataset.site) ext.href = new URL(ts.dataset.site, here).href; return; }
     const d = frameDoc();
-    if (ext && d && d === seen) ext.href = d.location.href;
+    if (d && d === seen) ext.href = d.location.href;
   };
   const mark = (pathname) => {
     const key = termTool(pathname, tools);
@@ -376,6 +517,13 @@ export function initTerminal(box, hooks = {}) {
     const k = box.querySelector('#hgx-term-who');
     if (k && termKonto(pathname)) k.setAttribute('aria-current', 'page');
     else k?.removeAttribute('aria-current');
+    startBtn?.removeAttribute('aria-current');
+  };
+  // Der Ueberblick ist der aktive Bereich: sein Knopf vorn in der Leiste, kein Reiter, nicht das Konto
+  const markStart = () => {
+    for (const a of links) a.removeAttribute('aria-current');
+    box.querySelector('#hgx-term-who')?.removeAttribute('aria-current');
+    startBtn?.setAttribute('aria-current', 'page');
   };
 
   // Eine Seite einrichten, sobald ihr Dokument steht: Stil, Klicks, Leiste.
@@ -384,7 +532,7 @@ export function initTerminal(box, hooks = {}) {
     const w = d.defaultView, r = termRoute(d.location.href, here);
     if (r.art === 'hangar' || (r.art === 'tab' && /^\/hangar/.test(ohneSprache(d.location.pathname)))) {
       // per Skript oder Formular doch beim Hangar gelandet: zurueck, das Schiff aufs Feld
-      const last = stack.at(-1) ?? home;
+      const last = letzteSeite();
       w.stop?.();
       w.location.replace(last);
       if (r.art === 'hangar') hooks.ship?.(r.ship);
@@ -405,15 +553,28 @@ export function initTerminal(box, hooks = {}) {
     seen = d;
     fails = 0;
     if (loadMsg) loadMsg.textContent = loadText;
+    box.removeAttribute('data-fehler');
     const url = urlOf(d);
+    // Laedt die Seite hinter dem Ueberblick neu, ohne dass er sie geoeffnet
+    // hat, bleibt er oben im Verlauf: Der Pfeil fuehrt von ihm zu ihr.
+    const vorn = zeigt === 'start' && ziel === undefined && stack.at(-1) === TERM_START ? stack.pop() : null;
     if (!stack.length || page(stack.at(-1)) !== page(url)) stack.push(url);
     else stack[stack.length - 1] = url;
+    if (vorn) stack.push(vorn);
     if (stack.length > TERM_STACK) stack.shift();
     back.disabled = stack.length < 2;
-    mark(d.location.pathname);
+    if (vorn) markStart();
+    else mark(d.location.pathname);
     remember();
     syncExt();
     return true;
+  }
+  // Das Dokument im Fenster ist bedienbar. Wartet der Ueberblick auf eine
+  // Seite, die er geoeffnet hat, und ist es diese (nicht die von vorher), tritt
+  // er zurueck.
+  function bereit() {
+    box.classList.add('is-ready');
+    if (ziel !== undefined && seen && seen !== ziel && seen !== gone) zeigeSeite();
   }
   function onLink(e, w) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -438,16 +599,77 @@ export function initTerminal(box, hooks = {}) {
       const d = frameDoc();
       if (d && d !== seen && d !== gone && d.documentElement && d.location.href !== 'about:blank') dress(d);
       const done = d && d === seen && d !== gone && d.readyState !== 'loading';
-      if (done) box.classList.add('is-ready');
+      if (done) bereit();
       // eine fremde oder abgewiesene Adresse liefert kein Dokument: dann endet das Nachsehen von selbst
       if (done || win.performance.now() - t0 > 30000) { win.clearInterval(poll); poll = 0; }
     }, 30);
   }
-  // Die alte Seite bleibt stehen, bis die neue kommt (pagehide), wie in jedem Browser
+  // Die alte Seite bleibt stehen, bis die neue kommt (pagehide), wie in jedem
+  // Browser. Vom Ueberblick aus bleibt er stehen, bis die neue bedienbar ist.
   function go(url) {
-    try { frame.contentWindow.location.replace(url); } catch { frame.src = url; }
+    const d = frameDoc(), steht = !!d && d === seen && d !== gone && page(url) === page(urlOf(d));
+    let anker = '';
+    try { anker = new URL(url, here).hash; } catch { /* dann ohne Anker */ }
+    // Dieselbe Seite steht schon im Fenster, nur hinter dem Ueberblick: gleich zeigen, statt sie neu zu laden
+    if (steht && (!anker || anker === d.location.hash)) {
+      if (zeigt !== 'seite') zeigeSeite();
+      return;
+    }
+    if (zeigt === 'start') {
+      ziel = seen;
+      box.setAttribute('data-wechsel', '');
+      win.clearTimeout(zielTimer);
+      zielTimer = win.setTimeout(zeigeSeite, TERM_WECHSEL_MS);
+    }
+    // Nur der Anker ist anders (Konto #friends, Raffinerie #tracker): Die
+    // Seiten lesen ihn beim Laden, also nach dem Ersetzen einmal neu laden.
+    try {
+      frame.contentWindow.location.replace(url);
+      if (steht) frame.contentWindow.location.reload();
+    } catch { frame.src = url; }
     try { mark(new URL(url, here).pathname); } catch { /* die Leiste folgt, sobald die Seite steht */ }
     watch();
+  }
+  // Der Ueberblick tritt nach vorn. merken: als Eintrag im Verlauf des
+  // Fensters (nicht, wenn der Pfeil zu ihm zurueckfuehrt).
+  function zeigeStart(merken = true) {
+    if (!ts) return false;
+    win.clearTimeout(zielTimer);
+    ziel = undefined;
+    box.removeAttribute('data-wechsel');
+    if (merken && stack.at(-1) !== TERM_START) {
+      stack.push(TERM_START);
+      if (stack.length > TERM_STACK) stack.shift();
+    }
+    back.disabled = stack.length < 2;
+    zeigt = 'start';
+    box.dataset.zeigt = 'start';
+    // hinter dem Ueberblick ist die Seite nicht zu bedienen, auch nicht mit der Tabulatortaste
+    frame.inert = true;
+    markStart();
+    remember();
+    syncExt();
+    startMalen();
+    return true;
+  }
+  // Die Seite im Fenster tritt nach vorn (der Ueberblick blendet aus)
+  function zeigeSeite() {
+    win.clearTimeout(zielTimer);
+    ziel = undefined;
+    box.removeAttribute('data-wechsel');
+    if (zeigt === 'seite') return;
+    const fokus = !!ts?.contains(doc.activeElement);
+    zeigt = 'seite';
+    box.dataset.zeigt = 'seite';
+    frame.inert = false;
+    stopTakt();
+    const d = frameDoc();
+    if (d && d === seen) mark(d.location.pathname);
+    else startBtn?.removeAttribute('aria-current');
+    remember();
+    syncExt();
+    // Stand der Fokus im Ueberblick, geht er auf den Bereich der Leiste, der jetzt gilt (der Ueberblick wird unsichtbar)
+    if (fokus) (box.querySelector('.hgx-term__bar [aria-current="page"]') ?? back)?.focus({ preventScroll: true });
   }
   // Nach jedem fertigen Laden: Steht ein Dokument da, das dress() nie sah,
   // jetzt einrichten. Steht keines da (fremde Adresse oder vom Browser
@@ -459,29 +681,36 @@ export function initTerminal(box, hooks = {}) {
     const d = frameDoc();
     if (!d) {
       box.classList.remove('is-ready');
-      if (fails++ < 1) go(stack.at(-1) ?? home);
-      else if (loadMsg) loadMsg.textContent = loadMsg.dataset.fail ?? loadText;
+      if (fails++ < 1) go(letzteSeite());
+      else {
+        if (loadMsg) loadMsg.textContent = loadMsg.dataset.fail ?? loadText;
+        box.setAttribute('data-fehler', '');
+        // Wartet der Ueberblick auf diese Seite, sagt jetzt das Fenster, wie es weitergeht
+        if (ziel !== undefined) zeigeSeite();
+      }
       return;
     }
     if (d.location.href === 'about:blank') return;
     if (d !== seen && d.documentElement) dress(d);
-    if (d === seen) { gone = null; box.classList.add('is-ready'); }
+    if (d === seen) { gone = null; bereit(); }
   });
 
   function start() {
     started = true;
-    // Eine neue Sitzung beginnt mit Konto auf der Kontoseite (Krisz 15.11.2026:
-    // „man meldet sich an seinem bildschirm an, man hat so alles im
-    // überblick“), ohne Konto auf der Startseite des Terminals. Danach gilt
-    // die zuletzt gezeigte Seite.
-    let first = (kontoJetzt() && box.querySelector('#hgx-term-who')?.dataset.dash) || home;
-    try {
-      const last = win.sessionStorage.getItem(TERM_KEY);
-      // nur ein Pfad dieser Seite in der Sprache der Halle, und nichts, was nicht ins Fenster gehoert
-      const de = (p) => /^\/de(\/|$)/.test(p);
-      if (last && /^\/(?!\/)/.test(last) && termRoute(last, here).art === 'innen' && de(last) === de(win.location.pathname)) first = last;
-    } catch { /* ohne Speicher die Startseite */ }
-    if (first) go(first);
+    // Eine neue Sitzung beginnt beim Ueberblick (Etappe 2 des Konzepts,
+    // 23.11.2026): Er nennt, wer davor sitzt, und fuehrt zu allem. Bis dahin
+    // begann sie mit Konto auf der Kontoseite (Krisz 15.11.2026: „man meldet
+    // sich an seinem bildschirm an, man hat so alles im überblick“): Das
+    // Konto steht jetzt im Ueberblick, sein Knopf fuehrt dorthin. Danach gilt,
+    // was zuletzt auf dem Schirm stand (termErste).
+    let last = null;
+    try { last = win.sessionStorage.getItem(TERM_KEY); } catch { /* ohne Speicher der Ueberblick */ }
+    const erste = termErste(last, here);
+    if (erste === TERM_START && zeigeStart()) return;
+    zeigt = 'seite';
+    box.dataset.zeigt = 'seite';
+    const ziel0 = erste === TERM_START ? home : erste;
+    if (ziel0) go(ziel0);
   }
 
   // Die Leiste: Bereiche wechseln im Fenster. Mit Strg, Umschalt oder der
@@ -492,18 +721,29 @@ export function initTerminal(box, hooks = {}) {
     e.preventDefault();
     go(a.href);
   });
+  startBtn?.addEventListener('click', () => zeigeStart());
   back?.addEventListener('click', () => {
     if (stack.length < 2) return;
     stack.pop();
     back.disabled = stack.length < 2;
-    go(stack.at(-1));
+    const to = stack.at(-1);
+    if (to === TERM_START) zeigeStart(false);
+    else go(to);
   });
-  // Die Suche der Seite: Seiten mit voller Navigation oeffnet jeder Ausloeser
-  // mit data-scs-open (assets/search-overlay.js), die schlanken Datenseiten
-  // holen sie erst ueber ihren eigenen Knopf (data-scs-boot,
-  // assets/data-search.js). Beide Knoepfe sind im Fenster ausgeblendet, ein
-  // Klick per Skript erreicht sie trotzdem. Der Fokus geht mit ins Fenster.
-  search?.addEventListener('click', () => {
+  // Die Suche: Vor dem Ueberblick ist es seine eigene (das Feld oben in der
+  // Mitte). Auf einer Seite die der Seite: Seiten mit voller Navigation
+  // oeffnet jeder Ausloeser mit data-scs-open (assets/search-overlay.js), die
+  // schlanken Datenseiten holen sie erst ueber ihren eigenen Knopf
+  // (data-scs-boot, assets/data-search.js). Beide Knoepfe sind im Fenster
+  // ausgeblendet, ein Klick per Skript erreicht sie trotzdem. Der Fokus geht
+  // mit ins Fenster.
+  const hsIn = ts?.querySelector('#hs-in');
+  function suchen() {
+    if (zeigt === 'start' && hsIn) {
+      hsIn.focus({ preventScroll: true });
+      hsIn.select?.();
+      return;
+    }
     const d = frameDoc();
     if (!d || d !== seen || !d.body) return;
     frame.contentWindow.focus();
@@ -516,7 +756,30 @@ export function initTerminal(box, hooks = {}) {
     d.body.append(b);
     b.click();
     b.remove();
-  });
+  }
+  search?.addEventListener('click', suchen);
+  // Strg+K, solange das Terminal offen ist: die Suche des Schirms, nicht der
+  // Dialog der Hangarseite (der laege ueber der Halle). In der Einfangphase,
+  // vor der Seitensuche. Steht die Blende, gilt die Taste der Seite.
+  win.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || (e.key !== 'k' && e.key !== 'K')) return;
+    if (!box.classList.contains('is-on') || box.hidden || !zeigt || (login && !login.hidden)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    suchen();
+  }, true);
+  // Treffer der Suche der Hangarseite (das Feld des Ueberblicks und der
+  // Dialog): solange das Terminal offen ist, auf den Schirm. Ein Treffer im
+  // Hangar holt das Schiff aufs Feld. Sonst entscheidet die Suche selbst
+  // (assets/search-overlay.js, weiter).
+  win.vbSucheWeg = (url) => {
+    if (!box.classList.contains('is-on') || box.hidden) return false;
+    const r = termRoute(url, here);
+    if (r.art === 'hangar') { hooks.ship?.(r.ship); return true; }
+    if (r.art !== 'innen') return false;
+    go(url);
+    return true;
+  };
   // „In eigenem Tab öffnen“ meint die Seite, die gerade im Fenster steht.
   // Nachgezogen wird, bevor der Link auf irgendeinem Weg ausgeloest wird:
   // Mittelklick und das Kontextmenue kennen kein click, und eine Seite kann
@@ -569,12 +832,28 @@ export function initTerminal(box, hooks = {}) {
     if (label) label.textContent = name ?? '';
     who.setAttribute('aria-label', id ? (who.dataset.aUser ?? '').replace('{name}', name ?? '') : who.dataset.aGuest ?? '');
     avatarInto(who.querySelector('.hgx-term__av'), id);
+    passeLeiste();
+  }
+  // Die Leiste traegt die groesste Form, in der kein Bereich abgeschnitten
+  // wird: ohne Spielversion (1), dazu ohne Namen des Kontos (2), dazu
+  // „Überblick“ nur als Zeichen (3). Gemessen wird, was der Browser setzt
+  // (Breite des Kastens, Sprache, Name des Kontos, Schrift).
+  function passeLeiste() {
+    const nav = box.querySelector('.hgx-term__nav');
+    if (!nav || box.hidden) return;
+    for (const stufe of ['', '1', '2', '3']) {
+      if (stufe) box.dataset.leiste = stufe;
+      else box.removeAttribute('data-leiste');
+      if (nav.scrollWidth <= nav.clientWidth + 1) return;
+    }
   }
   // Die Antwort des Kontos gilt: merken, in die Leiste, die Frage ist erledigt
   // und der Monitor der Halle erfaehrt, wessen Sitzung es ist (hooks.wer)
   const setze = (id) => {
     wer = id; gefragt = null;
     showWho(id);
+    // der Ueberblick nennt dasselbe, und mit einem anderen Konto andere Zahlen
+    if (ts) { malIch(); malKonto(); }
     try { hooks.wer?.(id ? { name: id.name || who?.dataset.lAcct || '', zeichen: id.zeichen, farbe: id.farbe } : null); } catch { /* das Bild der Halle ist Zugabe */ }
   };
   // Das Konto fragen: die Sitzung der Seite, dann die eigene Profilzeile.
@@ -791,10 +1070,245 @@ export function initTerminal(box, hooks = {}) {
     signIn(true);
   }
 
+  // ---- Ueberblick ---------------------------------------------------------
+  // Gefuellt wird, was nur die laufende Seite weiss: wer davor sitzt
+  // (dieselbe Antwort wie die Leiste), Uhr und Tag, was an den Orten der
+  // Halle steht, die Flotte und mit Konto seine Zahlen. Die Woerter stehen im
+  // Markup (data-… an #hgx-ts), keines hier.
+  const T = ts?.dataset ?? {};
+  const loc = /^de/i.test(doc.documentElement.lang ?? '') ? 'de-DE' : 'en-GB';
+  const nf = new Intl.NumberFormat(loc), tagFmt = new Intl.DateTimeFormat(loc, { weekday: 'short', day: 'numeric', month: 'short' });
+  const tsEl = (id) => ts?.querySelector(`#${id}`) ?? null;
+  const zahlenEl = tsEl('hgx-ts-zahlen'), gastEl = tsEl('hgx-ts-gast');
+  const fuell = (s, n) => String(s ?? '').replace('{n}', nf.format(n));
+  // takt: Uhr und Countdown der Raffinerie, solange der Ueberblick vorn steht;
+  // daten: die Zahlen des Kontos { uid, t, ref, craft, freunde, fav } (undefined: noch nicht da, null: nicht erreichbar);
+  // datenLauf zaehlt die Abrufe, damit ein ueberholter nichts mehr setzt; breit: Breite des Kastens beim letzten Kuerzen der Flotte
+  let takt = 0, daten = null, datenLauf = 0, datenStop = null, breit = 0;
+
+  function startMalen() {
+    if (!ts) return;
+    malIch();
+    malUhr();
+    malOrte();
+    malFlotte();
+    malKonto();
+    if (!takt) takt = win.setInterval(tick, 1000);
+  }
+  function stopTakt() {
+    if (takt) win.clearInterval(takt);
+    takt = 0;
+  }
+  function tick() {
+    if (zeigt !== 'start' || !box.classList.contains('is-on')) { stopTakt(); return; }
+    malUhr();
+    malRef();
+  }
+  // Wer davor sitzt: wie die Leiste. Bevor das Konto geantwortet hat, steht
+  // bei einer gespeicherten Sitzung schlicht „Konto“, nicht kurz der Gast.
+  function malIch() {
+    const ich = tsEl('hgx-ts-ich');
+    if (!ich) return;
+    const id = wer ?? null, offen = wer === undefined && !!kontoJetzt();
+    ich.href = (id || offen ? ich.dataset.dash : ich.dataset.login) ?? ich.href;
+    avatarInto(ich.querySelector('.hgx-term__av'), id);
+    const gruss = tsEl('hgx-ts-gruss'), name = tsEl('hgx-ts-name'), sub = tsEl('hgx-ts-sub');
+    if (gruss) gruss.textContent = id ? (termGruss(id.seit) === 'zurueck' ? T.lZurueck : T.lHallo) ?? '' : '';
+    if (name) name.textContent = id || offen ? id?.name || T.lAcct || '' : T.lGast ?? '';
+    if (sub) sub.textContent = id || offen ? id?.sub || T.lKontosub || '' : T.lGastsub ?? '';
+  }
+  function malUhr() {
+    const u = tsEl('hgx-ts-uhr'), t = tsEl('hgx-ts-tag'), jetzt = uhr();
+    if (u && u.textContent !== jetzt) u.textContent = jetzt;
+    if (t) t.textContent = tagFmt.format(new Date());
+  }
+  // Die Orte: was dort steht, sonst die Zeile aus dem Markup
+  function malOrte() {
+    let o = null;
+    try { o = hooks.orte?.() ?? null; } catch { o = null; }
+    const text = (v) => (typeof v === 'string' ? v.trim().slice(0, 60) : '');
+    for (const b of ts.querySelectorAll('[data-ort]')) {
+      const s = b.querySelector('[data-ts-ort]'), was = b.dataset.ort;
+      if (!s) continue;
+      s.dataset.vor ??= s.textContent;
+      const jetzt = was === 'halle' ? [text(o?.feld), text(o?.halle)].filter(Boolean).join(' · ') : was === 'werk' ? text(o?.werk) : '';
+      s.textContent = jetzt || s.dataset.vor;
+      if (was !== 'leit') b.title = (T.lOrtA ?? '').replace('{ort}', b.querySelector('b')?.textContent ?? '');
+    }
+  }
+  // Die Flotte als Chips: das Schiff auf dem Feld zuerst, dann nach Namen
+  function malFlotte() {
+    const ul = tsEl('hgx-ts-chips'), leer = tsEl('hgx-ts-fleer'), fn = tsEl('hgx-ts-fn');
+    if (!ul) return;
+    let liste = [];
+    try { liste = hooks.flotte?.() ?? []; } catch { liste = []; }
+    liste = (Array.isArray(liste) ? liste : []).filter((s) => s && typeof s.id === 'string' && typeof s.name === 'string' && s.name.trim());
+    liste.sort((a, b) => Number(b.feld === true) - Number(a.feld === true) || a.name.localeCompare(b.name, loc));
+    const n = liste.length;
+    if (fn) fn.textContent = n === 0 ? T.fLeer ?? '' : n === 1 ? T.fSchiff1 ?? '' : fuell(T.fSchiffn, n);
+    ul.replaceChildren(...liste.map((s) => {
+      const li = doc.createElement('li'), b = doc.createElement('button'), sp = doc.createElement('span');
+      b.type = 'button';
+      b.className = 'hgx-ts__chip';
+      b.dataset.id = s.id;
+      b.title = (T.lHol ?? '').replace('{name}', s.name.trim());
+      if (s.feld === true) b.setAttribute('aria-current', 'true');
+      sp.textContent = s.name.trim();
+      b.append(sp);
+      li.append(b);
+      return li;
+    }));
+    ul.hidden = !n;
+    if (leer) leer.hidden = n > 0;
+    breit = box.offsetWidth;
+    kappen(ul);
+  }
+  // Passen nicht alle Schiffe in die Zeilen der Flotte, stehen die letzten als „+n“ (ihre Namen im Titel)
+  function kappen(ul) {
+    if (ul.hidden || ul.scrollHeight <= ul.clientHeight + 1) return;
+    const li = doc.createElement('li'), m = doc.createElement('span'), chips = [...ul.children], weg = [];
+    m.className = 'hgx-ts__chip hgx-ts__chip--mehr';
+    li.append(m);
+    ul.append(li);
+    for (let i = chips.length - 1; i > 0 && ul.scrollHeight > ul.clientHeight + 1; i--) {
+      chips[i].hidden = true;
+      weg.unshift(chips[i].textContent);
+      m.textContent = fuell(T.lMehr, weg.length);
+    }
+    if (!weg.length) li.remove();
+    else m.title = weg.join(', ');
+  }
+  // Mit Konto die Zahlen, ohne die Einladung zum Konto. Geholt wird, wenn
+  // der Ueberblick vorn steht und die Zahlen aelter als TERM_DATEN_MS sind.
+  function malKonto() {
+    if (!zahlenEl || !gastEl) return;
+    const uid = wer ? wer.uid : wer === undefined ? kontoJetzt() : '';
+    zahlenEl.hidden = !uid;
+    gastEl.hidden = !!uid;
+    if (!uid) {
+      datenStop?.abort();
+      datenLauf++;
+      daten = null;
+      return;
+    }
+    if (daten?.uid !== uid) {
+      datenStop?.abort();
+      datenLauf++;
+      daten = { uid, t: 0 };
+    }
+    malZahlen();
+    if (zeigt === 'start' && !daten.laedt && Date.now() - daten.t >= TERM_DATEN_MS) holen(uid);
+  }
+  async function holen(uid) {
+    const acct = win.VBAccount;
+    if (!acct?.session || !acct.rest || !daten) return;
+    datenStop?.abort();
+    const stop = (datenStop = new win.AbortController()), n = ++datenLauf, D = daten;
+    D.laedt = true;
+    const frist = win.setTimeout(() => stop.abort(), 8000);
+    try {
+      const sess = await acct.session().catch(() => null);
+      if (n !== datenLauf || String(sess?.user?.id ?? '') !== uid) return;
+      const q = encodeURIComponent(uid);
+      const get = (pfad) => acct.rest(sess, 'GET', pfad, null, null, stop.signal)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((x) => (Array.isArray(x) ? x : Promise.reject(new Error('Form'))))
+        .catch(() => null);
+      const [ref, craft, anf, dm, fav] = await Promise.all([
+        get(`refinery_jobs?select=station,started_at,ready_at,status&status=eq.active&user_id=eq.${q}&order=ready_at&limit=50`),
+        get(`crafting_entries?select=owned,plan_qty&user_id=eq.${q}&limit=5000`),
+        get(`friend_requests?select=id&receiver_id=eq.${q}&status=eq.pending&limit=100`),
+        get(`direct_messages?select=sender_id&receiver_id=eq.${q}&read_at=is.null&limit=500`),
+        get(`favorites?select=id&user_id=eq.${q}&limit=1000`),
+      ]);
+      // die Freunde nur, wenn es Ungelesenes gibt: Sie entscheiden, welche Nachrichten zaehlen
+      const fr = dm?.length ? await get('friends?select=user_id,friend_id&limit=1000') : [];
+      if (n !== datenLauf) return;
+      daten = { uid, t: Date.now(), ref, craft: craft && termCrafting(craft), freunde: anf && dm && fr ? termFreunde(anf, dm, fr, uid) : null, fav: fav && fav.length };
+      if (zeigt === 'start') malZahlen();
+    } finally {
+      win.clearTimeout(frist);
+      if (D === daten) D.laedt = false;
+    }
+  }
+  function setzeZahl(a, wert, unter, ton) {
+    const b = a.querySelector('b'), s = a.querySelector('small');
+    if (b && b.textContent !== wert) b.textContent = wert;
+    if (s && s.textContent !== unter) s.textContent = unter;
+    if (ton) a.dataset.ton = ton;
+    else delete a.dataset.ton;
+  }
+  function malZahlen() {
+    if (!zahlenEl || !daten) return;
+    for (const a of zahlenEl.querySelectorAll('a[data-z]')) {
+      const k = a.dataset.z, v = daten[k];
+      if (k === 'ref') { malRef(); continue; }
+      a.dataset.sub ??= a.querySelector('small')?.textContent ?? '';
+      let wert = '—', unter = '', ton = '';
+      if (v === null) unter = T.lNichtda ?? '';
+      else if (v !== undefined && k === 'craft') {
+        if (!v.besitz && !v.plan) { wert = T.lCraftLeer ?? ''; ton = 'leer'; }
+        else { wert = fuell(T.lCraftBesitz, v.besitz); unter = fuell(T.lCraftPlan, v.plan); }
+      } else if (v !== undefined && k === 'freunde') {
+        const anf = v.anfragen ? (v.anfragen === 1 ? T.lAnfrage1 : fuell(T.lAnfragen, v.anfragen)) : '';
+        const msg = v.ungelesen ? (v.ungelesen === 1 ? T.lNachricht1 : fuell(T.lNachrichten, v.ungelesen)) : '';
+        if (!anf && !msg) { wert = T.lRuhig ?? ''; ton = 'leer'; }
+        else { wert = anf || msg; unter = anf ? msg : ''; ton = 'an'; }
+      } else if (v !== undefined && k === 'fav') {
+        wert = v >= 1000 ? `${nf.format(1000)}+` : nf.format(v);
+        unter = a.dataset.sub;
+      }
+      setzeZahl(a, wert ?? '', unter ?? '', ton);
+    }
+  }
+  // Die Raffinerie: fertige zuerst, sonst der naechste Auftrag mit Countdown und Fortschritt
+  function malRef() {
+    const a = zahlenEl?.querySelector('a[data-z="ref"]');
+    if (!a || !daten) return;
+    const lauf = a.querySelector('.hgx-ts__lauf');
+    let wert = '—', unter = '', ton = '', anteil = -1;
+    if (daten.ref === null) unter = T.lNichtda ?? '';
+    else if (daten.ref) {
+      const r = termRaffinerie(daten.ref, Date.now()), aktiv = r.aktiv ? fuell(T.lRefAktiv, r.aktiv) : '';
+      if (r.fertig) {
+        wert = r.fertig === 1 ? T.lRefFertig1 ?? '' : fuell(T.lRefFertign, r.fertig);
+        unter = [T.lRefAlle, aktiv].filter(Boolean).join(' · ');
+        ton = 'an';
+      } else if (r.naechster) {
+        wert = termRest(r.naechster.rest);
+        unter = [r.naechster.station, aktiv].filter(Boolean).join(' · ');
+        anteil = r.naechster.anteil;
+      } else { wert = T.lRefLeer ?? ''; ton = 'leer'; }
+    }
+    setzeZahl(a, wert, unter, ton);
+    if (lauf) {
+      lauf.hidden = anteil < 0;
+      if (anteil >= 0) lauf.style.setProperty('--w', `${(anteil * 100).toFixed(2)}%`);
+    }
+  }
+  // Ein Ort faehrt die Kamera, ein Schiff der Flotte kommt aufs Feld, jeder
+  // Link des Ueberblicks oeffnet seine Seite auf dem Schirm. Mit Strg, Umschalt
+  // oder der mittleren Taste bleibt ein Link ein gewoehnlicher Link.
+  ts?.addEventListener('click', (e) => {
+    const t = e.target;
+    const ort = t.closest?.('[data-ort]');
+    if (ort && ts.contains(ort)) {
+      if (ort.dataset.ort !== 'leit' && !ort.hasAttribute('aria-current')) hooks.ort?.(ort.dataset.ort);
+      return;
+    }
+    const chip = t.closest?.('button.hgx-ts__chip[data-id]');
+    if (chip && ts.contains(chip)) { hooks.ship?.(chip.dataset.id); return; }
+    const a = t.closest?.('a[href][target="hgx-term-frame"]');
+    if (!a || !ts.contains(a) || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    go(a.href);
+  });
+
   function place(rect) {
     win.clearTimeout(offTimer);
     if (!rect) {
       remember();
+      stopTakt();
       // die Anmeldung endet mit der Blende des Kastens, nicht davor
       lauf++;
       wartet = false;
@@ -810,6 +1324,9 @@ export function initTerminal(box, hooks = {}) {
     box.style.width = `${f.w}px`;
     box.style.height = `${f.h}px`;
     box.style.transform = `translate(${l}px,${t}px) scale(${f.k})`;
+    // Hoehe fuer den Stil des Ueberblicks (Liste der Suche, enge Fassung)
+    box.style.setProperty('--term-h', `${f.h}px`);
+    box.toggleAttribute('data-niedrig', f.h < TERM_NIEDRIG_H);
     if (box.hidden) {
       box.hidden = false;
       // erst ein Layout ohne .is-on, sonst faellt die Blende aus
@@ -817,9 +1334,22 @@ export function initTerminal(box, hooks = {}) {
     }
     const neu = !box.classList.contains('is-on');
     box.classList.add('is-on');
+    passeLeiste();
     if (!started) start();
+    // Wieder hingesetzt: der Ueberblick auf den Stand von jetzt (Orte, Flotte, Zahlen)
+    else if (neu && zeigt === 'start') startMalen();
+    // ein anderes Rechteck: Die Flotte bricht anders um
+    else if (zeigt === 'start' && box.offsetWidth !== breit) malFlotte();
     // hingesetzt (nicht bei jedem neuen Rechteck, etwa wenn das Fenster des Browsers waechst)
     if (neu) hinsetzen();
   }
-  return { place };
+  // Die Seite meldet, dass sich etwas geaendert hat (die Flotte): der Ueberblick folgt, wenn er vorn steht
+  const auffrischen = () => {
+    if (zeigt !== 'start' || !ts) return;
+    malOrte();
+    malFlotte();
+  };
+  // Kommt die Schrift der Leiste erst nach dem ersten Messen, misst sie neu
+  doc.fonts?.ready?.then(() => passeLeiste(), () => {});
+  return { place, auffrischen };
 }

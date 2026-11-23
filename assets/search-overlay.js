@@ -427,14 +427,30 @@
     // Messereignis (assets/ereignisse.js): nur Art und Platzgruppe des
     // Treffers, nie Suchbegriff oder Ziel.
     if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: r.e.k, platz: platz(r.hit) });
-    location.href = r.e.u;
+    weiter(S, r.e.u);
   }
   function craft(S, i) {
     var r = S.rows[i == null ? S.sel : i];
     if (!r || !r.e || !r.e.c) return;
     // Wer "Herstellen" waehlt, waehlt das Rezept: Art "bauplan".
     if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: 'bauplan', platz: platz(r.hit) });
-    location.href = r.e.c;
+    weiter(S, r.e.c);
+  }
+  // Wohin ein Treffer fuehrt: in der Regel diese Seite verlassen. Eine Seite,
+  // die Treffer selbst zeigen kann, setzt window.vbSucheWeg; sagt sie true,
+  // hat sie den Treffer uebernommen, und die Oberflaeche schliesst sich. Das
+  // tut der Hangar, solange sein Bildschirm im Leitstand offen ist: Der
+  // Treffer kommt dort auf den Schirm, Halle und Schiff bleiben geladen
+  // (assets/hangar-terminal.js, 23.11.2026). Wirft der Haken, gilt die Regel.
+  function weiter(S, url) {
+    var weg = window.vbSucheWeg;
+    var ok = false;
+    if (typeof weg === 'function') {
+      try { ok = weg(url) === true; } catch (e) { ok = false; }
+    }
+    if (!ok) { location.href = url; return; }
+    if (S === dlg) close();
+    else if (S.hide) S.hide();
   }
   // Pfeile, Enter und "→ Herstellen" — fuer beide Oberflaechen gleich.
   function keys(S, e) {
@@ -501,6 +517,11 @@
     var hf = document.getElementById('hs-field');
     if (!hr || !hi || !hl || !hf || inl) return;
     var S = surface('hs', hi, hl, function () { return S.open; }, true);
+    // Ein Feld mit data-hs-fest steht in einem eigenen Kasten (das Feld auf
+    // dem Bildschirm des Hangars): Es rueckt nicht unter die Kopfleiste, die
+    // Seite scrollt dafuer nicht, und wie hoch die Treffer werden, sagt sein
+    // eigener Stil.
+    var fest = hr.hasAttribute('data-hs-fest');
     S.open = false;
     S.field = hf;
     inl = S;
@@ -531,7 +552,7 @@
       hi.setAttribute('aria-expanded', 'true');
       document.documentElement.classList.add('hs-open');
       if (window.vbEreignis) window.vbEreignis('suche-offen');
-      dock();
+      if (!fest) dock();
       refresh(S);
     };
     S.hide = function () {
@@ -541,6 +562,7 @@
       hi.setAttribute('aria-expanded', 'false');
       hi.removeAttribute('aria-activedescendant');
       document.documentElement.classList.remove('hs-open');
+      if (fest) return;
       // Auf dem Telefon kommt die Kopfleiste zurueck — und laege dann ueber
       // dem Feld, das eben noch ganz oben stand.
       var nav = document.getElementById('topbar');
@@ -587,15 +609,20 @@
       if (t.closest && t.closest('[data-scs-open]')) return;
       S.hide();
     });
-    window.addEventListener('resize', function () { if (S.open) size(); });
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { if (S.open) size(); });
+    window.addEventListener('resize', function () { if (S.open && !fest) size(); });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { if (S.open && !fest) size(); });
   }
   // Benutzbar ist das Feld, solange es im Bild steht. Weiter unten auf der
   // Startseite oeffnen Strg+K und der Knopf der Kopfleiste den Dialog.
   function inlineHere() {
     if (!inl) return false;
-    var r = inl.field.getBoundingClientRect();
-    return r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
+    var f = inl.field;
+    var r = f.getBoundingClientRect();
+    if (!(r.height > 0 && r.bottom > 0 && r.top < window.innerHeight)) return false;
+    // Ein Feld kann im Layout stehen und doch unsichtbar sein (visibility):
+    // das Feld des Hangar-Bildschirms, solange eine Seite vor ihm steht.
+    // Dann gilt der Dialog.
+    return !f.checkVisibility || f.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true });
   }
   function openBest() {
     if (inlineHere()) inl.focus();

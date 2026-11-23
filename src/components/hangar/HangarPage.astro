@@ -20,6 +20,7 @@ import ToolHelp from '../ToolHelp.astro';
 import HangarApp from './HangarApp.astro';
 import ShipBay from './ShipBay.astro';
 import LayoutWorkshop from './LayoutWorkshop.astro';
+import TermStart from './TermStart.astro';
 import { localeFromPath, href, useTranslations } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
@@ -338,28 +339,53 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-term[hidden]{display:none}
 .hgx-term.is-on{opacity:1;visibility:visible;transition-delay:0s}
 .hgx-term__bar{flex:0 0 auto;display:flex;align-items:stretch;min-height:46px;padding:0 .5rem 0 1.4rem;border-bottom:1px solid var(--hg-hair);background:var(--bg-2);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;white-space:nowrap}
-.hgx-term__name{display:flex;align-items:center;margin-right:1.4rem}
-/* Feste Farbe: das Licht des Schirms, wie beim Namens-Hologramm */
-[data-media-surface] .hgx-term__name{color:rgb(170 232 255/.9)}
 .hgx-term__nav{display:flex;align-items:stretch;flex:0 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
 .hgx-term__nav :is(a,button){appearance:none;display:inline-flex;align-items:center;padding:0 .85rem;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--hg-dim);font:inherit;letter-spacing:inherit;text-transform:inherit;text-decoration:none;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
 .hgx-term__nav :is(a,button):is(:hover,:focus-visible){color:var(--hg-on)}
 .hgx-term__nav :is(a,button):focus-visible,.hgx-term__ext:focus-visible,.hgx-term__back:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
-.hgx-term__nav a[aria-current="page"]{color:var(--hg-amber);border-bottom-color:var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 8%,transparent)}
+.hgx-term__nav :is(a,button)[aria-current="page"]{color:var(--hg-amber);border-bottom-color:var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 8%,transparent)}
+/* Vorn der Ueberblick (TermStart.astro), mit der Marke des Sperrbilds: Er
+   ist zugleich der Name des Terminals in der Leiste (seit 23.11.2026; bis
+   dahin stand dort „Terminal“). Ein Strich trennt ihn von den Bereichen. */
+.hgx-term__nav .hgx-term__start{gap:.55rem;margin-right:.4rem;padding-left:.35rem;padding-right:1.05rem;border-right:1px solid var(--hg-hair)}
+.hgx-term__start svg{flex:none;color:var(--hg-amber);opacity:.7;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-term__start:is(:hover,:focus-visible,[aria-current="page"]) svg{opacity:1}
 .hgx-term__end{flex:none;display:flex;align-items:center;gap:.6rem;margin:0 0 0 auto;padding-left:1rem;color:var(--hg-dim)}
 /* Schmales Fenster: die Seite im Terminal steht dann schmaler (termFrame,
-   bis 840 px). Die Leiste gibt zuerst die Spielversion ab, dann ihren Namen;
-   die Bereiche bleiben alle erreichbar (und rollen zur Not seitwaerts). */
-@container hgxterm (max-width:1070px){.hgx-term__end>span{display:none}.hgx-term__end{padding-left:.4rem}}
-@container hgxterm (max-width:980px){.hgx-term__name{display:none}.hgx-term__bar{padding-left:1rem}.hgx-term__nav :is(a,button){padding:0 .6rem}.hgx-term__back{margin-right:.2rem}}
+   bis 840 px). Die Bereiche bleiben alle erreichbar (und rollen zur Not
+   seitwaerts). Was die Leiste abgibt, misst das Terminal (passeLeiste,
+   data-leiste): zuerst die Spielversion (1), dann den Namen des Kontos (2),
+   zuletzt das Wort „Überblick“ (3, das Zeichen bleibt). Bis 23.11.2026 fest
+   bei 1070 und 1180 px; mit dem Knopf „Überblick“ schnitt die Leiste dann
+   angemeldet den letzten Reiter ab (1280 x 720: „Archiv“ weg), mit einem
+   langen Namen bis 1324 px. */
+.hgx-term[data-leiste] .hgx-term__end>span{display:none}
+.hgx-term[data-leiste] .hgx-term__end{padding-left:.4rem}
+.hgx-term:is([data-leiste="2"],[data-leiste="3"]) .hgx-term__who b{display:none}
+.hgx-term:is([data-leiste="2"],[data-leiste="3"]) .hgx-term__who{padding:0 .3rem}
+.hgx-term[data-leiste="3"] .hgx-term__start>span{display:none}
+@container hgxterm (max-width:980px){.hgx-term__bar{padding-left:1rem}.hgx-term__nav :is(a,button){padding:0 .55rem}.hgx-term__back{margin-right:.2rem}.hgx-term__nav .hgx-term__start{margin-right:0;padding-right:.75rem}}
 .hgx-term__ext,.hgx-term__back{appearance:none;display:inline-grid;place-items:center;align-self:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:none;color:var(--hg-dim);cursor:pointer}
 .hgx-term__back{margin:0 .5rem 0 -.9rem}
 .hgx-term__back:disabled{opacity:.35;cursor:default}
 :is(.hgx-term__ext,.hgx-term__back:enabled):is(:hover,:focus-visible){color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 6%,transparent)}
 .hgx-term__view{position:relative;flex:1 1 auto;min-height:0;background:var(--bg)}
-.hgx-term__load{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:2rem;text-align:center;color:var(--hg-dim);font-size:var(--fs-7)}
+.hgx-term__load{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:2rem;text-align:center;color:var(--hg-dim);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-13);text-transform:uppercase;opacity:0;transition:opacity var(--dur-slow) var(--ease-ui)}
 .hgx-term__view iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);opacity:0;transition:opacity var(--dur-fast) var(--ease-ui)}
 .hgx-term.is-ready .hgx-term__view iframe{opacity:1}
+/* Laden, seit der vierten Runde: Eine schmale Linie laeuft oben ueber das
+   Fenster, solange eine Seite kommt, auch ueber dem Ueberblick, der bis
+   dahin stehen bleibt (data-wechsel). Der Satz „Seite lädt“ erscheint erst,
+   wenn es laenger dauert; laesst sich die Seite nicht zeigen (data-fehler),
+   steht sein Ersatz gleich und in ganzen Worten da. */
+.hgx-term:not(.is-ready) .hgx-term__load{opacity:1;transition-delay:.6s}
+.hgx-term[data-fehler] .hgx-term__load{opacity:1;transition-delay:0s;color:var(--hg-on);font-size:var(--fs-8);font-weight:600;letter-spacing:normal;text-transform:none}
+.hgx-term__lauf{position:absolute;left:0;right:0;top:0;z-index:3;height:2px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-term__lauf i{display:block;width:32%;height:100%;background:linear-gradient(90deg,transparent,var(--hg-amber) 60%,color-mix(in srgb,var(--hg-amber) 45%,var(--hg-on)));transform:translateX(-100%)}
+.hgx-term:is([data-wechsel],[data-zeigt="seite"]:not(.is-ready):not([data-fehler])) .hgx-term__lauf{opacity:1}
+.hgx-term:is([data-wechsel],[data-zeigt="seite"]:not(.is-ready):not([data-fehler])) .hgx-term__lauf i{animation:hgxTermLauf 1.15s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes hgxTermLauf{to{transform:translateX(320%)}}
+@media (prefers-reduced-motion:reduce){.hgx-term__lauf,.hgx-term__load,.hgx-term__start svg{transition:none}.hgx-term .hgx-term__lauf i{width:100%;transform:none;animation:none;opacity:.55}}
 /* Wer am Terminal sitzt (rechts in der Leiste): Bild oder Zeichen des Kontos
    im Ring seiner Farbe (--av, vom Profil) und der Name; ohne Konto der Weg
    zur Anmeldung. Im schmalen Fenster bleibt nur das Bild. */
@@ -374,7 +400,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-term__who[aria-current="page"] .hgx-term__av{border-color:var(--hg-amber)}
 .hgx-term__av{--av:var(--hg-dim);flex:none;position:relative;display:inline-grid;place-items:center;width:26px;height:26px;border:1.5px solid var(--av);border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--av) 14%,var(--bg));color:var(--av);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;line-height:1;letter-spacing:var(--ls-3)}
 .hgx-term__av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-@container hgxterm (max-width:1180px){.hgx-term__who b{display:none}.hgx-term__who{padding:0 .3rem}}
 /* Anmeldung, zweite Runde (Krisz 14.11.2026: „es geht aber besser alles“).
    Sie deckt Leiste und Fenster, bis sie durch ist (data-step: boot, auth,
    dann user oder guest, zuletzt out). Ihr Grund ist das Sperrbild des
@@ -1036,8 +1061,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
           <button type="button" class="hgx-term__back" id="hgx-term-back" aria-label={t('term.back')} disabled>
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </button>
-          <b class="hgx-term__name">Terminal</b>
           <nav class="hgx-term__nav" aria-label={t('term.nav')}>
+            {/* Der Ueberblick: die Startseite des Schirms (TermStart.astro), keine Seite im Fenster */}
+            <button type="button" class="hgx-term__start" id="hgx-term-start" title={t('term.start')} aria-label={t('term.start')}>
+              <svg viewBox="0 0 64 64" width="15" height="15" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" /><circle cx="32" cy="32" r="7" fill="currentColor" /></svg>
+              <span>{t('term.start')}</span>
+            </button>
             <button type="button" id="hgx-term-search">{ui('nav.search')}</button>
             {TERM.map((x) => <a href={href(x.path, lang)} target="hgx-term-frame" data-term={x.key} data-pre={x.pre.join(' ')}>{x.label}</a>)}
           </nav>
@@ -1060,7 +1089,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         </div>
         <div class="hgx-term__view">
           <p class="hgx-term__load" id="hgx-term-load" data-fail={t('term.fail')}>{t('term.load')}</p>
+          <span class="hgx-term__lauf" aria-hidden="true"><i></i></span>
           <iframe id="hgx-term-frame" name="hgx-term-frame" title={t('term.frame')}></iframe>
+          <TermStart lang={lang} tools={TERM} />
         </div>
         {/* Anmeldung am Terminal: Setzt sich die Kamera vor den Monitor, meldet
             er kurz an, wer davor sitzt (Krisz 14.11.2026: „son user anmeldung

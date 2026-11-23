@@ -102,7 +102,10 @@ function boot(root: HTMLElement) {
     const pct = Math.max(0, Math.min(100, Math.round(pg.pct * 100)));
     ($('ckBar') as HTMLElement).style.width = pct + '%';
     $('ckBarWrap')!.setAttribute('aria-valuenow', String(pct));
-    $('ckXp')!.textContent = fill(C.xp, { a: nf.format(pg.into), b: nf.format(pg.needed) });
+    // Der Balken zaehlt die Stufe, nicht den Rang: Die Zeile nennt das Ziel,
+    // sonst las sich beim hoechsten Rang „99 / 55.100 XP“ mit leerem Balken
+    // neben „Lv 100“ wie ein Fehler (23.11.2026, Konto im Bildschirm der Halle)
+    $('ckXp')!.textContent = fill(C.xp, { a: nf.format(pg.into), b: nf.format(pg.needed), n: pg.level + 1 });
     $('ckNext')!.textContent = nxt ? fill(C.next, { n: nxt.level, r: `${nxt.insignia} ${nxt.name}` }) : C.max;
     const idx = RANKS.findIndex((r) => r.key === rank.key);
     [...ladder.children].forEach((li, i) => li.classList.toggle('is-on', i <= idx));
