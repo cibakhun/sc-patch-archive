@@ -148,3 +148,48 @@ for (const tr of WIKELO as unknown as WikeloTrade[]) {
 export function wikeloTrades(item: Item): { material: number; reward: number } | null {
   return wikeloUse.get(item.name) ?? null;
 }
+
+/* ---------- Sternsystem einer Verkaufsstelle ---------- */
+
+// Paket D (UX-Audit 24.11.2026, „So bekommst du es" und Bezugsquellen nach
+// System): Die Kaufzeilen tragen keinen Systemschluessel, nur den Ortsnamen.
+// Der Preisabruf haengt an Orte ausserhalb von Stanton den Systemnamen in
+// Klammern an ("Guns - Checkmate (Pyro)"), Zeilen aus dem eigenen
+// Shop-Schnappschuss tragen ihn immer. Ohne Zusatz ist eine Zeile nur dann
+// Stanton, wenn ihr Ort sicher in Stanton liegt (Landezonen, Stationen,
+// Lagrange-Punkte); Ausnahmen ohne Zusatz, die sicher woanders liegen, stehen
+// in ANDERSWO. Alles Uebrige bleibt `null` = "ohne Systemangabe" — lieber
+// eine ehrliche Luecke als ein geratenes System (Astor's Clearing, Dunboro …).
+export type SternSystem = 'Stanton' | 'Pyro' | 'Nyx';
+export const SYSTEME: readonly SternSystem[] = ['Stanton', 'Pyro', 'Nyx'];
+const SYS_ZUSATZ = /\((Stanton|Pyro|Nyx)\)\s*$/;
+const ANDERSWO: ReadonlyArray<readonly [RegExp, SternSystem]> = [
+  [/\bLevski\b|\bNyx\b/, 'Nyx'],
+  [/\b(?:Checkmate|Orbituary|Ruin Station|Gaslight|Patch City|Endgame|Rat's Nest|Starlight Service|Megumi|Dudley|Rod's Fuel)\b/, 'Pyro'],
+];
+const STANTON_ORT =
+  /\b(?:Area ?18|Lorville|New Babbage|Orison|GrimHEX|Everus Harbor|Port Tressler|Baijini Point|Seraphim|(?:ARC|CRU|HUR|MIC)-L\d|Crusader|Hurston|microTech|ArcCorp)\b/i;
+
+/** System einer Kauf- oder Haendlerzeile; null = ohne sichere Angabe. */
+export function shopSystem(loc: string): SternSystem | null {
+  const z = loc.match(SYS_ZUSATZ);
+  if (z) return z[1] as SternSystem;
+  for (const [re, sys] of ANDERSWO) if (re.test(loc)) return sys;
+  return STANTON_ORT.test(loc) ? 'Stanton' : null;
+}
+
+/* ---------- Wikelo gibt einen Bauplan ---------- */
+
+// Ein Tauschgeschaeft kann statt eines Items auch einen Bauplan geben
+// ('Killshot "Dominion Camo" Rifle Blueprint'). Schluessel: der Bauplan-Name
+// in Kleinbuchstaben, wie crafting.ts `blueprintByName`.
+const wikeloBp = new Map<string, number>();
+for (const tr of WIKELO as unknown as WikeloTrade[]) {
+  const roh = (tr.get ?? tr.name).trim();
+  const m = roh.match(/^(.*\S)\s+Blueprint$/i);
+  if (!m) continue;
+  const k = m[1].toLowerCase();
+  wikeloBp.set(k, (wikeloBp.get(k) ?? 0) + 1);
+}
+/** Wie viele Wikelo-Tauschgeschaefte diesen Bauplan geben (0 = keins). */
+export const wikeloBlueprintTrades = (bpName: string): number => wikeloBp.get(bpName.toLowerCase()) ?? 0;

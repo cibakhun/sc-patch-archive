@@ -19,7 +19,7 @@ const MIN_PASS = 12;
 const COPY = {
   de: {
     name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
-    nameHint: 'Wird im Dashboard angezeigt. Später jederzeit änderbar.',
+    nameHint: 'Steht in deinem Konto. Später jederzeit änderbar.',
     email: 'E-Mail', emailPh: 'du@beispiel.de',
     pass: 'Passwort', passPh: 'Mindestens 12 Zeichen',
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
@@ -27,6 +27,7 @@ const COPY = {
     privacyPre: 'Mit der Registrierung stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyPost: 'zu.',
     errShort: 'Das Passwort braucht mindestens 12 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
+    missing: 'Bitte ausfüllen: {f}.', and: ' und ',
     errExists: 'Diese E-Mail ist bereits registriert — melde dich an oder setze dein Passwort zurück.',
     errInvalidMail: 'Diese E-Mail-Adresse wird nicht akzeptiert — bitte prüfe die Schreibweise.',
     errWeak: 'Das Passwort ist zu schwach — bitte wähle ein längeres.',
@@ -43,7 +44,7 @@ const COPY = {
   },
   en: {
     name: 'Display name', optional: '— optional', namePh: 'e.g. StarRunner',
-    nameHint: 'Shown in your dashboard. Can be changed anytime.',
+    nameHint: 'Shown in your account. Can be changed anytime.',
     email: 'E-mail', emailPh: 'you@example.com',
     pass: 'Password', passPh: 'At least 12 characters',
     pass2: 'Repeat password', pass2Ph: 'Same password again',
@@ -51,6 +52,7 @@ const COPY = {
     privacyPre: 'By registering you agree to the processing described in our', privacy: 'privacy policy', privacyPost: '.',
     errShort: 'The password needs at least 12 characters.',
     errMatch: 'The passwords do not match.',
+    missing: 'Please fill in: {f}.', and: ' and ',
     errExists: 'This e-mail is already registered — sign in or reset your password.',
     errInvalidMail: 'This e-mail address was not accepted — please check the spelling.',
     errWeak: 'This password is too weak — please pick a longer one.',
@@ -87,6 +89,8 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     data-login={loginHref}
     data-msg-short={COPY.errShort}
     data-msg-match={COPY.errMatch}
+    data-msg-missing={COPY.missing}
+    data-and={COPY.and}
     data-msg-exists={COPY.errExists}
     data-msg-invalid-mail={COPY.errInvalidMail}
     data-msg-weak={COPY.errWeak}
@@ -140,6 +144,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
   import { safeNext } from '../../lib/safe-next';
   import { imTerminal, fensterZiel, sitzungKam, FENSTER_NAME, FENSTER_FORM } from '../../lib/im-terminal';
   import { needsCode } from '../../lib/mfa';
+  import { missingFields } from '../../lib/auth-felder';
 
   // ?next=/… (nur dieselbe Origin, src/lib/safe-next.ts): wer über den
   // Pilotenlink eines Freundes kommt (/de/pilot/<handle>), landet nach dem
@@ -244,6 +249,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
       const password = (form.elements.namedItem('password') as HTMLInputElement).value;
       const password2 = (form.elements.namedItem('password2') as HTMLInputElement).value;
 
+      if (missingFields(form, status)) return;
       if (password.length < 12) { setStatus(D.msgShort!); return; } // = MIN_PASS
       if (password !== password2) { setStatus(D.msgMatch!); return; }
 

@@ -74,9 +74,15 @@
     patch: 'patches', thema: 'patches', feature: 'patches', event: 'patches',
     erz: 'world', ort: 'world', laden: 'world', liste: 'items', bauplanliste: 'recipes',
   };
-  var GROUP_LABEL = {
-    tools: D.gTools, ships: D.gShips, items: D.gItems, recipes: D.gRecipes, missions: D.gMissions, patches: D.gPatches,
-    world: D.gWorld,
+  // Beschriftungen der Gruppen erst beim Zeichnen aus dem dataset lesen, wie
+  // alle anderen Texte: Die 404 stellt unter /de/ die Sprache um, nachdem
+  // dieses Skript schon gestartet ist.
+  var GROUP_ATTR = {
+    tools: 'gTools', ships: 'gShips', items: 'gItems', recipes: 'gRecipes', missions: 'gMissions', patches: 'gPatches',
+    world: 'gWorld',
+  };
+  var groupLabel = function (key) {
+    return D[GROUP_ATTR[key]] || '';
   };
   // Das Messereignis kennt nur die freigegebenen Arten (assets/ereignisse.js).
   // Neuere Arten melden sich unter der Art ihres Ziels: Erz und Ort oeffnen
@@ -567,7 +573,7 @@
     var want = 0;
     groups.forEach(function (G) {
       var h = plain(S, 'scs__grp scs__grp--' + G.key);
-      h.appendChild(el('b', null, GROUP_LABEL[G.key] || G.key));
+      h.appendChild(el('b', null, groupLabel(G.key) || G.key));
       h.appendChild(el('span', null, String(G.hits.length)));
       var lim = S.expand[G.key] || (G.key === 'tools' ? TOOLS_SHOWN : SHOWN);
       G.hits.slice(0, lim).forEach(function (e, j) {
@@ -576,7 +582,7 @@
       });
       if (G.hits.length > lim) {
         var li = option(S, 'scs__more', { more: G.key, lim: lim });
-        li.textContent = fill(D.more || '+ %n%', G.hits.length - lim) + ' ' + (GROUP_LABEL[G.key] || '');
+        li.textContent = fill(D.more || '+ %n%', G.hits.length - lim) + ' ' + groupLabel(G.key);
       }
     });
     // Treffer aus dem ersten Teil stehen schon da; dass Items und Blueprints

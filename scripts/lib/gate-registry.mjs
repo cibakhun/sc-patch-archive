@@ -245,6 +245,25 @@ export const CHECKS = [
       'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (24.11.2026, UX-Audit Paket C1): direkt nach den beiden
+    // Schaltern, weil der Fehler genau an ihren eingehaengten Seiten lag —
+    // DE/EN auf Hangar, Advanced Loadout, Patch 4.10.3 und Chronik 4.10.3
+    // fuehrte auf die Startseite der anderen Sprache (src/lib/routeTwins.ts
+    // kannte nur src/pages/). Kein env-Feld: nur dist/.
+    id: 'verify:sprachweiche',
+    npm: 'verify:sprachweiche',
+    script: 'scripts/verify-sprachweiche.mjs',
+    rail: 'A',
+    checks:
+      'jede Option des Sprachumschalters (Seitenkopf und Datenblatt) zeigt aufs Gegenstueck in der anderen Sprache, wenn es im Bau steht, sonst auf eine Seite der anderen Sprache, die es gibt; die hreflang-Paare im Kopf nennen genau Seite und Gegenstueck, beide im Bau; im Vorschau-Bau sind die eingehaengten Seiten (Hangar, Patch-Seiten vor der Abnahme) unter den geprueften; Klinken fuer Seiten mit Umschalter und eingehaengte Seiten',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Vorschau-Bau von origin/staging
+    // 6e984ac8 (vor der Reparatur): 16 FEHLER [1] — beide Umschalter
+    // (Kopfleiste und Menue) auf /hangar, /hangar-loadout, /patches/sc-4-10-3
+    // und /patches/4-10-3-film in beiden Sprachen zeigten auf /index.html
+    // bzw. /de.html. Ueber die anderen 18.650 Seiten kein Fund. Gruen nach
+    // der Reparatur derselben Lieferung (21.996 Optionen aufs Gegenstueck).
+  },
+  {
     // Neuzugang (22.11.2026): Items in 3D, derselbe STAGING-Schalter am
     // Artefakt, aber in beiden Bauten mit eigener Aussage — darum ohne
     // nurMitHangar. Kein env-Feld: nur dist/ und src/data/item-3d.json.
@@ -655,6 +674,38 @@ export const CHECKS = [
     // (0) und a03-sniper-rifle (1) getauscht, Kopf und Zahl gleich: 1 FEHLER
     // „2 Item(s) mit anderem Fundort-Profil". Zurueckgespielt, gruen: 9.412
     // Items je Item verglichen, 0 abweichend.
+  },
+  {
+    // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
+    // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
+    // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen
+    // still (Join bricht im Datenlauf, Block geht im Umbau verloren, altes
+    // Bauskript schreibt den Herstellerkopf zurueck).
+    // Kein git, kein Netz, kein Kindprozess: dist/ und committete JSON.
+    id: 'verify:bezugswege',
+    npm: 'verify:bezugswege',
+    script: 'scripts/verify-bezugswege.mjs',
+    rail: 'A',
+    checks:
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
+    // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
+    // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
+    // /de/items/karna-rifle.html entfernt, die alte Vermutung in
+    // /crafting/p4-ar-rifle.html eingesetzt, data-hinweis auf
+    // /de/crafting/p4-ar-rifle.html entfernt, „Rate Of Fire: 120 rpm" in die
+    // Beschreibung von /de/items/a03-sniper-rifle.html gesetzt, den
+    // Schiffslink auf /items/100i.html entfernt und den Katalog vor der Regel
+    // nach dist/assets gelegt: 7 FEHLER, je einer pro Eingriff ([5]: 764
+    // doppelte Kopfzeilen). Gruen danach: 11.642 Item-Blaetter, 1.372 mit
+    // Missionslink (vorher 0), 3.252 Bauplan-Seiten (1.870 mit „Quelle
+    // unbekannt"), 1.030 Blaetter mit Kennzahl Feuerrate, 356
+    // Fahrzeug-Itemblaetter, 9.518 Katalog-Items.
+    // Nach dem Review (CodeRabbit, PR #423) drei Zusicherungen geschaerft und
+    // je einmal rot gefahren, zurueckgespielt und per sha256 geprueft: der
+    // Hinweis-Link auf /crafting/p4-ar-rifle.html zeigte auf die Karna, der
+    // Schiffslink von /items/100i.html auf die 125a, die Karna trug in
+    // dist/assets 500 statt 600 Schuss/min: 3 FEHLER, je einer pro Eingriff.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
