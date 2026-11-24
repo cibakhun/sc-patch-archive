@@ -1142,6 +1142,10 @@ export const CHECKS = [
     // auf einem Item-Blatt -> „Link ausserhalb der Gruppen“. Dritte Runde
     // (Live-Bau): „<a href>“ in <textarea> und <iframe> zaehlt nicht (Zombie
     // still), ein echter Link daneben weckt ihn; Linkzahl gleich (598 732).
+    // Vierte Runde (Vorschau-Bau): „</textarea-x>“ beendet die textarea
+    // nicht mehr (Tagnamen enden wie im Parser an Leerraum, / oder >): der
+    // Link dahinter weckte mit dem Stand davor den Zombie-Waechter, jetzt
+    // nicht; Zaehlungen unveraendert (636 832 Links, 18 662 Rahmen).
     id: 'verify:ia',
     npm: 'verify:ia',
     script: 'scripts/verify-ia.mjs',

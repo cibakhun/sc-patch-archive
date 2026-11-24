@@ -242,7 +242,7 @@ const attr = (rumpf, name) => attrs(rumpf).get(name) ?? null;
 const TAGRE = new Map();
 function ende(html, start, tag) {
   let re = TAGRE.get(tag);
-  if (!re) TAGRE.set(tag, (re = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'g')));
+  if (!re) TAGRE.set(tag, (re = new RegExp(`<(/?)${tag}(?=[\\s/>])[^>]*>`, 'g')));
   re.lastIndex = start;
   let tiefe = 0;
   for (let m; (m = re.exec(html)); ) {
@@ -279,7 +279,7 @@ function einzeln(html, re, tag, art, url, darfFehlen = false) {
 }
 
 /** Oeffnendes <tag> mit dieser Klasse, auch neben weiteren Klassen. */
-const mitKlasse = (tag, klasse) => new RegExp(`<${tag}\\b[^>]*\\bclass="(?:[^"]*\\s)?(?:${klasse})(?:\\s[^"]*)?"[^>]*>`, 'g');
+const mitKlasse = (tag, klasse) => new RegExp(`<${tag}(?=[\\s/>])[^>]*\\sclass="(?:[^"]*\\s)?(?:${klasse})(?:\\s[^"]*)?"[^>]*>`, 'g');
 const RE = {
   datenleiste: mitKlasse('header', 'dp-bar'),
   snLeiste: mitKlasse('ul', 'snav__areas'),
@@ -295,24 +295,27 @@ const RE = {
 
 // Was auf jeder Seite gleich steht und darum kein Inhalt ist.
 const RAHMEN = [
-  [/<nav\b[^>]*\bid="topbar"[^>]*>/g, 'nav'],
-  [/<div\b[^>]*\bid="snavDeck"[^>]*>/g, 'div'],
+  [/<nav(?=[\s/>])[^>]*\sid="topbar"[^>]*>/g, 'nav'],
+  [/<div(?=[\s/>])[^>]*\sid="snavDeck"[^>]*>/g, 'div'],
   [RE.datenleiste, 'header'],
   [mitKlasse('nav', 'dp-local|hero__areas'), 'nav'],
-  [/<footer\b[^>]*>/g, 'footer'],
+  [/<footer(?=[\s/>])[^>]*>/g, 'footer'],
 ];
 // Gross- und Kleinschreibung, `</script >` und `--!>` wie im HTML-Parser.
+// Ein Tagname endet wie dort erst an Leerraum, „/“ oder „>“: `</textarea-x>`
+// ist kein End-Tag von textarea (\b wuerde am Bindestrich schon greifen);
+// so auch in allen anderen Mustern dieses Tors.
 // Dazu die Elemente, deren Inhalt der Parser als Text liest (textarea,
 // xmp, iframe, noembed, noframes): ein „<a>“ darin ist kein Link. Nicht
 // dabei: title (im SVG ein gewoehnliches Element, oft in Leisten-Links)
 // und noscript (fuer Crawler ohne Skript sind das echte Links).
 const OHNE =
-  /<!--[\s\S]*?--!?>|<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>|<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>|<(textarea|xmp|iframe|noembed|noframes)\b[^>]*>[\s\S]*?<\/\1\b[^>]*>/gi;
+  /<!--[\s\S]*?--!?>|<script(?=[\s/>])[^>]*>[\s\S]*?<\/script(?=[\s/>])[^>]*>|<style(?=[\s/>])[^>]*>[\s\S]*?<\/style(?=[\s/>])[^>]*>|<(textarea|xmp|iframe|noembed|noframes)(?=[\s/>])[^>]*>[\s\S]*?<\/\1(?=[\s/>])[^>]*>/gi;
 // Gegenprobe: keines dieser Rahmen-Teile darf nach dem Schnitt im Inhalt
 // stehen. Aendert sich das Markup einer Leiste so, dass RAHMEN sie nicht
 // mehr trifft, zaehlten ihre Links still als Inhalt und das Tor waere
 // falsch gruen; so reisst es stattdessen.
-const RAHMEN_MARKE = /\bclass="(?:[^"]*\s)?(snav__areas|snav__back|snav__local|snav-deck__cols|dp-areas|dp-menu|dp-crumbs|dp-local|hero__areas)(?:\s[^"]*)?"/;
+const RAHMEN_MARKE = /\sclass="(?:[^"]*\s)?(snav__areas|snav__back|snav__local|snav-deck__cols|dp-areas|dp-menu|dp-crumbs|dp-local|hero__areas)(?:\s[^"]*)?"/;
 
 function inhalt(html) {
   const raus = [];
@@ -369,11 +372,11 @@ const grundform = (url) => (url === '/de.html' ? '/index.html' : url.startsWith(
 const indexierbarNachRegel = (url) => url !== '/404.html' && !SEO.NOINDEX_PATHS.has(grundform(url)) && !nurVorschau(url);
 // robots und Weiterleitung am echten <meta> im Kopf, ohne Kommentare, in
 // jeder Attributreihenfolge.
-const META = new RegExp(`<meta\\b${TAGRUMPF}>`, 'gi');
+const META = new RegExp(`<meta(?=[\\s/>])${TAGRUMPF}>`, 'gi');
 // Die Kopfgrenze zaehlt erst ausserhalb von Kommentaren, Skripten und Stilen:
 // ein „<body>“ in einem Kommentar beendet den Kopf nicht. Der Lauf hoert an
 // der Grenze auf, statt die ganze Datei vorher zu bereinigen.
-const KOPF_ENDE = new RegExp(`${OHNE.source}|<\\/head\\s*>|<body\\b`, 'gi');
+const KOPF_ENDE = new RegExp(`${OHNE.source}|<\\/head\\s*>|<body(?=[\\s/>])`, 'gi');
 function kopfMetas(html) {
   let ende = html.length;
   KOPF_ENDE.lastIndex = 0;
@@ -461,11 +464,11 @@ const folge = (z, von) => {
   return z;
 };
 
-const ANKER = new RegExp(`<a\\b${TAGRUMPF}>([\\s\\S]*?)<\\/a\\s*>`, 'gi');
+const ANKER = new RegExp(`<a(?=[\\s/>])${TAGRUMPF}>([\\s\\S]*?)<\\/a\\s*>`, 'gi');
 // Fuer [1] geht der Lauf Tag fuer Tag durch den Inhalt: ein „<a href>“ im
 // Wert eines anderen Attributs ist Text dieses Tags und kein Link.
 const TAG_AUF = new RegExp(`<([a-z][^\\s/>]*)${TAGRUMPF}>`, 'gi');
-const ANKER_AUF = new RegExp(`<a\\b${TAGRUMPF}>`, 'gi');
+const ANKER_AUF = new RegExp(`<a(?=[\\s/>])${TAGRUMPF}>`, 'gi');
 const ankerZahl = (s) => s.match(ANKER_AUF)?.length ?? 0;
 const lies = (stueck) => [...stueck.matchAll(ANKER)].map((m) => ({ tag: m[1], innen: m[2], text: text(m[2]) }));
 
@@ -508,7 +511,7 @@ for (const [url, f] of html) {
   }
 
   // ---- [2] Leisten ----
-  const sn = /<nav\b[^>]*\bid="topbar"/.test(sauber);
+  const sn = /<nav(?=[\s/>])[^>]*\sid="topbar"/.test(sauber);
   RE.datenleiste.lastIndex = 0;
   const ds = RE.datenleiste.test(sauber);
   if (sn) zahl.sitenav++;
@@ -519,8 +522,8 @@ for (const [url, f] of html) {
   // Jede Leiste steht in ihrem Rahmen: nur dort ist sie die Navigation, die
   // der Besucher oben sieht. Eine einzige Kopie im Fuss oder im Inhalt
   // bestuende sonst den Abgleich, waehrend oben die Leiste fehlt.
-  const rahmenSn = sn ? elemente(sauber, /<nav\b[^>]*\bid="topbar"[^>]*>/g, 'nav') : [];
-  const deckSn = sn ? elemente(sauber, /<div\b[^>]*\bid="snavDeck"[^>]*>/g, 'div') : [];
+  const rahmenSn = sn ? elemente(sauber, /<nav(?=[\s/>])[^>]*\sid="topbar"[^>]*>/g, 'nav') : [];
+  const deckSn = sn ? elemente(sauber, /<div(?=[\s/>])[^>]*\sid="snavDeck"[^>]*>/g, 'div') : [];
   const rahmenDs = ds ? elemente(sauber, RE.datenleiste, 'header') : [];
   const drin = (s, rahmen, wo, art) => {
     if (s && rahmen && !rahmen.some((r) => r.includes(s))) {
