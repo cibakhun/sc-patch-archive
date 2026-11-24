@@ -30,6 +30,7 @@
   var NF = DE ? 'de-DE' : 'en-US';
   var COLL = new Intl.Collator(DE ? 'de' : 'en', { sensitivity: 'base', ignorePunctuation: true, numeric: true });
   var TELEFON = window.matchMedia('(max-width:820px)');
+  var SCHMAL = window.matchMedia('(max-width:480px)');
   var STILL = window.matchMedia('(prefers-reduced-motion:reduce)');
   var RING = '<svg viewBox="0 0 120 120" fill="none" aria-hidden="true"><circle class="wzb-ring__a" cx="60" cy="60" r="56"/>' +
     '<circle class="wzb-ring__b" cx="60" cy="60" r="44"/><path class="wzb-ring__c" d="M60 0v10M60 110v10M0 60h10M110 60h10"/></svg>';
@@ -332,7 +333,17 @@
       it._h = heu.filter(Boolean).join('\n').toLowerCase();
       BYID[it.id] = it;
     });
-    var ord = ITEMS.slice().sort(function (a, b) { return COLL.compare(a._n, b._n) || (a.id < b.id ? -1 : 1); });
+    // Name A–Z, das Grundmodell vor seinen Varianten: Karna "Alpine Sunset"
+    // Rifle steht hinter Karna Rifle, nicht davor. Eine Variante traegt
+    // ihren Zusatz in Anfuehrungszeichen mitten im Namen.
+    ITEMS.forEach(function (it) {
+      var b = it._n.replace(/\s+["\u201c\u201e][^"\u201c\u201d\u201e]+["\u201c\u201d]\s*/g, ' ').trim();
+      it._basis = b;
+      it._var = b !== it._n.trim() ? 1 : 0;
+    });
+    var ord = ITEMS.slice().sort(function (a, b) {
+      return COLL.compare(a._basis, b._basis) || a._var - b._var || COLL.compare(a._n, b._n) || (a.id < b.id ? -1 : 1);
+    });
     ord.forEach(function (it, i) { it._o = i; });
     SETLISTE.forEach(function (s) { s._h = [s.name, s.manufacturer, s.weight].filter(Boolean).join('\n').toLowerCase(); });
     SETLISTE.sort(function (a, b) { return COLL.compare(a.name, b.name); });
@@ -1573,6 +1584,14 @@
   }
 
   /* ---------- Start ---------- */
+  // Am schmalen Telefon passt der lange Platzhalter nicht ins Feld; dort
+  // steht die kurze Fassung (die Lupe sagt schon, dass es sucht).
+  function platzhalter() {
+    var p = SCHMAL.matches && W.sucheKurz ? W.sucheKurz : W.suche;
+    if (p && el.q.placeholder !== p) el.q.placeholder = p;
+  }
+  platzhalter();
+  if (SCHMAL.addEventListener) SCHMAL.addEventListener('change', platzhalter);
   var wunsch = leseUrl();
   messen();
   requestAnimationFrame(function () { document.documentElement.classList.add('wz-bereit'); });

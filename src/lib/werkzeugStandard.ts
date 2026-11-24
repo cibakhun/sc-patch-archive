@@ -129,6 +129,8 @@ export const WZ_CSS = `
 .wz-suche input:focus{outline:none;border-color:var(--akz);box-shadow:0 0 0 3px color-mix(in srgb,var(--akz) 24%,transparent)}
 .wz-suche kbd{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);padding:.05rem .4rem;border:1px solid var(--hl2);border-bottom-width:2px;border-radius:5px;font-family:inherit;font-size:var(--fs-3);color:var(--mu2);pointer-events:none;transition:opacity var(--dur-fast) var(--ease-ui)}
 .wz-suche:focus-within kbd,.wz-suche.hat-text kbd{opacity:0}
+/* Ohne Tastatur keine Tastenmarke: der Platz geht an den Platzhalter. */
+@media (hover:none) and (pointer:coarse){.wz-suche kbd{display:none}.wz-suche input{padding-right:2.6rem}}
 .wz-leeren{position:absolute;right:.4rem;top:50%;display:none;place-items:center;width:1.8rem;height:1.8rem;margin-top:-.9rem;border:0;border-radius:6px;background:none;color:var(--mu)}
 .wz-leeren .wi{width:.95rem;height:.95rem}
 .wz-leeren:hover{background:var(--e3);color:var(--tx)}
