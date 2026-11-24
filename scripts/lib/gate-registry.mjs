@@ -657,6 +657,33 @@ export const CHECKS = [
     // Items je Item verglichen, 0 abweichend.
   },
   {
+    // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
+    // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
+    // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen
+    // still (Join bricht im Datenlauf, Block geht im Umbau verloren, altes
+    // Bauskript schreibt den Herstellerkopf zurueck).
+    // Kein git, kein Netz, kein Kindprozess: dist/ und committete JSON.
+    id: 'verify:bezugswege',
+    npm: 'verify:bezugswege',
+    script: 'scripts/verify-bezugswege.mjs',
+    rail: 'A',
+    checks:
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein Schiffsblatt; Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
+    // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
+    // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
+    // /de/items/karna-rifle.html entfernt, die alte Vermutung in
+    // /crafting/p4-ar-rifle.html eingesetzt, data-hinweis auf
+    // /de/crafting/p4-ar-rifle.html entfernt, „Rate Of Fire: 120 rpm" in die
+    // Beschreibung von /de/items/a03-sniper-rifle.html gesetzt, den
+    // Schiffslink auf /items/100i.html entfernt und den Katalog vor der Regel
+    // nach dist/assets gelegt: 7 FEHLER, je einer pro Eingriff ([5]: 764
+    // doppelte Kopfzeilen). Gruen danach: 11.642 Item-Blaetter, 1.372 mit
+    // Missionslink (vorher 0), 3.252 Bauplan-Seiten (1.870 mit „Quelle
+    // unbekannt"), 1.030 Blaetter mit Kennzahl Feuerrate, 356
+    // Fahrzeug-Itemblaetter, 9.518 Katalog-Items.
+  },
+  {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
     // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
     // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:
