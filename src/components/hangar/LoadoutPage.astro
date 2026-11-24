@@ -301,7 +301,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo{box-sizing:border-box;max-width:2400px;height:100dvh;display:flex;flex-direction:column;gap:.6rem;padding-top:calc(var(--nav-h,68px) + .6rem);padding-bottom:.8rem;overflow:hidden}
   .lo>*{flex:0 0 auto}
   .lo-top{flex-wrap:nowrap;align-items:center;gap:1rem;padding-bottom:.7rem}
-  .lo-eyebrow,.lo-lead,.lo-sumh,.lo-field>span{display:none}
+  .lo-eyebrow,.lo-lead,.lo-sumh{display:none}
+  /* Die Feldnamen stehen nicht sichtbar in der Leiste, bleiben aber der
+     Name von Schiffswahl und Namensfeld für Screenreader. */
+  .lo-field>span{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
   .lo-id{display:flex;align-items:center;gap:1rem;flex:1 1 auto}
   .lo-id h1{flex:0 0 auto;font-size:var(--fs-10);white-space:nowrap}
   .lo-fields{flex:1 1 auto;flex-wrap:nowrap;margin:0;gap:.5rem}
@@ -380,10 +383,11 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-opt.is-prev .is-act{background:var(--lo-boxbg)}
   .lo-opt.is-prev>td{box-shadow:none}
 }
-/* Der Titel steht erst ab 1800 px in der Leiste; darunter braucht das
-   Namensfeld den Platz. Bis 1599 px rücken die Knöpfe enger. */
+/* Der Titel steht erst ab 1800 px sichtbar in der Leiste; darunter braucht
+   das Namensfeld den Platz, und die Überschrift bleibt nur für
+   Screenreader stehen. Bis 1599 px rücken die Knöpfe enger. */
 @media (min-width:1100px) and (max-width:1799px) and (min-height:600px){
-  .lo-id h1{display:none}
+  .lo-id h1{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 }
 @media (min-width:1100px) and (max-width:1599px) and (min-height:600px){
   .lo-state{max-width:9rem}
