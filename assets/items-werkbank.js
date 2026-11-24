@@ -1128,6 +1128,10 @@
 
   // Blatt am Telefon: von unten, Zurueck des Geraets schliesst es.
   var blattGeschoben = false;
+  // Das Zurueck aus telefonZu() selbst (Schliessen-Knopf, Gruppe, „Set-Teile
+  // zeigen“): sein popstate laesst einen wartenden Schreibvorgang stehen,
+  // denn den hat der Aufrufer gerade fuer die Liste angestossen.
+  var eigenesZurueck = false;
   // Offen deckt das Blatt die Seite ganz zu. Alles daneben wird inert,
   // damit Tab und Vorleser im Blatt bleiben; beim Schliessen kommt genau
   // das zurueck, was hier gesetzt wurde.
@@ -1164,7 +1168,11 @@
     el.blatt.classList.remove('is-offen');
     aussenTraege(false);
     if (window.VBScrollLock) window.VBScrollLock.unlock();
-    if (!ausHistorie && blattGeschoben) { blattGeschoben = false; try { history.back(); } catch (e) {} }
+    if (!ausHistorie && blattGeschoben) {
+      blattGeschoben = false;
+      eigenesZurueck = true;
+      try { history.back(); } catch (e) { eigenesZurueck = false; }
+    }
     blattGeschoben = false;
     var k = markiere();
     if (k) { var f = k.querySelector('a') || k; try { f.focus({ preventScroll: true }); } catch (e) {} }
@@ -1176,9 +1184,11 @@
   // die Adresse der Liste, und ein Neuladen oeffnete das Blatt wieder.
   // Vorwaerts auf einen Eintrag, den das Blatt angelegt hat, oeffnet es
   // wieder, mit der Auswahl aus der Adresse und ohne neuen Eintrag.
-  // Wer hier oeffnet oder leert, stoesst schreibeUrl() neu an; ein noch
-  // wartender Schreibvorgang trifft damit den Eintrag, auf dem man steht,
-  // mit dem Stand nach der Uebernahme.
+  // Ein noch wartender Schreibvorgang gehoert zum Eintrag, von dem man kam,
+  // und verfaellt beim Zurueck oder Vorwaerts des Nutzers: er schriebe sonst
+  // den alten Stand in den Eintrag, auf dem man landet (etwa die Id statt des
+  // Namens in einen geteilten Link). Wer hier oeffnet oder leert, stoesst
+  // schreibeUrl() neu an, mit dem Stand nach der Uebernahme.
   // item= nimmt die Id, ersatzweise den Namen (geteilte Links von Hand).
   function itemAusWunsch(w) {
     if (!w) return null;
@@ -1194,6 +1204,8 @@
     return false;
   }
   window.addEventListener('popstate', function (e) {
+    if (eigenesZurueck) eigenesZurueck = false;
+    else clearTimeout(urlTimer);
     var offen = el.blatt.classList.contains('is-offen');
     if (!(e.state && e.state.wzBlatt)) {
       if (offen) telefonZu(true);
