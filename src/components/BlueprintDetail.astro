@@ -302,7 +302,7 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
             </thead>
             <tbody>
               {zeilen.map((z) => (
-                <tr>
+                <tr data-mission={z.slug}>
                   <td>
                     {z.seite
                       ? <a href={href(`/missionen/${z.slug}.html`, lang)}>{z.label}</a>
