@@ -104,7 +104,9 @@ Tabelle des eigenen Checkouts, damit die Einordnung im Bericht dieselbe ist
 wie beim Backen. Der Upload vermerkt sein Ziel in `<out>/hochgeladen.ziel`
 (Bucket, Endpunkt nur als Kennung), nur über https und ohne Weiterleitungen;
 eine alte `hochgeladen.txt` ohne Vermerk übernimmt er nur mit
-`--ziel-bestaetigen`. `manifest.mjs` nimmt den Nachweis nur für Bucket und
+`--ziel-bestaetigen`. Er lädt erst alle Bilder und dann nur die Modelle, deren
+Bilder alle oben sind; scheitert ein Bild, bleibt sein Modell bis zum nächsten
+Lauf unten, und der Lauf endet rot. `manifest.mjs` nimmt den Nachweis nur für Bucket und
 Endpunkt der Seite an (Endpunkt aus `--env`, nur `R2_ENDPOINT` wird gelesen).
 Beide Protokolle tragen je Zeile ihre Zeit: scheitert ein Item nach seinem
 letzten Erfolg, bleibt sein altes Modell aus der Liste, und jeder weitere

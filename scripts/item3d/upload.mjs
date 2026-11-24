@@ -21,6 +21,8 @@ const DRY = schalter('--dry'), BESTAETIGT = schalter('--ziel-bestaetigen');
 const ENV = flag('--env', null), BUCKET = flag('--bucket', 'versebase-items'), PAR = Number(flag('--parallel', 12));
 const [OUT] = argv;
 if (!OUT || !ENV) { console.error('Aufruf: node scripts/item3d/upload.mjs <out> --env <r2.env>'); process.exit(2); }
+// ohne Arbeiter bliebe alles liegen, und der Lauf meldete trotzdem Erfolg
+if (!Number.isInteger(PAR) || PAR < 1) { console.error(`--parallel braucht eine ganze Zahl ab 1 (ist ${process.argv[process.argv.indexOf('--parallel') + 1]})`); process.exit(2); }
 const env = Object.fromEntries(readFileSync(ENV, 'utf8').split(/\r?\n/).map((l) => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/)).filter(Boolean).map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]));
 for (const k of ['R2_KEY_ID', 'R2_SECRET', 'R2_ENDPOINT']) if (!env[k]) { console.error(`${k} fehlt in ${ENV}`); process.exit(2); }
 const endpoint = new URL(env.R2_ENDPOINT);
@@ -89,21 +91,26 @@ if (DRY && existsSync(doneFile) && !doneGilt) console.log('hochgeladen.txt ohne 
 const done = new Set(doneGilt ? readFileSync(doneFile, 'utf8').split(/\r?\n/).filter(Boolean) : []);
 const type = (f) => (f.endsWith('.glb') ? 'model/gltf-binary' : f.endsWith('.webp') ? 'image/webp' : f.endsWith('.png') ? 'image/png' : 'application/octet-stream');
 // Nur was die jüngste Zeile je Item in manifest.jsonl nennt: ein neu gebackenes
-// Teil lässt seine alte Datei liegen, die braucht niemand mehr. Texturen zuerst,
-// damit ein Modell nie vor seinen Bildern oben steht.
+// Teil lässt seine alte Datei liegen, die braucht niemand mehr. Erst alle
+// Texturen, dann die Modelle, deren Bilder alle oben sind: ein Modell steht so
+// nie vor oder ohne seine Bilder im Speicher. Scheitert ein Bild, bleibt sein
+// Modell unten (sonst läge es dort unreferenziert; in die Liste käme es auch
+// dann nicht, manifest.mjs verlangt Modell und alle Bilder als hochgeladen).
 const letzte = new Map();
 for (const l of readFileSync(join(OUT, 'manifest.jsonl'), 'utf8').split(/\r?\n/)) if (l.trim()) { const z = JSON.parse(l); letzte.set(z.id, z); }
-const tex = new Set(), mod = new Set();
-for (const z of letzte.values()) { mod.add(z.file); for (const h of z.tex) tex.add(`t/${h}.webp`); }
-const files = [...tex, ...mod].filter((f) => !done.has(f));
+const bilderVon = new Map();
+for (const z of letzte.values()) { const b = bilderVon.get(z.file) ?? new Set(); for (const h of z.tex) b.add(`t/${h}.webp`); bilderVon.set(z.file, b); }
+const tex = [...new Set([...bilderVon.values()].flatMap((b) => [...b]))].filter((f) => !done.has(f));
+const mod = [...bilderVon.keys()].filter((f) => !done.has(f));
+const files = [...tex, ...mod];
 for (const f of files) if (!existsSync(join(OUT, f))) { console.error(`fehlt: ${f}`); process.exit(2); }
 console.log(`${letzte.size} Items, ${files.length} Dateien hochzuladen (${done.size} schon oben, ${(files.reduce((s, f) => s + statSync(join(OUT, f)).size, 0) / 1048576).toFixed(0)} MB)${DRY ? ' — Probe, nichts wird gesendet' : ''}`);
 if (DRY) process.exit(0);
 let n = 0, bytes = 0, bad = 0;
 const t0 = Date.now();
-async function run() {
+async function run(queue) {
   for (;;) {
-    const f = files.shift();
+    const f = queue.shift();
     if (!f) return;
     const body = readFileSync(join(OUT, f));
     let ok = false;
@@ -112,10 +119,16 @@ async function run() {
     }
     if (!ok) continue;
     appendFileSync(doneFile, `${f}\n`);
+    done.add(f);
     n++; bytes += body.length;
     if (n % 200 === 0) console.log(`${n} Dateien, ${(bytes / 1048576).toFixed(0)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   }
 }
-await Promise.all(Array.from({ length: PAR }, run));
-console.log(`fertig: ${n} hochgeladen (${(bytes / 1048576).toFixed(0)} MB), ${bad} fehlgeschlagen`);
-process.exit(bad ? 1 : 0);
+const welle = (liste) => Promise.all(Array.from({ length: PAR }, () => run(liste)));
+await welle([...tex]);
+const bereit = mod.filter((f) => [...bilderVon.get(f)].every((b) => done.has(b)));
+const zurueck = mod.length - bereit.length;
+if (zurueck) console.log(`${zurueck} Modelle zurückgestellt: nicht alle ihre Bilder sind oben (nächster Lauf versucht es erneut)`);
+await welle(bereit);
+console.log(`fertig: ${n} hochgeladen (${(bytes / 1048576).toFixed(0)} MB), ${bad} fehlgeschlagen${zurueck ? `, ${zurueck} Modelle zurückgestellt` : ''}`);
+process.exit(bad || zurueck ? 1 : 0);
