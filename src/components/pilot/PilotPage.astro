@@ -44,9 +44,19 @@ const COPY = lang === 'de'
       loadingLabel: 'Registry wird abgefragt …',
       notFoundCode: '404',
       notFoundTitle: 'SIGNAL VERLOREN',
-      notFoundBody: 'Kein Pilot mit diesem Handle in der Registry gefunden. Prüfe die Schreibweise — oder der Pilot hat seine öffentliche Seite noch nicht aktiviert.',
+      notFoundBody: 'Kein Pilot mit diesem Handle gefunden. Prüfe die Schreibweise — oder der Pilot hat seine öffentliche Seite noch nicht eingerichtet.',
       errorTitle: 'VERBINDUNGSFEHLER',
-      errorBody: 'Die Registry ist gerade nicht erreichbar. Bitte lade die Seite neu.',
+      errorBody: 'Die Pilotdaten sind gerade nicht erreichbar. Lade die Seite in einem Moment neu.',
+      retry: 'Neu laden',
+      findCode: 'PILOT',
+      findTitle: 'PILOT FINDEN',
+      findBody: 'Jeder Pilot mit Handle hat eine öffentliche Seite. Gib das Handle ein, und die Seite öffnet sich.',
+      findLabel: 'Handle des Piloten',
+      findPh: 'z. B. star_runner',
+      findBtn: 'Öffnen',
+      findBad: 'Ein Handle hat 3 bis 24 Zeichen: Kleinbuchstaben, Ziffern und _.',
+      ownGuest: 'Eigene Pilotenseite anlegen',
+      ownMember: 'Deine Pilotenseite einrichten',
       backHome: 'Zur Startseite',
       since: 'Seit',
       verified: 'RSI verifiziert',
@@ -57,16 +67,16 @@ const COPY = lang === 'de'
       lv: 'Lv %n%',
       next: 'Ab Lv %n%: %r%',
       max: 'Höchster Rang',
-      secHangar: 'Hangar',
+      secHangar: 'Flotte',
       secPilot: 'Pilot',
-      secFavs: 'Favoriten',
-      emptyHangar: 'Noch keine Schiffe im Hangar.',
+      secFavs: 'Gemerkt',
+      emptyHangar: 'Noch keine Schiffe in der Flotte.',
       emptyHangarGo: 'Schiffe ansehen',
-      emptyFavs: 'Noch keine Favoriten.',
+      emptyFavs: 'Noch nichts gemerkt.',
       kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
       kindsAll: { ship: 'Schiff' },
       loadout: 'Loadout',
-      ctaText: 'Deine eigene Pilotenseite mit Hangar, Rang und Freunden.',
+      ctaText: 'Deine eigene Pilotenseite mit Flotte, Rang und Freunden.',
       ctaBtn: 'Profil erstellen',
       addFriend: 'Freund hinzufügen', requested: 'Anfrage gesendet', accept: 'Anfrage annehmen',
       message: 'Nachricht', isFriend: 'Freunde', editProfile: 'Profil bearbeiten',
@@ -79,9 +89,19 @@ const COPY = lang === 'de'
       loadingLabel: 'Querying the registry …',
       notFoundCode: '404',
       notFoundTitle: 'SIGNAL LOST',
-      notFoundBody: 'No pilot with this handle found in the registry. Check the spelling — or the pilot has not activated their public page yet.',
+      notFoundBody: 'No pilot with this handle found. Check the spelling — or the pilot has not set up their public page yet.',
       errorTitle: 'CONNECTION ERROR',
-      errorBody: 'The registry is unreachable right now. Please reload the page.',
+      errorBody: 'The pilot data cannot be reached right now. Reload the page in a moment.',
+      retry: 'Reload',
+      findCode: 'PILOT',
+      findTitle: 'FIND A PILOT',
+      findBody: 'Every pilot with a handle has a public page. Enter the handle and the page opens.',
+      findLabel: 'Pilot handle',
+      findPh: 'e.g. star_runner',
+      findBtn: 'Open',
+      findBad: 'A handle has 3 to 24 characters: lowercase letters, digits and _.',
+      ownGuest: 'Create your own pilot page',
+      ownMember: 'Set up your pilot page',
       backHome: 'Back to the homepage',
       since: 'Since',
       verified: 'RSI verified',
@@ -92,16 +112,16 @@ const COPY = lang === 'de'
       lv: 'Lv %n%',
       next: 'At Lv %n%: %r%',
       max: 'Top rank',
-      secHangar: 'Hangar',
+      secHangar: 'Fleet',
       secPilot: 'Pilot',
-      secFavs: 'Favorites',
-      emptyHangar: 'No ships in the hangar yet.',
+      secFavs: 'Bookmarked',
+      emptyHangar: 'No ships in the fleet yet.',
       emptyHangarGo: 'Browse ships',
-      emptyFavs: 'No favorites yet.',
+      emptyFavs: 'Nothing bookmarked yet.',
       kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
       kindsAll: { ship: 'Ship' },
       loadout: 'Loadout',
-      ctaText: 'Your own pilot page with hangar, rank and friends.',
+      ctaText: 'Your own pilot page with fleet, rank and friends.',
       ctaBtn: 'Create profile',
       addFriend: 'Add friend', requested: 'Request sent', accept: 'Accept request',
       message: 'Message', isFriend: 'Friends', editProfile: 'Edit profile',
@@ -118,8 +138,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
 <Layout
   title={lang === 'de' ? 'Pilot | VerseBase' : 'Pilot | VerseBase'}
   description={lang === 'de'
-    ? 'Öffentliches Piloten-Profil auf VerseBase: Status, Rolle, Flotte und Favoriten.'
-    : 'Public pilot profile on VerseBase: status, role, fleet and favorites.'}
+    ? 'Öffentliches Piloten-Profil auf VerseBase: Status, Rolle und Flotte.'
+    : 'Public pilot profile on VerseBase: status, role and fleet.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
   translated={true}
@@ -154,7 +174,13 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       </div>
     </div>
 
-    <!-- Fehler-State: Pilot nicht gefunden / Registry-Fehler -->
+    <!-- Ohne Profil: drei Lagen in einem Kasten (Skript: showState).
+         find      = ohne Handle aufgerufen: Feld, das die Seite eines Handles öffnet
+         notfound  = Handle unbekannt: dasselbe Feld zum Verbessern
+         error     = Daten kamen nicht (Fehler oder Wartezeit um): Neu laden
+         Der Titel ist eine Überschrift erster Ordnung per role: Die Seite hat
+         genau ein <h1> (den Namen des Piloten), und sichtbar ist immer nur
+         eines von beiden. -->
     <section class="pp-error" id="ppError" hidden>
       <div class="pp-error__panel">
         <span class="pp-corner pp-corner--tl" aria-hidden="true"></span>
@@ -162,9 +188,23 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         <span class="pp-corner pp-corner--bl" aria-hidden="true"></span>
         <span class="pp-corner pp-corner--br" aria-hidden="true"></span>
         <span class="pp-error__code" id="ppErrorCode">{COPY.notFoundCode}</span>
-        <h1 class="pp-error__title" id="ppErrorTitle">{COPY.notFoundTitle}</h1>
+        <p class="pp-error__title" id="ppErrorTitle" role="heading" aria-level="1">{COPY.notFoundTitle}</p>
         <p class="pp-error__body" id="ppErrorBody">{COPY.notFoundBody}</p>
-        <a class="pp-error__home" href={homeHref}>&larr; {COPY.backHome}</a>
+        <form class="pp-find" id="ppFind" novalidate hidden>
+          <label class="pp-find__label" for="ppFindIn">{COPY.findLabel}</label>
+          <div class="pp-find__row">
+            <span class="pp-find__at" aria-hidden="true">@</span>
+            <input class="pp-find__in" id="ppFindIn" name="handle" type="text" inputmode="text" autocomplete="off"
+              autocapitalize="none" spellcheck="false" maxlength="25" placeholder={COPY.findPh} aria-describedby="ppFindBad" />
+            <button class="pp-find__go" type="submit">{COPY.findBtn} &rarr;</button>
+          </div>
+          <p class="pp-find__bad" id="ppFindBad" role="alert" hidden>{COPY.findBad}</p>
+        </form>
+        <button type="button" class="pp-retry" id="ppRetry" hidden>{COPY.retry}</button>
+        <div class="pp-error__links">
+          <a class="pp-error__home" id="ppOwn" href={registerHref} data-member={accountHref + '#profile'} data-member-text={COPY.ownMember} hidden>{COPY.ownGuest}</a>
+          <a class="pp-error__home" href={homeHref}>&larr; {COPY.backHome}</a>
+        </div>
       </div>
     </section>
 
@@ -268,7 +308,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       </section>
 
       <div class="pp-board">
-        <!-- Hangar: Schiffe aus den Favoriten (später auch angeheftete Loadouts) -->
+        <!-- Flotte: angeheftete Loadouts, dann die Schiffe der Flotte -->
         <section class="pp-card pp-card--hangar" aria-labelledby="ppHangarH">
           <header class="pp-card__head">
             <h2 id="ppHangarH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-ship"/></svg>{COPY.secHangar}</h2>
@@ -313,8 +353,9 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
             </div>
           </section>
 
-          <!-- Favoriten (ohne Schiffe; die stehen im Hangar) -->
-          <section class="pp-card pp-card--favs" aria-labelledby="ppFavsH">
+          <!-- Ältere Merkzeilen anderer Art (ohne Schiffe; die stehen in der
+               Flotte). Ohne Einträge bleibt der Kasten weg. -->
+          <section class="pp-card pp-card--favs" id="ppFavCard" aria-labelledby="ppFavsH" hidden>
             <header class="pp-card__head">
               <h2 id="ppFavsH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-star"/></svg>{COPY.secFavs}</h2>
               <span class="pp-count" id="ppFavCount"></span>
@@ -383,6 +424,41 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
     font-size: var(--fs-6); color: var(--accent); border-bottom: 1px solid var(--line);
   }
   .pp-error__home:hover { border-color: var(--accent); }
+  .pp-error__home[hidden] { display: none; }
+  .pp-error__links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.9rem 1.8rem; }
+
+  /* Feld „Pilot finden": öffnet /pilot/<handle> */
+  .pp-find { max-width: 26rem; margin: -0.4rem auto 1.6rem; text-align: left; }
+  .pp-find[hidden] { display: none; }
+  .pp-find__label {
+    display: block; margin-bottom: 0.45rem; font-family: var(--font-ui); font-weight: 700;
+    font-size: var(--fs-6); letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--muted);
+  }
+  .pp-find__row {
+    display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface-2); overflow: hidden;
+  }
+  .pp-find__row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .pp-find__at { display: grid; place-items: center; padding: 0 0 0 12px; font-family: var(--font-mono); color: var(--muted); }
+  .pp-find__in {
+    flex: 1 1 auto; min-width: 0; padding: 0.75rem 0.6rem 0.75rem 0.25rem; border: 0; background: transparent;
+    color: var(--text); font-family: var(--font-mono); font-size: var(--fs-9); outline: none;
+  }
+  .pp-find__go {
+    flex: none; padding: 0 1rem; border: 0; background: var(--accent); color: var(--ink);
+    font-family: var(--font-ui); font-weight: 800; font-size: var(--fs-7); letter-spacing: var(--ls-9); text-transform: uppercase; cursor: pointer;
+  }
+  .pp-find__go:hover { background: var(--accent-2); }
+  .pp-find__bad { margin: 0.5rem 0 0; color: #ff8a8a; font-size: var(--fs-7); }
+  .pp-find__bad[hidden] { display: none; }
+  .pp-retry {
+    display: inline-flex; margin: -0.4rem auto 1.6rem; padding: 0.7rem 1.4rem; border: 0; border-radius: 10px;
+    background: var(--accent); color: var(--ink); font-family: var(--font-ui); font-weight: 800;
+    font-size: var(--fs-7); letter-spacing: var(--ls-9); text-transform: uppercase; cursor: pointer;
+  }
+  .pp-retry:hover { background: var(--accent-2); }
+  .pp-retry[hidden] { display: none; }
+  .pp-card--favs[hidden] { display: none !important; }
 
   .pp-corner { position: absolute; width: 10px; height: 10px; border: 2px solid var(--accent); pointer-events: none; }
   .pp-corner--tl { top: 5px; left: 5px; border-right: 0; border-bottom: 0; }
@@ -859,21 +935,57 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       cta.href = app.dataset.register + '?next=' + encodeURIComponent(location.pathname + location.search);
     }
 
-    const showError = (title: string, body: string, code: string) => {
+    // Ohne Profil (siehe Kasten #ppError): find = ohne Handle aufgerufen,
+    // notfound = Handle unbekannt (beide mit dem Feld „Pilot finden"),
+    // error = Daten kamen nicht (mit „Neu laden").
+    type Lage = 'find' | 'notfound' | 'error';
+    let profilDa = false; // Profil steht schon: keine Fehlerlage mehr darüber
+    const showState = (lage: Lage) => {
+      if (profilDa) return;
       $('ppLoading')!.hidden = true;
       $('ppRoot')!.hidden = true;
-      const err = $('ppError')!;
-      err.hidden = false;
-      $('ppErrorCode')!.textContent = code;
-      $('ppErrorTitle')!.textContent = title;
-      $('ppErrorBody')!.textContent = body;
+      $('ppError')!.hidden = false;
+      const t = lage === 'find'
+        ? [COPY.findTitle, COPY.findBody, COPY.findCode]
+        : lage === 'notfound' ? [COPY.notFoundTitle, COPY.notFoundBody, COPY.notFoundCode]
+        : [COPY.errorTitle, COPY.errorBody, 'ERR'];
+      $('ppErrorTitle')!.textContent = t[0];
+      $('ppErrorBody')!.textContent = t[1];
+      $('ppErrorCode')!.textContent = t[2];
+      $('ppFind')!.hidden = lage === 'error';
+      $('ppRetry')!.hidden = lage !== 'error';
+      $('ppOwn')!.hidden = lage === 'error';
+      if (lage === 'notfound' && handle) ($('ppFindIn') as HTMLInputElement).value = handle;
     };
 
+    // Feld „Pilot finden": öffnet /pilot/<handle> (nginx schreibt das auf
+    // diese Seite um); ein @ vorn und Großbuchstaben sind erlaubt.
+    const findForm = $('ppFind') as HTMLFormElement | null;
+    findForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inp = $('ppFindIn') as HTMLInputElement;
+      const h = inp.value.trim().replace(/^@/, '').toLowerCase();
+      const bad = $('ppFindBad')!;
+      const ok = /^[a-z0-9_]{3,24}$/.test(h);
+      bad.hidden = ok;
+      inp.setAttribute('aria-invalid', String(!ok));
+      if (!ok) { inp.focus(); return; }
+      location.assign((lang === 'de' ? '/de/pilot/' : '/pilot/') + h);
+    });
+    $('ppRetry')?.addEventListener('click', () => location.reload());
+    // Angemeldet: der zweite Weg führt zur eigenen Pilotenseite im Konto.
+    const own = $('ppOwn') as HTMLAnchorElement | null;
+    if (own) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (!data.session || !own.dataset.member) return;
+        own.href = own.dataset.member;
+        own.textContent = own.dataset.memberText || own.textContent;
+      }).catch(() => { /* bleibt der Weg für Gäste */ });
+    }
+
     const load = async () => {
-      if (!/^[a-z0-9_]{3,24}$/.test(handle)) {
-        showError(COPY.notFoundTitle, COPY.notFoundBody, COPY.notFoundCode);
-        return;
-      }
+      if (!handle) { showState('find'); return; }
+      if (!/^[a-z0-9_]{3,24}$/.test(handle)) { showState('notfound'); return; }
 
       const [profileRes, favsRes, showRes, thumbs, badgeRes] = await Promise.all([
         supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
@@ -887,10 +999,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       ]);
       if (profileRes.error) throw profileRes.error;
       const p = profileRes.data;
-      if (!p) {
-        showError(COPY.notFoundTitle, COPY.notFoundBody, COPY.notFoundCode);
-        return;
-      }
+      if (!p) { showState('notfound'); return; }
       const favs = favsRes.error ? [] : favsRes.data || [];
       type Lo = { ship: string; name?: string; slots?: Record<string, string>; racks?: Record<string, string>; paint?: string };
       // Angeheftete Loadouts öffnen den Hangar; ohne ihn (Live-Bau) keine.
@@ -1084,6 +1193,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         + `<span class="pp-fav__t"><b>${esc(f.label || f.slug)}</b><small>${esc(COPY.kinds[f.kind])}</small></span></a></li>`).join('');
       $('ppFavCount')!.textContent = rest.length ? String(rest.length) : '';
       $('ppFavEmpty')!.hidden = rest.length > 0;
+      $('ppFavCard')!.hidden = !rest.length;
 
       // Org & RSI
       let hasLinks = false;
@@ -1102,8 +1212,12 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       }
       $('ppLinks')!.hidden = !hasLinks;
 
-      // Umschalten: Skeleton raus, Profil rein
+      // Umschalten: Skeleton raus, Profil rein (auch wenn die Wartezeit
+      // schon „nicht erreichbar" gezeigt hatte und die Daten doch kamen)
+      profilDa = true;
+      clearTimeout(slow);
       $('ppLoading')!.hidden = true;
+      $('ppError')!.hidden = true;
       $('ppRoot')!.hidden = false;
 
       paintActs().catch(() => {});
@@ -1182,9 +1296,15 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       acts.hidden = false;
     };
 
-    load().catch((err) => {
+    // Hängt eine Anfrage (Datenbank nicht erreichbar, Netz weg), bliebe sonst
+    // das pulsierende Gerüst für immer stehen: nach 10 s die Fehlerlage mit
+    // „Neu laden". Kommen die Daten danach doch, ersetzt das Profil sie.
+    const SLOW_MS = 10000;
+    const slow = window.setTimeout(() => showState('error'), SLOW_MS);
+    load().then(() => clearTimeout(slow)).catch((err) => {
+      clearTimeout(slow);
       console.warn('Pilot profile load failed:', err);
-      showError(COPY.errorTitle, COPY.errorBody, 'ERR');
+      showState('error');
     });
   }
 </script>

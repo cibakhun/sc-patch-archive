@@ -407,6 +407,39 @@ import { layoutList, shipLabel } from './account-layouts';
       const ovSoc = document.getElementById('ovSocials');
       if (ovSoc) renderSocialLinks(ovSoc, profileState);
 
+      // Öffentliches Profil am Rand: ein Link mit der Adresse, sobald ein
+      // Handle gespeichert ist. Ohne Handle führt er zum Feld Handle.
+      const pubLink = document.getElementById('ovBtnShare') as HTMLAnchorElement | null;
+      const paintShare = () => {
+        if (!pubLink) return;
+        const lbl = document.getElementById('ovPubLbl');
+        const url = document.getElementById('ovPubUrl');
+        const h = /^[a-z0-9_]{3,24}$/.test(profileState.handle || '') ? String(profileState.handle) : '';
+        if (h) {
+          const path = (lang === 'de' ? '/de/pilot/' : '/pilot/') + h;
+          pubLink.href = path;
+          pubLink.dataset.state = 'open';
+          if (lbl) lbl.textContent = pubLink.dataset.open || '';
+          // Umbruch erst vor dem Handle: in der schmalen Leiste steht die
+          // Adresse dann auf zwei Zeilen, und das Handle bleibt ganz lesbar.
+          if (url) url.replaceChildren(location.host + path.slice(0, -h.length), document.createElement('wbr'), h);
+        } else {
+          pubLink.href = '#profile';
+          pubLink.dataset.state = 'setup';
+          if (lbl) lbl.textContent = pubLink.dataset.setup || '';
+          if (url) url.textContent = pubLink.dataset.noHandle || '';
+        }
+      };
+      if (pubLink) {
+        pubLink.addEventListener('click', (e) => {
+          if (pubLink.dataset.state === 'open') return;
+          e.preventDefault();
+          document.dispatchEvent(new CustomEvent('vb:tab', { detail: { tab: 'profile', el: 'pfHandle' } }));
+        });
+        document.addEventListener('vb:profile-saved', paintShare);
+        paintShare();
+      }
+
       // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
       // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
       // Schalter fuer eine Liste, in die er ohnehin nicht kaeme.
@@ -1312,8 +1345,8 @@ import { layoutList, shipLabel } from './account-layouts';
         }
       };
 
-      // Vorschau öffnen: Profilkarten-Button + die beiden Übersicht-Trigger
-      [btnPreviewModal, document.getElementById('ovBtnShare'), document.getElementById('ovBtnShare2')].forEach((b) => {
+      // Vorschau öffnen: Profilkarten-Button + der Übersicht-Trigger
+      [btnPreviewModal, document.getElementById('ovBtnShare2')].forEach((b) => {
         if (b && previewModal) b.addEventListener('click', () => {
           fillPreview();
           if (previewModal.showModal) previewModal.showModal();
@@ -1754,8 +1787,8 @@ import { layoutList, shipLabel } from './account-layouts';
         });
       } catch {}
 
-      // Neueste Favoriten
-      actSrc.fav = (favs || []).slice(0, 5).map((f) => ({ html: ovTpl('lActFav').replace('%x%', em(f.label || f.slug)), ts: Date.parse(f.created_at) || 0 }));
+      // Neueste Schiffe der Flotte (ältere Merkzeilen anderer Art als „Gemerkt")
+      actSrc.fav = (favs || []).slice(0, 5).map((f) => ({ html: ovTpl(f.kind === 'ship' ? 'lActFav' : 'lActMark').replace('%x%', em(f.label || f.slug)), ts: Date.parse(f.created_at) || 0 }));
 
       // Gespeicherte Loadouts (Hangar-Ablage, kommt nach)
       const layoutActs = () => {

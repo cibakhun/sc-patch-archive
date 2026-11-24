@@ -159,9 +159,10 @@ function boot(root: HTMLElement, form: HTMLElement) {
     renderShowcase();
   };
 
-  // Hangar und Favoriten wie auf der Pilotenseite: angeheftete Loadouts
-  // (Gold), dann Schiffe aus den Favoriten. Ohne „Favoriten zeigen" bleiben
-  // nur die Loadouts; die übrigen Favoriten stehen dann als „verborgen" da.
+  // Flotte wie auf der Pilotenseite: angeheftete Loadouts (Gold), dann die
+  // Schiffe der Flotte. Ohne „Flotte zeigen" bleiben nur die Loadouts, und die
+  // Flotte trägt „Schiffe verborgen". Ältere Merkzeilen anderer Art haben einen
+  // eigenen Abschnitt, nur wenn es welche gibt.
   type Tile = { name: string; img: string };
   let show: { pins: Tile[]; ships: Tile[]; rest: number } | null = null;
   const MAX_TILES = 4;
@@ -182,10 +183,18 @@ function boot(root: HTMLElement, form: HTMLElement) {
     const empty = $('mpHangarEmpty');
     if (empty) empty.hidden = tiles.length > 0;
 
+    const shipsOff = $('mpShipsOff');
+    if (shipsOff) shipsOff.hidden = favsOn || !show.ships.length;
+    if (empty && !favsOn && show.ships.length) empty.hidden = true;
+
     txt('mpFavN', favsOn && show.rest ? String(show.rest) : '');
     const off = $('mpFavOff');
     if (off) off.hidden = favsOn;
-    $('mpFavs')?.classList.toggle('is-off', !favsOn);
+    const favsSec = $('mpFavs');
+    if (favsSec) {
+      favsSec.hidden = !show.rest;
+      favsSec.classList.toggle('is-off', !favsOn);
+    }
   };
   document.addEventListener('vb:showcase', (e) => { show = (e as CustomEvent).detail; renderShowcase(); });
   document.addEventListener('vb:profile-view', (e) => render((e as CustomEvent).detail as ProfileView));

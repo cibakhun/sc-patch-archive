@@ -30,8 +30,8 @@ export type PilotPreview = {
 export const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
 
 const TEXT = {
-  de: { tail: ' | VerseBase', fallback: 'Pilotenprofil auf VerseBase: Status, Rolle, Flotte und Favoriten.' },
-  en: { tail: ' | VerseBase', fallback: 'Pilot profile on VerseBase: status, role, fleet and favourites.' },
+  de: { tail: ' | VerseBase', fallback: 'Pilotenprofil auf VerseBase: Status, Rolle und Flotte.' },
+  en: { tail: ' | VerseBase', fallback: 'Pilot profile on VerseBase: status, role and fleet.' },
 };
 
 /** Eine Zeile, höchstens n Zeichen, am Wortende gekürzt. */

@@ -1,5 +1,11 @@
-// Bereich „Gespeichert" der Kontoseite: Hangar-Loadouts und Favoriten an
-// einem Ort, mit Filter nach Art, Suche und Löschen mit Rückgängig.
+// Bereich „Flotte & Loadouts" der Kontoseite (ohne Hangar nur „Flotte"):
+// Hangar-Loadouts und die Flotte an einem Ort, mit Filter nach Art, Suche und
+// Löschen mit Rückgängig. Die Flotte sind die Zeilen kind='ship' der Tabelle
+// favorites (geschrieben von assets/fleet.js); Zeilen anderer Art stammen aus
+// früheren Fassungen und stehen, falls es sie gibt, darunter als „Gemerkt".
+// Eine leere Flotte bleibt als Abschnitt stehen und sagt, wie ein Schiff
+// hineinkommt; ein gescheiterter Abgleich sagt, wo die Loadouts liegen, und
+// bietet den Neuversuch an.
 //
 // Loadouts kommen aus derselben Ablage wie im Hangar (account-layouts.ts):
 // Löschen ist dort ein Grabstein, restore() holt das Layout mit seinen alten
@@ -268,15 +274,25 @@ function boot(root: HTMLElement) {
       (filter === 'all' || f.kind === filter || (filter === 'other' && !KIND_ORDER.includes(f.kind)))
       && match(f.label || '', f.slug, KIND1[f.kind] || ''));
 
+    const shipsShown = favShown.filter((f) => f.kind === 'ship');
+    const restShown = favShown.filter((f) => f.kind !== 'ship');
     $('svLoadouts').replaceChildren(...loShown.map(loadoutCard));
-    $('favList').replaceChildren(...favShown.map(favCard));
+    $('favList').replaceChildren(...shipsShown.map(favCard));
+    $('svRestList').replaceChildren(...restShown.map(favCard));
     $('svLoN').textContent = loShown.length ? String(loShown.length) : '';
-    $('svFavN').textContent = favShown.length ? String(favShown.length) : '';
-    $('svLoSec').hidden = !loShown.length;
-    $('svFavSec').hidden = !favShown.length;
+    $('svFavN').textContent = shipsShown.length ? String(shipsShown.length) : '';
+    $('svRestN').textContent = restShown.length ? String(restShown.length) : '';
     const total = los.length + favs.length;
+    // Leere Flotte, aber Loadouts da: der Abschnitt bleibt mit seinem
+    // Hinweis stehen. Nicht beim Suchen oder Filtern (dann sagt „Nichts
+    // gefunden" genug) und nicht, solange die Flotte noch lädt.
+    const fleetEmpty = favsLoaded && total > 0 && !favs.some((f) => f.kind === 'ship') && filter === 'all' && !q;
+    $('svLoSec').hidden = !loShown.length;
+    $('svFavSec').hidden = !shipsShown.length && !fleetEmpty;
+    $('svFleetEmpty').hidden = !fleetEmpty;
+    $('svRestSec').hidden = !restShown.length;
     $('favEmpty').hidden = !(favsLoaded && total === 0);
-    $('svNone').hidden = !(total > 0 && !loShown.length && !favShown.length);
+    $('svNone').hidden = !(total > 0 && !loShown.length && !favShown.length && !fleetEmpty);
     ($('svSearch').closest('.sv-search') as HTMLElement).hidden = total < 6;
     $('svSync').hidden = layouts.state() !== 'error';
     // Für die Mini-Pilotenseite im Profil (account-profile-view.ts): was dort
@@ -289,6 +305,20 @@ function boot(root: HTMLElement) {
       rest: favs.filter((f) => f.kind !== 'ship').length,
     } }));
   }
+
+  // Abgleich gescheitert: sofort neu versuchen. Der Hinweis verschwindet,
+  // sobald der Abgleich gelingt (vb:layouts malt neu).
+  const syncBtn = $('svSyncBtn') as HTMLButtonElement;
+  const syncTxt = syncBtn.textContent || '';
+  syncBtn.addEventListener('click', async () => {
+    syncBtn.disabled = true;
+    syncBtn.textContent = syncBtn.dataset.busy || syncTxt;
+    try { await layouts.sync(); } finally {
+      syncBtn.disabled = false;
+      syncBtn.textContent = syncTxt;
+      render();
+    }
+  });
 
   ($('svSearch') as HTMLInputElement).addEventListener('input', (e) => {
     q = (e.target as HTMLInputElement).value.trim().toLowerCase();
