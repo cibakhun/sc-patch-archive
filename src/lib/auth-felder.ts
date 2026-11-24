@@ -43,3 +43,23 @@ export function missingFields(form: HTMLFormElement, status: HTMLElement): boole
   leer[0].focus();
   return true;
 }
+
+/** Grobe Form einer Adresse: etwas@etwas.tld, ohne Leerzeichen. */
+export const EMAIL_FORM = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
+
+/**
+ * Adresse in falscher Form: Satz ins Statusfeld, Feld markiert und
+ * fokussiert, Antwort true. „Passwort vergessen“ antwortet absichtlich
+ * immer gleich (verrät nicht, ob es ein Konto gibt); ohne diese Prüfung
+ * meldete es auch bei „abc“ eine verschickte Mail.
+ */
+export function badEmail(input: HTMLInputElement, status: HTMLElement, msg: string): boolean {
+  if (EMAIL_FORM.test(input.value.trim())) return false;
+  input.setAttribute('aria-invalid', 'true');
+  if (status.id) input.setAttribute('aria-errormessage', status.id);
+  status.textContent = msg;
+  status.classList.remove('acx-status--ok');
+  status.hidden = false;
+  input.focus();
+  return true;
+}

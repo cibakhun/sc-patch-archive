@@ -21,7 +21,7 @@ const COPY = {
     name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
     nameHint: 'Steht in deinem Konto. Später jederzeit änderbar.',
     email: 'E-Mail', emailPh: 'du@beispiel.de',
-    pass: 'Passwort', passPh: 'Mindestens 12 Zeichen',
+    pass: 'Passwort', passHint: 'Mindestens 12 Zeichen.',
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
     submit: 'Konto erstellen', busy: 'Erstelle Konto …',
     privacyPre: 'Mit der Registrierung stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyPost: 'zu.',
@@ -46,7 +46,7 @@ const COPY = {
     name: 'Display name', optional: '— optional', namePh: 'e.g. StarRunner',
     nameHint: 'Shown in your account. Can be changed anytime.',
     email: 'E-mail', emailPh: 'you@example.com',
-    pass: 'Password', passPh: 'At least 12 characters',
+    pass: 'Password', passHint: 'At least 12 characters.',
     pass2: 'Repeat password', pass2Ph: 'Same password again',
     submit: 'Create account', busy: 'Creating account …',
     privacyPre: 'By registering you agree to the processing described in our', privacy: 'privacy policy', privacyPost: '.',
@@ -112,7 +112,8 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass">{COPY.pass} <span class="reqm">*</span></label>
-      <input class="acx-input" id="rgPass" name="password" type="password" required minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.passPh} />
+      <input class="acx-input" id="rgPass" name="password" type="password" required minlength={MIN_PASS} autocomplete="new-password" aria-describedby="rgPassHint" />
+      <p class="acx-hint" id="rgPassHint">{COPY.passHint}</p>
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass2">{COPY.pass2} <span class="reqm">*</span></label>
@@ -144,7 +145,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
   import { safeNext } from '../../lib/safe-next';
   import { imTerminal, fensterZiel, sitzungKam, FENSTER_NAME, FENSTER_FORM } from '../../lib/im-terminal';
   import { needsCode } from '../../lib/mfa';
-  import { missingFields } from '../../lib/auth-felder';
+  import { badEmail, missingFields } from '../../lib/auth-felder';
 
   // ?next=/… (nur dieselbe Origin, src/lib/safe-next.ts): wer über den
   // Pilotenlink eines Freundes kommt (/de/pilot/<handle>), landet nach dem
@@ -250,6 +251,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
       const password2 = (form.elements.namedItem('password2') as HTMLInputElement).value;
 
       if (missingFields(form, status)) return;
+      if (badEmail(form.elements.namedItem('email') as HTMLInputElement, status, D.msgInvalidMail!)) return;
       if (password.length < 12) { setStatus(D.msgShort!); return; } // = MIN_PASS
       if (password !== password2) { setStatus(D.msgMatch!); return; }
 
