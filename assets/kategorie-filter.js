@@ -34,7 +34,6 @@
   });
   var tZahl = box.getAttribute('data-t-zahl') || '{x} / {y}';
   var tAlle = box.getAttribute('data-t-alle') || '{q}';
-  var finder = box.getAttribute('data-finder') || '';
   var n = function (x) { return x.toLocaleString(document.documentElement.lang || undefined); };
 
   function anwenden() {
@@ -57,7 +56,9 @@
       alle.hidden = !roh;
       if (roh) {
         alle.textContent = tAlle.replace('{q}', roh);
-        alle.href = finder + '?q=' + encodeURIComponent(roh);
+        // Nur die Abfrage aendert sich; Ziel ist die Adresse, die der Link
+        // schon aus dem Seitenbau traegt (Item Finder der Seitensprache).
+        alle.search = '?q=' + encodeURIComponent(roh);
       }
     }
   }
