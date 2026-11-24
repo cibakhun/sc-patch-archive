@@ -76,7 +76,19 @@ function extractBezugTable(html) {
 }
 function extractAvgLine(html) {
   const m = html.match(/<p class="dp-avg"[^>]*>([\s\S]*?)<\/p>/);
-  return m ? m[1].replace(/<[^>]*>/g, '') : null;
+  return m ? sichtbarerText(m[1]) : null;
+}
+// Sichtbarer Text eines Schnipsels: Zeichen fuer Zeichen, alles zwischen < und >
+// faellt weg. Kein Regex-Ersetzen, das verschachtelte Reste stehen liesse.
+function sichtbarerText(schnipsel) {
+  let text = '';
+  let imTag = false;
+  for (const c of schnipsel) {
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    text += c;
+  }
+  return text;
 }
 function extractBodyRows(tableHtml) {
   return (tableHtml.match(/<tr\b[^>]*>[\s\S]*?<\/tr>/g) || [])

@@ -28,16 +28,22 @@
 //   Zweite Stufe (P2, gleicher Tag):
 //   7  D4 Pool statt „100 %": jede Zeile der Missionstabelle eines Bauplans
 //      nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %". Klinke.
+//      Zieht die Mission aus mehreren Pools (src/data/missions.json), nennt
+//      keine Zeile mehr Bauplaene als ihr groesster Pool.
 //   8  D10 Der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite
 //      hoechstens einmal.
 //   9  D7 Kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer
-//      Sprache; gleichnamige Seiten verlinken einander (data-zwilling).
+//      Sprache; gleichnamige Seiten verlinken einander (data-zwilling). Welche
+//      Seiten gleichnamig sind, sagt die Ueberschrift, nicht der Hinweis: jede
+//      Seite einer Namensgruppe traegt ihn und verlinkt alle anderen, keine
+//      Seite ohne Zwilling traegt ihn.
 //  10  D6 Schiffsteile verlinken ihr Schiff; die Zahl der Item-Blaetter ganz
 //      ohne Weg bleibt unter ihrer Decke (Decken wandern nur nach UNTEN).
 //  11  D5 Bezugsquellen: kein Ø-Preis je Zeile, Preisspalte nur mit Preis,
-//      keine Zelle nur mit „—", Systemfilter genau dann, wenn es mehrere
-//      Gruppen gibt.
-//  12  D8 Bauplan-Seiten nennen je Material seine Wege und schlagen nie vor,
+//      keine Zelle nur mit „—", Systemfilter genau dann, wenn die Zeilen mehr
+//      als ein System (oder „ohne“) nennen.
+//  12  D8 Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf (als Weg
+//      oder ausdrueckliches „nein“) und schlagen nie vor,
 //      das herzustellende Item selbst zu zerlegen. Klinke.
 //  13  P52 Eine Blueprint-Zahl: Verzeichnis (/crafting.html) und Werkbank
 //      (/topics/crafting.html) nennen je Sprache dieselbe Zahl, und sie ist
@@ -137,13 +143,37 @@ const PLANER_KNOPF = /Im Fabricator-Planer öffnen|Open in the fabricator planne
 const titel = new Map(); // Sprache|Titel -> Pfade
 let poolTabellen = 0;
 const poolOhne = [];
+// Missionsfamilien mit mehreren Pools: Slug -> groesster Pool (src/data/missions.json)
+const groessterPool = new Map(
+  JSON.parse(readFileSync(resolve(ROOT, 'src/data/missions.json'), 'utf8')).missions
+    .filter((m) => (m.blueprints ?? []).length > 1)
+    .map((m) => [m.slug, Math.max(...m.blueprints.map((p) => p.blueprints.length))]),
+);
+let poolGeprueft = 0;
+const poolZuGross = [];
 const planerDoppelt = [];
 let materialSeiten = 0;
 let materialMitItem = 0;
 const materialFehlt = [];
 const selbstZerlegen = [];
 let zwillingsSeiten = 0;
-const zwillingOhneLink = [];
+// [9] Gleichnamige Seiten werden aus der Ueberschrift ermittelt, nicht aus dem
+// Hinweis selbst: fehlt der Hinweis ganz, faellt die Seite sonst durch
+// (Review #434). Schluessel wie namensSchluessel() in src/lib/itemSeo.ts.
+const namensSchluessel = (s) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, '').replace(/\s+/g, ' ').trim();
+const ENTITAET = { amp: '&', quot: '"', '#39': "'", '#x27': "'", lt: '<', gt: '>' };
+/** Sichtbarer Text eines Schnipsels: Tags Zeichen fuer Zeichen entfernt, Entitaeten in einem Durchgang. */
+function sichtbar(schnipsel) {
+  let text = '';
+  let imTag = false;
+  for (const c of schnipsel) {
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    text += c;
+  }
+  return text.replace(/&(amp|quot|#39|#x27|lt|gt);/g, (_, e) => ENTITAET[e]);
+}
+const namensGruppen = new Map(); // Ordner|Name -> [{ pfad, hinweis, ziele }]
 function merkeTitel(pfad, html) {
   const t = html.match(/<title>([^<]*)<\/title>/)?.[1];
   if (!t) return;
@@ -151,11 +181,17 @@ function merkeTitel(pfad, html) {
   const l = titel.get(k);
   if (l) l.push(pfad);
   else titel.set(k, [pfad]);
-  if (html.includes('data-zwilling')) {
-    zwillingsSeiten++;
-    const note = html.match(/<p class="dp-note dp-zwilling"[\s\S]*?<\/p>/)?.[0] ?? '';
-    if (!/<a href="(?:\/de)?\/(?:items|crafting)\/[^"]+\.html"/.test(note)) zwillingOhneLink.push(pfad);
-  }
+  const h1 = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1];
+  if (h1 == null) return;
+  const hinweis = html.includes('data-zwilling');
+  if (hinweis) zwillingsSeiten++;
+  const note = html.match(/<p class="dp-note dp-zwilling"[\s\S]*?<\/p>/)?.[0] ?? '';
+  const ziele = new Set([...note.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]));
+  const g = `${pfad.slice(0, pfad.lastIndexOf('/'))}|${namensSchluessel(sichtbar(h1))}`;
+  const eintrag = { pfad, hinweis, ziele };
+  const liste = namensGruppen.get(g);
+  if (liste) liste.push(eintrag);
+  else namensGruppen.set(g, [eintrag]);
 }
 function pruefeBauplanP2(pfad, html) {
   merkeTitel(pfad, html);
@@ -170,12 +206,28 @@ function pruefeBauplanP2(pfad, html) {
     const zeilen = (tabelle.match(/<tr\b/g) ?? []).length - 1; // ohne Kopfzeile
     const mitPool = zellen.filter((z) => /data-pool="\d+"/.test(z[1])).length;
     if (!zeilen || mitPool !== zeilen || zellen.some((z) => /^\s*100\s?%\s*$/.test(z[2]))) poolOhne.push(pfad);
+    // Zieht die Mission aus mehreren Pools, nennt keine Zeile mehr Bauplaene
+    // als ihr groesster Pool (vorher „1 von 25“ bei Pools 7 + 5 + 5 + 8).
+    for (const [, slug, pool] of tabelle.matchAll(/href="(?:\/de)?\/missionen\/([a-z0-9-]+)\.html"[\s\S]*?data-pool="(\d+)"/g)) {
+      const groesster = groessterPool.get(slug);
+      if (groesster == null) continue;
+      poolGeprueft++;
+      if (Number(pool) > groesster) poolZuGross.push(`${pfad} (${slug}: ${pool} > ${groesster})`);
+    }
   }
   // [12] Materialwege
   if (/<h2[^>]*>(?:Zutaten|Ingredients)<\/h2>/.test(html)) {
     materialSeiten++;
     const mat = html.match(/<ul class="bp-mat"[\s\S]*?<\/ul>/)?.[0];
-    if (!mat || !/data-material="/.test(mat)) materialFehlt.push(pfad);
+    // Jedes Material einzeln: Abbau und Kauf stehen immer da (als Weg oder als
+    // ausdrueckliches „nein“/„unbekannt“), Zerlegen, wo es etwas zu sagen gibt.
+    // Ein einziges data-material reicht nicht (Review #434).
+    const eintraege = mat ? [...mat.matchAll(/<li data-material="([^"]*)"[^>]*>([\s\S]*?)<\/li>/g)] : [];
+    const ohneWege = eintraege
+      .filter(([, , li]) => (li.match(/<(?:a|span)\b[^>]*(?:data-mat-weg="|class="dp-muted)/g) ?? []).length < 2)
+      .map(([, name]) => name);
+    if (!eintraege.length) materialFehlt.push(pfad);
+    else if (ohneWege.length) materialFehlt.push(`${pfad} (${ohneWege.join(', ')})`);
     else {
       const eigen = html.match(/href="(?:\/de)?\/items\/([a-z0-9-]+)\.html"[^>]*>(?:Item-Datenblatt öffnen|Open item data sheet)/)?.[1];
       if (eigen) materialMitItem++;
@@ -266,7 +318,9 @@ function pruefeAehnlich(pfad, html) {
   waffenBlaetter++;
   const kartenHtml = html.match(/<ul class="dp-cards"[^>]*data-aehnlich[^>]*>([\s\S]*?)<\/ul>/)?.[1];
   if (kartenHtml == null) { aehnlichFalsch.push(`${pfad} (Block fehlt)`); return; }
-  const karten = [...kartenHtml.matchAll(/<li\b[^>]*data-item="([^"]+)"/g)].map((m) => itemNachId.get(m[1]));
+  // Jede Karte zaehlt, auch eine ohne data-item (Review #434): sie wird
+  // gemeldet und nimmt als unbekannte Art an der Reihenfolge teil.
+  const karten = [...kartenHtml.matchAll(/<li\b([^>]*)>/g)].map((m) => itemNachId.get(m[1].match(/\bdata-item="([^"]+)"/)?.[1] ?? ''));
   const arten = karten.map((k) => (k ? waffenArt(k) : null));
   const probleme = [];
   const ersteFremde = arten.findIndex((a) => a !== art);
@@ -276,7 +330,7 @@ function pruefeAehnlich(pfad, html) {
   for (const k of karten) if (k) jeModell.set(modellName(k.name), (jeModell.get(modellName(k.name)) ?? 0) + 1);
   const zuOft = [...jeModell].filter(([, n]) => n > AUSFUEHRUNGEN_JE_MODELL).map(([m, n]) => `${m} ${n}x`);
   if (zuOft.length) probleme.push(`Modell zu oft: ${zuOft.join(', ')}`);
-  if (karten.some((k) => !k)) probleme.push('Karte ohne Katalogeintrag');
+  if (karten.some((k) => !k)) probleme.push('Karte ohne data-item oder ohne Katalogeintrag');
   if (probleme.length) aehnlichFalsch.push(`${pfad} (${probleme.join('; ')})`);
 }
 
@@ -301,7 +355,8 @@ for (const rel of ['items', 'de/items']) {
     if (tab) {
       tabellen++;
       const kopf = tab.match(/<thead\b[\s\S]*?<\/thead>/)?.[0] ?? '';
-      const gruppen = (tab.match(/<tbody\b[^>]*\bdata-system="/g) ?? []).length;
+      // Filterknoepfe = alle Systeme der Zeilen (data-sys, mehrere durch Leerzeichen)
+      const optionen = new Set([...tab.matchAll(/<tr\b[^>]*\bdata-sys="([^"]*)"/g)].flatMap((m) => m[1].split(' ')));
       const filter = bq.includes('data-sysfilter');
       if (filter) gefiltert++;
       const preisKopf = />(?:Preis|Price)<\/th>/.test(kopf);
@@ -309,7 +364,7 @@ for (const rel of ['items', 'de/items']) {
       const probleme = [];
       if (/>(?:Ø Preis|Avg price)<\/th>/.test(kopf)) probleme.push('Ø-Spalte');
       if (preisKopf !== preise) probleme.push(preise ? 'Preise ohne Spalte' : 'Preisspalte ohne Preis');
-      if (filter !== gruppen > 1) probleme.push(`Filter ${filter ? 'bei einer Gruppe' : 'fehlt bei mehreren Gruppen'}`);
+      if (filter !== optionen.size > 1) probleme.push(`Filter ${filter ? 'bei nur einem System' : 'fehlt bei mehreren Systemen'}`);
       if (/<td\b[^>]*>\s*(?:<span[^>]*>)?\s*—\s*(?:<\/span>)?\s*<\/td>/.test(tab)) probleme.push('Leerwert „—“ statt leerer Zelle');
       if (probleme.length) tabelleFalsch.push(`${pfad} (${probleme.join(', ')})`);
     }
@@ -374,6 +429,9 @@ console.log('\n[7] D4 Missionstabelle eines Bauplans nennt den Pool statt „100
 console.log(`    Tabellen: ${poolTabellen} (Klinke ${KLINKEN.poolTabellen})   ohne Pool oder mit nacktem „100 %" — Soll: 0   Ist: ${poolOhne.length}`);
 need(poolTabellen >= KLINKEN.poolTabellen, `nur ${poolTabellen} Missionstabellen, Klinke ${KLINKEN.poolTabellen} — Ursache klaeren, nicht die Klinke senken`);
 need(!poolOhne.length, `${poolOhne.length} Missionstabelle(n) ohne Pool je Zeile oder mit nacktem „100 %" — ${liste(poolOhne)}`);
+console.log(`    Zeilen zu Missionen mit mehreren Pools: ${poolGeprueft} (Missionen: ${groessterPool.size})   groesser als der groesste Pool — Soll: 0   Ist: ${poolZuGross.length}`);
+need(groessterPool.size > 0 && poolGeprueft > 0, 'keine Mission mit mehreren Pools geprueft — Daten oder Muster veraltet?');
+need(!poolZuGross.length, `${poolZuGross.length} Zeile(n) nennen mehr Bauplaene als der groesste Pool ihrer Mission — ${liste(poolZuGross)}`);
 
 // Die Crafting-Kategorieseiten liegen eine Ebene tiefer.
 let kategorieSeiten = 0;
@@ -389,12 +447,26 @@ need(kategorieSeiten > 0, 'keine Crafting-Kategorieseite gefunden — Ordner ver
 need(!planerDoppelt.length, `${planerDoppelt.length} Seite(n) mit zwei Planer-Knoepfen — ${liste(planerDoppelt)}`);
 
 const doppelteTitel = [...titel.entries()].filter(([, l]) => l.length > 1);
+let erwarteteZwillinge = 0;
+const zwillingFalsch = [];
+for (const eintraege of namensGruppen.values()) {
+  if (eintraege.length < 2) {
+    for (const e of eintraege) if (e.hinweis) zwillingFalsch.push(`${e.pfad} (Hinweis ohne gleichnamige Seite)`);
+    continue;
+  }
+  erwarteteZwillinge += eintraege.length;
+  for (const e of eintraege) {
+    const fehlt = eintraege.filter((o) => o !== e && !e.ziele.has(o.pfad)).map((o) => o.pfad);
+    if (!e.hinweis) zwillingFalsch.push(`${e.pfad} (kein Hinweis auf ${fehlt.join(', ')})`);
+    else if (fehlt.length) zwillingFalsch.push(`${e.pfad} (verlinkt nicht ${fehlt.join(', ')})`);
+  }
+}
 console.log('\n[9] D7 Kein Seitentitel doppelt, gleichnamige Seiten verlinken einander');
-console.log(`    Titel geprueft: ${titel.size}   doppelt — Soll: 0   Ist: ${doppelteTitel.length}   Zwillingsseiten: ${zwillingsSeiten}   ohne Link zum Zwilling — Soll: 0   Ist: ${zwillingOhneLink.length}`);
+console.log(`    Titel geprueft: ${titel.size}   doppelt — Soll: 0   Ist: ${doppelteTitel.length}   gleichnamige Seiten (aus der Ueberschrift): ${erwarteteZwillinge}   mit Hinweis: ${zwillingsSeiten}   Hinweis fehlt, unvollstaendig oder ohne Zwilling — Soll: 0   Ist: ${zwillingFalsch.length}`);
 need(titel.size >= KLINKEN.itemBlaetter, `nur ${titel.size} Titel gelesen — Muster veraltet?`);
 need(!doppelteTitel.length, `${doppelteTitel.length} Titel stehen auf mehreren Seiten — ${liste(doppelteTitel.map(([k, l]) => `„${k.split('|')[1].split(' — ')[0]}" ${l.join(' + ')}`), 5)}`);
-need(zwillingsSeiten > 0, 'keine Zwillingsseite gefunden — Muster veraltet? Ohne Treffer prueft [9] die Links nicht');
-need(!zwillingOhneLink.length, `${zwillingOhneLink.length} Zwillingsseite(n) ohne Link zum Zwilling — ${liste(zwillingOhneLink)}`);
+need(erwarteteZwillinge > 0, 'keine gleichnamigen Seiten gefunden — Ueberschrift-Muster veraltet? Ohne Treffer prueft [9] die Hinweise nicht');
+need(!zwillingFalsch.length, `${zwillingFalsch.length} gleichnamige Seite(n) ohne vollstaendigen Hinweis auf ihre Zwillinge — ${liste(zwillingFalsch)}`);
 
 console.log('\n[10] D6 Schiffsteile verlinken ihr Schiff; Blaetter ganz ohne Weg unter der Decke');
 console.log(`    Schiffsteile: ${schiffsteile} (Klinke ${KLINKEN.schiffsteile})   ohne Schiffslink — Soll: 0   Ist: ${schiffsteilOhneLink.length}   Blaetter ohne Weg: ${ohneWeg} (Decke ${DECKEN.ohneWeg})`);
@@ -402,7 +474,7 @@ need(schiffsteile >= KLINKEN.schiffsteile, `nur ${schiffsteile} Schiffsteile erk
 need(!schiffsteilOhneLink.length, `${schiffsteilOhneLink.length} Schiffsteil(e) ohne Link zum Schiff — ${liste(schiffsteilOhneLink)}`);
 need(ohneWeg <= DECKEN.ohneWeg, `${ohneWeg} Item-Blaetter ganz ohne Weg, Decke ${DECKEN.ohneWeg} — welcher Weg ist verloren gegangen? Decke nicht heben`);
 
-console.log('\n[11] D5 Bezugsquellen: Ø einmal, Preisspalte nur mit Preis, keine „—“-Zellen, Systemfilter bei mehreren Gruppen');
+console.log('\n[11] D5 Bezugsquellen: Ø einmal, Preisspalte nur mit Preis, keine „—“-Zellen, Systemfilter bei mehr als einem System');
 console.log(`    Tabellen: ${tabellen} (Klinke ${KLINKEN.bezugsTabellen})   davon mit Systemfilter: ${gefiltert}   falsch — Soll: 0   Ist: ${tabelleFalsch.length}`);
 need(tabellen >= KLINKEN.bezugsTabellen, `nur ${tabellen} Bezugsquellen-Tabellen erkannt, Klinke ${KLINKEN.bezugsTabellen} — Muster veraltet? Ursache klaeren, nicht die Klinke senken`);
 need(!tabelleFalsch.length, `${tabelleFalsch.length} Bezugsquellen-Tabelle(n) falsch gebaut — ${liste(tabelleFalsch)}`);

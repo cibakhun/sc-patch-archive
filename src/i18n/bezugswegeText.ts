@@ -109,6 +109,7 @@ export const BEZUGSWEGE_UI = {
     bpPoolOnlyChance: '{p} · nur dieser',
     bpPoolNote: '„1 von {n}“ heißt: Diese Mission kann {n} verschiedene Baupläne abwerfen, welcher es wird, entscheidet der Zufall. Je kleiner der Pool, desto besser deine Chance auf diesen.',
     bpPoolNoteOne: '„Nur dieser“ heißt: Diese Mission wirft keinen anderen Bauplan ab.',
+    bpPoolRange: '„1 von {min}–{max}“ heißt: Diese Mission zieht aus mehreren Pools mit {min} bis {max} Bauplänen, und aus welchem dieser kommt, steht nicht fest. Im günstigsten Fall ist es 1 von {min}.',
     hubOhneItem: 'Das Spiel führt {all} Baupläne. {n} davon stellen kein Item her, das sich beschreiben lässt (unfertige Werkstattnamen und Tests aus dem Spielbuild); sie stehen hier nicht.',
   },
   en: {
@@ -199,6 +200,7 @@ export const BEZUGSWEGE_UI = {
     bpPoolOnlyChance: '{p} · only this one',
     bpPoolNote: '"1 of {n}" means: this mission can drop {n} different blueprints, and chance decides which one. The smaller the pool, the better your odds for this one.',
     bpPoolNoteOne: '"Only this one" means: this mission drops no other blueprint.',
+    bpPoolRange: '"1 of {min}–{max}" means: this mission draws from several pools of {min} to {max} blueprints, and which one holds this blueprint is not known. At best it is 1 of {min}.',
     hubOhneItem: 'The game lists {all} blueprints. {n} of them make no item that can be described (unfinished workshop names and tests from the game build); they are not listed here.',
   },
 } as const;

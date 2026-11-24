@@ -122,15 +122,62 @@ export function tabellenGruppen(rows: Obtain[]): TabellenGruppe[] {
  */
 export const poolGroesse = (missionId: string): number => blueprintsByMission.get(missionId)?.length ?? 0;
 
+/** Pool-Schluessel -> Missionen, die aus ihm ziehen. */
+const missionenJePool = (() => {
+  const by = new Map<string, Set<string>>();
+  for (const m of missionBySlug.values()) {
+    for (const p of m.blueprints ?? []) {
+      const s = by.get(p.poolKey);
+      if (s) s.add(m.slug);
+      else by.set(p.poolKey, new Set([m.slug]));
+    }
+  }
+  return by;
+})();
+
+/**
+ * Groesse des Pools, aus dem DIESER Bauplan in dieser Mission kommt — als
+ * Spanne, wo sie nicht feststeht (Review #434). 83 der 326 Missionsfamilien
+ * mit Bauplan ziehen aus mehreren Pools (die Kopfgeld-Familien etwa aus vier,
+ * 7 + 5 + 5 + 8); poolGroesse() zaehlt dort alle Bauplaene der Familie, und
+ * die Tabelle sagte „1 von 25“, wo der Pool des Bauplans 5 bis 8 fuehrt.
+ *
+ * Welcher Pool den Bauplan fuehrt:
+ *  1. nennt der Datenlauf den Pool an der Mission (BlueprintMission.pool,
+ *     scripts/datamine-crafting.mjs seit dieser Aenderung), dessen Groesse;
+ *  2. sonst erschlossen: ein Pool kommt in Frage, wenn der Bauplan jede
+ *     Mission nennt, die aus diesem Pool zieht. Bleibt eine Groesse, gilt
+ *     sie; bleiben mehrere, die Spanne von der kleinsten zur groessten.
+ * Familien mit einem Pool behalten poolGroesse() — dieselbe Zahl wie die
+ * Missionsseite.
+ */
+export function poolSpanne(bp: BlueprintEntry, mission: { id: string; pool?: string }): { min: number; max: number } {
+  const pools = missionBySlug.get(mission.id)?.blueprints ?? [];
+  if (pools.length <= 1) {
+    const n = poolGroesse(mission.id);
+    return { min: n, max: n };
+  }
+  const genannt = mission.pool ? pools.find((p) => p.poolKey === mission.pool) : undefined;
+  if (genannt) return { min: genannt.blueprints.length, max: genannt.blueprints.length };
+  const eigene = new Set((bp.missions ?? []).map((m) => m.id));
+  const passend = pools.filter((p) => [...(missionenJePool.get(p.poolKey) ?? [])].every((slug) => eigene.has(slug)));
+  const groessen = (passend.length ? passend : pools).map((p) => p.blueprints.length);
+  return { min: Math.min(...groessen), max: Math.max(...groessen) };
+}
+
 /** Aussicht auf genau diesen Bauplan: Pool-Chance geteilt durch Pool-Groesse. */
 const aussicht = (chance: number, pool: number) => chance / Math.max(pool, 1);
 
-export interface MissionsZeile { slug: string; label: string; seite: boolean; chance: number; pool: number }
+/** pool = groesster in Frage kommender Pool (zaehlt fuer die Reihenfolge), poolMin = kleinster. */
+export interface MissionsZeile { slug: string; label: string; seite: boolean; chance: number; pool: number; poolMin: number }
 
 /** Alle Missionen eines Bauplans fuer die Tabelle, beste Aussicht zuerst. */
 export function missionsZeilen(bp: BlueprintEntry): MissionsZeile[] {
   return (bp.missions ?? [])
-    .map((m) => ({ slug: m.id, label: seoTitle(m.name), seite: missionBySlug.has(m.id), chance: m.drop_chance, pool: poolGroesse(m.id) }))
+    .map((m) => {
+      const { min, max } = poolSpanne(bp, m);
+      return { slug: m.id, label: seoTitle(m.name), seite: missionBySlug.has(m.id), chance: m.drop_chance, pool: max, poolMin: min };
+    })
     .sort((a, b) => aussicht(b.chance, b.pool) - aussicht(a.chance, a.pool) || a.label.localeCompare(b.label, 'en'));
 }
 
@@ -209,11 +256,17 @@ const zerlegQuellen = new Map<string, Item[]>();
     const preis = z.purchasePrice_aUEC;
     const seite = seiteNachName.get(klein(z.name));
     if (!preis || preis <= 0 || !seite) continue;
+    // Ein Material kann in mehreren Rezeptzeilen stehen (SparkJet: Silicon 50
+    // und 85 cSCU): erst je Material summieren, dann bewerten (Review #434).
+    const jeMaterial = new Map<string, number>();
     for (const r of z.recipe ?? []) {
       if (!(r.quantity_cSCU > 0)) continue;
       const k = klein(r.name);
+      jeMaterial.set(k, (jeMaterial.get(k) ?? 0) + r.quantity_cSCU);
+    }
+    for (const [k, menge] of jeMaterial) {
       const l = kandidaten.get(k);
-      const e = { item: seite, wert: r.quantity_cSCU / preis };
+      const e = { item: seite, wert: menge / preis };
       if (l) l.push(e);
       else kandidaten.set(k, [e]);
     }

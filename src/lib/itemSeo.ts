@@ -87,10 +87,14 @@ export function bauplanZusatz(b: BlueprintEntry, lang: Locale): string | null {
   const groesse = (x: BlueprintEntry) => itemForBlueprint(x)?.game?.variants?.find((v) => v.guid === x.entity_guid)?.size ?? null;
   const gs = g.map(groesse);
   if (gs.every((n) => n != null) && new Set(gs).size === g.length) return `S${groesse(b)}`;
-  // 2. Masse des Ergebnisses (Serac 10.000 kg / 14.000 kg).
-  const masse = (x: BlueprintEntry) => x.item_stats?.mass_kg ?? null;
-  const ms = g.map(masse);
-  if (ms.every((n) => n != null) && new Set(ms).size === g.length) return `${num(masse(b)!, lang)} kg`;
+  // 2. Masse des Ergebnisses (Serac 10.000 kg / 14.000 kg). Verglichen wird
+  //    die angezeigte Beschriftung: num() rundet auf drei Nachkommastellen,
+  //    1,0001 und 1,0002 kg hiessen sonst beide „1 kg“ (Review #434).
+  const ms = g.map((x) => x.item_stats?.mass_kg ?? null);
+  if (ms.every((n) => n != null)) {
+    const labels = ms.map((n) => `${num(n!, lang)} kg`);
+    if (new Set(labels).size === g.length) return labels[g.indexOf(b)];
+  }
   // 3. Die Spieldaten unterscheiden sie nur intern.
   return fill(bwT(lang)('twinVariant'), { n: String(g.indexOf(b) + 1) });
 }

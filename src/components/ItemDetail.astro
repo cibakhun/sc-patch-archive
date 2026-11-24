@@ -57,6 +57,10 @@ const gruppen = tabellenGruppen(rows);
 const mitGruppen = gruppen.length > 1;
 // Filterknoepfe: die Systeme, die eine Zeile nennt, dann „Ohne Systemangabe".
 const filterSysteme = [...SYSTEME.filter((s) => gruppen.some((g) => g.rows.some((z) => z.systeme.includes(s)))), ...(gruppen.some((g) => g.system === null) ? [null] : [])];
+// Der Filter richtet sich nach seinen Knoepfen, nicht nach den Gruppen: nennen
+// alle Zeilen mehrere Systeme, gibt es nur die Gruppe „mehrere“, aber sehr
+// wohl etwas zu waehlen (Review #434).
+const mitFilter = filterSysteme.length > 1;
 const gruppenName = (k: GruppenSchluessel) => (k === 'mehrere' ? bwt('sysMulti') : k ?? bwt('buyNoSystem'));
 const mitPreis = rows.some((o) => o.price != null);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
@@ -197,7 +201,7 @@ const crumbs = [
             spalte nur, wo eine Zeile einen Preis hat; Zeilen nach System
             gebuendelt, mit Filter, der sich das gewaehlte System merkt. */}
         {avg != null && <p class="dp-avg">{bwt('avgLine')} <b>{auec(avg, lang)}</b></p>}
-        {mitGruppen && (
+        {mitFilter && (
           <div class="dp-sysfilter" role="group" aria-label={bwt('sysFilter')} data-sysfilter hidden>
             <button type="button" class="dp-sysbtn" aria-pressed="true" data-sys="">{bwt('sysAll')}</button>
             {filterSysteme.map((sys) => (

@@ -94,13 +94,19 @@ const itemWege = (() => {
 // D4: Pool statt „100 %" — die Chance gilt dem Pool, nicht diesem Bauplan.
 const zeilen = missionsZeilen(bp);
 const prozent = (c: number) => (lang === 'de' ? `${Math.round(c * 100)} %` : `${Math.round(c * 100)}%`);
-const poolText = (z: { chance: number; pool: number }) => {
-  const n = num(z.pool, lang);
+// Steht nicht fest, aus welchem von mehreren Pools der Bauplan kommt, steht
+// die Spanne da („1 von 5–8“, poolSpanne in src/lib/bezugswege.ts).
+const spanne = (z: { pool: number; poolMin: number }) => (z.poolMin < z.pool ? `${num(z.poolMin, lang)}–${num(z.pool, lang)}` : num(z.pool, lang));
+const poolText = (z: { chance: number; pool: number; poolMin: number }) => {
+  const n = spanne(z);
   if (z.chance < 1) return fill(bt(z.pool > 1 ? 'bpPoolCellChance' : 'bpPoolOnlyChance'), { p: prozent(z.chance), n });
   return z.pool > 1 ? fill(bt('bpPoolCell'), { n }) : bt('bpPoolOnly');
 };
-// Beispiel unter der Tabelle: der erste Pool mit mehr als einem Bauplan.
-const beispielPool = zeilen.find((z) => z.pool > 1)?.pool ?? 1;
+// Beispiel unter der Tabelle: der erste feste Pool mit mehr als einem Bauplan;
+// steht eine Spanne in der Tabelle, erklaert ein zweiter Satz sie.
+const beispielPool = zeilen.find((z) => z.pool > 1 && z.poolMin === z.pool)?.pool ?? 1;
+const beispielSpanne = zeilen.find((z) => z.poolMin < z.pool);
+const nurSpannen = zeilen.length > 0 && zeilen.every((z) => z.poolMin < z.pool);
 // D8: jedes Material einmal, mit seinen Wegen (abbauen, kaufen, zerlegen).
 const materialien = [...new Set(bp.ingredients.flatMap((ing) => (ing.options ?? []).map((o) => o.name)))]
   .map((name) => ({ name, wege: materialWege(name, item?.id) }));
@@ -302,14 +308,15 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
                       ? <a href={href(`/missionen/${z.slug}.html`, lang)}>{z.label}</a>
                       : z.label}
                   </td>
-                  <td class="dp-num" data-pool={z.pool}>{poolText(z)}</td>
+                  <td class="dp-num" data-pool={z.pool} data-pool-min={z.poolMin < z.pool ? z.poolMin : undefined}>{poolText(z)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {/* Das Beispiel ist ein Pool dieser Tabelle, keine feste Zahl. */}
-        <p class="dp-note">{beispielPool > 1 ? fill(bt('bpPoolNote'), { n: num(beispielPool, lang) }) : bt('bpPoolNoteOne')}</p>
+        {!nurSpannen && <p class="dp-note">{beispielPool > 1 ? fill(bt('bpPoolNote'), { n: num(beispielPool, lang) }) : bt('bpPoolNoteOne')}</p>}
+        {beispielSpanne && <p class="dp-note" data-pool-spanne>{fill(bt('bpPoolRange'), { min: num(beispielSpanne.poolMin, lang), max: num(beispielSpanne.pool, lang) })}</p>}
         {wikeloBp > 0 && <div class="dp-actions bp-wikelo"><a class="dp-btn" href={wikeloBpHref}>{bt('bpSourceWikelo')} →</a></div>}
       </>
     ) : (
