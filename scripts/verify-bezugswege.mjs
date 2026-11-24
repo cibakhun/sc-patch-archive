@@ -73,10 +73,28 @@ function abschnitt(html, id) {
   return ende < 0 ? null : html.slice(start, ende);
 }
 
-/** Ueberschrift einer Seite als Vergleichsschluessel (wie src/lib/vehicleItems.ts). */
+/**
+ * Ueberschrift einer Seite als Vergleichsschluessel (wie src/lib/vehicleItems.ts):
+ * Text ohne Tags und Entitaeten, klein, nur Buchstaben und Ziffern. Zeichen-
+ * weise statt per Regex-Ersetzung — ein Vergleichsschluessel, kein Bereiniger,
+ * und so meldet die Code-Analyse kein unvollstaendiges Entfernen.
+ */
 const h1Name = (html) => {
   const t = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1];
-  return t == null ? null : t.replace(/<[^>]+>/g, '').replace(/&#?\w+;/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (t == null) return null;
+  let text = '';
+  let imTag = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    if (c === '&') {
+      const ende = t.indexOf(';', i);
+      if (ende > i && ende - i <= 10) { i = ende; continue; }
+    }
+    text += c;
+  }
+  return text.toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
 const MISSION_LINK = /href="(?:\/de)?\/missionen\/[a-z0-9-]+\.html"/;
