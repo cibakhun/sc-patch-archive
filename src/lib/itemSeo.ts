@@ -7,16 +7,98 @@
 // nicht Fliesstext simulieren.
 
 import type { Locale } from '../i18n/ui';
-import { itemT, categoryLabel } from '../i18n/itemText';
+import { fill, itemT, categoryLabel } from '../i18n/itemText';
 import {
   ITEM_PATCH, auec, clip, db, displayName, leafCategory, minPrice, maxPrice,
-  num, rootCategory, sortedObtain, type Item,
+  num, pageItems, rootCategory, sortedObtain, type Item,
 } from './items';
 import { primaryStat } from './itemStats';
 import { lesbarerBezeichner } from './lesbar';
 import type { BlueprintEntry } from './crafting';
-import { craftTime, resourceNames } from './crafting';
+import { blueprints, craftTime, itemForBlueprint, resourceNames } from './crafting';
+import { bwT } from '../i18n/bezugswegeText';
 import { datumLang } from './datenstand';
+
+/* ---------- Gleichnamige Seiten (UX-Audit D7) ---------- */
+
+// Zwei Seiten, ein Name: in der Suche, im Browser-Tab und im Suchergebnis
+// sah man nicht, welche welche ist. Gemessen 24.11.2026: 11 Bauplan-Namen
+// doppelt (Adresse „-2"), 4 deutsche Item-Namen doppelt, dazu Item-Paare, bei
+// denen eines die Preise und das andere die Spielwerte traegt. Die Adressen
+// bleiben (keine Weiterleitung ohne Krisz' Ja); jede Seite bekommt einen
+// Zusatz, der sie unterscheidet, und verlinkt ihren Zwilling.
+const namensSchluessel = (s: string) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, '').replace(/\s+/g, ' ').trim();
+
+function gruppiere<T>(liste: readonly T[], name: (x: T) => string): Map<string, T[]> {
+  const m = new Map<string, T[]>();
+  for (const x of liste) {
+    const k = namensSchluessel(name(x));
+    const g = m.get(k);
+    if (g) g.push(x);
+    else m.set(k, [x]);
+  }
+  return m;
+}
+
+const itemGruppen = new Map<Locale, Map<string, Item[]>>();
+const itemGruppe = (i: Item, lang: Locale): Item[] => {
+  let m = itemGruppen.get(lang);
+  if (!m) itemGruppen.set(lang, (m = gruppiere(pageItems, (x) => displayName(x, lang))));
+  return m.get(namensSchluessel(displayName(i, lang))) ?? [i];
+};
+
+const hatWerte = (i: Item) => !!i.game && (!!i.game.stats && Object.keys(i.game.stats).length > 0 || !!i.game.variants?.length);
+const hatPreise = (i: Item) => minPrice(i) != null;
+
+/** Was dieses Item von seinen gleichnamigen unterscheidet — oder null. */
+export function itemZusatz(i: Item, lang: Locale): string | null {
+  const g = itemGruppe(i, lang);
+  if (g.length < 2) return null;
+  const t = bwT(lang);
+  // Deutscher Name doppelt, englischer verschieden: der englische trennt.
+  if (lang === 'de' && new Set(g.map((x) => namensSchluessel(x.name))).size === g.length) return i.name;
+  // Katalogpaare: eines traegt Preise, das andere die Spielwerte.
+  const art = (x: Item) => (hatPreise(x) && !hatWerte(x) ? 'preise' : hatWerte(x) && !hatPreise(x) ? 'werte' : '');
+  const arten = g.map(art);
+  if (arten.every(Boolean) && new Set(arten).size === g.length) return t(art(i) === 'preise' ? 'twinPrices' : 'twinStats');
+  return fill(t('twinVariant'), { n: String(g.indexOf(i) + 1) });
+}
+
+/** Anzeigename mit Zusatz: „Lynx Legs (mit Preisen)", deutsch doppelt „Lynx-Beine (Dunkelgrün) / Lynx Arms Dark Green". */
+export function itemNameMitZusatz(i: Item, lang: Locale): string {
+  const name = displayName(i, lang);
+  const zusatz = itemZusatz(i, lang);
+  return !zusatz ? name : zusatz === i.name ? `${name} / ${zusatz}` : `${name} (${zusatz})`;
+}
+
+/** Die anderen Item-Seiten mit demselben Namen, je mit Namen samt Zusatz. */
+export function itemZwillinge(i: Item, lang: Locale): { item: Item; label: string }[] {
+  return itemGruppe(i, lang).filter((x) => x !== i).map((x) => ({ item: x, label: itemNameMitZusatz(x, lang) }));
+}
+
+const bauplanGruppen = gruppiere(blueprints, (b) => b.name);
+const bauplanGruppe = (b: BlueprintEntry) => bauplanGruppen.get(namensSchluessel(b.name)) ?? [b];
+
+/** Was diesen Bauplan von seinen gleichnamigen unterscheidet — oder null. */
+export function bauplanZusatz(b: BlueprintEntry, lang: Locale): string | null {
+  const g = bauplanGruppe(b);
+  if (g.length < 2) return null;
+  // 1. Groesse der Ausfuehrung, die er herstellt (BroadSpec S2 / S3).
+  const groesse = (x: BlueprintEntry) => itemForBlueprint(x)?.game?.variants?.find((v) => v.guid === x.entity_guid)?.size ?? null;
+  const gs = g.map(groesse);
+  if (gs.every((n) => n != null) && new Set(gs).size === g.length) return `S${groesse(b)}`;
+  // 2. Masse des Ergebnisses (Serac 10.000 kg / 14.000 kg).
+  const masse = (x: BlueprintEntry) => x.item_stats?.mass_kg ?? null;
+  const ms = g.map(masse);
+  if (ms.every((n) => n != null) && new Set(ms).size === g.length) return `${num(masse(b)!, lang)} kg`;
+  // 3. Die Spieldaten unterscheiden sie nur intern.
+  return fill(bwT(lang)('twinVariant'), { n: String(g.indexOf(b) + 1) });
+}
+
+/** Die anderen Bauplaene mit demselben Namen, je mit ihrem Zusatz. */
+export function bauplanZwillinge(b: BlueprintEntry, lang: Locale): { bp: BlueprintEntry; zusatz: string }[] {
+  return bauplanGruppe(b).filter((x) => x !== b).map((x) => ({ bp: x, zusatz: bauplanZusatz(x, lang) ?? '' }));
+}
 
 /* ---------- Items ---------- */
 
@@ -104,6 +186,8 @@ function classification(i: Item, lang: Locale, patch: string): string {
 export function itemSeo(i: Item, lang: Locale): ItemSeo {
   const t = itemT(lang);
   const name = displayName(i, lang);
+  // Im Titel steht der Zusatz, damit gleichnamige Seiten unterscheidbar sind (D7).
+  const titelName = itemNameMitZusatz(i, lang);
   const mode = acquisition(i);
   const lo = minPrice(i);
   const hi = maxPrice(i);
@@ -114,15 +198,15 @@ export function itemSeo(i: Item, lang: Locale): ItemSeo {
   const title =
     lang === 'de'
       ? mode === 'buy'
-        ? `${name} — Preis & Kauforte | Star Citizen ${ITEM_PATCH} | VerseBase`
+        ? `${titelName} — Preis & Kauforte | Star Citizen ${ITEM_PATCH} | VerseBase`
         : mode === 'loot'
-          ? `${name} — Fundorte & Werte | Star Citizen ${ITEM_PATCH} | VerseBase`
-          : `${name} — Werte & Daten | Star Citizen ${ITEM_PATCH} | VerseBase`
+          ? `${titelName} — Fundorte & Werte | Star Citizen ${ITEM_PATCH} | VerseBase`
+          : `${titelName} — Werte & Daten | Star Citizen ${ITEM_PATCH} | VerseBase`
       : mode === 'buy'
-        ? `${name} — Price & Where to Buy | Star Citizen ${ITEM_PATCH} | VerseBase`
+        ? `${titelName} — Price & Where to Buy | Star Citizen ${ITEM_PATCH} | VerseBase`
         : mode === 'loot'
-          ? `${name} — Where to Find It & Stats | Star Citizen ${ITEM_PATCH} | VerseBase`
-          : `${name} — Stats & Data | Star Citizen ${ITEM_PATCH} | VerseBase`;
+          ? `${titelName} — Where to Find It & Stats | Star Citizen ${ITEM_PATCH} | VerseBase`
+          : `${titelName} — Stats & Data | Star Citizen ${ITEM_PATCH} | VerseBase`;
 
   const parts: string[] = [];
   if (lang === 'de') {
@@ -239,10 +323,12 @@ export function blueprintSeo(
   const time = craftTime(b.craft_time_seconds, lang);
   const mis = b.missions?.length ?? 0;
 
+  const zusatz = bauplanZusatz(b, lang);
+  const titelName = zusatz ? `${b.name} (${zusatz})` : b.name;
   const title =
     lang === 'de'
-      ? `${b.name} — Blueprint, Zutaten & Craft-Zeit | Star Citizen ${patch} | VerseBase`
-      : `${b.name} — Blueprint, Ingredients & Craft Time | Star Citizen ${patch} | VerseBase`;
+      ? `${titelName} — Blueprint, Zutaten & Craft-Zeit | Star Citizen ${patch} | VerseBase`
+      : `${titelName} — Blueprint, Ingredients & Craft Time | Star Citizen ${patch} | VerseBase`;
 
   const description =
     lang === 'de'

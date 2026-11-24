@@ -668,7 +668,7 @@ export const CHECKS = [
     script: 'scripts/verify-bezugswege.mjs',
     rail: 'A',
     checks:
-      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein Schiffsblatt; Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein Schiffsblatt; Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache, gleichnamige Seiten verlinken einander (data-zwilling); [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau bei mehreren Gruppen; [12] Bauplan-Seiten nennen je Material seine Wege und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
     // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
     // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
@@ -682,6 +682,21 @@ export const CHECKS = [
     // Missionslink (vorher 0), 3.252 Bauplan-Seiten (1.870 mit „Quelle
     // unbekannt"), 1.030 Blaetter mit Kennzahl Feuerrate, 356
     // Fahrzeug-Itemblaetter, 9.518 Katalog-Items.
+    // Zweite Stufe [7]-[12] (P2, D4-D8 und D10), VORGEFUEHRT ROT am
+    // 24.11.2026 gegen den Bau der zweiten Lieferung, je Datei
+    // zurueckgespielt und per sha256 geprueft: eine Pool-Zelle auf
+    // /crafting/karna-rifle.html zu nacktem „100 %", der Titel von
+    // /items/lynx-legs-2.html auf den seines Zwillings /items/lynx-legs.html,
+    // data-weg-schiff auf /items/aegis-eclipse-torpedo-rack.html gestrichen,
+    // eine Ø-Preis-Spalte in /items/karna-rifle.html, die Materialliste von
+    // /crafting/p4-ar-rifle.html entfernt und /de/items/karna-rifle.html als
+    // Zerlege-Quelle auf /de/crafting/karna-rifle.html: 6 FEHLER, je einer
+    // pro Eingriff; getrennt ein zweiter Planer-Knopf auf
+    // /crafting/category/weapons-rifle.html: 1 FEHLER. Gruen danach: 1.382
+    // Pool-Tabellen, 0 doppelte Planer-Knoepfe (3.252 Bauplan-, 124
+    // Kategorieseiten), 14.894 Titel ohne Doppel (84 Zwillingsseiten), 218
+    // Schiffsteile, 278 Blaetter ohne Weg (Decke 290, vor D6 430), 10.994
+    // Bezugstabellen (7.072 mit Filter), 3.252 Material-Seiten.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der

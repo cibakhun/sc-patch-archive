@@ -20,6 +20,7 @@ const w = bezugswege(item);
 // Wie viele Missionstitel offen stehen; der Rest steht auf der Bauplan-Seite.
 const MISSIONEN_OFFEN = 3;
 const STOCK_NAMEN = 2;
+const SCHIFFE_OFFEN = 4;
 const ORTE_OFFEN = 3;
 
 const k = w.kaufen;
@@ -113,6 +114,18 @@ const sonderNamen = [...new Set(w.sonderweg.map((o) => obtainLabel(o, lang)))];
           <span class="bw-art">{t('stock')}</span>
           <span class="bw-neben">{stockText}</span>
           <a class="bw-link" href="#serie">{t('stockAll')} ↓</a>
+        </li>
+      )}
+      {w.schiff.length > 0 && (
+        <li class="bw-weg" data-weg="schiffsteil">
+          <span class="bw-art">{t('shipPart')}</span>
+          <span class="bw-neben">{w.schiff.length === 1 ? t('shipPartOne') : fill(t('shipPartMany'), { n: num(w.schiff.length, lang) })}</span>
+          <ul class="bw-zeilen bw-zeilen--links">
+            {w.schiff.slice(0, SCHIFFE_OFFEN).map((s) => (
+              <li><a href={href(`/schiffe/${s.id}.html`, lang)} data-weg-schiff>{s.name}</a></li>
+            ))}
+            {w.schiff.length > SCHIFFE_OFFEN && <li>{fill(t('shipPartMore'), { n: num(w.schiff.length - SCHIFFE_OFFEN, lang), names: w.schiff.slice(SCHIFFE_OFFEN).map((s) => s.name).join(', ') })}</li>}
+          </ul>
         </li>
       )}
       {sonderNamen.length > 0 && (
