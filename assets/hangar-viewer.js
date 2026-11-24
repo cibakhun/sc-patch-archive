@@ -7917,10 +7917,6 @@ const WERK_BODEN_SCHATTEN = 0.55;
 // Katalogs sind dunkel lackiert und stehen im Abfall des Lichts zu den
 // Wänden; ohne ihn blieben sie Schatten vor der helleren Wand
 const WERK_BODEN_TON = 2;
-// Hülle je Zone aus den Maßen der Stücke im Satz (werkBauen): { name, h: [x0, x1, oben, z0, z1] }
-const werkBodenHuellen = [];
-// liegt p (Hallenmeter) in der Hülle einer Zone, um rand größer
-const werkImBoden = (x, y, z, rand) => werkBodenHuellen.some(({ h }) => x > h[0] - rand && x < h[1] + rand && y < h[2] + rand && z > h[3] - rand && z < h[4] + rand);
 // Geometrien gleicher Attribute (position, normal, uv) zu einer
 function werkVerbinde(gs) {
   const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
@@ -8443,6 +8439,13 @@ export async function initHangar(container, opts = {}) {
   // laufende Fahrt der Kamera zwischen beiden (tripStart). Startansicht in
   // der Werkhalle von vorn rechts oben (WERK_HOME_DIR).
   let ort = 'halle', trip = null;
+  // Hülle je Zone der Arbeitsplätze am Boden (WERK_BODEN), aus den Maßen
+  // der Stücke im Satz (werkBauen): { name, h: [x0, x1, oben, z0, z1] }.
+  // Je Bühne: Eine neue ohne Boden (Stufe niedrig) erbte sonst die Hüllen
+  // der vorigen, und keepWerk sperrte Zonen, in denen nichts steht.
+  const werkBodenHuellen = [];
+  // liegt p (Hallenmeter) in der Hülle einer Zone, um rand größer
+  const werkImBoden = (x, y, z, rand) => werkBodenHuellen.some(({ h }) => x > h[0] - rand && x < h[1] + rand && y < h[2] + rand && z > h[3] - rand && z < h[4] + rand);
   const homeDir = () => (ort === 'werk' ? WERK_HOME_DIR : HOME_DIR);
   const homePos = () => homeDir().clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
