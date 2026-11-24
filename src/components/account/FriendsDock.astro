@@ -474,7 +474,8 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     let sending = false;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const body = input.value.trim();
+      const typed = input.value;
+      const body = typed.trim();
       if (!body || !chatWith || sending) return;
       sending = true;
       say('');
@@ -486,8 +487,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
           .single();
         if (error) throw error;
         if (chatWith?.id === to) {
-          input.value = '';
-          autoGrow();
+          // Nur leeren, was gesendet wurde: ein inzwischen eingesetzter
+          // Entwurf („An Freund schicken“) bleibt stehen.
+          if (input.value === typed) { input.value = ''; autoGrow(); }
           append(data as Msg);
           toBottom();
         }
