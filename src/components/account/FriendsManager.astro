@@ -1040,7 +1040,13 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         if (c.members.includes(me)) toggle = textBtn(C.crewLeave, '', () => crewLeave(c));
         // Voll: kein Knopf, die Zeile der Plätze sagt es schon.
         else if (free) toggle = textBtn(C.crewJoin, 'fm-btn--primary', () => crewJoin(c));
-        if (toggle) { toggle.dataset.act = 'toggle'; acts.appendChild(toggle); }
+        if (toggle) {
+          toggle.dataset.act = 'toggle';
+          // textBtn sperrt den Knopf beim Klick, der Browser nimmt ihm dabei den
+          // Fokus: paintCrew soll ihn trotzdem wiederfinden.
+          toggle.addEventListener('click', () => { crewRefocus = { id: String(c.id), act: 'toggle' }; }, { capture: true });
+          acts.appendChild(toggle);
+        }
         const chat = iconBtn('ic-chat', `${C.chat}: ${nameOf(host)}`, 'fm-ib--chat');
         chat.dataset.act = 'chat';
         chat.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: c.owner_id })));
@@ -1051,6 +1057,7 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       return li;
     };
 
+    let crewRefocus: { id: string; act: string } | null = null;
     const paintCrew = () => {
       crewEl.hidden = !(crewOk && (friends.length || crew.length));
       if (crewEl.hidden) return;
@@ -1065,8 +1072,10 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       const list = $('fmCrewList');
       const f = document.activeElement as HTMLElement | null;
       const cardEl = f && list.contains(f) ? f.closest<HTMLElement>('.fm-crew__card') : null;
-      const key = cardEl?.dataset.id;
-      const act = f?.closest<HTMLElement>('[data-act]')?.dataset.act;
+      let key = cardEl?.dataset.id;
+      let act = f?.closest<HTMLElement>('[data-act]')?.dataset.act;
+      if (!cardEl && crewRefocus && (!f || f === document.body)) ({ id: key, act } = crewRefocus);
+      crewRefocus = null;
       list.replaceChildren(...crew.map(crewCard));
       if (key && act) {
         const again = list.querySelector<HTMLElement>(`.fm-crew__card[data-id="${CSS.escape(key)}"]`);
