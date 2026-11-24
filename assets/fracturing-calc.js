@@ -75,12 +75,29 @@
      ANGEZEIGTEN Werten aufgeht (UX-Audit 24.11.2026, P66): 4.930 × 0,34
      stand dort neben 1.652, gerechnet war mit 0,335 -- nachgerechnet 1.676,
      die Zeile sah falsch aus, obwohl das Ergebnis stimmte. Zwei Stellen,
-     wo sie reichen; sonst bis zu vier. `links` ist der angezeigte (gerundete)
-     linke Wert, `ergebnis` der Wert rechts. */
+     wo sie reichen; sonst mehr. `links` ist der angezeigte (gerundete)
+     linke Wert, `ergebnis` der Wert rechts.
+     Eine Regel fuer jede Zeile: die kleinste Stellenzahl ab zwei, bei der
+     der gerundete Faktor aufgeht; ab vier Stellen sonst der naechste Wert
+     dieser Stellenzahl, der aufgeht (meist eine letzte Stelle daneben,
+     0,3353 statt 0,3354 neben 1.653; etwas mehr nur, wenn schon der linke
+     Wert gerundet ist, etwa die Leistung mit Modulen). Jeder ausgegebene
+     Faktor ist geprueft. Bei links bis 10 Mio. (groesste Masse im Feld)
+     findet sich spaetestens mit acht Stellen einer; der Rueckfall ist
+     nur Sicherung. */
   function nFaktor(v, links, ergebnis) {
-    var soll = Math.round(ergebnis), l = Math.round(links), d = 2;
-    for (; d < 4; d++) if (Math.round(l * Number(v.toFixed(d))) === soll) break;
-    var t = v.toFixed(d);
+    var soll = Math.round(ergebnis), l = Math.round(links), t = null;
+    var geht = function (f) { return Math.round(l * f) === soll; };
+    for (var d = 2; d <= 10 && t === null; d++) {
+      var s = Math.pow(10, d), k = Math.round(v * s);
+      if (geht(k / s)) t = (k / s).toFixed(d);
+      else if (d >= 4 && l > 0) {
+        var kmin = Math.ceil((soll - 0.5) * s / l), kmax = Math.ceil((soll + 0.5) * s / l) - 1;
+        var kk = Math.min(Math.max(k, kmin), kmax);
+        if (kmin <= kmax && geht(kk / s)) t = (kk / s).toFixed(d);
+      }
+    }
+    if (t === null) t = v.toFixed(4);
     return D.lang === 'de' ? t.replace('.', ',') : t;
   }
   /* Der Res-Mod ist meistens glatt (-30 %), durch Module aber auch krumm
