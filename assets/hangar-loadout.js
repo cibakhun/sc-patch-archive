@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure, activeShields } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure, activeShields, mainWeapon, loadoutName } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -62,7 +62,12 @@ const current = (slot) => draft.slots[slot.key] ?? slot.stock;
 const eff = (slot) => rackSlot(slot, draft.racks?.[slot.key], data.racks);
 const isChanged = (slot) => slot.key in draft.slots || !!draft.racks?.[slot.key];
 const times = (n) => (n > 1 ? `${n}× ` : '');
-const placeholder = () => fill(m('name.placeholder'), { ship: shipName(draft.ship) });
+// Ohne eigenen Namen: Schiff · Hauptwaffe · Tag (loadoutName in
+// hangar-layouts.js), als Platzhalter gezeigt und beim Speichern einmal vergeben.
+const placeholder = () => {
+  const w = data ? mainWeapon(slots, current) : null;
+  return loadoutName(shipName(draft.ship), w && data.items[w] ? itemName(w) : null, new Date(), de);
+};
 const itemName = (k) => {
   const it = data.items[k];
   return it ? (de && it[1]) || it[0] : m('slot.unknown');

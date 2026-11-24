@@ -693,3 +693,98 @@ test('endet ein Lauf nach 20 Sekunden, kommt seine Anfrage nicht mehr nach dem n
   await b.settle();
   assert.deepEqual(b.server.slugs(), [], 'entfernt bleibt entfernt');
 });
+
+// „Meine Flotte“ (/account/fleet.html) entfernt mit × und stellt mit
+// „Rückgängig“ wieder her. Beides meint eine Richtung: ein Tab, dem das
+// storage-Ereignis eines anderen noch fehlt, darf ein dort entferntes Schiff
+// nicht zurückholen (toggle täte genau das) und ein schon vorhandenes nicht
+// ein zweites Mal aufnehmen.
+test('remove und add wirken nur in eine Richtung, auch wenn ein anderer Tab schneller war', async () => {
+  const b = makeBrowser({ guest: [{ id: 'aegs-gladius', label: 'Gladius' }, { id: 'anvl-arrow', label: 'Arrow' }] });
+  const page = b.open();
+  const other = b.open();
+  await b.settle();
+
+  page.lag();
+  await other.fleet.remove('anvl-arrow');
+  await b.settle();
+  assert.deepEqual(page.ids(), ['aegs-gladius', 'anvl-arrow'], 'Voraussetzung: die Seite weiss noch nichts');
+  assert.equal(await page.fleet.remove('anvl-arrow'), false);
+  await b.settle();
+  assert.equal(b.storage.get('vb.fleet.v1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"}]}', 'entfernt bleibt entfernt');
+  assert.deepEqual(page.ids(), ['aegs-gladius'], 'die Seite holt den Stand der Ablage nach');
+
+  await other.fleet.add('anvl-arrow', 'Arrow');
+  await b.settle();
+  assert.equal(await page.fleet.add('anvl-arrow', 'Arrow'), true);
+  await b.settle();
+  page.unlag();
+  await b.settle();
+  assert.equal(b.storage.get('vb.fleet.v1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"},{"id":"anvl-arrow","label":"Arrow"}]}');
+  assert.deepEqual(page.ids(), ['aegs-gladius', 'anvl-arrow']);
+  assert.equal(await page.fleet.remove('Not An Id'), false);
+});
+
+test('remove im Konto: ein in einem anderen Tab schon entferntes Schiff kommt nicht zurück', async () => {
+  const b = makeBrowser({ session: 'user-1', rows: [{ slug: 'aegs-gladius', label: 'Gladius' }, { slug: 'anvl-arrow', label: 'Arrow' }] });
+  const page = b.open();
+  const other = b.open();
+  await b.settle();
+
+  page.lag();
+  void other.fleet.remove('anvl-arrow');
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), ['aegs-gladius']);
+  void page.fleet.remove('anvl-arrow');
+  await b.settle();
+  page.unlag();
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), ['aegs-gladius'], 'entfernt bleibt entfernt');
+  assert.deepEqual(page.ids(), ['aegs-gladius']);
+  assert.deepEqual(other.ids(), ['aegs-gladius']);
+});
+
+// Die Richtung wird an derselben Lesung entschieden, die auch geschrieben
+// wird. Schreibt ein anderer Tab zwischen zwei Lesungen (hier im Haken der
+// ersten), darf das Entfernen nicht zum Hinzufügen kippen.
+test('remove entscheidet an der Lesung, die es schreibt', async () => {
+  const b = makeBrowser({ guest: [{ id: 'aegs-gladius', label: 'Gladius' }, { id: 'anvl-arrow', label: 'Arrow' }] });
+  const page = b.open();
+  const other = b.open();
+  await b.settle();
+
+  const ls = page.sandbox.localStorage;
+  const get = ls.getItem;
+  let once = true;
+  ls.getItem = (k) => {
+    const v = get(k);
+    if (once && k === 'vb.fleet.v1') {
+      once = false;
+      other.sandbox.localStorage.setItem('vb.fleet.v1', '{"ships":[{"id":"aegs-gladius","label":"Gladius"}]}');
+    }
+    return v;
+  };
+  await page.fleet.remove('anvl-arrow');
+  ls.getItem = get;
+  await b.settle();
+  assert.equal(b.storage.get('vb.fleet.v1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"}]}');
+  assert.deepEqual(page.ids(), ['aegs-gladius']);
+});
+
+test('versagt der Speicher erst beim Klick, bleibt add bei add und remove bei remove', async () => {
+  const b = makeBrowser({ guest: [{ id: 'aegs-gladius', label: 'Gladius' }, { id: 'anvl-arrow', label: 'Arrow' }] });
+  const page = b.open();
+  await b.settle();
+
+  const ls = page.sandbox.localStorage;
+  const denied = () => { throw new Error('SecurityError: The operation is insecure.'); };
+  for (const m of ['getItem', 'setItem', 'removeItem']) ls[m] = denied;
+  assert.equal(await page.fleet.add('anvl-arrow', 'Arrow'), true);
+  await b.settle();
+  assert.deepEqual(page.ids(), ['aegs-gladius', 'anvl-arrow'], 'add nimmt nichts weg');
+  assert.equal(await page.fleet.remove('anvl-arrow'), false);
+  await b.settle();
+  assert.deepEqual(page.ids(), ['aegs-gladius'], 'remove wirkt im Arbeitsspeicher');
+  assert.equal(await page.fleet.remove('anvl-arrow'), false);
+  assert.deepEqual(page.ids(), ['aegs-gladius']);
+});

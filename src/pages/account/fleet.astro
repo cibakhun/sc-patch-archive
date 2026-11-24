@@ -1,0 +1,44 @@
+---
+// „My fleet“ — EN (/account/fleet.html; DE-Spiegel unter /de/account/). noindex (NOINDEX_PATHS).
+// Flotte lesen und schreiben: assets/fleet.js (nach account-lite.js aus SiteNav).
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import AccountShell from '../../components/account/AccountShell.astro';
+import FleetPage from '../../components/account/FleetPage.astro';
+import { versioned } from '../../lib/assetVersion';
+---
+<Layout
+  title={'My fleet | VerseBase'}
+  description={'Your Star Citizen fleet on VerseBase: the ships you add with “Add to fleet”, in this browser or in your account.'}
+  themeColor="#05070d"
+  ogImage="/assets/og-default.jpg"
+  translated={true}
+  noindex={true}
+  analytics={false}
+>
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<link slot="head" rel="stylesheet" href={versioned('assets/account.css', '/assets/account.css')} />
+<style is:inline>
+.hero__in{max-width:var(--maxw)}</style>
+<a class="skip" href="#main">Skip to content</a>
+
+<SiteNav crumbs={[{ label: 'Account', href: '/account.html' }, { label: 'My fleet' }]} hasEn={true} />
+
+<main id="main">
+  <AccountShell
+    eyebrow="VerseBase · Fleet"
+    titleThin="My"
+    title="fleet"
+    lead="The ships you add on their data sheet with “Add to fleet”. Without an account they stay in this browser, with one on every device."
+    wide
+  >
+    <FleetPage lang="en" />
+  </AccountShell>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+<script is:inline defer src={versioned('assets/fleet.js', '/assets/fleet.js')}></script>
+</Layout>
