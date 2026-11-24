@@ -169,7 +169,9 @@ const colRep = m.variants.some((v) => v.rep.length);
 const colLegal = m.lawful && m.unlawful;
 // Bei 96 Missionen bliebe sonst nur die Spalte Belohnung: 87 Einzelangebote, die
 // die Eckdaten wiederholen, und 9 mit mehreren Angeboten und ueberall „—“.
-const offerTable = colGiver || colLoc || colPlaces || colRep || colLegal;
+// Unterschiedliche Betraege allein tragen die Tabelle auch: die Spanne in
+// den Eckdaten sagt nicht, wie viele Angebote wie viel zahlen (Review #428).
+const offerTable = colGiver || colLoc || colPlaces || colRep || colLegal || verschieden(m.variants.map((v) => String(v.reward ?? '')));
 type Zeile = { giver: string; loc: string; places: string; legal: boolean; reward: string; rep: string; n: number };
 const zeilen: Zeile[] = [];
 {

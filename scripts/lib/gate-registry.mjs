@@ -893,12 +893,16 @@ export const CHECKS = [
     // (b) gegen den neuen Bau mit von Hand eingesetztem „{TargetName}" in
     // einer Ueberschrift: [1] FEHLER 1. Gruen mit 8 Doppeln je Sprache —
     // vier Paare ohne sichtbaren Unterschied in den Daten.
+    // [4] seit dem Review von #428 ueber die Kartenlinks: vorgefuehrt rot
+    // mit einer umgebogenen Karte (A Challenging Task -> Salvage
+    // Contractor): FEHLER 3 (Name passt nicht, ein Blatt ohne, eines mit
+    // zwei Karten).
     id: 'verify:missionstitel',
     npm: 'verify:missionstitel',
     script: 'scripts/verify-missionstitel.mjs',
     rail: 'A',
     checks:
-      'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); eine Karte je Missionsblatt; Klinke fuer gelesene Blaetter je Sprache',
+      'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); jede Karte verlinkt genau ein Blatt und traegt dessen Namen samt Zusatz, jedes Blatt hat genau eine Karte; Klinke fuer gelesene Blaetter je Sprache',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

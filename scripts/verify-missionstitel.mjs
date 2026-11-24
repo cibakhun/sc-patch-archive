@@ -17,8 +17,10 @@
      [3] Unterscheidbarkeit: Seiten, deren Name samt Zusatzzeile genau so
          auf einer anderen Seite derselben Sprache steht — hoechstens
          --klinke-doppelt (Sperrklinke: wandert nur nach unten)
-     [4] Missionsliste (beide Sprachen): eine Karte je Missionsblatt, die
-         Kartentitel nach [1] und dieselbe Doppel-Klinke wie [3]
+     [4] Missionsliste (beide Sprachen): jede Karte verlinkt genau ein
+         Missionsblatt, jedes Blatt hat genau eine Karte, Titel und Zusatz
+         der Karte sind die des Blatts; Kartentitel nach [1] und dieselbe
+         Doppel-Klinke wie [3]
 
    Selbstauskunft: gelesene Missionsblaetter und Karten je Sprache, mit
    Klinke. Kein git, kein Netz, kein Kindprozess — liest nur dist/.
@@ -46,7 +48,10 @@ const SPRACHEN = [
 ];
 
 const ent = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp: ' ', thinsp: ' ' };
-const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/\s+/g, ' ').trim();
+// Sichtbarer Text eines Markup-Stuecks, nur zum Vergleichen und Melden (die
+// Ausgabe geht in die Konsole, nie zurueck in eine Seite). Uebrige spitze
+// Klammern fallen weg, damit kein halbes Tag als Text durchgeht.
+const text = (h) => h.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/\s+/g, ' ').trim();
 // Marke oder interner Bezeichner im sichtbaren Namen
 const MARKE = /[{}~[\]]|\b[A-Za-z0-9]+_[A-Za-z0-9_]+\b/;
 
@@ -69,6 +74,7 @@ for (const sp of SPRACHEN) {
   const dir = resolve(DIST, sp.ordner);
   const dateien = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.html')) : [];
   const namen = [];
+  const blattName = new Map();
   let titel = 0;
   for (const f of dateien) {
     const h = readFileSync(join(dir, f), 'utf8');
@@ -84,6 +90,7 @@ for (const sp of SPRACHEN) {
     else titel++;
     const sub = /<p class="md__sub"[^>]*>([\s\S]*?)<\/p>/.exec(h);
     namen.push([wo, `${name} | ${sub ? text(sub[1]) : ''}`]);
+    blattName.set(wo, `${name} | ${sub ? text(sub[1]) : ''}`);
   }
   const dop = doppelt(namen);
   const nDop = dop.reduce((s, [, w]) => s + w.length, 0);
@@ -97,18 +104,27 @@ for (const sp of SPRACHEN) {
   // [4] Liste
   const lp = resolve(DIST, sp.liste);
   const l = existsSync(lp) ? readFileSync(lp, 'utf8') : '';
-  const karten = [...l.matchAll(/<h3 class="mc__h"[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<div class="mc__chips")/g)];
+  const karten = [...l.matchAll(/<a class="mc__link" href="([^"]*)"[^>]*>[\s\S]*?<h3 class="mc__h"[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<div class="mc__chips")/g)];
   const kNamen = [];
-  for (const [, h3, rest] of karten) {
+  const verlinkt = new Map();
+  for (const [, href, h3, rest] of karten) {
     const n = text(h3);
     if (!n || MARKE.test(n) || /class="mc__ph/.test(h3)) melde(4, `/${sp.liste}: Kartentitel „${n}"`);
     const sub = /<p class="mc__sub"[^>]*>([\s\S]*?)<\/p>/.exec(rest);
-    kNamen.push([n, `${n} | ${sub ? text(sub[1]) : ''}`]);
+    const voll = `${n} | ${sub ? text(sub[1]) : ''}`;
+    kNamen.push([n, voll]);
+    const ziel = href.replace(/[?#].*$/, '');
+    verlinkt.set(ziel, (verlinkt.get(ziel) ?? 0) + 1);
+    if (!blattName.has(ziel)) melde(4, `/${sp.liste}: Karte „${n}" verlinkt ${ziel}, das kein Missionsblatt ist`);
+    else if (blattName.get(ziel) !== voll) melde(4, `/${sp.liste}: Karte „${voll}" passt nicht zum Blatt ${ziel} („${blattName.get(ziel)}")`);
   }
-  if (karten.length !== dateien.length) fehler.push(`[4] /${sp.liste}: ${karten.length} Karten, aber ${dateien.length} Missionsblaetter`);
+  for (const wo of blattName.keys()) {
+    const k = verlinkt.get(wo) ?? 0;
+    if (k !== 1) melde(4, `/${sp.liste}: ${wo} hat ${k} Karten statt einer`);
+  }
   const kDop = doppelt(kNamen).reduce((s, [, w]) => s + w.length, 0);
   if (kDop > MAX_DOPPELT) fehler.push(`[4] /${sp.liste}: ${kDop} Karten teilen ihren Namen samt Zusatz mit einer anderen (Klinke ${MAX_DOPPELT})`);
-  console.log(`  [4]   ${sp.lang}: ${karten.length} Karten gelesen, ${kDop} mit gleichem Namen samt Zusatz`);
+  console.log(`  [4]   ${sp.lang}: ${karten.length} Karten gelesen, ${verlinkt.size} Blaetter verlinkt, ${kDop} mit gleichem Namen samt Zusatz`);
 }
 for (const [nr, n] of Object.entries(zaehl)) if (n > 8) fehler.push(`[${nr}] … und ${n - 8} weitere`);
 

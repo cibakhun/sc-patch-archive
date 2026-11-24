@@ -327,7 +327,10 @@ export function baueMissionsNamen(
     const r = route(m);
     if (r && !merk.route) merk.route = r;
     const reg = region(m);
-    if (reg) merk.region = T(reg);
+    // Ohne Spieltitel gehoert der Ort immer in den Zusatz — der Hinweis auf
+    // dem Blatt verspricht „Auftraggeber, Ort und Stufe stehen darunter"
+    // (Review #428: eine einzelne Mission hat keine Gruppe, die ihn erzwingt).
+    if (reg) { merk.region = T(reg); if (m.noTitle) pflicht.push('region'); }
     if (!merk.stufe && !/HaulCargo/i.test(m.module ?? '')) {
       // Stufe aus den Kennungen, wenn alle Angebote dieselbe nennen
       let einig: Text | null = null;
