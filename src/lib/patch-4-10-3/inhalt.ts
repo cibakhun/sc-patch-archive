@@ -248,7 +248,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
     { id: 'werte', t: T('Geänderte Werte', 'Changed values') },
     { id: 'ausruestung', t: T('Ausrüstung', 'Gear') },
     { id: 'bestand', t: T('Bestand', 'Catalogue') },
-    { id: 'akte', t: 'Dossier' },
+    { id: 'akte', t: T('Alle Änderungen', 'All changes') },
   ];
 
   const kacheln: Kachel[] = [
@@ -578,7 +578,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
       neueFahrzeuge,
       notiz: [T('Neu bei Schiffen und Fahrzeugen: ', 'New ships and vehicles: '), ...neueFahrzeuge.flatMap((x, i) => (i > 0 ? [', ', x] : [x])), T('. Zwei Editionen entfallen, siehe ', '. Two editions were removed, see '), { t: T('Namen', 'Names'), h: '#namen' }, '.'],
     },
-    dossier: { ziel: 'akte', titel: 'Dossier', text: T('Alle Änderungen als Liste, Schiffstabelle, Datenstand und offizielle Notes', 'Every change as a list, ship table, data status and official notes') },
+    dossier: { ziel: 'akte', titel: T('Alle Änderungen', 'All changes'), text: T('Alle Änderungen als Liste, Schiffstabelle, Datenstand und offizielle Notes', 'Every change as a list, ship table, data status and official notes') },
     bilder,
   };
 }
