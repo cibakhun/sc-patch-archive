@@ -884,6 +884,23 @@ export const CHECKS = [
     // Woerter traegt einen Umlaut. Gruen mit beiden Schluesseln im Katalog.
   },
   {
+    // Neuzugang 24.11.2026 (UX-Audit Paket F1, Missionen lesbar machen).
+    // Kein env-Feld: liest nur dist/.
+    // VORGEFUEHRT ROT am 24.11.2026 zweimal: (a) gegen den Bau vor F1
+    // (staging-Stand des Tages): [1] „Marke als Pille im Titel" auf den
+    // Vorlagen-Titeln („Active Bounty: Target (ERT)" u. a.), [3] und [4]
+    // je Sprache 260 Seiten bzw. Karten mit gleichem Namen (Klinke 8);
+    // (b) gegen den neuen Bau mit von Hand eingesetztem „{TargetName}" in
+    // einer Ueberschrift: [1] FEHLER 1. Gruen mit 8 Doppeln je Sprache —
+    // vier Paare ohne sichtbaren Unterschied in den Daten.
+    id: 'verify:missionstitel',
+    npm: 'verify:missionstitel',
+    script: 'scripts/verify-missionstitel.mjs',
+    rail: 'A',
+    checks:
+      'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); eine Karte je Missionsblatt; Klinke fuer gelesene Blaetter je Sprache',
+  },
+  {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
     // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
     // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand

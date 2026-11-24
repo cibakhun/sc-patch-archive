@@ -8,7 +8,7 @@ import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import Datenstand from './Datenstand.astro';
 import { standMission } from '../lib/datenstand';
-import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel, spielerJeInstanz } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoText, clip, phLabel, spielerJeInstanz, missionName, missionZusatz, missionVollname, belohnung, ortName, regionenHinweis, rangFolge, regionFolge } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { lesbarerRufBereich } from '../lib/lesbar';
@@ -42,7 +42,12 @@ const factLinks = (names: string[], ids: string[], list: { id: string; name: str
 };
 const typeLinks = factLinks(m.typeNames, m.types, db.types, 'type');
 const giverLinks = factLinks(m.giverNames, m.givers, db.givers, 'giver');
-const regionLinks = factLinks(m.localityNames, m.localities, db.localities, 'loc');
+// Regionen nach Buchstaben, Systeme und Orte davor (vorher A, C, B, D).
+const regionLinks = (() => {
+  const l = factLinks(m.localityNames, m.localities, db.localities, 'loc');
+  const folge = regionFolge(l.map((f) => f.n));
+  return l.sort((a, b) => folge.indexOf(a.n) - folge.indexOf(b.n));
+})();
 const guildLinks = factLinks(m.guilds, db.guilds.filter((g) => m.guilds.includes(g.name)).map((g) => g.id), db.guilds, 'guild');
 
 const S = {
@@ -50,11 +55,13 @@ const S = {
     // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
     // kind bleibt der sichtbare Eyebrow-Text auf der Seite.
     kind: 'Mission', titleKind: 'Star-Citizen-Mission',
-    internal: 'Interner Name', internalT: 'Diese Mission trägt keinen festen Titel. Angezeigt wird ihr interner Name — im Spiel heißt sie anders.',
+    internal: 'Name abgeleitet', internalT: 'Diese Mission trägt im Spiel keinen festen Titel. Der Name hier ist aus ihrem Arbeitsnamen abgeleitet; Auftraggeber, Ort und Stufe stehen darunter. Im Spiel heißt sie anders.',
+    workName: 'Arbeitsname',
     mgHead: 'Auftragstext', mgCode: 'mobiGlas // Übertragung',
     mgEnd: 'Ende der Übertragung', mgAria: 'Auftragstext, wie ihn das mobiGlas anzeigt',
     dynamic: 'Titel wird zur Laufzeit gefüllt',
-    dynamicT: 'Die markierten Stellen sind Platzhalter. Das Spiel setzt dort Werte wie den Reputationsrang oder den Namen des Ziels ein.',
+    dynamicT: 'Kursive Wörter stehen für Werte, die das Spiel einsetzt. Die Vorlage lautet:',
+    repNoneShort: 'keine Hürde', more: 'weitere', moreFacts: 'Weitere Angaben', count: 'Anzahl', same: 'gleich',
     appears: 'Erscheint im Spiel als',
     appearsP: 'Je nach Auftraggeber setzt das Spiel einen anderen Titel ein:',
     facts: 'Eckdaten',
@@ -81,11 +88,13 @@ const S = {
   },
   en: {
     kind: 'Mission', titleKind: 'Star Citizen Mission',
-    internal: 'Internal name', internalT: 'This mission has no fixed title. Shown is its internal name — in game it is called something else.',
+    internal: 'Derived name', internalT: 'This mission has no fixed title in the game. The name shown is derived from its working name; contractor, location and tier are listed below it. In game it is called something else.',
+    workName: 'Working name',
     mgHead: 'Contract briefing', mgCode: 'mobiGlas // transmission',
     mgEnd: 'End of transmission', mgAria: 'Contract briefing as the mobiGlas shows it',
     dynamic: 'Title is filled in at runtime',
-    dynamicT: 'The marked spots are placeholders. The game substitutes values like the reputation rank or the target name.',
+    dynamicT: 'Italic words stand for values the game fills in. The template reads:',
+    repNoneShort: 'no requirement', more: 'more', moreFacts: 'More details', count: 'Count', same: 'identical',
     appears: 'Appears in game as',
     appearsP: 'Depending on the contractor, the game uses a different title:',
     facts: 'Key facts',
@@ -119,6 +128,11 @@ const S = {
 const parts = (s: string) => String(s).split(/(\{[^}]*\})/).filter(Boolean)
   .map((x) => (x.startsWith('{') ? { t: phLabel(x.slice(1, -1)), ph: true } : { t: x, ph: false }));
 const titleParts = parts(m.title);
+// Lesbarer, unterscheidbarer Name (UX-Audit F1, src/lib/missionTitel.ts)
+const name = missionName(m);
+const zusatz = missionZusatz(m, lang);
+const vollname = missionVollname(m, lang);
+const reward = belohnung(m, lang);
 const descParts = m.desc ? parts(m.desc) : null;
 const reps = repSummary(m);
 // Rezepte, die DIESE Mission als Quelle nennen. Der Join geht nur in dieser
@@ -137,13 +151,18 @@ const craftedLabels = blueprintListLabels(craftedHere, lang);
 const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
 const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
 const v0 = m.variants[0];
-const rewardTxt = !m.rewardMax && m.calcReward ? S.calcReward : m.rewardMax
-  ? (m.rewardMin === m.rewardMax ? `${uec(m.rewardMax, lang)} aUEC` : `${uec(m.rewardMin, lang)} – ${uec(m.rewardMax, lang)} aUEC`)
-  : S.noReward;
+// Gleiche Zeilen der Angebotstabelle zusammenfassen (UX-Audit F3): 43
+// Tabellen bestanden ueberwiegend aus identischen Zeilen (Salvage Contractor:
+// 24-mal dasselbe). Eine Zeile je Inhalt, mit Anzahl.
 // Spalten der Variantentabelle nur zeigen, wenn sie irgendwo etwas enthalten —
 // bei 470 Hauling-Angeboten waeren 4 leere Spalten reines Rauschen.
-const colGiver = m.variants.some((v) => v.giver);
-const colLoc = m.variants.some((v) => v.locality);
+// Steht in einer Spalte ueberall derselbe Wert, sagt sie nichts, was die
+// Eckdaten nicht schon sagen (Hauler: 7 Zeilen „Red Wind Linehaul"), und
+// eine Belohnungsspalte voller „—" ebenso wenig (UX-Audit F3).
+const verschieden = (xs: (string | null | undefined)[]) => new Set(xs.map((x) => x ?? '')).size > 1;
+const colGiver = m.variants.some((v) => v.giver) && verschieden(m.variants.map((v) => v.giver));
+const colLoc = m.variants.some((v) => v.locality) && verschieden(m.variants.map((v) => v.locality));
+const colReward = m.variants.some((v) => v.reward);
 const colPlaces = m.variants.some((v) => v.places.length);
 const colRep = m.variants.some((v) => v.rep.length);
 // Ist die ganze Mission legal oder illegal, steht das schon in den Eckdaten.
@@ -151,6 +170,35 @@ const colLegal = m.lawful && m.unlawful;
 // Bei 96 Missionen bliebe sonst nur die Spalte Belohnung: 87 Einzelangebote, die
 // die Eckdaten wiederholen, und 9 mit mehreren Angeboten und ueberall „—“.
 const offerTable = colGiver || colLoc || colPlaces || colRep || colLegal;
+type Zeile = { giver: string; loc: string; places: string; legal: boolean; reward: string; rep: string; n: number };
+const zeilen: Zeile[] = [];
+{
+  const idx = new Map<string, Zeile>();
+  for (const v of m.variants) {
+    const z: Zeile = {
+      giver: v.giver ?? S.none,
+      loc: v.locality ?? S.none,
+      places: v.places.length ? v.places.map(ortName).join(', ') : S.none,
+      legal: v.lawful,
+      reward: v.reward ? uec(v.reward, lang) : S.none,
+      rep: v.rep.length ? v.rep.map((r) => repLine(r, lang)).join(' · ') : S.none,
+      n: 1,
+    };
+    const k = [colGiver && z.giver, colLoc && z.loc, colPlaces && z.places, colLegal && z.legal, colReward && z.reward, colRep && z.rep].join('\u0001');
+    const da = idx.get(k);
+    if (da) da.n++;
+    else { idx.set(k, z); zeilen.push(z); }
+  }
+}
+// Zeilen in der Reihenfolge der Eckdaten: Systeme vorn, Regionen nach Buchstaben
+if (colLoc) {
+  const folge = regionFolge([...new Set(zeilen.map((z) => z.loc))]);
+  zeilen.sort((a, b) => folge.indexOf(a.loc) - folge.indexOf(b.loc));
+}
+const colN = zeilen.some((z) => z.n > 1);
+// Kopfzeile der Eckdaten: Ruf als eine Zeile, Region mit Erklaerung
+const repKurz = reps.length ? repLine(reps[0], lang) : null;
+const regionText = regionenHinweis(m.localityNames, lang);
 const related = missions
   .filter((o) => o.slug !== m.slug && o.types.some((t) => m.types.includes(t)))
   .sort((a, b) => b.count - a.count).slice(0, 6);
@@ -158,7 +206,7 @@ const related = missions
 // CamelCase stehen; im h1 bleiben die Marker sichtbar (titleParts), aber in
 // <title>/description sollen lesbare Woerter stehen. clip() kuerzt an der
 // Wortgrenze auf SERP-Laenge (~160), statt hart bei 180 abzuschneiden.
-const seoName = seoTitle(m.title);
+const seoName = vollname;
 // Platzhalter-Descs aus dem DataCore („Mission description (WIP)“) fallen
 // unter die 50-Zeichen-SEO-Schwelle — dann trägt das generische Template mehr.
 const descFallback = lang === 'de'
@@ -194,7 +242,7 @@ const t = useTranslations(lang);
     crumbs={[
       { label: t('crumbs.archive'), href: L('/index.html') },
       { label: t('crumbs.missions'), href: L('/missionen.html') },
-      { label: seoName },
+      { label: name.titel },
     ]}
     hasEn={true}
   />
@@ -203,11 +251,54 @@ const t = useTranslations(lang);
     <div class="md__wrap">
       <header class="md__head">
         <p class="md__eyebrow">{m.typeNames.join(' · ') || S.kind}</p>
+        {/* Lesbarer Titel (UX-Audit F1): Platzhalter als kursives
+            allgemeines Wort; darunter, was gleichnamige Missionen
+            unterscheidet. Die Vorlage mit Marken steht im Hinweis unten. */}
         <h1 class="md__h1">
-          {titleParts.map((p) => (p.ph ? <i class="md__ph">{p.t}</i> : <span>{p.t}</span>))}
+          {name.teile.map((p) => (p.gen ? <i class="md__gen">{p.t}</i> : <span>{p.t}</span>))}
         </h1>
-        {/* Original-Auftragstext aus den Spieldateien — inszeniert als
-            mobiGlas-Uebertragung (Holo-Panel mit Brackets + Scanlines). */}
+        {zusatz && <p class="md__sub">{zusatz}</p>}
+
+        {/* Eckdaten VOR dem Auftragstext (UX-Audit F2): Belohnung, Ruf,
+            Region und Typ standen nach 1,3 Bildschirmen Brieftext, am
+            Telefon nach 2,2. Leere Felder fallen weg, statt „—" zu zeigen. */}
+        <dl class="md__key">
+          <div class="md__keyLohn">
+            <dt>{m.rewardMin === m.rewardMax ? S.reward : S.rewardR}</dt>
+            <dd><span class={reward.zahl ? 'md__uec' : 'md__var'}>{reward.text}</span>{reward.hinweis && <small class="md__hint">{reward.hinweis}</small>}</dd>
+          </div>
+          <div>
+            <dt>{S.rep}</dt>
+            <dd>{repKurz ? <a class="md__fact" href="#ruf">{repKurz}</a> : <span class="md__dim">{S.repNoneShort}</span>}{reps.length > 1 && <span class="md__dim"> +{reps.length - 1}</span>}</dd>
+          </div>
+          {regionLinks.length > 0 && (
+            <div class:list={[{ md__keyWeit: regionLinks.length > 2 || (regionText?.length ?? 0) > 40 }]}>
+              <dt>{S.region}</dt>
+              <dd>{regionLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}{regionText && <small class="md__hint">{regionText}</small>}</dd>
+            </div>
+          )}
+          {typeLinks.length > 0 && (
+            <div>
+              <dt>{S.type}</dt>
+              <dd>{typeLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</dd>
+            </div>
+          )}
+          {giverLinks.length > 0 && (
+            <div>
+              <dt>{S.giver}</dt>
+              <dd>{giverLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</dd>
+            </div>
+          )}
+          {craftedHere.length > 0 && (
+            <div>
+              <dt>{S.bpH}</dt>
+              <dd><a class="md__fact" href="#blueprints">{craftedHere.length}</a>{m.bpChance != null && <span class="md__dim"> · {S.bpChance} {Math.round(m.bpChance * 100)}%</span>}</dd>
+            </div>
+          )}
+        </dl>
+
+        {/* Auftragstext — inszeniert als mobiGlas-Uebertragung (Holo-Panel
+            mit Brackets + Scanlines). */}
         {descParts && (
           <figure class="md__mg" role="group" aria-label={S.mgAria}>
             <figcaption class="md__mgHead">
@@ -229,7 +320,8 @@ const t = useTranslations(lang);
         )}
         {m.titleDynamic && !m.noTitle && (
           <p class="md__warn" role="note">
-            <b>{S.dynamic}.</b> {S.dynamicT}
+            <b>{S.dynamic}.</b> {S.dynamicT}{' '}
+            <span class="md__tpl">{titleParts.map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}</span>
           </p>
         )}
       </header>
@@ -247,20 +339,16 @@ const t = useTranslations(lang);
         </section>
       )}
 
-      {/* Eckdaten */}
+      {/* Weitere Angaben — was oben in den Eckdaten steht, fehlt hier. */}
       <section class="md__sec">
-        <h2 class="md__h2">{S.facts}</h2>
+        <h2 class="md__h2">{S.moreFacts}</h2>
         <dl class="md__facts">
-          <div><dt>{m.rewardMin === m.rewardMax ? S.reward : S.rewardR}</dt><dd class="md__uec">{rewardTxt}</dd></div>
-          <div><dt>{S.type}</dt><dd>{typeLinks.length ? <Fragment>{typeLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
-          <div><dt>{S.giver}</dt><dd>{giverLinks.length ? <Fragment>{giverLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
-          <div><dt>{S.region}</dt><dd>{regionLinks.length ? <Fragment>{regionLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
           {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{guildLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
-          {m.ranks.length > 0 && <div><dt>{S.rank}</dt><dd>{m.ranks.join(' – ')}</dd></div>}
+          {m.ranks.length > 0 && <div><dt>{S.rank}</dt><dd>{rangFolge(m.ranks).join(', ')}</dd></div>}
           <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
-          <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
+          <div><dt>{S.offers}</dt><dd>{m.count.toLocaleString(nf)}</dd></div>
           <div><dt>{S.src}</dt><dd>{srcLabel}</dd></div>
-          <div><dt>{S.players}</dt><dd>{spielerJeInstanz(m) ?? S.none}</dd></div>
+          {spielerJeInstanz(m) != null && <div><dt>{S.players}</dt><dd>{spielerJeInstanz(m)}</dd></div>}
           <div><dt>{S.shareable}</dt><dd>{m.shareable ? S.yes : S.no}</dd></div>
           {v0.buyIn > 0 && <div><dt>{S.buyIn}</dt><dd>{uec(v0.buyIn, lang)} aUEC</dd></div>}
           {dur(v0.deadlineSec, lang) && <div><dt>{S.deadline}</dt><dd>{dur(v0.deadlineSec, lang)}</dd></div>}
@@ -271,7 +359,7 @@ const t = useTranslations(lang);
         {m.places.length > 0 && (
           <>
             <h3 class="md__h3">{S.places}</h3>
-            <ul class="md__tags">{m.places.map((p) => <li class="md__tag">{p}</li>)}</ul>
+            <ul class="md__tags">{m.places.map((p) => <li class="md__tag">{ortName(p)}</li>)}</ul>
           </>
         )}
         {/* Der interne Pfad des Missionsmoduls (PU/PU_Missions/…) und die internen
@@ -280,6 +368,7 @@ const t = useTranslations(lang);
         <details class="md__tech">
           <summary>{S.tech}</summary>
           <dl class="md__facts">
+            {m.noTitle && <div><dt>{S.workName}</dt><dd>{m.title}</dd></div>}
             {m.module && <div><dt>{S.module}</dt><dd><code class="md__code">{m.module}</code></dd></div>}
             <div><dt>{S.entries}</dt><dd><ul class="md__tags">{m.variants.map((v) => <li><code class="md__code">{v.key}</code></li>)}</ul></dd></div>
           </dl>
@@ -309,7 +398,7 @@ const t = useTranslations(lang);
           den Join, verschwindet dieser Abschnitt nicht mehr still — das Tor
           reisst vorher. */}
       {craftedHere.length > 0 && (
-        <section class="md__sec">
+        <section class="md__sec" id="blueprints">
           <h2 class="md__h2">
             <Fragment set:html={ICON_BLUEPRINT} /> {S.bpH} <span class="md__n">{craftedHere.length}</span>
             {m.bpChance != null && <span class="md__badge md__badge--bp">{S.bpChance} {Math.round(m.bpChance * 100)}%</span>}
@@ -324,7 +413,7 @@ const t = useTranslations(lang);
       )}
 
       {/* Reputation */}
-      <section class="md__sec">
+      <section class="md__sec" id="ruf">
         <h2 class="md__h2">{S.rep}</h2>
         {reps.length ? (
           <>
@@ -379,32 +468,32 @@ const t = useTranslations(lang);
 
       {/* Varianten */}
       <section class="md__sec">
-        <h2 class="md__h2">{S.offers} <span class="md__n">{m.count}</span></h2>
+        <h2 class="md__h2">{S.offers} <span class="md__n">{m.count.toLocaleString(nf)}</span></h2>
         {m.count > 1 ? (
-          <p class="md__p" set:html={S.offersP.replace('%n%', String(m.count))} />
+          <p class="md__p" set:html={S.offersP.replace('%n%', m.count.toLocaleString(nf))} />
         ) : <p class="md__p md__dim">{S.single}</p>}
         {offerTable && (
           <div class="md__tblWrap">
             <table class="md__tbl md__tbl--var">
               <thead><tr>
+                {colN && <th class="md__num">{S.count}</th>}
                 {colGiver && <th>{S.tblGiver}</th>}
                 {colLoc && <th>{S.tblLoc}</th>}
                 {colPlaces && <th>{S.tblPlaces}</th>}
                 {colLegal && <th>{S.legal}</th>}
-                <th>{S.tblReward}</th>
+                {colReward && <th>{S.tblReward}</th>}
                 {colRep && <th>{S.tblRep}</th>}
               </tr></thead>
               <tbody>
-                {m.variants.map((v) => (
+                {zeilen.map((z) => (
                   <tr>
-                    {colGiver && <td>{v.giver ?? S.none}</td>}
-                    {colLoc && <td>{v.locality ?? S.none}</td>}
-                    {colPlaces && <td class="md__dim md__places">{v.places.length ? v.places.join(', ') : S.none}</td>}
-                    {colLegal && <td>{v.lawful ? S.lawful : <span class="md__badge md__badge--il">{S.unlawful}</span>}</td>}
-                    <td class="md__num md__uec">{v.reward ? uec(v.reward, lang) : S.none}</td>
-                    {colRep && <td class="md__dim">{v.rep.length
-                      ? v.rep.map((r) => repLine(r, lang)).join(' · ')
-                      : S.none}</td>}
+                    {colN && <td class="md__num">{z.n > 1 ? `${z.n} ×` : ''}</td>}
+                    {colGiver && <td>{z.giver}</td>}
+                    {colLoc && <td>{z.loc}</td>}
+                    {colPlaces && <td class="md__dim md__places">{z.places}</td>}
+                    {colLegal && <td>{z.legal ? S.lawful : <span class="md__badge md__badge--il">{S.unlawful}</span>}</td>}
+                    {colReward && <td class="md__num md__uec">{z.reward}</td>}
+                    {colRep && <td class="md__dim">{z.rep}</td>}
                   </tr>
                 ))}
               </tbody>
@@ -444,8 +533,8 @@ const t = useTranslations(lang);
             {related.map((r) => (
               <li>
                 <a href={L(`/missionen/${r.slug}.html`)}>
-                  <b>{seoTitle(r.title)}</b>
-                  <span>{r.typeNames[0] ?? ''}{r.rewardMax ? ` · ${uec(r.rewardMax, lang)} aUEC` : ''}</span>
+                  <b>{missionName(r).titel}</b>
+                  <span>{[missionZusatz(r, lang) || r.typeNames[0] || '', r.rewardMax ? `${uec(r.rewardMax, lang)} aUEC` : ''].filter(Boolean).join(' · ')}</span>
                 </a>
               </li>
             ))}
@@ -474,7 +563,7 @@ const t = useTranslations(lang);
   .md { padding: calc(var(--nav-h, 68px) + 1.5rem) 0 4rem; }
   .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
 
-  .md__head { padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+  .md__head { padding-bottom: 1.3rem; border-bottom: 1px solid var(--line); margin-bottom: 1.6rem; }
   .md__eyebrow {
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-19); font-size: var(--fs-4);
     color: var(--accent); margin-bottom: .6rem;
@@ -495,6 +584,39 @@ const t = useTranslations(lang);
     font-style: normal; font-size: .62em; vertical-align: .12em; padding: .1em .45em; border-radius: 7px;
     white-space: nowrap; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
     border: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  /* Lesbarer Titel (UX-Audit F1): Platzhalter als kursives allgemeines Wort
+     statt Marke — dieselbe Lesart wie die Karten der Missionsliste. */
+  .md__gen { font-style: italic; color: color-mix(in srgb, var(--accent-2) 70%, var(--muted)); }
+  .md__sub {
+    margin: -.2rem 0 .9rem; font-family: var(--font-ui); font-size: var(--fs-9); color: var(--accent-2); line-height: 1.35;
+  }
+  /* Eckdaten (UX-Audit F2): eine Zeile Kacheln vor dem Auftragstext.
+     Am Telefon zwei Spalten; die Belohnung nimmt dort die volle Breite,
+     weil ihr Hinweis („variiert") sonst in eine 150-px-Spalte bricht. */
+  .md__key {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(10.5rem, 100%), 1fr)); gap: .5rem;
+    margin: .4rem 0 0; max-width: 74ch;
+  }
+  .md__key > div {
+    padding: .55rem .7rem; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); min-width: 0;
+  }
+  .md__key dt {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-12); font-size: var(--fs-2);
+    color: var(--muted); margin-bottom: .2rem;
+  }
+  .md__key dd { font-size: var(--fs-8); overflow-wrap: anywhere; }
+  .md__keyLohn { border-color: color-mix(in srgb, var(--accent) 35%, transparent) !important; }
+  .md__keyLohn .md__uec { font-size: var(--fs-11); }
+  .md__var { font-family: var(--font-display); font-weight: 700; color: var(--accent-2); }
+  .md__hint { display: block; margin-top: .2rem; font-size: var(--fs-5); color: var(--muted); line-height: 1.4; }
+  .md__tpl { display: inline; font-family: var(--font-ui); color: var(--text); }
+  @media (max-width: 640px) {
+    .md__key { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .md__keyLohn, .md__keyWeit { grid-column: 1 / -1; }
+    /* Eine breite Region-Kachel liesse den Ruf allein in seiner Zeile;
+       dense zieht die naechste schmale Kachel daneben. */
+    .md__key { grid-auto-flow: row dense; }
   }
   /* ---------- mobiGlas-Panel: der In-Game-Auftragstext als Holo-Uebertragung ---------- */
   /* Eckig statt Site-Radius: SC-HUD-Sprache (Brackets vertragen keine runden
@@ -558,7 +680,11 @@ const t = useTranslations(lang);
     border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent); border-left-width: 3px;
   }
 
-  .md__sec { margin-bottom: 2.6rem; }
+  /* detail.css gibt jedem <section> clamp(3rem,7vw,5.5rem) Polster oben und
+     unten und bis 4rem seitlich — auf dem Missionsblatt waren das bis zu
+     240 px Leere zwischen zwei Abschnitten und ein Versatz gegen den Kopf
+     (UX-Audit F2, „weniger Leerraum"). Abstand regelt hier allein der Rand. */
+  .md__sec { padding: 0; margin-bottom: 2.4rem; }
   .md__h2 {
     font-family: var(--font-display); font-size: var(--fs-11); font-weight: 800; letter-spacing: var(--ls-7);
     text-transform: uppercase; color: var(--accent); margin-bottom: .7rem;
@@ -688,6 +814,10 @@ const t = useTranslations(lang);
   .md__srcMeta { margin-top: .5rem; font-size: var(--fs-5); opacity: .85; }
 
   @media (max-width: 640px) {
+    /* „Weitere Angaben" zweispaltig wie die Eckdaten: einspaltig waren es
+       am Telefon elf Kacheln untereinander fuer je ein Wort. Steht hier
+       unten, weil die Grundregel weiter oben sonst gewinnt. */
+    .md__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .md__appear li { grid-template-columns: 1fr; gap: .15rem; }
     .md__tbl th { position: static; }
   }
