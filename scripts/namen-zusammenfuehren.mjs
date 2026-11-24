@@ -165,6 +165,11 @@ console.log(`OK: ${DB} (Fundorte ${fz.items} Items, withObtain ${db.counts?.with
 // Dateien, die Items per Id ansprechen. Ersetzt wird im Text, damit ihr
 // Format (eine Zeile je Item) bleibt, wie die Erzeuger es schreiben.
 const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Hat das Modell `vorher` (irgendwo in der Hangar-Liste) schon key = `nachher`?
+function hangarKeyIst(text, vorher, nachher) {
+  const suche = (o) => o && typeof o === 'object' && (o[vorher]?.key === nachher || Object.values(o).some(suche));
+  return suche(JSON.parse(text));
+}
 for (const [art, pfad] of Object.entries(ID_DATEIEN)) {
   let text = readFileSync(pfad, 'utf8');
   let n = 0;
@@ -175,7 +180,9 @@ for (const [art, pfad] of Object.entries(ID_DATEIEN)) {
     const muster = art === 'hangar' ? new RegExp(`"key": "${esc(vorher)}"`, 'g') : new RegExp(`^(\\s*)"${esc(vorher)}":`, 'gm');
     const treffer = text.match(muster)?.length ?? 0;
     if (!treffer) {
-      if (art === 'hangar' && new RegExp(`"${esc(vorher)}": \\{`).test(text)) throw new Error(`${pfad}: Modell ${vorher} ohne Feld key — von Hand nachziehen`);
+      // Ein Modell, das nach der alten Id heisst, braucht key = neue Id. Traegt
+      // es den schon (frueherer Lauf), ist nichts zu tun; sonst von Hand.
+      if (art === 'hangar' && new RegExp(`"${esc(vorher)}": \\{`).test(text) && !hangarKeyIst(text, vorher, nachher)) throw new Error(`${pfad}: Modell ${vorher} ohne Feld key — von Hand nachziehen`);
       continue;
     }
     if (art !== 'hangar' && (treffer > 1 || new RegExp(`^\\s*"${esc(nachher)}":`, 'm').test(text))) throw new Error(`${pfad}: ${vorher} -> ${nachher} nicht eindeutig umschluesselbar`);
