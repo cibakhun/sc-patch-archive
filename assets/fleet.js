@@ -277,13 +277,26 @@
     if (el.closest('[data-fleet-retry]')) request(true);
   }
 
-  function toggle(id, label) {
+  // want: undefined = umschalten (Datenblatt, Hangar); true/false = nur in
+  // diese Richtung (add/remove für „Entfernen“ und „Rückgängig“ auf
+  // /account/fleet.html). Hat ein anderer Tab schon entfernt oder hinzugefügt
+  // und ist dessen storage-Ereignis hier noch nicht angekommen, bleibt es
+  // dabei: entschieden wird an derselben Lesung der Ablage, die auch
+  // geschrieben wird, nicht an der Anzeige.
+  function change(id, label, want) {
     if (typeof id !== 'string' || !ID_RE.test(id)) return Promise.resolve(false);
     label = cleanLabel(label, id);
     if (!uid) {
-      // Ohne nutzbaren Speicher hält die Seite die Flotte nur im Arbeitsspeicher.
-      var g = storageBroken ? ships.slice() : readGuest();
+      var g = storageBroken ? null : readGuest();
+      // Ohne nutzbaren Speicher (auch wenn er bei dieser Lesung erst versagt
+      // hat) hält die Seite die Flotte nur im Arbeitsspeicher.
+      if (storageBroken) g = ships.slice();
       var at = find(g, id);
+      if (want !== undefined && (at !== -1) === want) {
+        ships = g;
+        notify();
+        return Promise.resolve(want);
+      }
       if (at === -1) g.push({ id: id, label: label });
       else g.splice(at, 1);
       writeGuest(g);
@@ -292,6 +305,10 @@
       return Promise.resolve(at === -1);
     }
     var on = find(computeView(), id) === -1;
+    if (want !== undefined && on !== want) {
+      refresh();
+      return Promise.resolve(want);
+    }
     var m = readMirror(uid);
     var i = find(m.ships, id);
     if (on && i === -1) m.ships.push({ id: id, label: label });
@@ -309,18 +326,7 @@
     flushTimer = setTimeout(function () { flushTimer = null; request(false); }, FLUSH_MS);
     return new Promise(function (resolve) { waiters.push({ id: id, resolve: resolve }); });
   }
-
-  // „Entfernen“ und „Rückgängig“ auf /account/fleet.html meinen eine Richtung,
-  // kein Umschalten. Hat ein anderer Tab schon entfernt oder hinzugefügt und
-  // ist dessen storage-Ereignis hier noch nicht angekommen, bleibt es dabei:
-  // gelesen wird die Ablage, nicht die Anzeige.
-  function ensure(id, label, want) {
-    if (typeof id !== 'string' || !ID_RE.test(id)) return Promise.resolve(false);
-    var now = uid ? computeView() : storageBroken ? ships : readGuest();
-    if ((find(now, id) !== -1) !== want) return toggle(id, label);
-    if (uid || !storageBroken) refresh();
-    return Promise.resolve(want);
-  }
+  function toggle(id, label) { return change(id, label); }
 
   // Web Locks reihen die Läufe aller Tabs: ein zweiter Tab liest offene
   // Absichten erst, wenn der erste sie bestätigt hat, und schickt sie nicht
@@ -632,8 +638,8 @@
     owner: function () { return uid || ''; },
     has: has,
     toggle: toggle,
-    add: function (id, label) { return ensure(id, label, true); },
-    remove: function (id) { return ensure(id, '', false); },
+    add: function (id, label) { return change(id, label, true); },
+    remove: function (id) { return change(id, '', false); },
     subscribe: function (fn) {
       if (typeof fn !== 'function') return function () {};
       subs.push(fn);
