@@ -12,6 +12,7 @@ Rohwörtern („VEHICLEGEAR / WEAPONS").
 | Art | Sprache auf `/de/` | Beispiel |
 | --- | --- | --- |
 | Eigenname aus dem Spiel (Item, Schiff, Ort, Erz, Hersteller, Mission) | englisch, wie im Spiel | „Arclight Pistol", „Port Tressler", „Quantanium" |
+| Spielbegriff (Crafting, Blueprint, Mining, Loadout, …) | englisch, in beiden Sprachen ([`docs/begriffe.md`](begriffe.md) Regel 3) | „Blueprint-Verzeichnis", „Craft-Zeit" |
 | Bedienwort, Überschrift, Hinweis der Seite | deutsch | „Fundorte", „Im Crafting-Planer öffnen" |
 | Wertname, Gattung, Kategorie | deutsch | „Rückstoßglättung", „Verteilzentren", „Schiffskomponenten / Waffen" |
 | Spieltext ohne deutsche Fassung (Beschreibung, Missionstext) | englisch, **mit `lang="en"`** | Missionsbeschreibung, Schiffsbeschreibung |
