@@ -3228,7 +3228,7 @@ if (WK) {
         { name: 'Einfahrt', c: [(T.x + F.x + F.hx) / 2, 0], a: 0, hx: (T.x - F.x - F.hx) / 2, hz: T.b / 2 + 0.5 },
       ];
       const erg = pruefeWerkBoden(stuecke, { boden: rBoden, alle: rAlle, oben: (node) => satz.get(node)?.oben, frei, raum: { x: [GA.x - gi.z[1], GA.x], z: gi.x } });
-      const tris = stuecke.reduce((a, m) => a + (satz.get(m.node)?.tris ?? 0), 0), zonen = (BB.zonen ?? []).length;
+      const tris = stuecke.reduce((a, m) => a + (satz.get(m.node)?.tris ?? 0), 0), zonen = new Set(stuecke.map((m) => m.zone)).size; // belegte Zonen: eine leere trägt nichts bei
       werkRun.boden = { ...erg.zahlen, zonen, tris, fehler: erg.inWand.length + erg.schwebt.length + erg.ineinander.length + erg.imWeg.length + erg.draussen.length };
       if (erg.inWand.length) fail(`[18] WERK_BODEN: ${erg.inWand.length} Stuecke stecken in Wand, Vorbau oder Boden der Garage (${erg.inWand.slice(0, 3).join('; ')}): Lage im Block nachziehen`);
       if (erg.schwebt.length) fail(`[18] WERK_BODEN: ${erg.schwebt.length} Stuecke stehen weder auf dem Boden der Garage noch auf einem Stueck ihrer Zone (${erg.schwebt.slice(0, 3).join('; ')}): Sie schwebten oder versaenken. Unterkante nachmessen (Seitenstreifen und Buchten -0,12 m)`);

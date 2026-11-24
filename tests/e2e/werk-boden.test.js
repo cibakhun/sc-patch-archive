@@ -88,3 +88,13 @@ test('Mitte der Grundfläche: Ursprung des Knotens versetzt und gedreht wie make
   assert.ok(Math.abs(stuecke[0].c[0] - 2) < 1e-9 && Math.abs(stuecke[0].c[1] - 2.5) < 1e-9, JSON.stringify(stuecke[0].c));
   assert.equal(werkBodenStuecke(block([['fehlt', 0, 0, 0, 0]]), masse).ohne[0], 'fehlt');
 });
+
+test('zwei niedrige Kisten am selben Platz sind ineinander, nebeneinander nicht', () => {
+  const G = garage();
+  const fall = (glieder) => pruefeWerkBoden(werkBodenStuecke(block(glieder), masse).stuecke, { ...G, oben, frei: FREI, raum: { x: [-10, 10], z: [-5, 5] } });
+  // 0,3 m hoch: die Hallendeko liesse dieses Paar aus (Matten und Kabel liegen dort übereinander)
+  const ein = fall([['kiste', 0, -0.12, 0, 0], ['kiste', 0.1, -0.12, 0, 0]]);
+  assert.equal(ein.ineinander.length, 1);
+  assert.equal(ein.zahlen.paare, 1);
+  assert.deepEqual(fall([['kiste', 0, -0.12, 0, 0], ['kiste', 0.5, -0.12, 0, 0]]).ineinander, []);
+});

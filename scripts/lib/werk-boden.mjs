@@ -73,7 +73,8 @@ export function pruefeWerkBoden(stuecke, { boden, alle, oben, frei = [], raum })
     const ex = Math.abs(Math.cos(m.a)) * m.hx + Math.abs(Math.sin(m.a)) * m.hz, ez = Math.abs(Math.sin(m.a)) * m.hx + Math.abs(Math.cos(m.a)) * m.hz;
     if (raum && !(m.c[0] - ex >= raum.x[0] && m.c[0] + ex <= raum.x[1] && m.c[1] - ez >= raum.z[0] && m.c[1] + ez <= raum.z[1])) draussen.push(m.name);
   }
-  // getragen und nicht ineinander, mit der Rechnung der Hallendeko (Zone für Zone)
-  const L = pruefeLage(stuecke, { oben, feld: null, spur: { laenge: 0, rand: 0 } });
+  // getragen und nicht ineinander, mit der Rechnung der Hallendeko (Zone für Zone); anders als
+  // dort zählt jedes Paar, auch zwei niedrige (Reifen, Rollbrett, Eimer stehen fest am Boden)
+  const L = pruefeLage(stuecke, { oben, feld: null, spur: { laenge: 0, rand: 0 }, flach: 0 });
   return { inWand, schwebt: L.schwebt, ineinander: L.ineinander, imWeg, draussen, zahlen: { stuecke: stuecke.length, amBoden, getragen: L.zahlen.getragen, gestapelt: L.zahlen.gestapelt, paare: L.zahlen.paare } };
 }

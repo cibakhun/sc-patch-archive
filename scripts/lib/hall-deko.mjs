@@ -145,9 +145,11 @@ export const fahrspurVor = (v, { laenge, rand }) => {
  * @param {{ from: number[], to: number[] }|null} o.feld      Feld des Aufzugs im Modellraum
  * @param {number} o.abstand   Abstand zum Feld in m, der frei bleibt
  * @param {{ laenge: number, rand: number }} o.spur  Fahrspur vor jedem Fahrzeug
+ * @param {number} [o.flach]  Paare, deren beide Stücke niedriger sind, prüft das Ineinander nicht
+ *   (Matten, Kabel und Decals der Hallendeko liegen übereinander); 0 prüft jedes Paar
  * @returns {{ imFeld: string[], ineinander: string[], schwebt: string[], imSpur: string[], zahlen: object }}
  */
-export function pruefeLage(stuecke, { oben, feld, abstand = 0, spur }) {
+export function pruefeLage(stuecke, { oben, feld, abstand = 0, spur, flach = 0.35 }) {
   const imFeld = [], ineinander = [], schwebt = [], imSpur = [];
   const zahlen = { stuecke: stuecke.length, amBoden: 0, gestapelt: 0, paare: 0, getragen: 0, fahrspuren: 0, feld: 0 };
   if (feld) {
@@ -177,7 +179,7 @@ export function pruefeLage(stuecke, { oben, feld, abstand = 0, spur }) {
   for (let i = 0; i < stuecke.length; i++) for (let k = i + 1; k < stuecke.length; k++) {
     const p = stuecke[i], q = stuecke[k];
     if (Math.min(p.top, q.top) - Math.max(p.y, q.y) < 0.05) continue;
-    if (p.top - p.y < 0.35 && q.top - q.y < 0.35) continue;
+    if (p.top - p.y < flach && q.top - q.y < flach) continue;
     zahlen.paare++;
     if (traegtMittelbar(p, q) || traegtMittelbar(q, p)) continue;
     const ov = ueberdeckung(p, q);
