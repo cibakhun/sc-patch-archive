@@ -12,6 +12,10 @@
    fest, gegen das Artefakt, nicht gegen die Quelle.
 
    Ausgenommen sind nur benannte Seiten ohne Layout, jede mit Anlass.
+   Das Testpiloten-Tor (gate.astro) war bis zum 24.11.2026 die dritte
+   Ausnahme; seitdem verlinkt es Impressum und Datenschutz der Live-Seite
+   (auf staging liegen beide hinter dem Tor) und wird wie jede Seite
+   geprueft. Der Zombie-Waechter hat die alte Ausnahme dabei gemeldet.
    Zombie-Waechter: eine Ausnahme, die keine Datei mehr trifft oder
    deren Dateien die Links inzwischen selbst tragen, reisst das Tor
    (Ausnahmen sind Schulden, sie sollen nicht still liegen bleiben).
@@ -31,11 +35,6 @@ const DIST = 'dist';
 const KLINKE = 17000;
 
 const AUSNAHMEN = [
-  {
-    muster: /^gate\.html$/,
-    anlass:
-      'Testpiloten-Tor, eigenstaendig ohne Layout (gate.astro). Auf staging liegen Impressum und Datenschutz selbst hinter dem Tor, ein Link fuehrte zurueck aufs Tor; dafuer braeuchte nginx eine eigene GATE-AUSNAHME.',
-  },
   {
     muster: /^(?:de\/)?hangar-bay\//,
     nurVorschau: true,

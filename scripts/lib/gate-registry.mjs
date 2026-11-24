@@ -357,7 +357,7 @@ export const CHECKS = [
     script: 'scripts/verify-rechtsfuss.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite verlinkt Impressum und Datenschutz (Rechtsfuss aus Layout.astro, wo die Seite keinen eigenen Fuss mit beiden Links hat); ausgenommen nur benannte Seiten ohne Layout mit Anlass und Zombie-Waechter (Tor, Hangar-Bucht, Onepager), Klinke 17.000 Seiten',
+      'jede gebaute Seite verlinkt Impressum und Datenschutz (Rechtsfuss aus Layout.astro, wo die Seite keinen eigenen Fuss mit beiden Links hat); ausgenommen nur benannte Seiten ohne Layout mit Anlass und Zombie-Waechter (Hangar-Bucht, Onepager; das Tor verlinkt die Live-Seiten), Klinke 17.000 Seiten',
   },
   {
     // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
