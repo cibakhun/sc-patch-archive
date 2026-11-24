@@ -394,11 +394,23 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
       document.querySelectorAll('.is-ziel').forEach(function (x) { x.classList.remove('is-ziel'); });
       row.classList.add('is-ziel');
       if (el !== row) el.classList.add('is-ziel');
+      // Waagrecht mittig in der sichtbaren Flaeche RECHTS der festen
+      // Systemspalte; bei schmalem Fenster laege die Zelle sonst darunter.
+      var sys = row.querySelector('.evo__sys');
+      var sysW = sys ? sys.getBoundingClientRect().width : 0;
       var sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect();
-      scroller.scrollTop += er.top - sr.top - (sr.height - er.height) / 2;
-      if (el !== row) scroller.scrollLeft += er.left - sr.left - (sr.width - er.width) / 2;
-      var top = shell.getBoundingClientRect().top + window.scrollY - 80;
-      window.scrollTo(0, Math.max(0, top));
+      if (el !== row) scroller.scrollLeft += er.left - (sr.left + sysW) - (sr.width - sysW - er.width) / 2;
+      // Senkrecht: Hat die Matrix eine eigene Hoehe, scrollt sie in sich und
+      // die Seite holt die Matrix ins Bild. Ohne Deckel (flache Fenster,
+      // max-height:none) scrollt nur die Seite, und zwar auf das Ziel selbst.
+      if (scroller.scrollHeight - scroller.clientHeight > 2) {
+        scroller.scrollTop += er.top - sr.top - (sr.height - er.height) / 2;
+        var top = shell.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo(0, Math.max(0, top));
+      } else {
+        var ziel = el.getBoundingClientRect();
+        window.scrollTo(0, Math.max(0, ziel.top + window.scrollY - (window.innerHeight - ziel.height) / 2));
+      }
       syncEdge();
     };
     window.addEventListener('hashchange', zumZiel);
