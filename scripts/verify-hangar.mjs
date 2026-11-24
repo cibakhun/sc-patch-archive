@@ -1097,7 +1097,10 @@ for (const k of KLINKEN) {
 
 say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame, fit, paint');
 const viewerFile = join(DIST, 'assets', 'hangar-viewer.js');
-const viewer = existsSync(viewerFile) ? readFileSync(viewerFile, 'utf8') : '';
+// auf LF: Unter Windows (core.autocrlf) kommt dist/ mit CRLF, und die Muster
+// unten messen Abstaende in Zeichen ([\s\S]{0,1600}?) und erwarten \n.
+const aufLf = (t) => t.replace(/\r\n/g, '\n');
+const viewer = existsSync(viewerFile) ? aufLf(readFileSync(viewerFile, 'utf8')) : '';
 const api = viewer.slice(viewer.lastIndexOf('return {'));
 const SEAM = ['project', 'focus', 'setCover', 'onFrame', 'fit', 'paint'];
 const seam = SEAM.filter((n) => new RegExp(`\\b${n}\\b`).test(api));
@@ -1115,7 +1118,7 @@ for (const page of PAGES) {
 
 say('\n[9] Jede Vorlage aus msg(…) im Controller steht auf beiden Hangarseiten');
 const ctrlFile = join(DIST, 'assets', 'hangar-overview.js');
-const ctrl = existsSync(ctrlFile) ? readFileSync(ctrlFile, 'utf8') : '';
+const ctrl = existsSync(ctrlFile) ? aufLf(readFileSync(ctrlFile, 'utf8')) : '';
 if (!ctrl) fail('[9] dist/assets/hangar-overview.js fehlt');
 const msgIds = [...new Set([...ctrl.matchAll(/\bmsg\('([a-z-]+)'\)/g)].map((m) => m[1]))];
 for (const page of PAGES) {
@@ -1487,7 +1490,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   sollIst('Licht der Halle nach Schiffswechsel wie frisch geladen (Kugel in Ruhelage, Schattenkegel am Ende des Gleitens)', kugelRuhe && kegelEnde ? 'ja' : `nein (Kugel ${kugelRuhe ? 'ja' : 'nein'}, Kegel ${kegelEnde ? 'ja' : 'nein'})`);
   if (!kugelRuhe) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr in Ruhelage auf (hallRest() um jede Seite in envSeite: Schiffsfeld und Wartungsplatz sichtbar, Tor und Schacht aus): nach einem Schiffswechsel kommt sie vom geschlossenen Tor und steht ein Viertel bis ein Drittel dunkler als nach frischem Laden (13.11.2026)');
   if (!kegelEnde) fail('[12] dist/assets/hangar-viewer.js: growStep() richtet die Schattenkegel am Ende des Gleitens nicht mehr neu (scaleLamps()): nach einem Schiffswechsel bleibt der Schatten des Schiffs groeber als nach frischem Laden (13.11.2026)');
-  const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
+  const ctrl = existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? aufLf(readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8')) : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
   sollIst('Controller gibt gpu und quality an initHangar', passes ? 'ja' : `nein (${call.trim().slice(0, 80) || 'kein Aufruf'})`);

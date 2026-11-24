@@ -996,6 +996,14 @@ function hallShiftPoint(h, p) {
 // Glanzlichter auf dem Deck aus; 1 und 0,5 stehen. Die Rangfolge der Bühne
 // stellt die Hauptstrahler vor alle anderen Lampen, auch die schwächer
 // gestellten.
+// Seit dem 24.11.2026 auch in util-smltop (zwei Fluter, je 300, einer auf
+// jeder Seite der Landefläche) und util-medtop (vier, je 600, zwei auf
+// jeder Seite), mit denselben Werten: Dieselben türkisen Fluter färbten dort
+// Lack und Deck türkis (Origin 300i in Small, 400i und Cutlass Black in
+// Medium, Bilder vom PC am 24.11.2026), und auch dort steht die Kamera beim
+// Start auf der Seite +x. Krisz am
+// 24.11.2026 auf die Frage, ob das Licht der Large-Halle so passt:
+// „Schau doch selber“.
 // `bis`: nur Lampen schwächer als diese Spielstärke; `mal`: Faktor auf
 // beide Seiten. In util-xltop sind es die vier Fluter über den Längsseiten
 // (je 300, 105 m über dem Boden, 146 m von der Mitte der Landefläche). Ohne
@@ -1013,8 +1021,8 @@ function hallShiftPoint(h, p) {
 // durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
   "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.3, "grund": 4, "gitter": 3, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.085 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
-  "util-medtop": { "size": "M", "pad": { "from": [28, -111], "to": [84, -23] }, "clear": 32, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_med_a": 0.25 } },
-  "util-smltop": { "size": "S", "pad": { "from": [30, 32], "to": [54, 64] }, "clear": 16, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_sml_a": 0.25 } },
+  "util-medtop": { "size": "M", "pad": { "from": [28, -111], "to": [84, -23] }, "clear": 32, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_med_a": 0.25 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
+  "util-smltop": { "size": "S", "pad": { "from": [30, 32], "to": [54, 64] }, "clear": 16, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_sml_a": 0.25 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
   "util-xltop": { "size": "XL", "pad": { "from": [-192, 32], "to": [-32, 304] }, "clear": 64, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_xlrg_a": 0.25 }, "strahler": { "ab": 300, "bis": 1000, "weiss": 0.65, "seiten": [1, 0.5], "mal": 12 } }
 } /* /hall-fest */;
 

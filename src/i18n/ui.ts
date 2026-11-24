@@ -166,7 +166,7 @@ const UI = {
     'ship.holo.loading': '3D-Modell lädt … %p% %',
     'ship.holo.error': '3D-Modell konnte nicht geladen werden.',
     // -- Interaktives Komponenten-Hologramm --
-    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Scrollen: zoomen',
+    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Strg + Mausrad: zoomen',
     'holo.activate': 'Hologramm aktivieren',
     'holo.panel.title': 'Komponenten-Details',
     'holo.panel.size': 'Größe',
@@ -267,6 +267,11 @@ const UI = {
     'ship.similar.title': 'Ähnliche Schiffe',
     'ship.similar.noimg': 'KEIN BILD',
     'ship.links.all': '← Alle Schiffe',
+    'ship.links.item': 'Item-Datenblatt',
+    'ship.wege.wikelo': 'Auch im Tausch bei',
+    'ship.wege.auftrag': 'Auftrag:',
+    'ship.wege.item': 'Dasselbe Schiff als Item-Datenblatt:',
+    'ship.loadout.open': 'Im %name% öffnen →',
     'ship.source': 'Quelle:',
     'ship.asof': 'Stand',
     'ship.meta.desc': '%name% von %maker% — Star-Citizen-Schiff: 3D-Ansicht, Specs, Ingame-Preis & Kauforte, Lackierungen, Varianten und Patch-Historie.',
@@ -296,7 +301,6 @@ const UI = {
     'fleet.resync': 'Nicht abgeglichen · erneut versuchen',
     'ship.hangar3d': 'Im 3D-Hangar ansehen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
-    'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
     'ship.code.trade': 'HANDEL',
     'ship.code.rank': 'RANG',
@@ -328,6 +332,7 @@ const UI = {
     'arm.racks': 'Werfer',
     'arm.count': 'Stück',
     'arm.countermeasures': 'Gegenmaßnahmen',
+    'arm.mining': 'Mining-Laser',
     'arm.launchers': 'Werfer',
     'arm.weapon': 'Waffe',
     'arm.loadout': 'Bestückung',
@@ -340,6 +345,7 @@ const UI = {
     'arm.stat.racks': 'Raketenwerfer',
     'arm.stat.stations': 'Turmstationen',
     'arm.stat.cm': 'Gegenmaßnahmen',
+    'arm.stat.mining': 'Mining-Laser',
     'arm.stat.totalDps': 'Gesamt',
     'payload.gun': 'Geschütz',
     'payload.missile': 'Raketenwerfer',
@@ -397,6 +403,10 @@ const UI = {
     'do.notesRsi': 'Offizielle Patch Notes (RSI)',
     'do.fixesList': 'Alle Fehlerbehebungen in den offiziellen Notes',
     'do.unvNote': '* unbestätigt · ',
+    // Querwege aus dem Dossier (UX-Audit H3, 24.11.2026)
+    'do.evoChip': '%s% über alle Patches (Evolution)',
+    'do.toArchive': 'Alle Patches im Archiv',
+    'do.toEvo': 'Jedes System über alle Patches: Evolution',
     // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
     'tf.topic': 'Thema',
     'tf.source': 'Quelle Alpha',
@@ -442,6 +452,7 @@ const UI = {
     'arch.entry': 'Eintrag',
     'arch.versions': 'Versionen',
     'arch.toTop': 'Nach oben',
+    'arch.evo': 'Evolution: jedes Spielsystem über alle Patches',
   },
   en: {
     // -- Navigation --
@@ -575,7 +586,7 @@ const UI = {
     'ship.holo.loading': 'Loading 3D model … %p% %',
     'ship.holo.error': 'Could not load 3D model.',
     // -- Interactive component hologram --
-    'holo.hint': 'Drag: rotate · right-drag: pan · scroll: zoom',
+    'holo.hint': 'Drag: rotate · right-drag: pan · Ctrl + wheel: zoom',
     'holo.activate': 'Activate hologram',
     'holo.panel.title': 'Component details',
     'holo.panel.size': 'Size',
@@ -667,6 +678,11 @@ const UI = {
     'ship.similar.title': 'Similar ships',
     'ship.similar.noimg': 'NO IMAGE',
     'ship.links.all': '← All ships',
+    'ship.links.item': 'Item data sheet',
+    'ship.wege.wikelo': 'Also traded at',
+    'ship.wege.auftrag': 'Contract:',
+    'ship.wege.item': 'This ship as an item data sheet:',
+    'ship.loadout.open': 'Open in %name% →',
     'ship.source': 'Source:',
     'ship.asof': 'as of',
     'ship.meta.desc': '%name% by %maker% — Star Citizen ship: 3D view, specs, in-game price & locations, paints, variants and patch history.',
@@ -693,7 +709,6 @@ const UI = {
     'fleet.resync': 'Not synced · try again',
     'ship.hangar3d': 'View in the 3D hangar',
     // stylized mono codes (in-universe “register” tags)
-    'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',
     'ship.code.trade': 'TRADE',
     'ship.code.rank': 'RANK',
@@ -725,6 +740,7 @@ const UI = {
     'arm.racks': 'racks',
     'arm.count': 'units',
     'arm.countermeasures': 'Countermeasures',
+    'arm.mining': 'Mining lasers',
     'arm.launchers': 'launchers',
     'arm.weapon': 'Weapon',
     'arm.loadout': 'Loadout',
@@ -737,6 +753,7 @@ const UI = {
     'arm.stat.racks': 'Missile racks',
     'arm.stat.stations': 'Turret stations',
     'arm.stat.cm': 'Countermeasures',
+    'arm.stat.mining': 'Mining lasers',
     'arm.stat.totalDps': 'Total',
     'payload.gun': 'Gun',
     'payload.missile': 'Missile rack',
@@ -794,6 +811,10 @@ const UI = {
     'do.notesRsi': 'Official patch notes (RSI)',
     'do.fixesList': 'All fixes in the official notes',
     'do.unvNote': '* unverified · ',
+    // Querwege aus dem Dossier (UX-Audit H3, 24.11.2026)
+    'do.evoChip': '%s% across every patch (Evolution)',
+    'do.toArchive': 'All patches in the archive',
+    'do.toEvo': 'Every system across every patch: Evolution',
     // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
     'tf.topic': 'Topic',
     'tf.source': 'Source · Alpha',
@@ -839,6 +860,7 @@ const UI = {
     'arch.entry': 'entry',
     'arch.versions': 'releases',
     'arch.toTop': 'Back to top',
+    'arch.evo': 'Evolution: every game system across every patch',
   },
 } as const;
 

@@ -21,6 +21,9 @@
 // urspruenglichen Fehler gefunden hat.
 
 import { LOCALES, type Locale } from '../i18n/ui';
+import { HANGAR_ON } from './hangarFlag';
+import { HANGAR_ROUTES } from '../../scripts/lib/hangar-switch.mjs';
+import { VORSCHAU_PATCH_ROUTES } from '../../scripts/lib/vorschau-patches.mjs';
 
 /** Alle Seiten-Dateien, absolut ab Projektwurzel ("/src/pages/de/archiv.astro"). */
 const PAGE_FILES = Object.keys(
@@ -28,17 +31,41 @@ const PAGE_FILES = Object.keys(
 );
 
 /**
- * Dateipfad -> Regex auf die ausgelieferte URL.
+ * Seiten, die NICHT unter src/pages/ liegen, sondern beim Bauen eingehaengt
+ * werden: der Hangar und die Patch-Seiten vor der Abnahme (beide nur im
+ * Vorschau-Bau, astro.config.mjs). Die Dateiliste oben kennt sie nicht.
+ *
+ * ANLASS (24.11.2026, UX-Audit Task-Flows T9): genau deshalb fuehrte DE/EN auf
+ * /patches/sc-4-10-3, der Chronik 4.10.3, im Hangar und im Advanced Loadout
+ * auf die Startseite der anderen Sprache, obwohl das Gegenstueck im selben Bau
+ * stand. Die Muster kommen aus denselben Listen, aus denen astro.config.mjs
+ * die Routen einhaengt, und zaehlen nur, wenn dieser Bau sie einhaengt
+ * (HANGAR_ON = derselbe Schalter). Endpunkte (.json) sind keine Seiten.
+ * verify:sprachweiche prueft das Ergebnis am fertigen dist/.
+ */
+const INJECTED_PAGES: string[] = HANGAR_ON
+  ? [...HANGAR_ROUTES, ...VORSCHAU_PATCH_ROUTES]
+      .filter((r: { entrypoint: string }) => r.entrypoint.endsWith('.astro'))
+      .map((r: { pattern: string }) => r.pattern)
+  : [];
+
+/** Dateipfad unter src/pages -> Routenmuster ("/de/schiffe/[slug]"). */
+function fileToRoute(file: string): string {
+  const route = file.replace(/^\/src\/pages/, '').replace(/\.astro$/, '');
+  // "…/index" ist die Seite des Verzeichnisses selbst: /de/index -> /de
+  return route.endsWith('/index') ? route.slice(0, -'/index'.length) : route;
+}
+
+/**
+ * Routenmuster -> Regex auf die ausgelieferte URL.
  * `build.format: 'file'` legt jede Seite als .html-Datei ab:
  *   /src/pages/index.astro            -> /index.html  (auch "/")
  *   /src/pages/de/index.astro         -> /de.html
  *   /src/pages/schiffe.astro          -> /schiffe.html
  *   /src/pages/de/schiffe/[slug].astro-> /de/schiffe/<irgendwas>.html
+ *   eingehaengt '/de/hangar-bay/[id]' -> /de/hangar-bay/<irgendwas>.html
  */
-function toMatcher(file: string): RegExp {
-  let route = file.replace(/^\/src\/pages/, '').replace(/\.astro$/, '');
-  // "…/index" ist die Seite des Verzeichnisses selbst: /de/index -> /de
-  if (route.endsWith('/index')) route = route.slice(0, -'/index'.length);
+function toMatcher(route: string): RegExp {
   const body = route
     .split('/')
     .map((seg) =>
@@ -51,7 +78,7 @@ function toMatcher(file: string): RegExp {
   return body === '' ? /^\/(index\.html)?$/ : new RegExp(`^${body}\\.html$`);
 }
 
-const MATCHERS = PAGE_FILES.map(toMatcher);
+const MATCHERS = [...PAGE_FILES.map(fileToRoute), ...INJECTED_PAGES].map(toMatcher);
 
 /** Wird dieser URL-Pfad von irgendeiner Seiten-Route bedient? */
 export function routeExists(pathname: string): boolean {

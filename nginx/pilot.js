@@ -43,8 +43,8 @@ const FETCH_TIMEOUT_MS = 1500;
 const COLS = 'handle,display_name,bio,banner_url,avatar_url,avatar_color,org_name';
 
 const TEXT = {
-  de: { tail: ' | VerseBase', fallback: 'Pilotenprofil auf VerseBase: Status, Rolle, Flotte und Favoriten.' },
-  en: { tail: ' | VerseBase', fallback: 'Pilot profile on VerseBase: status, role, fleet and favourites.' },
+  de: { tail: ' | VerseBase', fallback: 'Pilotenprofil auf VerseBase: Status, Rolle und Flotte.' },
+  en: { tail: ' | VerseBase', fallback: 'Pilot profile on VerseBase: status, role and fleet.' },
 };
 
 function esc(s) {

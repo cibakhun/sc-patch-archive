@@ -178,15 +178,14 @@ const de = lang === 'de';
     </div>
   </section>
 
-  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — die EN-Seite
-      verlinkte ihn deshalb noch nie und soll das auch nicht anfangen. */}
-  {de && (
+  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — OnepagerLink
+      zeigt ihn deshalb nur auf der DE-Seite; die EN-Seite bekommt nur den Weg
+      zu den Downloads (UX-Audit H3, 24.11.2026). */}
   <OnepagerLink
     href="/onepager/contested-zones/index.html"
     title="Contested Zones — Visueller Guide"
     note="Eigenständiger Onepager: Station-Karte, Keycards & Loot-Items im Überblick."
   />
-  )}
 
 </main>
 
