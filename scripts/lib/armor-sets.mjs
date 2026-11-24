@@ -39,6 +39,20 @@ const SET_TAG_PREFIX = 'Armor.FPS.Set.';
 // CIG-Konvention fuer unfertige Eintraege; dieselbe Logik wie in build-universal-db.
 const PLACEHOLDER = /placeholder|<=|=>|^\(?ph\)?\s*[-–]?\s|^\s*$/i;
 
+// Hersteller-Anzeigenamen der Sets (Heuristik-Befund P85, 24.11.2026). Fuehrt
+// kein Teil einen Hersteller, faellt die Kette auf den Set-Tag zurueck, und der
+// traegt die zusammengezogene Kurzform: „CCsConversions" und „RSI" standen so
+// neben „CC's Conversions" und „Roberts Space Industries". „Unknown" am Item
+// ist kein Hersteller, sondern ein fehlender Wert und zaehlt wie keiner.
+// src/lib/items.ts wendet dieselbe Regel auf den gespeicherten Datenstand an,
+// damit sie nicht erst mit dem naechsten Datenlauf greift.
+export const SET_HERSTELLER = { CCsConversions: "CC's Conversions", RSI: 'Roberts Space Industries' };
+export function setHersteller(roh) {
+  const m = typeof roh === 'string' ? roh.trim() : '';
+  if (!m || /^unknown$/i.test(m)) return null;
+  return Object.prototype.hasOwnProperty.call(SET_HERSTELLER, m) ? SET_HERSTELLER[m] : m;
+}
+
 /** `srvl_armor_heavy_legs_02_01_01` -> `srvl_armor_heavy#02` (oder null). */
 export function stemOf(fileBase) {
   const m = STEM_RE.exec(String(fileBase || '').toLowerCase());
@@ -236,7 +250,7 @@ export function resolveArmorSets(parts, shortByStem) {
     const weight = top(wc) ?? top(wcAll);
 
     sets.push({
-      id, name: m.name, manufacturer: m.mfr || null, weight, source: m.source,
+      id, name: m.name, manufacturer: setHersteller(m.mfr), weight, source: m.source,
       parts: m.parts.length, slots,
       coreSlots: ['Helmet', 'Torso', 'Arms', 'Legs'].filter((s) => slots[s]).length,
     });

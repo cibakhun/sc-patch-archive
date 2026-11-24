@@ -39,6 +39,8 @@ export const ITEM_UI = {
     setNoResults: 'Keine passenden Sets gefunden.',
     /* -- Set-Seite (/armor-sets.html) -- */
     setsBreadcrumb: 'Rüstungs-Sets',
+    setsMfrUnknown: 'Hersteller unbekannt',
+    setsKfPlatzhalter: 'Set, Hersteller oder Teil', setsKfZahl: '{x} von {y} Sets',
     setsTitle: 'Star Citizen Rüstungs-Sets',
     setsLead: 'Alle {sets} Rüstungs-Sets aus Patch {patch}: {parts} Teile nach Hersteller, Set, Slot und Farbvariante — mit Panzerungsklasse und Seltenheit.',
     setsCountLabel: 'Sets', setsPartsLabel: 'Teile', setsCompleteLabel: 'Komplett (4 Kernslots)',
@@ -229,6 +231,8 @@ export const ITEM_UI = {
     setNoResults: 'No matching sets found.',
     /* -- sets page (/armor-sets.html) -- */
     setsBreadcrumb: 'Armor sets',
+    setsMfrUnknown: 'Unknown manufacturer',
+    setsKfPlatzhalter: 'Set, manufacturer or part', setsKfZahl: '{x} of {y} sets',
     setsTitle: 'Star Citizen Armor Sets',
     setsLead: 'All {sets} armor sets in patch {patch}: {parts} pieces by manufacturer, set, slot and colourway — with armor class and rarity.',
     setsCountLabel: 'Sets', setsPartsLabel: 'Pieces', setsCompleteLabel: 'Complete (4 core slots)',

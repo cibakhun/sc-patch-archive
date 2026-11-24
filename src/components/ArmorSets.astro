@@ -18,6 +18,7 @@ import {
 } from '../lib/items';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { versioned } from '../lib/assetVersion';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -37,6 +38,11 @@ const weightLabel = (w: string | null) => (w ? itemLabel(lang, 'w' + w.replace(/
 const rarityLabel = (r?: string) => (r ? itemLabel(lang, 'r' + r, r) : null);
 // Groessenangaben fuer die Hoehenschaetzung der Herstellerabschnitte
 // (content-visibility, siehe .as-mfr unten): Sets, Slot-Bloecke, Teile.
+// Herstellergruppe: Sets ohne Hersteller stehen zuletzt unter einem Satz statt
+// unter „Unknown"; der Anker bleibt #mfr-unknown, damit geteilte Links halten.
+const filterJs = versioned('assets/kategorie-filter.js', '/assets/kategorie-filter.js');
+const mfrName = (m: string | null) => m ?? t('setsMfrUnknown');
+const mfrId = (m: string | null) => `mfr-${(m ?? 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 const sizeOf = (sets: { id: string }[]) => {
   let slots = 0, items = 0;
   for (const s of sets) for (const [, list] of setItemsBySlot(s.id)) { slots++; items += list.length; }
@@ -278,16 +284,26 @@ const sizeOf = (sets: { id: string }[]) => {
       Bestaetigung in der Abschlusspruefung der Phase (Plan 04, Task 3). */}
   <ToolHelp tool="armorsets" lang={lang} steps={4} />
 
+  {/* Filterfeld (Heuristik-Befund P28): die Seite ist ueber 60.000 px lang und
+      hatte weder Suche noch Filter. Filtert Sets nach Name, Hersteller und
+      Teilen; leere Herstellerabschnitte verschwinden samt Sprungmarke. Ohne
+      Skript bleibt es verborgen (assets/kategorie-filter.js). */}
+  <div class="dp-kf" data-kf hidden data-kf-zeilen=".as-set" data-kf-gruppe=".as-mfr" data-t-zahl={t('setsKfZahl')}>
+    <label class="dp-kf__l" for="dp-kf-q">{t('kfLabel')}</label>
+    <input id="dp-kf-q" class="dp-kf__q" type="search" placeholder={t('setsKfPlatzhalter')} autocomplete="off" spellcheck="false" />
+    <span class="dp-kf__n" data-kf-n aria-live="polite"></span>
+  </div>
+
   {/* Sprungmarken je Hersteller — bei 20+ Herstellern sonst endloses Scrollen */}
   <nav class="as-jump" aria-label={t('setsBreadcrumb')} data-help={h('armorsets.ctl.jump')}>
     {setsByManufacturer.map((g) => (
-      <a href={`#mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{g.mfr} <span>({g.sets.length})</span></a>
+      <a href={`#${mfrId(g.mfr)}`}>{mfrName(g.mfr)} <span>({g.sets.length})</span></a>
     ))}
   </nav>
 
   {setsByManufacturer.map((g) => (
-    <section class="dp-sec as-mfr" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} style={sizeOf(g.sets)}>
-      <h2>{g.mfr} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
+    <section class="dp-sec as-mfr" id={mfrId(g.mfr)} style={sizeOf(g.sets)}>
+      <h2>{mfrName(g.mfr)} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
 
       {g.sets.map((s) => (
         <article class="as-set" id={s.id}>
@@ -328,6 +344,8 @@ const sizeOf = (sets: { id: string }[]) => {
       ))}
     </section>
   ))}
+
+  <script is:inline src={filterJs} defer></script>
 
   <div class="dp-actions">
     <a class="dp-btn" href={href('/item-finder.html', lang)}>{t('backToFinder')} →</a>
