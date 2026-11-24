@@ -550,6 +550,12 @@ a{color:inherit;text-decoration:none}
 .holo__hintline{position:absolute;right:clamp(1rem,3vw,2.5rem);bottom:106px;z-index:4;pointer-events:none;white-space:nowrap;text-align:right;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
+/* Scrollt jemand ueber dem Hologramm, ohne es freigegeben zu haben (das
+   Mausrad scrollt dann die Seite, UX-Audit 24.11.2026), leuchtet die
+   Hinweiszeile kurz auf: sie sagt, wie man zoomt. Erste Fassung war ein
+   Kasten mitten auf der Buehne — vorgefuehrt falsch: die Seite scrollt ja
+   gerade, und der Kasten wanderte mit der Buehnenmitte unter die Kopfleiste. */
+.holo__stage.is-3d .holo__hintline.is-hervor{opacity:1;color:var(--accent);text-shadow:0 0 12px color-mix(in srgb,var(--accent) 55%,transparent)}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
 .holo__ship img{opacity:0;transition:opacity 1.2s ease}
 .holo__ship img.is-active{opacity:1}
@@ -2006,7 +2012,7 @@ span.sd__ref{color:var(--muted)}
             D-04: wenn das Schiff die Navigation IST, darf es nicht hinter
             einem Knopf liegen. Laden loest jetzt ausschliesslich der
             IntersectionObserver im Skriptblock unten aus. */}
-        <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
+        <div class="holo__hintline" id="holohint" aria-hidden="true">{t('holo.hint')}</div>
         {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
             entfallen (16-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
             Rail (nav.holo__rail), die als eigener Block NACH der Buehne
@@ -3212,12 +3218,41 @@ span.sd__ref{color:var(--muted)}
           viewer.setMasskette(gr === 'spec' ? cfg.masse : null, massSperren());
         }
       };
+      /* Datenreiter (Ausstattung, Kaufen, Leistung, Umfeld) beantworten ihre
+         Frage in der Auslesung UNTER der Buehne. Bis 24.11.2026 blieb die
+         Seite beim Klick stehen: gemessen bei 1440x900 begann die Auslesung
+         unterhalb des Fensters, ein Klick auf "Kaufen" liess nur die Marker
+         am Schiff verschwinden (UX-Audit HE B06, "Klick ohne sichtbare
+         Wirkung"). Jetzt rueckt der Abschnitt ins Bild — so wenig wie noetig:
+         passt er ganz hinein, steht seine Unterkante am Fensterrand und vom
+         Raum bleibt oben so viel wie moeglich; ist er hoeher als das Fenster,
+         steht seine Oberkante unter der Kopfleiste. Steht er schon im Bild,
+         bewegt sich nichts. Portgruppen antworten am Rumpf und scrollen nie. */
+      var zeigeAbschnitt = function (gr) {
+        var sec = null;
+        for (var zi = 0; zi < sysEls.length; zi++) {
+          if (sysEls[zi].getAttribute('data-g') === gr) { sec = sysEls[zi]; break; }
+        }
+        if (!sec || sec.hidden || !window.scrollTo) return;
+        var r = sec.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var kopf = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+        // Sichtbar genug: Oberkante im Bild und mindestens 160 px vom Abschnitt zu sehen.
+        if (r.top >= kopf && r.top <= vh - 160) return;
+        var ziel = r.height + 24 <= vh - kopf
+          ? r.bottom + 24 - vh          // ganz ins Bild, Unterkante an den Rand
+          : r.top - kopf - 12;          // zu hoch: Oberkante unter die Kopfleiste
+        if (Math.abs(ziel) < 4) return;
+        var sanft = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: Math.max(0, window.pageYOffset + ziel), behavior: sanft ? 'smooth' : 'auto' });
+      };
       railEl.addEventListener('click', function (ev) {
         var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
         if (!a) return;
         ev.preventDefault();
         var gr = a.getAttribute('data-g');
         if (gr !== activeGroup) showGroup(gr);
+        if (a.getAttribute('data-kind') === 'inhalt') zeigeAbschnitt(gr);
       });
       // Vorbelegung (Detailvertrag Punkt 2) ist bereits serverseitig
       // sichtbar (erstes System ungefiltert, Rail-Eintrag traegt schon
@@ -3294,6 +3329,18 @@ span.sd__ref{color:var(--muted)}
       }
     };
 
+    /* Rad ohne Freigabe (holo-viewer.js, Mausrad scrollt die Seite): die
+       Hinweiszeile ("Strg + Mausrad: zoomen") leuchtet kurz auf — genau dann,
+       wenn jemand ueber dem Hologramm scrollt und vielleicht zoomen wollte. */
+    var radHinweisEl = document.getElementById('holohint');
+    var radHinweisT = 0;
+    var radHinweis = function () {
+      if (!radHinweisEl) return;
+      radHinweisEl.classList.add('is-hervor');
+      clearTimeout(radHinweisT);
+      radHinweisT = setTimeout(function () { radHinweisEl.classList.remove('is-hervor'); }, 1800);
+    };
+
     var start = function (explicit) {
       if (viewer || loading) return;
       loading = true;
@@ -3306,6 +3353,14 @@ span.sd__ref{color:var(--muted)}
             defaultOn: cfg.defaultOn, debug: debug, kinds: cfg.kinds,
             onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
             onSelect: showPanel,
+            // Die Reiterleiste liegt ueber dem oberen Buehnenrand: Kamera und
+            // Beschriftungen halten sich darunter (holo-viewer.js obenSperrePx).
+            obenSperre: railEl,
+            // Und keine Beschriftung legt sich auf Herstellerzeichen, Namen,
+            // Chips oder Merken-Knopf (dieselbe Tinte wie massSperren()).
+            labelSperren: ['.holo__title h1', '.holo__title .sd__makerlogo', '.holo__title .sd__maker', '.holo__chips', '.holo__fav']
+              .map(function (sel) { return document.querySelector(sel); }),
+            onRadGesperrt: radHinweis,
           });
         })
         .then(function (v) {

@@ -643,6 +643,41 @@ export async function initHolo(container, cfg) {
   // Von aussen gesetztes Hindernis fuer die Beschriftungs-Entzerrung (die
   // Detailkarte der Seite, siehe layoutLabels).
   let hindernisEl = null;
+  /* Oberer Rand, den die Seite belegt: die Reiterleiste liegt ueber der
+     Buehne. Bis 24.11.2026 stand hier nur eine feste Zahl (RAUM_TOP_SPERRE,
+     gilt fuer EINE Reihe) und nur fuer die Dauer-Beschriftungen; die Kamera
+     passte das Schiff in die ganze Leinwand ein. Gemessen bei 1440x900: die
+     Leitwerke der Gladius reichten bis y=135, die Leiste steht bei 148–192,
+     das Hologramm lag also ueber ihr. Zwischen 761 und 1000 px bricht die
+     Leiste in eine zweite Reihe um, und die deckte dort Beschriftungen ab.
+     Jetzt misst der Viewer die Leiste je Einpassung und je Bild selbst. */
+  const obenSperreEl = cfg.obenSperre || null;
+  // Elemente der Seite, die keine Beschriftung ueberdecken darf (Titelblock).
+  const labelSperrEls = (cfg.labelSperren || []).filter(Boolean);
+  /* Die TINTE eines Sperr-Elements, nicht seinen Kasten: die Ueberschrift
+     ist ein Block ueber die volle Breite des Titelblocks, gemessen bei 900 px
+     27–384 px fuer ein "Carrack", das nach 210 px endet. Gegen den Kasten
+     gerechnet passten die Beschriftungen des Hecks nicht mehr zwischen
+     Leiste und Titel und lagen aufeinander. Text -> Range ueber den Inhalt,
+     Reihe (Chips, Merken) -> Vereinigung der Kinder, Bild -> sein Kasten. */
+  function tinteVon(el) {
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+    const nimm = (q) => { if (q.width > 0 && q.height > 0) { l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); } };
+    if (el.children.length) for (const k of el.children) nimm(k.getBoundingClientRect());
+    else if (el.tagName !== 'IMG' && el.textContent.trim()) { const rg = document.createRange(); rg.selectNodeContents(el); nimm(rg.getBoundingClientRect()); }
+    else nimm(el.getBoundingClientRect());
+    return r > l ? { l, t, r, b } : null;
+  }
+  function obenSperrePx() {
+    if (!obenSperreEl) return 0;
+    const cr = renderer.domElement.getBoundingClientRect();
+    const er = obenSperreEl.getBoundingClientRect();
+    // Steht die Leiste nicht ueber der Leinwand (Telefon: eigene Zeile ueber
+    // der Buehne), sperrt sie nichts.
+    if (!er.height || !cr.height || er.bottom <= cr.top || er.top >= cr.top + cr.height / 2) return 0;
+    // Hoechstens 40 % der Hoehe: eine entartete Leiste darf die Buehne nicht leeren.
+    return Math.min(cr.height * 0.4, er.bottom - cr.top + 10);
+  }
 
   /* Projizierte Huelle des MODELLS in Bildpunkten — die acht Eckpunkte von
      `box` (Z. 224, rig-lokal) an ihren Weltort gebracht und projiziert.
@@ -979,6 +1014,15 @@ export async function initHolo(container, cfg) {
         hindernis = { l: hr.left - cr.left, r: hr.right - cr.left, t: hr.top - cr.top, b: hr.bottom - cr.top };
       }
     }
+    // Titelblock der Seite als Sperrflaechen (cfg.labelSperren, siehe unten).
+    const titelRects = [];
+    if (labelSperrEls.length) {
+      const cr = renderer.domElement.getBoundingClientRect();
+      for (const el of labelSperrEls) {
+        const r = tinteVon(el);
+        if (r && r.r > r.l && r.b > r.t) titelRects.push({ l: r.l - cr.left, r: r.r - cr.left, t: r.t - cr.top, b: r.b - cr.top });
+      }
+    }
     // Schiffsmitte AUF DEM BILDSCHIRM — Bezugspunkt fuer die radiale
     // Platzierung der Dauer-Beschriftungen weiter unten.
     _lblV.copy(fitSphere.center).project(camera);
@@ -1076,6 +1120,15 @@ export async function initHolo(container, cfg) {
     //  (2) Chip-Überlappungen voll auflösen (nie sichtbar überlappt).
     // Ruhe kommt aus den erhaltenen, sanft nachgezogenen Positionen; die
     // Push-Richtung ist an die Reihenfolge gebunden (kein Auf/Ab-Flackern).
+    // Gemessene Unterkante der Leiste (obenSperrePx), nur wenn ein Kasten steht.
+    const obenPx = (obenSperreEl && vis.length) ? obenSperrePx() : 0;
+    /* Der obere Rand der Buehne gehoert der Blende (Registerleiste, Phase 17)
+       — dort gemessen schob sich der Kasten "Radar" unter sie. Die Sperre
+       gilt nur, wo die Leiste ueberhaupt ueber der Leinwand steht; dort aber
+       fuer JEDEN Kasten, auch den des angetippten Markers: zwischen 761 und
+       1000 px deckte die zweite Reihe der Leiste sonst Beschriftungen ab
+       (Befund 24.11.2026). Ohne gereichte Leiste gilt die alte feste Zahl. */
+    const obenFreiVon = (L) => obenSperreEl ? Math.max(2, obenPx) : ((L.rep && raumBeschriftung) ? RAUM_TOP_SPERRE : 2);
     for (let pass = 0; pass < 20; pass++) {
       let moved = false;
       for (let a = 0; a < vis.length; a++) {
@@ -1099,9 +1152,22 @@ export async function initHolo(container, cfg) {
         const ox = (A.w + B.w) / 2 + LBL_GAP - Math.abs(A.cx - B.cx);
         const oy = (A.h + B.h) / 2 + LBL_GAP - Math.abs(dy);
         if (ox > 0 && oy > 0) {
-          const push = oy / 2 + 0.5;
-          const up = dy < 0 || (dy === 0 && a < b); // A oberhalb -> A hoch, B runter
-          if (up) { A.cy -= push; B.cy += push; } else { A.cy += push; B.cy -= push; }
+          if (pass < 10) {
+            const push = oy / 2 + 0.5;
+            const up = dy < 0 || (dy === 0 && a < b); // A oberhalb -> A hoch, B runter
+            if (up) { A.cy -= push; B.cy += push; } else { A.cy += push; B.cy -= push; }
+          } else {
+            /* Senkrecht nicht loesbar: nach zehn Durchgaengen liegen die
+               Kaesten zwischen zwei Waenden (Leiste oben, Titelblock oder
+               Nachbarn unten) und schieben sich nur noch gegenseitig hin und
+               her. Gemessen 24.11.2026 an der Carrack bei 900 px: vier Kaesten
+               des Hecks in 101 px Hoehe, die drei Zeilen und Luecken brauchen
+               102. Dann seitlich auseinander, der linke nach links, der
+               rechte nach rechts. */
+            const push = ox / 2 + 0.5;
+            const links = A.cx < B.cx || (A.cx === B.cx && a < b);
+            if (links) { A.cx -= push; B.cx += push; } else { A.cx += push; B.cx -= push; }
+          }
           moved = true;
         }
       }
@@ -1121,17 +1187,41 @@ export async function initHolo(container, cfg) {
           }
         }
       }
+      /* Kaesten aus dem Titelblock (Herstellerzeichen, Name, Chips, Merken-
+         Knopf) schieben — nach oben oder nach rechts, je nachdem was kuerzer
+         ist; nach links laege der Rand, nach unten die naechste Zeile des
+         Blocks. Seit das Schiff unter der Reiterleiste steht (24.11.2026),
+         rueckt es bei 900 bis 1000 px naeher an den Block, und gemessen lag
+         "2x Schildgenerator" der Carrack auf ihrem Namen. */
+      for (const t of titelRects) {
+        for (const L of vis) {
+          const hl = L.cx - L.w / 2, hr2 = L.cx + L.w / 2;
+          const ht = L.cy - L.h / 2, hb = L.cy + L.h / 2;
+          if (hr2 > t.l - 6 && hl < t.r + 6 && hb > t.t - 6 && ht < t.b + 6) {
+            const hoch = (t.t - 6 - L.h / 2) - L.cy;     // negativ: nach oben
+            const rechts = (t.r + 6 + L.w / 2) - L.cx;   // positiv: nach rechts
+            // Nach oben nur, wenn der Kasten dort nicht unter die Leiste geriete.
+            const obenGeht = L.cy + hoch - L.h / 2 >= obenFreiVon(L);
+            if (obenGeht && -hoch <= rechts) L.cy += hoch; else L.cx += rechts;
+            moved = true;
+          }
+        }
+      }
+      /* Die Sperre oben schon IN jedem Durchgang halten, nicht erst danach:
+         sonst schiebt die Entzerrung einen Kasten nach oben unter die Leiste,
+         die Klemme holt ihn hinterher zurueck, und er liegt wieder auf seinem
+         Nachbarn (gemessen 24.11.2026: "Quantum-Antrieb" auf "2x Kuehler"
+         der Carrack bei 900 und 1000 px). Geklemmt bleibt die Ueberlappung im
+         naechsten Durchgang sichtbar, und der Nachbar weicht allein nach unten. */
+      for (const L of vis) {
+        const minY = obenFreiVon(L) + L.h / 2;
+        if (L.cy < minY) L.cy = minY;
+      }
       if (!moved) break;
     }
     for (const L of vis) {
       L.cx = Math.max(L.w / 2 + 2, Math.min(w - L.w / 2 - 2, L.cx));
-      /* Der obere Rand der Buehne gehoert der Blende (Registerleiste, Phase 17)
-         — dort gemessen schob sich der Kasten "Radar" unter sie. Die Sperre
-         gilt nur, wo die Leiste ueberhaupt steht: unterhalb der Schwelle traegt
-         der Raum keine Dauer-Beschriftung, und der Kasten des angetippten
-         Markers soll auch dicht am oberen Rand stehen duerfen. */
-      const obenFrei = (L.rep && raumBeschriftung) ? RAUM_TOP_SPERRE : 2;
-      L.cy = Math.max(obenFrei + L.h / 2, Math.min(h - L.h / 2 - 2, L.cy));
+      L.cy = Math.max(obenFreiVon(L) + L.h / 2, Math.min(h - L.h / 2 - 2, L.cy));
       L.el.style.left = L.cx.toFixed(1) + 'px';
       L.el.style.top = L.cy.toFixed(1) + 'px';
       // Leader vom Marker bis zum Kastenrand (Segment an der Box abgeschnitten)
@@ -1192,6 +1282,24 @@ export async function initHolo(container, cfg) {
   controls.zoomToCursor = true;
   // Kontextmenü auf dem Canvas unterdrücken, damit Rechtsklick-Ziehen läuft
   renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+  /* Mausrad: die Seite scrollt, bis man ins Hologramm geklickt hat oder Strg
+     haelt (UX-Audit 24.11.2026, HE B06). Vorher fing die Buehne jedes Rad ab:
+     fuenf Schritte ueber der Gladius zoomten das Schiff, die Seite blieb bei
+     scrollY 0, und wer weiterlesen wollte, hing fest. Die Buehne nimmt fast
+     den ganzen ersten Bildschirm ein, man trifft sie beim Scrollen fast immer.
+     Der Lauscher sitzt in der Einfangphase am Behaelter, also VOR dem der
+     OrbitControls auf der Leinwand: ohne Freigabe erreicht das Ereignis die
+     Steuerung nie, und weil niemand preventDefault ruft, scrollt der Browser.
+     Strg + Rad ist zugleich das, was ein Trackpad beim Zusammenziehen meldet.
+     Freigegeben bleibt das Rad, bis der Zeiger die Buehne verlaesst. */
+  let radFrei = false;
+  container.addEventListener('wheel', (ev) => {
+    if (radFrei || ev.ctrlKey || ev.metaKey) return;
+    ev.stopPropagation();
+    cfg.onRadGesperrt?.();
+  }, { capture: true, passive: true });
+  renderer.domElement.addEventListener('pointerdown', () => { radFrei = true; });
+  container.addEventListener('pointerleave', () => { radFrei = false; });
 
   // Kamera so setzen, dass das GANZE Modell ins Bild passt — auch sehr große
   // oder sehr breite Schiffe (Bounding-Sphere gegen vertikales UND horizontales
@@ -1286,6 +1394,68 @@ export async function initHolo(container, cfg) {
   // der beiden Bedingungen (kurze Kante bei `target` ODER lange Kante bei
   // 1,0) zuerst erreicht wird — geometrisch bedingt (Schiffsform x
   // Kameraperspektive x Buehnenformat), nicht frei waehlbar.
+  /* Unter die Reiterleiste (Befund 24.11.2026). Die Einpassung oben rechnet
+     mit dem Huellkasten gegen die ganze Leinwand — der obere Streifen liegt
+     aber unter der Reiterleiste, und dort stand das Schiff: bei 1440x900
+     reichten die Leitwerke der Gladius bis y=135, die Leiste endet bei 192.
+     ⚠ Erste Fassung: die Leiste von der Leinwand abziehen und den KASTEN in
+     den Rest einpassen. Vorgefuehrt zu klein — der Kasten ueberzeichnet unter
+     Perspektive um rund die Haelfte (Gladius: 653px Kastenhoehe gegen ~435px
+     sichtbaren Rumpf), also schrumpfte das Schiff um 17 bis 30 % (Fuellgrad
+     bei 900px 0,84 -> 0,60), obwohl darunter Platz genug war.
+     Zweite Fassung: Groesse wie bisher, nur der echte Rumpf (_rumpfPunkte)
+     wird unter die Leiste geschoben. Vorgefuehrt zu tief — die Carrack lag
+     danach 72px tiefer auf Herstellerzeichen und Titel, der Hinweis unten
+     rechts lief ueber das Leitwerk.
+     Jetzt der Ausgleich: der echte Rumpf (_rumpfPunkte, die grobe konvexe
+     Huelle aus den Netzpunkten) plus die Marker stehen oben an der Leiste,
+     und die Unterkante weicht hoechstens um die HALBE noetige Strecke nach
+     unten aus; den Rest holt eine leichte Verkleinerung (Gladius und
+     Carrack rund 8 %). Ohne Leiste ueber der Leinwand (Telefon) und fuer
+     jedes Schiff, das ohnehin unter ihr bleibt, aendert sich nichts. */
+  let _leisteDist = 0;
+  const _leisteP = new THREE.Vector3();
+  function unterDieLeiste(dir, aimPoint, dist, tanV) {
+    _leisteDist = dist;
+    const sperre = obenSperrePx();
+    if (!(sperre > 0) || !_rumpfPunkte.length) return;
+    const yGrenze = 1 - (2 * sperre) / H();      // NDC-Hoehe der Leistenunterkante
+    const yBoden = -1 + 2 * 0.03;                 // 3 % Luft ueber dem Leinwandboden
+    if (yGrenze - yBoden < 0.4) return;           // entartet: lieber wie bisher
+    const up = new THREE.Vector3();
+    const punkte = _rumpfPunkte.map((q) => q.clone().applyMatrix4(rig.matrixWorld));
+    for (const port of cfg.ports ?? []) punkte.push(new THREE.Vector3(port.p[0], port.p[1], port.p[2]).applyMatrix4(rig.matrixWorld));
+    const huelle = () => {
+      camera.position.copy(aimPoint).addScaledVector(dir, _leisteDist);
+      camera.up.set(0, 1, 0);
+      camera.lookAt(aimPoint);
+      camera.updateMatrixWorld(true);
+      camera.updateProjectionMatrix();
+      let oben = -Infinity, unten = Infinity;
+      for (const q of punkte) {
+        _leisteP.copy(q).project(camera);
+        if (_leisteP.y > oben) oben = _leisteP.y;
+        if (_leisteP.y < unten) unten = _leisteP.y;
+      }
+      return { oben, unten };
+    };
+    const start = huelle();
+    if (start.oben <= yGrenze) return;            // steht schon unter der Leiste
+    const noetig = start.oben - yGrenze;
+    const zielUnten = Math.max(yBoden, start.unten - noetig / 2);
+    const zielHoehe = yGrenze - zielUnten;
+    // Perspektive: Verschieben und Verkleinern wirken nicht exakt linear,
+    // deshalb einige Runden nachmessen.
+    for (let runde = 0; runde < 8; runde++) {
+      const { oben, unten } = runde === 0 ? start : huelle();
+      const hoehe = oben - unten;
+      if (hoehe > zielHoehe * 1.01) { _leisteDist *= hoehe / zielHoehe; continue; }
+      if (oben <= yGrenze + 0.004) return;        // Rumpf steht unter der Leiste
+      up.setFromMatrixColumn(camera.matrixWorld, 1);
+      aimPoint.addScaledVector(up, (oben - yGrenze) * tanV * _leisteDist);
+    }
+  }
+
   function fitCamera(margin = 1.08) {
     let dir = new THREE.Vector3().subVectors(camera.position, controls.target);
     if (dir.lengthSq() < 1e-6) dir.set(0.7, 0.32, 0.7);
@@ -1363,6 +1533,9 @@ export async function initHolo(container, cfg) {
       }
       if (worstFinal > 1) dist *= worstFinal;
     }
+
+    unterDieLeiste(dir, aimPoint, dist, tanV);
+    dist = _leisteDist;
 
     camera.position.copy(aimPoint).addScaledVector(dir, dist);
     controls.target.copy(aimPoint);
@@ -1588,6 +1761,9 @@ export async function initHolo(container, cfg) {
     if (!userMoved && W() > 0 && H() > 0) fitCamera();
   });
   ro.observe(container);
+  // Die Leiste kann umbrechen, ohne dass sich die Buehne aendert (Schrift
+  // laedt nach): dann ebenfalls neu einpassen.
+  if (obenSperreEl) ro.observe(obenSperreEl);
 
   return {
     setFilter(groups) {
