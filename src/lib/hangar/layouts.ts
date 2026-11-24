@@ -29,6 +29,7 @@
 
 import { createHash } from 'node:crypto';
 import hangarAssets from '../../data/hangar-assets.json';
+import VEHICLES from '../../data/vehicles.json';
 import { craftEntryPath, recipeForItem } from '../crafting';
 import { items, pageItemIds, type Item, type ItemStats } from '../items';
 import { HANGAR_IDS } from './catalog';
@@ -107,6 +108,19 @@ export interface LayoutData {
   readonly paints: Readonly<Record<string, ShipPaints>>;
   /** Raketenhalterungen, die an mindestens einem Port eine Wahl bieten; fehlt die Datendatei, leer. */
   readonly racks: Readonly<Record<string, LayoutRack>>;
+  /**
+   * Punktverteidigung je Schiff (nur Schiffe mit PDC-Kanonen): [Zahl der
+   * Kanonen, DPS zusammen auf zwei Stellen]. Kein Slot und nicht in der
+   * Feuerkraft; die Seite zeigt sie als eigene Zeile darunter.
+   */
+  readonly pdc: Readonly<Record<string, readonly [n: number, dps: number]>>;
+  /**
+   * Gleichzeitig aktive Schildgeneratoren, nur bei Schiffen mit mehr
+   * Generatoren: ein Raumschiff nutzt hoechstens zwei, die weiteren sind
+   * Reserve (Zaehlregel D-20 in scripts/datamine-vehicles.mjs, dieselbe Zahl
+   * wie shieldHp im Schiffsblatt). Schild und Aufladung zaehlen die staerksten.
+   */
+  readonly shieldAct: Readonly<Record<string, number>>;
 }
 
 /**
@@ -466,11 +480,39 @@ function build(): LayoutData {
     });
     if (list.length) paints[id] = { base: base as [string, string, string], list };
   }
+  // Punktverteidigung: die PDC-Kanonen der Tuerme mit ihrer DPS aus dem
+  // Katalog (genau, nicht der gerundete Kennwert). Eine Kanone ohne
+  // Katalogeintrag zaehlt nicht mit, statt eine Zahl zu erfinden.
+  const pdc: Record<string, readonly [number, number]> = {};
+  for (const id of HANGAR_IDS) {
+    let n = 0, dps = 0;
+    for (const port of shipGeometry(id).ports) {
+      for (const it of port.items) {
+        if (it.cat !== 'weapon' || it.carrier !== 'turret' || it.turretKind !== 'pdc' || typeof it.size !== 'number') continue;
+        const key = it.name ? byName.get(norm(it.name))?.get(it.size) : undefined;
+        const row = key ? out[key] : undefined;
+        const d = row?.[2] === 'gun' ? (typeof row[8].dps === 'number' ? row[8].dps : row[7]) : 0;
+        if (!d) continue;
+        n += it.count;
+        dps += d * it.count;
+      }
+    }
+    if (n) pdc[id] = [n, Math.round(dps * 100) / 100];
+  }
   // Nur Halterungen, die ein Slot anbietet (rackOf legt auch verworfene an).
   const offered = new Set(Object.values(ships).flatMap((slots) => slots.flatMap((s) => s[6] ?? [])));
   const rackOut: Record<string, LayoutRack> = {};
   for (const k of Object.keys(racks).sort()) if (offered.has(k)) rackOut[k] = racks[k];
-  return { v: 1, items: used, ships, models, paints, racks: rackOut };
+  // Aktive Schildgeneratoren: Raumschiffe zaehlen hoechstens zwei (D-20).
+  // Bodenfahrzeuge zaehlen alle, wie im Schiffsblatt.
+  const spaceship = new Map((VEHICLES as unknown as { vehicles: { id: string; isSpaceship?: boolean }[] }).vehicles.map((v) => [v.id, v.isSpaceship !== false]));
+  const shieldAct: Record<string, number> = {};
+  for (const [id, slots] of Object.entries(ships)) {
+    const n = slots.reduce((a, s) => a + (s[1] === 'shield' ? s[5] : 0), 0);
+    if (n > 2 && spaceship.get(id) !== false) shieldAct[id] = 2;
+  }
+
+  return { v: 1, items: used, ships, models, paints, racks: rackOut, pdc, shieldAct };
 }
 
 function ensure() {
