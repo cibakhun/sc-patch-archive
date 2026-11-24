@@ -16379,6 +16379,10 @@ void main() {
     label(id, t) { holo.text(id, t); wake(300); },
     onHolo(fn) { holo.onShow = fn; },
     setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); if (post?.state === 'an') leitSet(); wake(300); },
+    // bildTeile(): was die Bühne gerade über ihr Bild legt, in px der Bühne
+    // ({ l, t, r, b }): der Name als Hologramm und die Tafeln der Station.
+    // Die Hinweise der Ersten Schritte suchen sich daneben Platz (tipps).
+    bildTeile() { const n = holo.rect(); return [...(n ? [{ ...n }] : []), ...(stLayer?.rects?.() ?? [])]; },
     // Stationen in 3D: station({ name, data }) zeigt sie (data von der Seite,
     // assets/hangar-overview.js holoData), station(null) blendet sie aus;
     // false heißt, diese Bühne kann es nicht (Telefon, ohne echte Halle),
