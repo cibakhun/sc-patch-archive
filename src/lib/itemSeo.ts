@@ -9,7 +9,7 @@
 import type { Locale } from '../i18n/ui';
 import { fill, itemT, categoryLabel } from '../i18n/itemText';
 import {
-  ITEM_PATCH, auec, clip, db, displayName, leafCategory, minPrice, maxPrice,
+  ITEM_PATCH, auec, clip, db, displayName, minPrice, maxPrice,
   num, pageItems, rootCategory, sortedObtain, type Item,
 } from './items';
 import { primaryStat } from './itemStats';
@@ -128,11 +128,16 @@ export function acquisition(i: Item): 'buy' | 'loot' | 'exclusive' | 'none' {
 /** Traegt das Item einen lesbaren Spieltyp (Weapon, Cooler …)? Sonst gilt die Kategorie. */
 const ausSpieltyp = (i: Item) => !!i.game?.gameType && !/^Char_/.test(i.game.gameType);
 
-/** "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie. */
-function kindOf(i: Item): string {
+/**
+ * "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie mit
+ * ihrem lesbaren Namen in der Sprache der Seite („Helme“, „Underbarrel“), wie
+ * in Liste und Krumen; bis 24.11.2026 stand hier der Datenschluessel
+ * („Helmets“ auf /de/, „BottomAttachment“).
+ */
+function kindOf(i: Item, lang: Locale): string {
   const g = i.game;
   // `Char_Armor_Torso` & Co. sind INTERNE Typnamen und gehoeren nicht in eine
-  // Meta-Description. Fuer sie steht die lesbare Blatt-Kategorie ("Core") da.
+  // Meta-Description. Fuer sie steht die lesbare Kategorie („Oberkörper“/„Core“) da.
   if (g?.gameType && ausSpieltyp(i)) {
     const typ = lesbarerBezeichner(g.gameType);
     const unter = g.subType && g.subType !== g.gameType ? lesbarerBezeichner(g.subType) : '';
@@ -142,7 +147,7 @@ function kindOf(i: Item): string {
     if (unter && typ.split(' ').every((w) => unter.includes(w))) return unter;
     return unter ? `${unter} ${typ}` : typ;
   }
-  return leafCategory(i.category);
+  return kategorieTitel(i.category, lang);
 }
 
 /**
@@ -164,7 +169,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
  * das steht in den Spieldaten nicht — geraten wird hier nichts.
  */
 function classification(i: Item, lang: Locale, patch: string): string {
-  const kind = kindOf(i);
+  const kind = kindOf(i, lang);
   const mfr = i.game?.manufacturer;
   const name = displayName(i, lang);
   if (lang === 'de') {
@@ -223,7 +228,7 @@ export function itemSeo(i: Item, lang: Locale): ItemSeo {
       parts.push(
         `${name}: ${plural(i.obtain.length, 'bekannter Fundort', 'bekannte Fundorte')} in Star Citizen ${ITEM_PATCH}.`
       );
-    else parts.push(`${name} — ${kindOf(i)} in Star Citizen ${ITEM_PATCH}.`);
+    else parts.push(`${name} — ${kindOf(i, lang)} in Star Citizen ${ITEM_PATCH}.`);
     if (vendors > 1) parts.push(`${vendors} Verkaufsstellen im Vergleich.`);
     if (stat) parts.push(`${stat[0]}: ${stat[1]}.`);
     parts.push(`Stand ${datumLang(db.pricesAsOf, lang)}.`);
@@ -236,7 +241,7 @@ export function itemSeo(i: Item, lang: Locale): ItemSeo {
       parts.push(
         `${name}: ${plural(i.obtain.length, 'known location', 'known locations')} in Star Citizen ${ITEM_PATCH}.`
       );
-    else parts.push(`${name} — ${kindOf(i)} in Star Citizen ${ITEM_PATCH}.`);
+    else parts.push(`${name} — ${kindOf(i, lang)} in Star Citizen ${ITEM_PATCH}.`);
     if (vendors > 1) parts.push(`${vendors} vendors compared.`);
     if (stat) parts.push(`${stat[0]}: ${stat[1]}.`);
     parts.push(`As of ${datumLang(db.pricesAsOf, lang)}.`);
