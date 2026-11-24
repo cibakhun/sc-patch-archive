@@ -49,7 +49,9 @@
 
   /* ---------- Baum ---------- */
   var GRUPPEN = C.baum || [];
-  var G_ROOT = {}, G_SLUG = {}, B_SLUG = {}, B_CAT = {};
+  // Ohne Prototyp: Schluessel kommen auch aus der Adresse (?gruppe=constructor).
+  function karte() { return Object.create(null); }
+  var G_ROOT = karte(), G_SLUG = karte(), B_SLUG = karte(), B_CAT = karte();
   GRUPPEN.forEach(function (g) {
     G_ROOT[g.r] = g; G_SLUG[g.s] = g;
     g.b.forEach(function (b) { b.gr = g; B_SLUG[b.s] = b; B_CAT[b.k] = b; });
@@ -58,7 +60,7 @@
   function farbe(root) { return (C.farben && (C.farben[root] || C.farben.Other)) || '#A78BFA'; }
 
   /* ---------- Daten ---------- */
-  var ITEMS = [], BYID = {}, SETS = {}, SETLISTE = [], FUNDORTE = null;
+  var ITEMS = [], BYID = karte(), SETS = karte(), SETLISTE = [], FUNDORTE = null;
   var bereit = false;
 
   // Zwilling von isIndexable() in src/lib/items.ts (wie im Finder).
@@ -290,7 +292,7 @@
   function vorbereiten(db) {
     ITEMS = db.items || [];
     FUNDORTE = db.fundorte || null;
-    SETS = {};
+    SETS = karte();
     SETLISTE = db.sets || [];
     SETLISTE.forEach(function (s) { SETS[s.id] = s; });
     ITEMS.forEach(function (it) {
@@ -419,9 +421,23 @@
     if (m) io.observe(m);
   }
 
+  // Sets kennen keinen Wert und keinen Preis: dort stehen nur die
+  // Sortierungen zur Wahl, die auch wirken. S.sort bleibt fuer den
+  // Reiter Items stehen.
+  var SORT_SETS = { relevanz: 1, name: 1, 'name-z': 1 };
+  function sortWahl() {
+    var sets = S.tab === 'sets';
+    Array.prototype.forEach.call(el.sort.options, function (o) {
+      var weg = sets && !SORT_SETS[o.value];
+      o.hidden = weg; o.disabled = weg;
+    });
+    el.sort.value = sets && !SORT_SETS[S.sort] ? 'relevanz' : S.sort;
+  }
+
   function anwenden(opt) {
     opt = opt || {};
     QW = S.q.toLowerCase().split(/\s+/).filter(Boolean);
+    sortWahl();
     if (S.tab === 'sets') {
       TREFFER = SETLISTE.filter(setPasst);
       if (S.sort === 'name-z') TREFFER.reverse();
@@ -528,9 +544,10 @@
       return;
     }
     GEZEIGT = Math.min(SCHRITT, TREFFER.length);
-    // Steht das gewaehlte Item weiter hinten, zeichne bis dorthin (tiefer Link).
-    if (opt.bisAuswahl && S.item) {
-      for (var i = 0; i < TREFFER.length; i++) if (TREFFER[i].id === S.item) { GEZEIGT = Math.max(GEZEIGT, Math.min(TREFFER.length, i + 12)); break; }
+    // Steht die Auswahl (Item oder Set) weiter hinten, zeichne bis dorthin (tiefer Link).
+    var ziel = opt.bisAuswahl ? (S.tab === 'sets' ? S.satz : S.item) : null;
+    if (ziel) {
+      for (var i = 0; i < TREFFER.length; i++) if (TREFFER[i].id === ziel) { GEZEIGT = Math.max(GEZEIGT, Math.min(TREFFER.length, i + 12)); break; }
     }
     var html = '';
     var bau = S.tab === 'sets' ? setKachel : kachel;
@@ -570,7 +587,11 @@
       frag.appendChild(tmp.firstChild);
     }
     el.gitter.insertBefore(frag, m);
-    if (GEZEIGT >= TREFFER.length && m) m.remove();
+    if (!m) return;
+    if (GEZEIGT >= TREFFER.length) { m.remove(); return; }
+    // Bleibt die Marke im Blick (hoher Schirm, kurze Kacheln), meldet der
+    // Beobachter keinen Wechsel mehr: neu beobachten, dann misst er sofort.
+    if (io) { io.unobserve(m); io.observe(m); }
   }
   el.gitter.addEventListener('animationend', function (e) {
     if (e.target.classList && e.target.classList.contains('is-nach')) e.target.classList.remove('is-nach');
@@ -603,7 +624,9 @@
     }
     if (S.pk) chip('pk', weightLabel(S.pk));
     el.aktiv.innerHTML = c.join('');
-    var nF = (S.art !== 'all' ? 1 : 0) + (S.gr != null ? 1 : 0) + (S.pk ? 1 : 0) + (S.sel ? 1 : 0);
+    // Im Reiter Sets wirkt nur die Panzerungsklasse; nur sie zaehlt.
+    var nF = S.tab === 'sets' ? (S.pk ? 1 : 0)
+      : (S.art !== 'all' ? 1 : 0) + (S.gr != null ? 1 : 0) + (S.pk ? 1 : 0) + (S.sel ? 1 : 0);
     if (nF) el.fk.setAttribute('data-n', nF); else el.fk.removeAttribute('data-n');
     el.fZeigen.textContent = n ? w('zeigen').replace('{n}', fmt(n)) : w('keine');
     el.fZeigen.classList.toggle('is-leer', !n);
@@ -992,24 +1015,30 @@
   var CRAFT = null, craftLaeuft = null;
   function ladeCraft() {
     if (craftLaeuft) return craftLaeuft;
+    // Nur ein geladener Index wird behalten. Scheitert der Abruf, bleibt
+    // CRAFT ungesetzt, und das naechste geoeffnete Item versucht es neu.
     craftLaeuft = fetch(C.craftUrl || '/assets/crafting-db.json')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; })
+      .then(function (r) {
+        if (!r.ok) throw new Error('crafting db http ' + r.status);
+        return r.json();
+      })
       .then(function (db) {
-        CRAFT = {};
+        var idx = karte();
         if (db && db.blueprints) {
           // Slugs exakt wie src/lib/crafting.ts (gleiche Reihenfolge, „-2" bei Dubletten).
-          var used = {};
+          var used = karte();
           db.blueprints.forEach(function (bp) {
             if (!bp.name) return;
             var base = String(bp.name).toLowerCase().replace(/['’"]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'blueprint';
             var n = (used[base] || 0) + 1;
             used[base] = n;
             bp.__slug = n > 1 ? base + '-' + n : base;
-            CRAFT[bp.name.toLowerCase()] = bp;
+            idx[bp.name.toLowerCase()] = bp;
           });
         }
-      });
+        CRAFT = idx;
+      })
+      .catch(function () { craftLaeuft = null; });
     return craftLaeuft;
   }
   function craftEinsetzen(it) {
@@ -1099,9 +1128,28 @@
 
   // Blatt am Telefon: von unten, Zurueck des Geraets schliesst es.
   var blattGeschoben = false;
+  // Offen deckt das Blatt die Seite ganz zu. Alles daneben wird inert,
+  // damit Tab und Vorleser im Blatt bleiben; beim Schliessen kommt genau
+  // das zurueck, was hier gesetzt wurde.
+  var traege = [];
+  function aussenTraege(an) {
+    if (!an) {
+      traege.forEach(function (x) { x.inert = false; });
+      traege = [];
+      return;
+    }
+    for (var n = el.blatt; n && n.parentElement && n !== document.body; n = n.parentElement) {
+      Array.prototype.forEach.call(n.parentElement.children, function (x) {
+        if (x === n || x.inert || /^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(x.tagName)) return;
+        x.inert = true;
+        traege.push(x);
+      });
+    }
+  }
   function telefonAuf(ausHistorie) {
     if (!TELEFON.matches || el.blatt.classList.contains('is-offen')) return;
     el.blatt.classList.add('is-offen');
+    aussenTraege(true);
     if (window.VBScrollLock) window.VBScrollLock.lock();
     if (ausHistorie) blattGeschoben = true;
     else { try { history.pushState({ wzBlatt: 1 }, '', location.href); blattGeschoben = true; } catch (e) {} }
@@ -1110,6 +1158,7 @@
   function telefonZu(ausHistorie) {
     if (!el.blatt.classList.contains('is-offen')) return false;
     el.blatt.classList.remove('is-offen');
+    aussenTraege(false);
     if (window.VBScrollLock) window.VBScrollLock.unlock();
     if (!ausHistorie && blattGeschoben) { blattGeschoben = false; try { history.back(); } catch (e) {} }
     blattGeschoben = false;
@@ -1117,23 +1166,37 @@
     if (k) { var f = k.querySelector('a') || k; try { f.focus({ preventScroll: true }); } catch (e) {} }
     return true;
   }
-  // Zurueck schliesst das Blatt. Vorwaerts auf einen Eintrag, den das Blatt
-  // angelegt hat, oeffnet es wieder, mit der Auswahl aus der Adresse und
-  // ohne neuen Eintrag.
-  window.addEventListener('popstate', function (e) {
-    if (!(e.state && e.state.wzBlatt)) { if (el.blatt.classList.contains('is-offen')) telefonZu(true); return; }
-    if (!bereit || !TELEFON.matches || el.blatt.classList.contains('is-offen')) return;
+  // Zurueck schliesst das Blatt und uebernimmt die Auswahl aus der Adresse
+  // des Eintrags, auf dem man landet: steht dort kein Item, ist auch keines
+  // mehr gewaehlt. Sonst schriebe die naechste Aenderung das alte Item in
+  // die Adresse der Liste, und ein Neuladen oeffnete das Blatt wieder.
+  // Vorwaerts auf einen Eintrag, den das Blatt angelegt hat, oeffnet es
+  // wieder, mit der Auswahl aus der Adresse und ohne neuen Eintrag.
+  // Wer hier oeffnet oder leert, stoesst schreibeUrl() neu an; ein noch
+  // wartender Schreibvorgang trifft damit den Eintrag, auf dem man steht,
+  // mit dem Stand nach der Uebernahme.
+  function auswahlAusAdresse() {
     var p = new URLSearchParams(location.search), id = p.get('item'), sid = p.get('satz');
-    if (id && BYID[id]) { if (S.item !== id) oeffneItem(BYID[id], { still: true }); }
-    else if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true }); }
-    else return;
-    telefonAuf(true);
+    if (id && BYID[id]) { if (S.item !== id) oeffneItem(BYID[id], { still: true }); return true; }
+    if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true }); return true; }
+    return false;
+  }
+  window.addEventListener('popstate', function (e) {
+    var offen = el.blatt.classList.contains('is-offen');
+    if (!(e.state && e.state.wzBlatt)) {
+      if (offen) telefonZu(true);
+      if (bereit && !auswahlAusAdresse() && (S.item || S.satz)) ueberblick();
+      return;
+    }
+    if (!bereit || !TELEFON.matches || offen) return;
+    if (auswahlAusAdresse()) telefonAuf(true);
   });
   el.x.addEventListener('click', function () { telefonZu(false); });
   el.blatt.addEventListener('click', function (e) { if (e.target === el.blatt) telefonZu(false); });
   TELEFON.addEventListener && TELEFON.addEventListener('change', function (m) {
     if (!m.matches && el.blatt.classList.contains('is-offen')) {
       el.blatt.classList.remove('is-offen');
+      aussenTraege(false);
       if (window.VBScrollLock) window.VBScrollLock.unlock();
     }
   });
@@ -1180,7 +1243,11 @@
       if (gr) gr.b.forEach(function (x) { if (x.s === t.getAttribute('data-kat')) b = x; });
       if (b) { telefonZu(false); waehleKat(gr, b); }
     } else if (t.hasAttribute('data-alle-quellen')) {
-      t.parentNode.querySelectorAll('.wzb-q li[hidden]').forEach(function (li) { li.hidden = false; });
+      // Der Knopf verschwindet; der Fokus geht auf die erste neu gezeigte
+      // Quelle, statt auf den Seitenanfang zu fallen.
+      var neu = t.parentNode.querySelectorAll('.wzb-q li[hidden]');
+      neu.forEach(function (li) { li.hidden = false; });
+      if (neu[0]) { neu[0].setAttribute('tabindex', '-1'); try { neu[0].focus({ preventScroll: true }); } catch (e2) {} }
       t.remove();
     }
   });
@@ -1382,7 +1449,7 @@
     if (p.get('sel')) S.sel = p.get('sel');
     if (p.get('set')) S.set = p.get('set');
     if (/^(relevanz|name|name-z|wert|preis|preis-z)$/.test(p.get('sort') || '')) S.sort = p.get('sort');
-    el.sort.value = S.sort;
+    sortWahl();
     try { var a = localStorage.getItem('wz-items-ansicht'); if (a === 'liste' || a === 'kacheln') S.ansicht = a; } catch (e) {}
     ansichtKnoepfe();
     return { item: p.get('item'), satz: p.get('satz') };
