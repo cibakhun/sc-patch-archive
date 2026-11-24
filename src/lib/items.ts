@@ -13,6 +13,7 @@ import DB from '../../assets/universal-items.json';
 import type { Locale } from '../i18n/ui';
 import { fassung } from './fassung';
 import { AUSFUEHRUNGEN_JE_MODELL, modellName, waffenArt } from '../../scripts/lib/waffen-art.mjs';
+import { setHersteller } from '../../scripts/lib/armor-sets.mjs';
 
 /* ---------- Typen (Spiegel von scripts/build-universal-db.mjs) ---------- */
 
@@ -258,7 +259,10 @@ export const itemById = new Map(items.map((i) => [i.id, i]));
 
 /* ---------- Ruestungs-Sets ---------- */
 
-export const armorSets: ArmorSet[] = db.sets ?? [];
+// Hersteller vereinheitlicht wie im Datenlauf (setHersteller, P85): ohne das
+// stand derselbe Hersteller zweimal in der Sprungleiste, und „Unknown" war eine
+// eigene Gruppe neben den Sets ohne Hersteller.
+export const armorSets: ArmorSet[] = (db.sets ?? []).map((s) => ({ ...s, manufacturer: setHersteller(s.manufacturer) }));
 export const armorSetById = new Map(armorSets.map((s) => [s.id, s]));
 
 /** Alle Items eines Sets, nach Slot gruppiert — Reihenfolge wie im Anzug getragen. */
@@ -294,18 +298,22 @@ export function setItemsBySlot(id: string): Array<[slot: string, list: Item[]]> 
   });
 }
 
-/** Sets nach Hersteller gruppiert (fuer die Set-Seite), groesste Gruppe zuerst. */
+/**
+ * Sets nach Hersteller gruppiert (fuer die Set-Seite), groesste Gruppe zuerst;
+ * die Sets ohne Hersteller stehen als letzte Gruppe (mfr: null), sonst waeren
+ * sie mit 19 Sets die zweitgroesste.
+ */
 export const setsByManufacturer = (() => {
-  const m = new Map<string, ArmorSet[]>();
+  const m = new Map<string | null, ArmorSet[]>();
   for (const s of armorSets) {
-    const key = s.manufacturer || 'Unknown';
+    const key = s.manufacturer || null;
     const list = m.get(key);
     if (list) list.push(s);
     else m.set(key, [s]);
   }
   return [...m.entries()]
     .map(([mfr, list]) => ({ mfr, sets: list.sort((a, b) => b.parts - a.parts || a.name.localeCompare(b.name, 'en')) }))
-    .sort((a, b) => b.sets.length - a.sets.length || a.mfr.localeCompare(b.mfr, 'en'));
+    .sort((a, b) => (a.mfr === null ? 1 : 0) - (b.mfr === null ? 1 : 0) || b.sets.length - a.sets.length || (a.mfr ?? '').localeCompare(b.mfr ?? '', 'en'));
 })();
 
 /* ---------- Was bekommt eine eigene Seite? ---------- */

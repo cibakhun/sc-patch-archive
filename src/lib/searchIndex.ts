@@ -33,6 +33,7 @@ import {
   blueprintListLabels, blueprintPath, blueprints, craftEntryPath, craftLeaf, craftRoot, itemForBlueprint, recipeForItem,
 } from './crafting';
 import { categoryLabel } from '../i18n/itemText';
+import { kategorieTitel } from './itemKategorien';
 import { priceInfo, aUEC } from './shipExtras';
 import { shipIdForVehicleItem } from './vehicleItems';
 import { suchZiele } from './bereiche';
@@ -185,12 +186,12 @@ export async function buildSearchIndexMore(lang: Locale): Promise<SearchEntry[]>
     const rezept = bp ? bpLabel.get(bp.slug) : null;
     out.push({
       k: 'item',
-      b: leafCategory(it.category),
+      b: kategorieTitel(it.category, lang),
       t: name,
       s: [g?.manufacturer, sizes.length ? sizes.map((n) => `S${n}`).join('/') : null].filter(Boolean).join(' · '),
       u: href(itemPath(it), lang),
       x: [
-        altName(it, lang), categoryLabel(root, lang), rezept && rezept !== name ? rezept : null,
+        altName(it, lang), categoryLabel(root, lang), leafCategory(it.category), rezept && rezept !== name ? rezept : null,
         // Gattungswoerter (Paket B, B2): „Karna Rifle" findet auch „karna gewehr".
         gattungsWoerter(`${it.name} ${it.category}`),
       ].filter(Boolean).join(' '),

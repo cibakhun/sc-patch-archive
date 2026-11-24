@@ -39,6 +39,20 @@ const SET_TAG_PREFIX = 'Armor.FPS.Set.';
 // CIG-Konvention fuer unfertige Eintraege; dieselbe Logik wie in build-universal-db.
 const PLACEHOLDER = /placeholder|<=|=>|^\(?ph\)?\s*[-–]?\s|^\s*$/i;
 
+// Hersteller-Anzeigenamen der Sets (Heuristik-Befund P85, 24.11.2026). Fuehrt
+// kein Teil einen Hersteller, faellt die Kette auf den Set-Tag zurueck, und der
+// traegt die zusammengezogene Kurzform: „CCsConversions" und „RSI" standen so
+// neben „CC's Conversions" und „Roberts Space Industries". „Unknown" am Item
+// ist kein Hersteller, sondern ein fehlender Wert und zaehlt wie keiner.
+// src/lib/items.ts wendet dieselbe Regel auf den gespeicherten Datenstand an,
+// damit sie nicht erst mit dem naechsten Datenlauf greift.
+export const SET_HERSTELLER = { CCsConversions: "CC's Conversions", RSI: 'Roberts Space Industries' };
+export function setHersteller(roh) {
+  const m = typeof roh === 'string' ? roh.trim() : '';
+  if (!m || /^unknown$/i.test(m)) return null;
+  return Object.prototype.hasOwnProperty.call(SET_HERSTELLER, m) ? SET_HERSTELLER[m] : m;
+}
+
 /** `srvl_armor_heavy_legs_02_01_01` -> `srvl_armor_heavy#02` (oder null). */
 export function stemOf(fileBase) {
   const m = STEM_RE.exec(String(fileBase || '').toLowerCase());
@@ -101,7 +115,7 @@ export function resolveArmorSets(parts, shortByStem) {
   }
 
   // --- 2) innerhalb jeder Gruppe nach Anzeigenamen clustern und benennen ---
-  const clusters = [];  // { name, source, mfr, stem, parts[] }
+  const clusters = [];  // { name, source, mfr, itemMfr, tagRueck, stem, parts[], tag }
   const conflicts = [];
   let namedByShort = 0, namedByPrefix = 0, namedByTag = 0, unnamed = 0, split = 0;
 
@@ -157,13 +171,23 @@ export function resolveArmorSets(parts, shortByStem) {
       // Hersteller: der Wert AM ITEM ist der lokalisierte Anzeigename („Clark Defense
       // Systems"); der Tag traegt nur die zusammengezogene Kurzform („ClarkeDefense").
       // Fuer die Anzeige gewinnt daher das Item, der Tag ist Rueckfallebene.
-      let mfr = null;
+      // Gezaehlt wird erst nach setHersteller(): ein „Unknown" am Item ist kein
+      // Hersteller und darf den Rueckfall auf den Tag nicht versperren.
+      // Rueckfall zuerst auf den Tag DIESES Clusters (cTop): teilt sich ein
+      // Stamm in mehrere Namen mit eigenen Tags, gehoert der haeufigste Tag
+      // der Gruppe womoeglich einem anderen Cluster. Erst ohne eigenen Tag
+      // gilt der Tag der Gruppe (gleicher Dateistamm, bisheriges Verhalten).
+      // Item- und Tag-Hersteller bleiben getrennt, damit beim Aufsaugen (2b)
+      // und Zusammenfuehren (3) ein Item-Hersteller eines anderen Clusters
+      // einen Tag-Rueckfall noch verdraengt.
+      let itemMfr = null;
       const c = new Map();
-      for (const p of cparts) if (p.manufacturer) { const m = p.manufacturer.trim(); c.set(m, (c.get(m) || 0) + 1); }
+      for (const p of cparts) { const m = setHersteller(p.manufacturer); if (m) c.set(m, (c.get(m) || 0) + 1); }
       let best = 0;
-      for (const [m, n] of c) if (n > best) { mfr = m; best = n; }
-      if (!mfr) mfr = tagMfr;
-      clusters.push({ name, source, mfr: mfr || null, stem: g.stem || null, parts: cparts, tag: cTop });
+      for (const [m, n] of c) if (n > best) { itemMfr = m; best = n; }
+      const cTagTeile = cTop ? cTop.slice(SET_TAG_PREFIX.length).split('.') : [];
+      const tagRueck = setHersteller(cTagTeile.length > 1 ? cTagTeile[0] : null) || setHersteller(tagMfr) || null;
+      clusters.push({ name, source, mfr: itemMfr || tagRueck, itemMfr, tagRueck, stem: g.stem || null, parts: cparts, tag: cTop });
     }
   }
 
@@ -182,7 +206,11 @@ export function resolveArmorSets(parts, shortByStem) {
   const kept = [];
   for (const c of clusters) {
     const host = c.tag && c.parts.length <= 2 ? biggestByTag.get(c.tag) : null;
-    if (host && host !== c) { host.parts = host.parts.concat(c.parts); absorbed++; continue; }
+    if (host && host !== c) {
+      host.parts = host.parts.concat(c.parts);
+      if (!host.itemMfr && c.itemMfr) { host.itemMfr = c.itemMfr; host.mfr = c.itemMfr; }
+      absorbed++; continue;
+    }
     kept.push(c);
   }
   clusters.length = 0;
@@ -195,7 +223,9 @@ export function resolveArmorSets(parts, shortByStem) {
     const m = merged.get(key);
     if (!m) { merged.set(key, { ...c, stems: c.stem ? [c.stem] : [] }); continue; }
     m.parts = m.parts.concat(c.parts);
-    if (!m.mfr && c.mfr) m.mfr = c.mfr;
+    if (!m.itemMfr && c.itemMfr) m.itemMfr = c.itemMfr;
+    if (!m.tagRueck && c.tagRueck) m.tagRueck = c.tagRueck;
+    m.mfr = m.itemMfr || m.tagRueck || null;
     if (c.stem && !m.stems.includes(c.stem)) m.stems.push(c.stem);
     // Quelle: die belastbarste gewinnt (short > prefix > tag)
     const rank = { short: 3, prefix: 2, tag: 1 };
@@ -236,7 +266,7 @@ export function resolveArmorSets(parts, shortByStem) {
     const weight = top(wc) ?? top(wcAll);
 
     sets.push({
-      id, name: m.name, manufacturer: m.mfr || null, weight, source: m.source,
+      id, name: m.name, manufacturer: setHersteller(m.mfr), weight, source: m.source,
       parts: m.parts.length, slots,
       coreSlots: ['Helmet', 'Torso', 'Arms', 'Legs'].filter((s) => slots[s]).length,
     });

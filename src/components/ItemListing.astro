@@ -10,9 +10,11 @@ import { href, type Locale } from '../i18n/ui';
 import { itemT, obtainLabel, fill, categoryLabel } from '../i18n/itemText';
 import {
   PER_PAGE, auec, avgPrice, categoryPath, db, displayName, itemPath, itemsHubPath,
-  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode, type Item,
+  minPrice, num, pageCount, pageItemIds, roots, type CategoryNode, type Item,
 } from '../lib/items';
+import { kartenName, kategorieTitel, kategorienSortiert } from '../lib/itemKategorien';
 import { categorySeo } from '../lib/itemSeo';
+import { versioned } from '../lib/assetVersion';
 
 interface Props { node: CategoryNode; page: number; lang: Locale }
 const { node, page, lang } = Astro.props;
@@ -21,7 +23,12 @@ const t = itemT(lang);
 const pages = pageCount(node);
 const seo = categorySeo(node.cat, node.items.length, page, pages, lang);
 const slice = node.items.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-const siblings = roots.find((r) => r.root === node.root)?.nodes ?? [];
+const siblings = kategorienSortiert(roots.find((r) => r.root === node.root)?.nodes ?? [], node.root, lang);
+// Lesbarer Name statt des Datenschluessels („Helme“ statt „Helmets“,
+// „Unterlauf“ statt „BottomAttachment“); die Adresse bleibt der Schluessel.
+const titel = kategorieTitel(node.cat, lang);
+const gruppe = categoryLabel(node.root, lang);
+const mitGruppe = node.cat === node.root ? titel : `${titel} (${gruppe})`;
 
 // Kennzahlen im Seitenkopf. „Wie viele davon kann ich ueberhaupt kaufen und
 // was ist das guenstigste" ist die Frage, mit der man auf einer Kategorie
@@ -59,9 +66,13 @@ const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot' && !i.obtain[0
 const lootBestaetigtZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot' && !!i.obtain[0].ort);
 const bezugQ = new Set(slice.map((i) => standQ(i.obtain[0])));
 
+// Filterfeld ueber der Liste (UX-Audit HE B16): filtert die gezeigte Seite,
+// bei mehreren Seiten fuehrt ein Link mit derselben Suche in den Item Finder.
+const filterJs = versioned('assets/kategorie-filter.js', '/assets/kategorie-filter.js');
+
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
-  { label: leafCategory(node.cat), href: pages > 1 && page > 1 ? categoryPath(node) : undefined },
+  { label: titel, href: pages > 1 && page > 1 ? categoryPath(node) : undefined },
   ...(page > 1 ? [{ label: `${t('page')} ${page}` }] : []),
 ];
 
@@ -77,7 +88,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
   title={seo.title}
   description={seo.description}
   crumbs={crumbs}
-  eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
+  eyebrow={(node.cat === node.root ? [t('sectionCategory')] : [gruppe, t('sectionCategory')]).join(' · ')}
   modified={db.generatedAt}
   stand={standItems(lang, {
     preise: zeigtPreisQ.has('uex-items') || bezugQ.has('uex-items'),
@@ -86,9 +97,9 @@ const sourceLabel = (obtain: Item['obtain']) =>
     fundorteSpiel: lootBestaetigtZuerst,
   })}
 >
-  <h1 slot="hero">{leafCategory(node.cat)}</h1>
+  <h1 slot="hero">{titel}</h1>
   <p class="dp-lead" slot="hero">
-    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: datumLang(db.pricesAsOf, lang) })}
+    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: mitGruppe, date: datumLang(db.pricesAsOf, lang) })}
   </p>
 
   <ul class="dp-keys" slot="hero">
@@ -98,8 +109,16 @@ const sourceLabel = (obtain: Item['obtain']) =>
     <li class="dp-key"><b>{t('pricesAsOf')}</b><span>{datumLang(db.pricesAsOf, lang)}</span></li>
   </ul>
 
+  <div class="dp-kf" data-kf hidden
+    data-t-zahl={t('kfZahl')} data-t-alle={t('kfFinder')}>
+    <label class="dp-kf__l" for="dp-kf-q">{t('kfLabel')}</label>
+    <input id="dp-kf-q" class="dp-kf__q" type="search" placeholder={t('kfPlatzhalter')} autocomplete="off" spellcheck="false" />
+    <span class="dp-kf__n" data-kf-n aria-live="polite"></span>
+    {pages > 1 && <a class="dp-kf__alle" data-kf-alle hidden href={href('/item-finder.html', lang)}></a>}
+  </div>
+
   <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
-    <table class="dp-table">
+    <table class="dp-table dp-table--liste">
       <thead>
         <tr>
           <th>{t('thItem')}</th>
@@ -122,10 +141,10 @@ const sourceLabel = (obtain: Item['obtain']) =>
                   : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
               </td>
               <td data-stand-q={standQ(i.obtain[0])}>{sourceLabel(i.obtain)}</td>
-              <td class="dp-num">
+              <td class="dp-num" data-th={t('thFrom')}>
                 {p != null && pz ? <span class="dp-price" data-stand-q={preisQ(pz)}>{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
               </td>
-              <td class="dp-num">
+              <td class="dp-num" data-th={t('thAvg')} data-leer={avg == null ? '' : undefined}>
                 <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>
               </td>
             </tr>
@@ -154,8 +173,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
         {siblings.filter((s) => s.slug !== node.slug).map((s) => (
           <li>
             <a class="dp-card dp-card--cat" href={href(categoryPath(s), lang)}>
-              {midCategory(s.cat) && <span class="dp-card-path">{midCategory(s.cat)}</span>}
-              <strong>{leafCategory(s.cat)}</strong>
+              <strong>{kartenName(s.cat, lang, false)}</strong>
               <em>{num(s.items.length, lang)}</em>
             </a>
           </li>
@@ -163,6 +181,8 @@ const sourceLabel = (obtain: Item['obtain']) =>
       </ul>
     </section>
   )}
+
+  <script is:inline src={filterJs} defer></script>
 
   <div class="dp-actions">
     <a class="dp-btn dp-btn--ghost" href={href(itemsHubPath, lang)}>{t('backToHub')}</a>

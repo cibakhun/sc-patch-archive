@@ -1413,3 +1413,109 @@ a.dp-card:active { border-left-color: var(--tone-1); transform: translateY(0); }
   color: var(--tone-1);
   border-color: color-mix(in srgb, var(--tone-1) 45%, transparent);
 }
+
+/* ---------- Kategorielisten: Filterfeld und Telefon-Zeilen ----------
+   UX-Audit 24.11.2026 (HE B16, B11): Listen mit bis zu 100 Zeilen je Seite
+   hatten kein Filterfeld, und auf 390 px lagen „ab“ und „Ø Preis“ ausserhalb
+   des sichtbaren Kastens (Tabelle 549 px in 356 px), ohne Hinweis. Das Feld
+   blendet erst das Skript ein (assets/kategorie-filter.js). */
+.dp-kf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin: 1.4rem 0 0.7rem;
+}
+.dp-kf__l {
+  font-family: var(--font-ui);
+  font-size: var(--fs-7);
+  letter-spacing: var(--ls-6);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dp-kf__q {
+  flex: 1 1 16rem;
+  min-width: 0;
+  max-width: 26rem;
+  min-height: 44px;
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-size: var(--fs-8);
+  color: var(--text);
+  background-color: var(--dp-fill);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+.dp-kf__q:focus-visible {
+  outline: 2px solid var(--tone-1);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.dp-kf__n {
+  font-family: var(--font-mono);
+  font-size: var(--fs-6);
+  color: var(--muted);
+}
+.dp-kf__alle {
+  font-size: var(--fs-7);
+  color: var(--tone-1);
+}
+
+@media (max-width: 600px) {
+  /* Zeilen als zweizeilige Karten: Name oben, darunter Bezugsquelle links,
+     Preise rechts. Die Spaltenkoepfe tragen die Preiszellen selbst (data-th). */
+  .dp-table--liste thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .dp-table--liste,
+  .dp-table--liste tbody { display: block; }
+  .dp-table--liste tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.15rem 0.9rem;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--line-soft);
+    border-left: 2px solid transparent;
+  }
+  .dp-table--liste tbody tr:nth-child(even) { background: var(--dp-zebra); }
+  .dp-table--liste tbody tr:last-child { border-bottom: none; }
+  .dp-table--liste tbody tr:hover { border-left-color: var(--tone-1); }
+  /* :nth-child(n) hebt die Zeilenregel ueber die Zebra- und Hover-Regel der
+     Tabelle (.dp-table tbody tr:nth-child(even) td): die Farbe liegt jetzt
+     auf der Zeile, nicht mehr auf jeder Zelle. */
+  .dp-table--liste tbody tr:nth-child(n) td {
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+  /* Ohne Durchschnittspreis bleibt die Zeile kurz: „Ø Preis —“ sagt nichts. */
+  .dp-table--liste tbody tr:nth-child(n) td[data-leer] { display: none; }
+  .dp-table--liste tbody td:nth-child(1) { grid-column: 1 / -1; }
+  .dp-table--liste tbody td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+    font-size: var(--fs-7);
+    color: var(--muted);
+  }
+  .dp-table--liste tbody td:nth-child(3),
+  .dp-table--liste tbody td:nth-child(4) { grid-column: 2; text-align: right; }
+  .dp-table--liste tbody td:nth-child(4) { font-size: var(--fs-7); }
+  .dp-table--liste tbody td[data-th]::before {
+    content: attr(data-th) ' ';
+    font-family: var(--font-mono);
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-6);
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dp-table--liste td a { padding-block: 0.15rem; }
+  /* Nichts ragt mehr seitlich hinaus: die Kante, die sonst Wischen
+     anzeigt, waere ein falscher Hinweis. */
+  .dp-tablewrap:has(.dp-table--liste) { background-image: none; }
+}
