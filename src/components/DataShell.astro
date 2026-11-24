@@ -25,7 +25,7 @@ import { versioned } from '../lib/assetVersion';
 import { SITE, DISCORD } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
-import { bereiche, bereichVon, dienste, feedbackHref, krumen, recht, ziel } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, feedbackHref, krumen, lokaleLeiste, recht, ziel } from '../lib/bereiche';
 import Datenstand from './Datenstand.astro';
 import type { StandZeile } from '../lib/datenstand';
 
@@ -156,6 +156,12 @@ const hier = bereichVon(Astro.url.pathname);
 const alleBereiche = bereiche(lang);
 const leiste = alleBereiche.map((b) => ({ key: b.key, href: b.href, label: b.kurz, current: hier?.bereich === b.key }));
 const dienstZiele = dienste(lang);
+// Lokale Leiste (UX-Audit A6): auf den Seiten eines Bereichs mit mehreren
+// Seiten deren Abfolge (Item-Verzeichnis › Item Finder › Ruestungs-Sets,
+// Crafting › Blueprint-Verzeichnis). Hier oben im Inhalt statt in der
+// klebenden Leiste: es sind nur sechs Seiten, die Leiste bleibt fuer alle
+// anderen so niedrig wie sie ist.
+const lokal = lokaleLeiste(Astro.url.pathname, lang);
 const SPRACHE: Record<Locale, string> = { de: 'Deutsch', en: 'English' };
 const loginHref = href('/account/login.html', lang);
 // Mit Sitzung im Browser zeigt back-link.js „Konto“ und fuehrt nach
@@ -256,6 +262,15 @@ const loginHref = href('/account/login.html', lang);
     </header>
 
     <main id="main" class="dp-main">
+      {lokal && (
+        <nav class="dp-local" aria-label={lokal.bereich.name}>
+          <ul role="list">
+            {lokal.bereich.seiten.map((z) => (
+              <li><a href={z.href} aria-current={z.key === lokal.aktiv ? 'page' : undefined}>{z.name}</a></li>
+            ))}
+          </ul>
+        </nav>
+      )}
       {/* Der Seitenkopf ist EIN Element: Kicker, Titel, Einleitung und die
           Kennzahlen sitzen zusammen in der Hero-Konsole. Die Seiten liefern
           ihre drei Teile ueber denselben benannten Slot (Astro erlaubt

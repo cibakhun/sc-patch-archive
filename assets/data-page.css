@@ -513,6 +513,7 @@ html[data-vb-terminal] .dp-bar > .dp-areas,
 html[data-vb-terminal] .dp-bar > .dp-acct,
 html[data-vb-terminal] .dp-bar > .dp-discord,
 html[data-vb-terminal] .dp-bar > .dp-menu { display: none !important; }
+html[data-vb-terminal] .dp-local { display: none !important; }
 html[data-vb-terminal] .dp-bar > .dp-crumbs { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* ---------- Rumpf ---------- */
@@ -551,6 +552,36 @@ html[data-vb-terminal] .dp-bar > .dp-crumbs { margin-top: 0; padding-top: 0; bor
    gestapelten Bloecken. Fehlt der Wrapper (aeltere Seite), greifen alle
    Regeln darunter trotzdem — sie haengen an den Kindklassen, nicht am
    Container. */
+/* Lokale Leiste ueber dem Kopf (UX-Audit A6): die Seiten des Bereichs als
+   Abfolge, dieselbe Form wie unter der Leiste der Seiten mit voller
+   Navigation. */
+.dp-local { margin: 0 0 1rem; }
+.dp-local ul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dp-local li { display: flex; align-items: center; }
+.dp-local li + li::before { content: '›'; color: var(--muted); opacity: 0.6; }
+.dp-local a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0 0.55rem;
+  font-family: var(--font-ui);
+  font-size: var(--fs-7);
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.dp-local li:first-child a { padding-left: 0; }
+.dp-local a:hover { color: var(--tone-1); }
+.dp-local a[aria-current='page'] { color: var(--text); border-bottom-color: var(--tone-1); }
+
 .dp-hero {
   position: relative;
   margin: 0 0 2.4rem;
