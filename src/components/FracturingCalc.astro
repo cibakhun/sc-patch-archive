@@ -155,7 +155,9 @@ const S = de ? {
 const payload = {
   lang, minerals, lasers, modules, gadgets,
   params: { decayPerMass: P.decayPerMass || 0.2 },
-  defaultMass: DEFAULT_MASS, t: S, miningPath, refineryPath, refOres,
+  // Die Pfade der beiden Querwege stehen im ausgelieferten href, das Skript
+  // setzt nur Abfrage und Sprungmarke (siehe fracturing-calc.js).
+  defaultMass: DEFAULT_MASS, t: S, refOres,
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();

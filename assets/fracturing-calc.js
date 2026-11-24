@@ -199,8 +199,12 @@
 
     /* Zurueck ins Mining mit demselben Erz — die Fundorte, der Ertrag und
        die Steine stehen dort und wurden bewusst NICHT mit hierher kopiert. */
+    /* Nur Abfrage und Sprungmarke werden gesetzt; der Pfad bleibt der, den
+       die Seite ausgeliefert hat. So kann aus der Nutzlast nie ein anderes
+       Ziel als diese Seite in den Verweis geraten. */
     var back = $('fc-back');
-    back.href = D.miningPath + '?mineral=' + encodeURIComponent(m.name) + '#db';
+    back.search = '?mineral=' + encodeURIComponent(m.name);
+    back.hash = 'db';
     $('fc-back-ore').textContent = m.name;
 
     /* Und weiter zur Refinery (UX-Audit 24.11.2026, G3), nur fuer Erze, die
@@ -210,7 +214,8 @@
       var kann = (D.refOres || []).indexOf(m.name) >= 0;
       ref.hidden = !kann;
       if (kann) {
-        ref.href = D.refineryPath + '?erz=' + encodeURIComponent(m.name) + '#ertrag';
+        ref.search = '?erz=' + encodeURIComponent(m.name);
+        ref.hash = 'ertrag';
         $('fc-ref-ore').textContent = m.name;
       }
     }
