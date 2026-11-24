@@ -278,7 +278,6 @@ export async function chronik4103(lang: Locale): Promise<Chronik> {
       kacheln: ([[frachtModul, 'rsi-galaxy-modul-fracht'], [medModul, 'rsi-galaxy-modul-medizin']] as const).map(([w, bildKey]): Kachel => (
         { titel: { t: w.k, h: w.h ?? null }, bild: rsiBild(bildKey, lang), unterschrift: null, zeile: w.v, werte: [], liste: [], satz: null, breit: false })),
     },
-    zweitbild: rsiBild('rsi-galaxy-flug', lang),
     stempel: [`${T(`Stand ${v.nach.version}`, `As of ${v.nach.version}`)} · ${T('Beschreibung nach den ', 'Description from the ')}`, notesZu, T(' und der ', ' and the '), { t: T('RSI-Schiffsseite', 'RSI ship page'), h: galaxySeite }],
   };
   const liberator: NeuesSchiff = {
@@ -292,7 +291,7 @@ export async function chronik4103(lang: Locale): Promise<Chronik> {
       { id: 'liberator-ausstattung', titel: T('Ausstattung', 'Loadout'), werte: ['turretDps', 'turretWeapons', 'missileRacks', 'radars'].map((f) => neuWert('anvl-liberator', f)) },
     ],
     stempel: [`${T(`Stand ${v.nach.version}`, `As of ${v.nach.version}`)} · ${T('Beschreibung nach den ', 'Description from the ')}`, notesZu],
-    module: null, zweitbild: null,
+    module: null,
   };
 
   /* ---- IAE 2956: Kleidung und Lackierungen aus dem Vergleich ---- */
@@ -533,7 +532,7 @@ export async function chronik4103(lang: Locale): Promise<Chronik> {
         notes: { t: T('Offizielle Patch Notes', 'Official patch notes'), h: PATCH.notesUrl },
       },
       {
-        art: 'wort', id: 'vanduul', bild: rsiBild('vanduul-angriff', lang), wort: 'MAULER',
+        art: 'wort', id: 'vanduul', bild: rsiBild('vncl-glaive', lang), wort: 'MAULER',
         waffe: verweis("Vanduul Mauler 'STRIKER' Repeater", `/items/${STRIKER}.html`),
         zahl: zahlPaar(schuss),
         was: T('Schaden pro Schuss', 'damage per shot'),
