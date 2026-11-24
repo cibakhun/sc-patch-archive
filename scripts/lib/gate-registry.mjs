@@ -797,6 +797,15 @@ export const CHECKS = [
     // href="…/wanted.html#details">Wanted</a> -> die alte Fassung zaehlte
     // 10.815 Links und blieb gruen, die neue 10.816 und 1 Befund, exit 1;
     // zurueckgespielt, sha256 540410d8… wie vorher, gruen.
+    // Zweite Runde (PR #451): Anker werden mit Anfuehrungszeichen gelesen
+    // („>“ in einem Attributwert beendet den Anker nicht mehr), href auch in
+    // einfachen Anfuehrungszeichen und mit Abstand um „=“. Gegenprobe im
+    // Live-Bau: Wanted-Link auf /de/crafting/10-series-greatsword-cannon.html
+    // als <a href = '…/wanted.html'>Wanted</a>, Missionslink auf
+    // /items/karna-rifle.html mit title="Pool &gt; 1 > 0" vor href und
+    // falschem Namen -> die vorige Fassung zaehlte 10.814 Links und blieb
+    // gruen, die neue 10.816 und 2 Befunde, exit 1; zurueckgespielt, sha256
+    // 81b68ac8… und d796c592… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
