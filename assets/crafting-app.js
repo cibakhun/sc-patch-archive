@@ -1476,6 +1476,14 @@
     else if (wantBp) openModalByName(wantBp);
     return !!wantBp;
   }
+  // Steht Rezept i in der Adresse? (Name wie in rezeptAusAdresse, bpi wenn da.)
+  function adresseZeigt(i) {
+    if (i == null || !DB.blueprints[i]) return false;
+    var qs = new URLSearchParams(location.search);
+    var bp = qs.get('bp'), bpi = qs.get('bpi');
+    if (!bp || (DB.blueprints[i].name || '').toLowerCase() !== bp.trim().toLowerCase()) return false;
+    return bpi == null || bpi === String(i);
+  }
   if (WB && window.history && history.pushState) {
     window.addEventListener('popstate', function (e) {
       var eigenes = wbZurueck;
@@ -1491,9 +1499,11 @@
         return;
       }
       if (e.state && e.state.wbRezept) {
-        // Vorwaerts auf einen Rezept-Eintrag: das Rezept wieder oeffnen.
+        // Vorwaerts auf einen Rezept-Eintrag: das Rezept der Adresse zeigen.
+        // Ist schon eines offen (etwa nach dem Drehen eines Tablets ueber
+        // 821 px, wo Oeffnen nur die Adresse ersetzt), zaehlt die Adresse.
         wbGeschoben = true;
-        if (DB && DB.blueprints && !offen) { try { rezeptAusAdresse(); } catch (x) {} }
+        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusAdresse(); } catch (x) {} }
         return;
       }
       if (offen && (wbGeschoben || !wbMitte())) closeModal(true);
