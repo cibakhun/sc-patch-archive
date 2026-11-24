@@ -25,7 +25,13 @@
   var sprung = gruppen.map(function (g) {
     return g.id ? document.querySelector('a[href="#' + g.id + '"]') : null;
   });
-  var texte = zeilen.map(function (z) { return (z.textContent || '').toLowerCase().replace(/\s+/g, ' '); });
+  // Ein Eintrag findet sich auch ueber die Ueberschrift seines Abschnitts
+  // (auf der Set-Seite der Hersteller, der nur dort steht).
+  var texte = zeilen.map(function (z) {
+    var g = gSel && z.closest ? z.closest(gSel) : null;
+    var kopf = g && g.querySelector('h2');
+    return ((kopf ? kopf.textContent + ' ' : '') + (z.textContent || '')).toLowerCase().replace(/\s+/g, ' ');
+  });
   var tZahl = box.getAttribute('data-t-zahl') || '{x} / {y}';
   var tAlle = box.getAttribute('data-t-alle') || '{q}';
   var finder = box.getAttribute('data-finder') || '';
