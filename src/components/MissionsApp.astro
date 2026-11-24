@@ -14,6 +14,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { jsonForScript } from '../lib/safeJson';
+import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -271,7 +272,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
               {m.titleDynamic && !m.noTitle && <span class="mc__chip mc__chip--dyn" title={S.dynamicT}>{S.dynamic}</span>}
             </div>
             {descParts && (
-              <p class="mc__desc">
+              <p class="mc__desc" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
                 {descParts.map((p) => (p.ph ? <i class="mc__ph">{p.t}</i> : <span>{p.t}</span>))}
               </p>
             )}

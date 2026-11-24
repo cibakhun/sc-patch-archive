@@ -51,6 +51,19 @@
 //  10  Kein deutsches Wort mit Umlaut oder ß und kein deutsches Bedienwort
 //      ("Bild", "abspielen", "suchen") auf einer EN-Seite. Eigennamen mit
 //      Umlaut stehen als benannte Ausnahme da (Zombie-Waechter).
+//  12  Kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes
+//      lang-Attribut. Englischer Spieltext auf einer DE-Seite ist erlaubt
+//      (docs/sprachregel.md), muss aber lang="en" tragen; eigener Text steht
+//      in der Sprache der Seite. Erkennung ueber Funktionswoerter
+//      (absatzSprache in scripts/lib/textregeln.mjs). Dazu die Selbstauskunft,
+//      wie viel englischer Spieltext auf den DE-Seiten steht, mit einer Decke
+//      als WARNUNG: waechst der Anteil, kam Spieltext ohne deutsche Fassung
+//      dazu — das meldet die Bilanz, blockt aber nicht, weil neue Spieldaten
+//      (ein Patch mit neuen Missionen) den Anteil heben, ohne dass hier
+//      etwas falsch waere (Grundsatz 3).
+//   Die Wertnamen des Craftings (src/i18n/craftingWerte.ts) laufen seit dem
+//   24.11.2026 als eigener Katalog WERTE durch Regel 1: "Recoil Smoothness"
+//   auf einer DE-Seite ist ein Katalogtext der anderen Sprache.
 //   Regeln 8-11 kamen am 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge
 //   dazu; sie stehen in scripts/lib/textregeln.mjs und gelten in
 //   verify:clienttext genauso fuer den Text, den die Skripte schreiben.
@@ -61,19 +74,21 @@
 // einziger Kindprozess ist esbuilds Dienst beim Buendeln der Kataloge
 // (scripts/lib/textregeln.mjs).
 //
-//   node scripts/verify-sprache.mjs [--dist <ordner>]
+//   node scripts/verify-sprache.mjs [--dist <ordner>] [--klinke-absaetze <n>] [--decke-spieltext <0..1>]
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, join, dirname } from 'node:path';
+import { resolve, join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ladeKataloge, sprachMengen, textStellen, textStellenMitOrt, norm, rohschluesselRe, findeRohschluessel, INTERN_RE, ohneTechnischeDetails,
   ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, DOPPELWORT_EN_RE, DE_FUNKTIONSWORT_RE,
   DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE, DE_UMLAUTWORT_RE, DE_WORT_EN_RE,
+  absaetze, absatzFalschesLang,
 } from './lib/textregeln.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const dIdx = argv.indexOf('--dist');
+function argWert(name) { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; }
 const DIST = dIdx >= 0 && argv[dIdx + 1] ? resolve(argv[dIdx + 1]) : resolve(ROOT, 'dist');
 if (!existsSync(DIST)) { console.error(`${DIST} fehlt — erst npm run build.`); process.exit(2); }
 
@@ -84,6 +99,15 @@ const MIN_SEITEN = 17_000;
 const MIN_STELLEN = 3_000_000;
 const MIN_MEHRWORT = 1_000;
 const MIN_QUELLEN = 120;
+// Regel 12, gemessen am 24.11.2026: 64.155 Absaetze eindeutiger Sprache im
+// Live-Bau (64.257 im Vorschau-Bau), davon 27.689 auf DE-Seiten.
+const MIN_ABSAETZE = Number(argWert('--klinke-absaetze') ?? 60_000);
+// Decke (WARNUNG) fuer den Anteil gekennzeichneten englischen Spieltexts an
+// den Absaetzen der DE-Seiten, gemessen am selben Tag nach der Sprachregel:
+// 5.752 von 27.689 (20,8 %; Missions-, Schiffs- und Item-Beschreibungen).
+// Wandert nur nach unten (Grundsatz 5), nach oben nur per Commit, der den
+// neuen Spieltext nennt.
+const ANTEIL_DECKE = Number(argWert('--decke-spieltext') ?? 0.22);
 
 // Benannte Ausnahmen fuer Regel 2 (Grundsatz 6): deutsche Katalogwoerter,
 // die zugleich englische Woerter sind. Trifft eine nichts mehr, reisst das
@@ -124,6 +148,27 @@ const INTERN_AUSNAHMEN = [
 ];
 const fIntern = [];
 const internOffen = new Map(INTERN_AUSNAHMEN.map((a) => [a, 0]));
+
+/* Regel 12, benannte Ausnahmen: Absaetze, deren Sprache kein Template
+   beheben kann. Zombie-Waechter wie bei Regel 11. */
+const ABSATZ_AUSNAHMEN = [
+  {
+    name: 'Item mit Beschreibung als Namen',
+    bereich: /^\/de\/items\/category\//,
+    text: /^The Microid Battle Suit is designed /,
+    anlass: 'Die Spieldaten fuehren die Beschreibung der Microid Battle Suit als Namen; in der Kategorieliste steht sie deshalb als Name in einer Zelle. Ein Anzeigename gehoert in die Namenstabelle der Items (Thread Items und Item Finder zusammenlegen), gemessen 24.11.2026',
+  },
+];
+const absatzOffen = new Map(ABSATZ_AUSNAHMEN.map((a) => [a, 0]));
+const fAbsatz = new Map(); // Bereich + Element -> { n, bsp }
+let absaetzeGeprueft = 0, absaetzeDe = 0, spieltextDe = 0;
+const seitenMitSpieltext = new Set();
+const bereichVon = (page) => {
+  const g = page.split('/').filter(Boolean);
+  const de = g[0] === 'de' || page === '/de.html';
+  const rest = g[0] === 'de' ? g.slice(1) : g;
+  return (de ? '/de/' : '/') + (rest.length > 1 ? rest[0] + '/' : '');
+};
 
 const fehler = [];
 const zeige = (liste, titel, cap = 12) => {
@@ -174,7 +219,22 @@ for (const f of seiten) {
   const de = page === '/de.html' || page.startsWith('/de/');
   const fremd = de ? 'en' : 'de';
   // Blattelemente, die ausdruecklich die andere Sprache tragen, sind erlaubt.
-  const html = readFileSync(f, 'utf8').replace(new RegExp(`<(\\w+)\\b[^>]*\\slang="${fremd}"[^>]*>[^<]*</\\1>`, 'g'), ' ');
+  const roh = readFileSync(f, 'utf8');
+  for (const a of absaetze(roh, de ? 'de' : 'en')) {
+    absaetzeGeprueft++;
+    if (de) {
+      absaetzeDe++;
+      if (a.sprache === 'en' && a.lang === 'en') { spieltextDe++; seitenMitSpieltext.add(page); }
+    }
+    if (!absatzFalschesLang(a)) continue;
+    const ausn = ABSATZ_AUSNAHMEN.find((x) => x.bereich.test(page) && x.text.test(a.text));
+    if (ausn) { absatzOffen.set(ausn, absatzOffen.get(ausn) + 1); continue; }
+    const k = `${bereichVon(page)} <${a.tag}${a.klasse ? '.' + a.klasse.split(/\s+/)[0] : ''}>: ${a.sprache.toUpperCase()} ohne lang="${a.sprache}"`;
+    const e = fAbsatz.get(k) || { n: 0, bsp: `${page} „${a.text.slice(0, 90)}${a.text.length > 90 ? '…' : ''}"` };
+    e.n++;
+    fAbsatz.set(k, e);
+  }
+  const html = roh.replace(new RegExp(`<(\\w+)\\b[^>]*\\slang="${fremd}"[^>]*>[^<]*</\\1>`, 'g'), ' ');
   const mehrwortFremd = de ? M.mehrwortNurEn : M.mehrwortNurDe;
   const zahlRe = de ? ZAHL_EN_AUF_DE_RE : ZAHL_DE_AUF_EN_RE;
   for (const roh of textStellen(html)) {
@@ -253,11 +313,14 @@ for (const q of quellen) {
 }
 
 /* ---------- Bilanz ---------- */
-console.log(`verify:sprache — ${DIST.slice(ROOT.length + 1) || DIST}`);
+console.log(`verify:sprache — ${relative(ROOT, DIST) || DIST}`);
 console.log(`Seiten: ${gelesen.toLocaleString('de-DE')} gelesen (Klinke ${MIN_SEITEN.toLocaleString('de-DE')}), Textstellen: ${stellen.toLocaleString('de-DE')} (Klinke ${MIN_STELLEN.toLocaleString('de-DE')})`);
 console.log(`Kataloge: ${kat.namen.join(', ')} — ${M.mehrwortNurEn.size} mehrwortige Texte nur EN, ${M.mehrwortNurDe.size} nur DE, ${M.wortNurDe.size} Einzelwoerter nur DE, ${M.praefixe.size} Schluesselpraefixe (Klinke ${MIN_MEHRWORT} mehrwortig)`);
 console.log(`Quelle: ${quellen.length} Dateien unter src/, ${quellenMitSprache} mit Sprachbezug (Klinke ${MIN_QUELLEN})`);
 console.log(`Ausnahmen Regel 2: ${WORT_AUSNAHMEN.length} benannt, Regel 10: ${UMLAUT_AUSNAHMEN.length} benannt — ${benutzt.size} in Gebrauch`);
+const anteil = absaetzeDe ? spieltextDe / absaetzeDe : 0;
+const pz = (x) => (x * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %';
+console.log(`Absaetze (Regel 12): ${absaetzeGeprueft.toLocaleString('de-DE')} mit eindeutiger Sprache (Klinke ${MIN_ABSAETZE.toLocaleString('de-DE')}), davon ${absaetzeDe.toLocaleString('de-DE')} auf DE-Seiten; englischer Spieltext mit lang="en" dort: ${spieltextDe.toLocaleString('de-DE')} (${pz(anteil)}, Decke ${pz(ANTEIL_DECKE)}) auf ${seitenMitSpieltext.size.toLocaleString('de-DE')} Seiten`);
 
 if (gelesen < MIN_SEITEN) fehler.push(`nur ${gelesen} Seiten gelesen (Klinke ${MIN_SEITEN})`);
 if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen (Klinke ${MIN_STELLEN})`);
@@ -265,6 +328,8 @@ if (M.mehrwortNurEn.size + M.mehrwortNurDe.size < MIN_MEHRWORT) fehler.push(`nur
 if (quellenMitSprache < MIN_QUELLEN) fehler.push(`nur ${quellenMitSprache} Quelldateien mit Sprachbezug (Klinke ${MIN_QUELLEN})`);
 for (const a of [...WORT_AUSNAHMEN, ...UMLAUT_AUSNAHMEN]) if (!benutzt.has(a)) fehler.push(`Zombie-Ausnahme „${a.wort}": trifft nichts mehr — raus damit`);
 for (const [a, n] of internOffen) if (!n) fehler.push(`Zombie-Ausnahme „${a.name}" (Regel 11): trifft nichts mehr — raus damit`);
+for (const [a, n] of absatzOffen) if (!n) fehler.push(`Zombie-Ausnahme „${a.name}" (Regel 12): trifft nichts mehr — raus damit`);
+if (absaetzeGeprueft < MIN_ABSAETZE) fehler.push(`nur ${absaetzeGeprueft} Absaetze mit eindeutiger Sprache (Klinke ${MIN_ABSAETZE}) — erkennt absatzSprache() noch etwas?`);
 
 zeige(fMehrwort, '1 Katalogtext der anderen Sprache');
 if (fWort.length) {
@@ -281,11 +346,19 @@ zeige(fDezimal, '9 Dezimalzahl im Format der anderen Sprache (toLocaleString / n
 zeige(fDeWort, '10 deutsches Wort auf EN-Seite (Umlaut oder Bedienwort)');
 zeige(fIntern, '11 interner Bezeichner im sichtbaren Text (Anzeigenamen statt Spieldaten-Schluessel)');
 console.log(`\n11 interne Bezeichner, offen und benannt (keine FEHLER, Schulden): ${[...internOffen].map(([a, n]) => `${a.name} ${n.toLocaleString('de-DE')}`).join(' · ')}`);
+const absatzFehler = [...fAbsatz.values()].reduce((s, e) => s + e.n, 0);
+if (absatzFehler) {
+  console.log(`\n== FEHLER 12 Absatz in der anderen Sprache ohne lang: ${absatzFehler} Absatz/Absaetze — Spieltext kennzeichnen (lang), eigenen Text uebersetzen (docs/sprachregel.md) ==`);
+  for (const [k, e] of [...fAbsatz].sort((a, b) => b[1].n - a[1].n).slice(0, 15)) console.log(`   ${k}   (${e.n}×) z. B. ${e.bsp}`);
+  if (fAbsatz.size > 15) console.log(`   … +${fAbsatz.size - 15} weitere Stellen`);
+}
+console.log(`12 Absaetze, offen und benannt (keine FEHLER, Schulden): ${[...absatzOffen].map(([a, n]) => `${a.name} ${n.toLocaleString('de-DE')}`).join(' · ')}`);
+if (anteil > ANTEIL_DECKE) console.log(`\n== WARNUNG 12 englischer Spieltext auf DE-Seiten: ${pz(anteil)} ueber der Decke ${pz(ANTEIL_DECKE)} — neuer Spieltext ohne deutsche Fassung? Uebersetzen, oder die Decke per Commit mit Anlass heben ==`);
 for (const f of fehler) console.log(`\n== FEHLER ${f} ==`);
 
-const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fIntern.length + fehler.length;
+const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fIntern.length + absatzFehler + fehler.length;
 if (summe) {
   console.log(`\nverify:sprache ROT — ${summe} Befund(e).`);
   process.exit(1);
 }
-console.log('\nverify:sprache gruen — jede Seite in ihrer Sprache, Zahlen und Daten im eigenen Format, keine Rohschluessel, keine stille Standardsprache.');
+console.log('\nverify:sprache gruen — jede Seite in ihrer Sprache, Zahlen und Daten im eigenen Format, Spieltext gekennzeichnet, keine Rohschluessel, keine stille Standardsprache.');

@@ -7,6 +7,7 @@ import DataShell from './DataShell.astro';
 import { standCrafting } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
+import { pfadname, wertname } from '../i18n/craftingWerte';
 import {
   type BlueprintEntry, blueprintPath, craftCategoryPath, craftDb, craftLeaf,
   craftPatch, craftTime, itemForBlueprint, plannerPath, relatedBlueprints,
@@ -96,7 +97,7 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
   title={seo.title}
   description={seo.description}
   crumbs={crumbs}
-  eyebrow={`${bp.category} · ${t('bpEyebrow')}`}
+  eyebrow={`${pfadname(bp.category, lang)} · ${t('bpEyebrow')}`}
   tone="craft"
   ogImage="/assets/t-craft-1.jpg"
   modified={craftDb.snapshot_date}
@@ -184,7 +185,7 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
                 (ing.quality_effects ?? []).map((q, qi) => (
                   <tr>
                     <td>{qi === 0 ? ing.slot : ''}</td>
-                    <td>{q.stat}</td>
+                    <td>{wertname(q.stat, lang)}</td>
                     <td class="dp-num">{effect(q.modifier_at_min, q.multiplicative)}</td>
                     <td class="dp-num">{effect(q.modifier_at_max, q.multiplicative)}</td>
                   </tr>
