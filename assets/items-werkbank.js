@@ -317,7 +317,15 @@
       var st = setOf(it);
       var heu = [it.name, nde, it.category, it._gr ? it._gr.n : '', it._b ? it._b.n : '',
         g && g.manufacturer, g && g.class, g && g.subType, st && st.name];
-      for (var i = 0; i < it.obtain.length; i++) heu.push(it.obtain[i].loc, it.obtain[i].locDe);
+      for (var i = 0; i < it.obtain.length; i++) {
+        var ob = it.obtain[i];
+        heu.push(ob.loc, ob.locDe);
+        // Bestaetigte Fundorte: System und Ortsnamen, wie sie im Blatt stehen.
+        if (ob.wo) Object.keys(ob.wo).forEach(function (k) {
+          heu.push((FUNDORTE.systeme || {})[k] || k);
+          ob.wo[k].forEach(function (n) { if (n !== '*') heu.push(n); });
+        });
+      }
       it._h = heu.filter(Boolean).join('\n').toLowerCase();
       BYID[it.id] = it;
     });
@@ -620,8 +628,18 @@
   function fchip(attr, v, label, n, an, extra) {
     return '<button type="button" class="wz-f' + (n === 0 && !an ? ' is-null' : '') + '" data-' + attr + '="' + esc(v) + '" aria-pressed="' + (an ? 'true' : 'false') + '"' + (extra || '') + '>' + esc(label) + (n != null ? ' <em>' + fmt(n) + '</em>' : '') + '</button>';
   }
+  var F_ATTR = ['art', 'gr', 'pk', 'sel'];
   function zeichneFilter() {
     if (!bereit) return;
+    // Die Knoepfe werden neu geschrieben; hatte einer den Fokus, bekommt
+    // sein Nachfolger mit demselben Attribut und Wert ihn zurueck.
+    var fa = document.activeElement, fokus = null;
+    if (fa && fa.classList && fa.classList.contains('wz-f')) {
+      F_ATTR.some(function (a) {
+        if (fa.hasAttribute('data-' + a)) { fokus = [a, fa.getAttribute('data-' + a)]; return true; }
+        return false;
+      });
+    }
     var sets = S.tab === 'sets';
     // Fundart
     var mA = sets ? {} : zaehle('art', function (it, m) {
@@ -660,6 +678,11 @@
     if (!sets && !gs.length) el.fGr.closest('.wz-fg').hidden = true;
     el.fPk.closest('.wz-fg').hidden = !ps.length;
     if (!sets && !ss.length) el.fSel.closest('.wz-fg').hidden = true;
+    if (fokus) {
+      var box = { art: el.fArt, gr: el.fGr, pk: el.fPk, sel: el.fSel }[fokus[0]];
+      var neu = Array.prototype.find.call(box.children, function (b) { return b.getAttribute('data-' + fokus[0]) === fokus[1]; });
+      if (neu) { try { neu.focus({ preventScroll: true }); } catch (e) {} }
+    }
   }
   el.sch.addEventListener('click', function (e) {
     var b = e.target.closest('.wz-f');
@@ -1076,11 +1099,12 @@
 
   // Blatt am Telefon: von unten, Zurueck des Geraets schliesst es.
   var blattGeschoben = false;
-  function telefonAuf() {
+  function telefonAuf(ausHistorie) {
     if (!TELEFON.matches || el.blatt.classList.contains('is-offen')) return;
     el.blatt.classList.add('is-offen');
     if (window.VBScrollLock) window.VBScrollLock.lock();
-    try { history.pushState({ wzBlatt: 1 }, '', location.href); blattGeschoben = true; } catch (e) {}
+    if (ausHistorie) blattGeschoben = true;
+    else { try { history.pushState({ wzBlatt: 1 }, '', location.href); blattGeschoben = true; } catch (e) {} }
     setTimeout(function () { try { el.box.focus({ preventScroll: true }); } catch (e) {} }, 30);
   }
   function telefonZu(ausHistorie) {
@@ -1093,7 +1117,18 @@
     if (k) { var f = k.querySelector('a') || k; try { f.focus({ preventScroll: true }); } catch (e) {} }
     return true;
   }
-  window.addEventListener('popstate', function () { if (el.blatt.classList.contains('is-offen')) telefonZu(true); });
+  // Zurueck schliesst das Blatt. Vorwaerts auf einen Eintrag, den das Blatt
+  // angelegt hat, oeffnet es wieder, mit der Auswahl aus der Adresse und
+  // ohne neuen Eintrag.
+  window.addEventListener('popstate', function (e) {
+    if (!(e.state && e.state.wzBlatt)) { if (el.blatt.classList.contains('is-offen')) telefonZu(true); return; }
+    if (!bereit || !TELEFON.matches || el.blatt.classList.contains('is-offen')) return;
+    var p = new URLSearchParams(location.search), id = p.get('item'), sid = p.get('satz');
+    if (id && BYID[id]) { if (S.item !== id) oeffneItem(BYID[id], { still: true }); }
+    else if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true }); }
+    else return;
+    telefonAuf(true);
+  });
   el.x.addEventListener('click', function () { telefonZu(false); });
   el.blatt.addEventListener('click', function (e) { if (e.target === el.blatt) telefonZu(false); });
   TELEFON.addEventListener && TELEFON.addEventListener('change', function (m) {
