@@ -62,6 +62,7 @@
   /* ---------- Daten ---------- */
   var ITEMS = [], BYID = karte(), SETS = karte(), SETLISTE = [], FUNDORTE = null;
   var bereit = false;
+  var ladeFehler = false;
 
   // Zwilling von isIndexable() in src/lib/items.ts (wie im Finder).
   function hasPage(it) {
@@ -437,6 +438,10 @@
   function anwenden(opt) {
     opt = opt || {};
     QW = S.q.toLowerCase().split(/\s+/).filter(Boolean);
+    // Vor dem Katalog gibt es nichts zu durchsuchen: weder „Nichts gefunden“
+    // noch eine geleerte Trefferliste, solange er laedt, und beim Ladefehler
+    // bleibt der Fehler stehen. Der Stand S gilt, sobald der Katalog da ist.
+    if (!bereit) { if (ladeFehler) zeigeLadefehler(); return; }
     sortWahl();
     if (S.tab === 'sets') {
       TREFFER = SETLISTE.filter(setPasst);
@@ -449,7 +454,7 @@
     zeichneFilter();
     zeichneLeiste();
     zeichneChips();
-    schreibeUrl();
+    if (!opt.ohneUrl) schreibeUrl();
   }
 
   function hl(text) {
@@ -531,6 +536,20 @@
         '<span class="wz-k__ort"><span>' + esc(w('setAnsehen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></span></div>' +
     '</article>';
   }
+
+  // Der Katalog kam nicht: das sagt die Liste, mit einem neuen Abruf, und
+  // keine Suche ersetzt es durch „Nichts gefunden“ (anwenden prueft bereit).
+  var GITTER_ANFANG = el.gitter.innerHTML;
+  function zeigeLadefehler() {
+    el.gitter.removeAttribute('aria-busy');
+    el.gitter.innerHTML = '<div class="wz-leer" role="alert"><b>' + esc(w('ladeT')) + '</b><p>' + esc(tr('loadError', 'Die Item-Datenbank konnte nicht geladen werden.')) + '</p>' +
+      '<button class="wz-knopf" type="button" data-neu-laden>' + esc(w('ladeK')) + '</button></div>';
+  }
+  el.gitter.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('[data-neu-laden]')) return;
+    el.gitter.innerHTML = GITTER_ANFANG;
+    ladeKatalog();
+  });
 
   function zeichneTreffer(opt) {
     var g = el.gitter;
@@ -1023,28 +1042,44 @@
         return r.json();
       })
       .then(function (db) {
-        var idx = karte();
+        // Rezept je Item wie recipeForItem() in src/lib/crafting.ts: der
+        // Bauplan zeigt ueber seine guid auf das Item, das er herstellt, erst
+        // danach zaehlt der Name. Gleichnamige Bauplaene (zweimal „BroadSpec“)
+        // bauen verschiedene Items und ueberschreiben sich so nicht.
+        var jeItem = karte();
         if (db && db.blueprints) {
+          var perGuid = karte(), perName = karte();
+          ITEMS.forEach(function (i) {
+            var g = i.game;
+            perName[i.name.toLowerCase()] = i;
+            if (!g) return;
+            if (g.guid && !perGuid[g.guid]) perGuid[g.guid] = i;
+            (g.guidAliases || []).forEach(function (a) { if (!perGuid[a]) perGuid[a] = i; });
+          });
+          ITEMS.forEach(function (i) {
+            ((i.game && i.game.variants) || []).forEach(function (v) { if (v.guid) perGuid[v.guid] = i; });
+          });
           // Slugs exakt wie src/lib/crafting.ts (gleiche Reihenfolge, „-2" bei Dubletten).
           var used = karte();
-          db.blueprints.forEach(function (bp) {
+          db.blueprints.forEach(function (bp, stelle) {
             if (!bp.name) return;
             var base = String(bp.name).toLowerCase().replace(/['’"]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'blueprint';
             var n = (used[base] || 0) + 1;
             used[base] = n;
             bp.__slug = n > 1 ? base + '-' + n : base;
-            idx[bp.name.toLowerCase()] = bp;
+            bp.__stelle = stelle;
+            var baut = (bp.entity_guid && perGuid[bp.entity_guid]) || perName[bp.name.toLowerCase()] || null;
+            if (baut && !jeItem[baut.id]) jeItem[baut.id] = bp;
           });
         }
-        CRAFT = idx;
+        CRAFT = jeItem;
       })
       .catch(function () { craftLaeuft = null; });
     return craftLaeuft;
   }
-  function craftEinsetzen(it) {
-    var ziel = document.getElementById('wzb-craft');
-    if (!ziel) return;
-    var bp = CRAFT && CRAFT[it.name.toLowerCase()];
+  function craftEinsetzen(it, ziel) {
+    if (!ziel || !ziel.isConnected) return;
+    var bp = CRAFT && CRAFT[it.id];
     if (!bp) { ziel.remove(); return; }
     var sek = bp.craft_time_seconds || 0;
     var zeit = sek >= 60 ? Math.floor(sek / 60) + ' min' + (sek % 60 ? ' ' + (sek % 60) + ' s' : '') : sek + ' s';
@@ -1065,13 +1100,16 @@
     var akt = document.getElementById('wzb-akt');
     if (akt) {
       akt.insertAdjacentHTML('beforeend',
-        '<a class="wzb-neben" href="' + esc((C.craftPage || '/topics/crafting.html') + '?bp=' + encodeURIComponent(it.name)) + '"><span class="wi wi--fab" aria-hidden="true"></span><span>' + esc(w('craftOeffnen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>' +
+        '<a class="wzb-neben" href="' + esc((C.craftPage || '/topics/crafting.html') + '?bp=' + encodeURIComponent(bp.name) + '&bpi=' + bp.__stelle) + '"><span class="wi wi--fab" aria-hidden="true"></span><span>' + esc(w('craftOeffnen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>' +
         (bp.__slug ? '<a class="wzb-neben" href="' + esc((C.craftBase || '/crafting/') + bp.__slug + '.html') + '"><span class="wg" data-g="bp" aria-hidden="true"></span><span>' + esc(w('rezeptSeite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>' : ''));
     }
   }
 
   function zeigeBlatt(html, opt) {
     opt = opt || {};
+    // Lag der Fokus im alten Inhalt (etwa „Set ansehen“ per Enter), faellt er
+    // mit ihm weg; er geht dann an die neue Ueberschrift, nicht an die Seite.
+    var fokusDrin = el.inh.contains(document.activeElement);
     el.inh.innerHTML = html;
     if (!STILL.matches) {
       el.inh.classList.remove('is-frisch'); void el.inh.offsetWidth; el.inh.classList.add('is-frisch');
@@ -1084,6 +1122,11 @@
     } else el.zur.hidden = true;
     var titel = el.inh.querySelector('#wzb-name');
     el.blatt.setAttribute('aria-label', titel ? titel.textContent : w('ueTitel'));
+    if (fokusDrin) {
+      var f = titel || el.box;
+      if (f === titel) titel.setAttribute('tabindex', '-1');
+      try { f.focus({ preventScroll: true }); } catch (e) {}
+    }
     if (window.VBScrollAffordance) window.VBScrollAffordance();
   }
   el.inh.addEventListener('animationend', function (e) { if (e.target === el.inh) el.inh.classList.remove('is-frisch'); });
@@ -1095,10 +1138,14 @@
     S.satz = null;
     zeigeBlatt(blattItem(it));
     markiere();
-    if (CRAFT) craftEinsetzen(it);
-    else ladeCraft().then(function () { if (S.item === it.id) craftEinsetzen(it); });
+    // Der Rueckruf gehoert zu genau diesem Blatt: oeffnet man inzwischen ein
+    // anderes und wieder dieses Item, ist der alte Platzhalter weg, und nur
+    // der juengste Aufruf fuellt das Blatt.
+    var platz = document.getElementById('wzb-craft');
+    if (CRAFT) craftEinsetzen(it, platz);
+    else ladeCraft().then(function () { craftEinsetzen(it, platz); });
     if (!opt.still) telefonAuf();
-    schreibeUrl();
+    if (!opt.ohneUrl) schreibeUrl();
   }
   function oeffneSatz(st, opt) {
     opt = opt || {};
@@ -1108,14 +1155,15 @@
     zeigeBlatt(blattSatz(st));
     markiere();
     if (!opt.still) telefonAuf();
-    schreibeUrl();
+    if (!opt.ohneUrl) schreibeUrl();
   }
-  function ueberblick() {
+  function ueberblick(opt) {
+    opt = opt || {};
     STAPEL = [];
     S.item = null; S.satz = null;
     zeigeBlatt(UEBERBLICK);
     markiere();
-    schreibeUrl();
+    if (!opt.ohneUrl) schreibeUrl();
   }
   function markiere() {
     el.gitter.querySelectorAll('.wz-k.is-sel').forEach(function (k) { k.classList.remove('is-sel'); });
@@ -1197,23 +1245,45 @@
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].name.toLowerCase() === k) return ITEMS[i];
     return null;
   }
-  function auswahlAusAdresse() {
+  function auswahlAusAdresse(ohneUrl) {
     var p = new URLSearchParams(location.search), it = itemAusWunsch(p.get('item')), sid = p.get('satz');
-    if (it) { if (S.item !== it.id) oeffneItem(it, { still: true }); return true; }
-    if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true }); return true; }
+    if (it) { if (S.item !== it.id) oeffneItem(it, { still: true, ohneUrl: ohneUrl }); return true; }
+    if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true, ohneUrl: ohneUrl }); return true; }
     return false;
   }
+  // Filter, Suche und Sortierung aus der Adresse, ausgehend vom Grundstand
+  // (leseUrl setzt nur, was in der Adresse steht). Liefert, ob sich die
+  // Trefferliste dadurch aendert.
+  function filterSchluessel() {
+    return [S.tab, S.gruppe && S.gruppe.s, S.blatt && S.blatt.s, S.q, S.art, S.gr, S.pk, S.sel, S.set, S.sort].join('|');
+  }
+  function filterAusAdresse() {
+    var vorher = filterSchluessel();
+    setzeTab('items', true);
+    S.gruppe = null; S.blatt = null; S.q = ''; S.art = 'all'; S.gr = null;
+    S.pk = null; S.sel = null; S.set = null; S.sort = 'relevanz';
+    el.q.value = ''; el.suche.classList.remove('hat-text');
+    leseUrl();
+    return filterSchluessel() !== vorher;
+  }
+  // Zurueck und Vorwaerts des Nutzers stellen den Eintrag her, auf dem man
+  // landet: Filter und Auswahl aus seiner Adresse, ohne in sie zu schreiben.
+  // Das eigene Zurueck aus telefonZu() ist keine solche Navigation: dort hat
+  // der Aufrufer gerade Filter fuer die Liste gesetzt, und sein wartender
+  // Schreibvorgang traegt sie in deren Eintrag.
   window.addEventListener('popstate', function (e) {
-    if (eigenesZurueck) eigenesZurueck = false;
-    else clearTimeout(urlTimer);
+    var eigenes = eigenesZurueck;
+    eigenesZurueck = false;
+    if (!eigenes) clearTimeout(urlTimer);
     var offen = el.blatt.classList.contains('is-offen');
+    if (!eigenes && bereit && filterAusAdresse()) anwenden({ ohneUrl: true });
     if (!(e.state && e.state.wzBlatt)) {
       if (offen) telefonZu(true);
-      if (bereit && !auswahlAusAdresse() && (S.item || S.satz)) ueberblick();
+      if (bereit && !auswahlAusAdresse(!eigenes) && (S.item || S.satz)) ueberblick({ ohneUrl: !eigenes });
       return;
     }
     if (!bereit || !TELEFON.matches || offen) return;
-    if (auswahlAusAdresse()) telefonAuf(true);
+    if (auswahlAusAdresse(true)) telefonAuf(true);
   });
   el.x.addEventListener('click', function () { telefonZu(false); });
   el.blatt.addEventListener('click', function (e) { if (e.target === el.blatt) telefonZu(false); });
@@ -1508,24 +1578,29 @@
   requestAnimationFrame(function () { document.documentElement.classList.add('wz-bereit'); });
   setTimeout(function () { wz.classList.remove('wz-auftakt'); }, Math.round(1500 * ZT));
 
-  fetch(C.dbUrl || '/assets/universal-items.json').then(function (r) {
-    if (!r.ok) throw new Error('items db http ' + r.status);
-    return r.json();
-  }).then(function (db) {
-    vorbereiten(db || {});
-    bereit = true;
-    var it = null, st = null;
-    it = itemAusWunsch(wunsch.item);
-    if (it) S.item = it.id;
-    if (wunsch.satz && SETS[wunsch.satz]) { st = SETS[wunsch.satz]; S.satz = st.id; }
-    anwenden({ bisAuswahl: true });
-    if (it) oeffneItem(it, { still: !TELEFON.matches });
-    else if (st) oeffneSatz(st, { still: !TELEFON.matches });
-    var k = markiere();
-    if (k && !TELEFON.matches) k.scrollIntoView({ block: 'nearest' });
-  }).catch(function (err) {
-    console.warn('Items-Werkbank: Katalog nicht geladen.', err);
-    el.gitter.removeAttribute('aria-busy');
-    el.gitter.innerHTML = '<div class="wz-leer"><b>' + esc(w('leerT')) + '</b><p>' + esc(tr('loadError', 'Die Item-Datenbank konnte nicht geladen werden.')) + '</p></div>';
-  });
+  function ladeKatalog() {
+    ladeFehler = false;
+    el.gitter.setAttribute('aria-busy', 'true');
+    fetch(C.dbUrl || '/assets/universal-items.json').then(function (r) {
+      if (!r.ok) throw new Error('items db http ' + r.status);
+      return r.json();
+    }).then(function (db) {
+      vorbereiten(db || {});
+      bereit = true;
+      var it = null, st = null;
+      it = itemAusWunsch(wunsch.item);
+      if (it) S.item = it.id;
+      if (wunsch.satz && SETS[wunsch.satz]) { st = SETS[wunsch.satz]; S.satz = st.id; }
+      anwenden({ bisAuswahl: true });
+      if (it) oeffneItem(it, { still: !TELEFON.matches });
+      else if (st) oeffneSatz(st, { still: !TELEFON.matches });
+      var k = markiere();
+      if (k && !TELEFON.matches) k.scrollIntoView({ block: 'nearest' });
+    }).catch(function (err) {
+      console.warn('Items-Werkbank: Katalog nicht geladen.', err);
+      ladeFehler = true;
+      zeigeLadefehler();
+    });
+  }
+  ladeKatalog();
 })();
