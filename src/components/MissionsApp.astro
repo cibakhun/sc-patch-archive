@@ -14,6 +14,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { jsonForScript } from '../lib/safeJson';
+import { missionsSuchUrl } from '../lib/missionsSuche';
 import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 
 interface Props { lang: Locale }
@@ -193,7 +194,8 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
           Auswahlen fuer eine Frage — wer vergibt den Auftrag? Jetzt eine, in
           Gruppen; der Wert traegt die Art vorn („giver:…"), die Adresse
           bleibt ?giver= / ?faction= / ?guild= wie bisher (Links der
-          Missionsblaetter). Ereignisname bleibt „auftraggeber" (Liste in
+          Missionsblaetter, die immer nur einen der drei setzen; vor F4
+          schrieb die Seite nichts in die Adresse). Ereignisname bleibt „auftraggeber" (Liste in
           scripts/lib/ereignisse.mjs). */}
       <div class="mx__f mx__f--for" data-help={h('missions.ctl.select')}>
         <label for="mx-for">{S.fFor}</label>
@@ -244,7 +246,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     <div class="mx__grid" id="mx-grid" data-grp={GRP}>
       {/* HTML-Diät: data-search (~500 unsichtbare Zeichen je Karte — Blueprint-
           Namen, Orte, Titel-Varianten) liegt jetzt als 1-Tag-cachebarer Index
-          unter /missions-search.json (siehe pages/missions-search.json.ts);
+          unter /missions-search.json (siehe lib/missionsSuche.ts);
           data-name liest missions-app.js aus dem sichtbaren <h3>. Zusammen
           ~0,75 MB weniger pro Sprachindex. */}
       {groups.map((grp) => (
@@ -325,9 +327,9 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
   </div>
 </section>
 
-{/* searchUrl versioniert mit dem DB-Stand: neuer Datamine-Lauf -> neue URL ->
-    kein 1-Tag-alter Suchindex zu frischen Karten. */}
-<script is:inline set:html={`window.__MX=${jsonForScript({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results, more: S.more, shown: S.shown } })};`} />
+{/* searchUrl traegt einen Hash des Index-Inhalts (src/lib/missionsSuche.ts):
+    neuer Inhalt -> neue URL -> kein 1-Tag-alter Suchindex zu frischen Karten. */}
+<script is:inline set:html={`window.__MX=${jsonForScript({ lang, searchUrl: missionsSuchUrl, t: { results: S.results, more: S.more, shown: S.shown } })};`} />
 {/* Inhaltshash statt des frueheren festen ?v=2: das Skript muss zum Markup
     passen (erst Karten ohne data-search/data-name, jetzt Karten in Bloecken
     .mc-grp) — altes gecachtes JS (1 Tag) haelte die Bloecke fuer Karten.

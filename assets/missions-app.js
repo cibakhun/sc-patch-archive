@@ -71,7 +71,11 @@
     return true;
   }
 
-  function apply() {
+  // halten: nur der Suchindex kam nach, der Treffer nie wegnimmt (er
+  // ergaenzt Suchtext). Dann bleiben freigegebene Karten und Rollposition;
+  // jede echte Filter- oder Sortieraenderung beginnt wieder bei GRP Karten.
+  function apply(halten) {
+    halten = halten === true;
     var toks = (q.value || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
     var vFor = selFor ? selFor.value : '';
     var kFor = vFor.slice(0, vFor.indexOf(':')), idFor = vFor.slice(vFor.indexOf(':') + 1);
@@ -93,17 +97,32 @@
     if (out) out.textContent = txt;
     if (outM) outM.textContent = txt;
     if (none) none.hidden = n !== 0;
-    limit = GRP;
-    sort();
+    if (halten) {
+      // Umsortieren unter dem Leser: die Scroll-Verankerung des Browsers
+      // folgte sonst einer umgehaengten Karte, die Seite sprang (gemessen
+      // rund 5.000 px). Fuer diesen einen Durchgang aus, Stelle bleibt.
+      var root = document.documentElement, y = window.scrollY;
+      root.style.overflowAnchor = 'none';
+      sort();
+      window.scrollTo(0, y);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { root.style.overflowAnchor = ''; }); });
+    } else {
+      limit = GRP;
+      sort();
+      zumAnfang();
+    }
     toUrl();
-    zumAnfang();
   }
 
   // Wer tief in der Liste filtert, sah danach Leere oder die Mitte der neuen
   // Treffer: die Liste schrumpft unter ihm weg. Steht die Seite schon unter
   // dem Rasteranfang, rollt sie zurueck dorthin, die Leiste darueber.
+  var nachZu = false;
   function zumAnfang() {
     var cs = getComputedStyle(bar);
+    // Schublade (schmal/flach): die Seite ist gesperrt, gerollt wird erst
+    // nach dem Schliessen (siehe drawer()).
+    if (bar.classList.contains('is-open') && cs.position === 'fixed') { nachZu = true; return; }
     if (cs.position !== 'sticky') return;
     var unten = (parseFloat(cs.top) || 0) + bar.offsetHeight + (parseFloat(cs.marginBottom) || 0);
     var ziel = grid.getBoundingClientRect().top + window.scrollY - unten;
@@ -274,7 +293,7 @@
         var full = idx[cards[i].slug];
         if (full) cards[i].search = cards[i].search + ' ' + full;
       }
-      if ((q.value || '').trim()) apply();
+      if ((q.value || '').trim()) apply(true);
     }).catch(function () {});
   }
 
@@ -299,7 +318,9 @@
     var p = new URLSearchParams(location.search);
     var map = { q: q, type: selType, loc: selLoc, bp: selBp, legal: selLegal, sort: selSort };
     var any = false;
-    // ?giver= / ?faction= / ?guild= landen in der einen Auswahl „Für wen"
+    // ?giver= / ?faction= / ?guild= landen in der einen Auswahl „Für wen".
+    // Erzeugt wird immer nur einer (Missionsblaetter, toUrl); steht von Hand
+    // mehr als einer da, gilt der letzte gueltige in dieser Reihenfolge.
     ['giver', 'faction', 'guild'].forEach(function (kind) {
       var v = p.get(kind);
       if (v == null || !selFor) return;
@@ -354,7 +375,9 @@
     var panel = document.getElementById('mx-bar');
     var toggle = document.getElementById('mx-filter-toggle');
     if (!panel || !toggle) return;
+    var yOffen = 0;
     toggle.addEventListener('click', function () {
+      if (!panel.classList.contains('is-open')) yOffen = window.scrollY;
       var open = panel.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
@@ -363,6 +386,25 @@
       panel.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
     });
+    // Wer tief in der Liste die Filter aendert, stand nach dem Schliessen
+    // an derselben Stelle, die neuen Treffer begannen weit oben. Jeder Weg
+    // zu (✕, Esc, Verdunkler, Wischen) nimmt is-open weg; gerollt wird
+    // danach, wenn offcanvas.js die Seite entsperrt und die alte Stelle
+    // angefordert hat. Verglichen wird mit der Stelle beim Oeffnen (yOffen):
+    // scrollY liest am Telefon direkt nach dem Entsperren noch 0. Ziel ist
+    // die Zeile mit Filterknopf und Trefferzahl, auf der dann der Fokus steht.
+    if (!window.MutationObserver) return;
+    var kopf = document.querySelector('.mx__mbar') || grid;
+    var oben = function (el) { var y = 0; for (; el; el = el.offsetParent) y += el.offsetTop; return y; };
+    new MutationObserver(function () {
+      if (!nachZu || panel.classList.contains('is-open')) return;
+      nachZu = false;
+      setTimeout(function () {
+        var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+        var ziel = Math.max(0, oben(kopf) - Math.round(nav));
+        if (yOffen > ziel + 1) window.scrollTo(0, ziel);
+      }, 0);
+    }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   })();
 
   apply();
