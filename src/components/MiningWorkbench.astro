@@ -1497,6 +1497,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__seg{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px}
   .wb__pane{height:auto}
   .wb__scroll{max-height:70vh}
+  /* ⚠⚠ GEMESSEN 24.11.2026 bei 390 und 412 px (UX-Audit, Task-Flow F02):
+     Reiter „Signaturen" mit zwei angehefteten Erzen — #wb-pins 0 px hoch bei
+     177 px Inhalt, von beiden Listen samt Ueberschrift war nichts zu sehen.
+     Ursache ist die Null-Basis von .wb__sec2 (flex:1 1 0, s. oben): sie
+     teilt eine FESTE Spaltenhoehe auf, und die gibt es hier nicht mehr —
+     .wb__pane steht auf height:auto. Eine Spalte, deren Hoehe aus ihrem
+     Inhalt kommt, und Kaesten mit Grundhoehe 0 ergeben 0; .wb__pane schneidet
+     mit overflow:hidden den Rest ab. Ab 761 px traegt die Spalte wieder eine
+     feste Hoehe (min(62vh,560px)), dort war es nie falsch.
+     Hier also Grundhoehe = Inhalt; jede Liste scrollt ab 70vh selbst. */
+  .wb__sec2{flex:0 0 auto}
   .wb__grid.has-seg{display:block}
   .wb__grid.has-seg > .wb__pane{display:none}
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
