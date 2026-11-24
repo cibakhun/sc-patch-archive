@@ -183,14 +183,17 @@ interface DeckGroup {
 const ZIELE = new Map([...bereiche(lang).flatMap((b) => b.seiten), ...dienste(lang)].map((z) => [z.key, z]));
 const pfadHier = pathNoLocale;
 const hier = bereichVon(current);
+const DIENST_PFADE = new Set(dienste(lang).filter((d) => d.key !== 'konto' && !d.extern).map((d) => d.path));
 const deckItem = (key: string): DeckItem[] => {
   const z = ZIELE.get(key);
   if (!z) return [];
   // Markiert wird die Seite selbst und ihre Unterseiten (Schiff unter
   // Schiffe, Mission unter Missionen, Konto unter /account/). Das Archiv
   // nur auf sich selbst: Patch- und Themenseiten sind keine Archiv-Seite.
+  // Konto nicht auf Pfaden, die ein eigener Dienst sind (Meine Flotte unter
+  // /account/fleet.html), sonst stuenden zwei Eintraege als aktuell da.
   const imBereich = z.key === 'konto'
-    ? pfadHier.startsWith('/account/')
+    ? pfadHier.startsWith('/account/') && !DIENST_PFADE.has(pfadHier)
     : z.key !== 'archiv' && hier?.seite === z.key;
   return [{
     // Feedback nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“.
