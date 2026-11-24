@@ -405,7 +405,7 @@ a{color:inherit;text-decoration:none}
   .sdb__reset{border:1px solid var(--line);background:transparent;color:var(--muted)}
   .sdb__reset:hover,.sdb__reset:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
   .sdb__show{border:0;background:var(--accent);color:var(--bg)}
-  .sdb__show.is-leer{background:var(--surface);color:var(--muted)}
+  .sdb__show.is-leer{background:var(--surface);color:var(--muted);cursor:default}
 }
 
 /* ---------- Schiffsvergleich (UX-Audit E7) ----------
@@ -943,6 +943,9 @@ body.has-sv-tray .sdb__fleet{padding-bottom:5.5rem}
     if (zeigen && SHOW_TPL) {
       zeigen.textContent = n ? SHOW_TPL.replace('{n}', String(n)) : (SHOW_NONE || '0');
       if (n) zeigen.classList.remove('is-leer'); else zeigen.classList.add('is-leer');
+      // Ohne Treffer gibt es nichts anzuzeigen: der Knopf nennt das und ist aus
+      // (schliessen bleibt ueber X, Esc, Wischen und den Verdunkler).
+      zeigen.disabled = !n;
     }
   }
   function schubladeZu() {

@@ -408,6 +408,7 @@ describe('Filter-Schublade auf dem Handy (TF V26/M4)', () => {
       assert.ok(n > 0 && n < TOTAL);
       assert.strictEqual(ctx.elements['sf-show'].textContent, LABELS[lang].show.replace('{n}', String(n)));
       assert.ok(!ctx.elements['sf-show'].classList.contains('is-leer'));
+      assert.ok(!ctx.elements['sf-show'].disabled, 'mit Treffern ist der Knopf bedienbar');
     }
   });
 
@@ -417,6 +418,10 @@ describe('Filter-Schublade auf dem Handy (TF V26/M4)', () => {
     assert.strictEqual(visibleIds(ctx).size, 0);
     assert.strictEqual(ctx.elements['sf-show'].textContent, LABELS.de.none);
     assert.ok(ctx.elements['sf-show'].classList.contains('is-leer'));
+    assert.strictEqual(ctx.elements['sf-show'].disabled, true, 'ohne Treffer ist der Knopf aus');
+    ctx.elements['sf-q'].value = '';
+    visibleIds(ctx);
+    assert.strictEqual(ctx.elements['sf-show'].disabled, false, 'mit Treffern wieder an');
   });
 
   test('Zuruecksetzen nimmt die acht Felder zurueck, Suche und Sortierung bleiben', () => {
