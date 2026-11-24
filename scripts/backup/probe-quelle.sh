@@ -12,8 +12,14 @@
 # kommt aus ihrer Migration und bekommt hier LOGIN mit einem Zufallspasswort,
 # genau wie es der Betreiber auf Live tut.
 #
-# Schreibt VB_DB_URL, VB_STORAGE_URL, VB_PROBE_ANMELDUNG und QUELL_STACK in
-# <env-datei>. Kein echter Datensatz, kein Live-Zugang.
+# VB_SONDE_AUTH_VERSION (z. B. v2.197.0) laesst den Auth-Dienst der Quelle
+# in einer ANDEREN Version laufen als die der CLI — so wie Live, wenn Supabase
+# Auth anhebt. Die Sonde zeigt damit bei jedem Lauf, dass die Probe sich an
+# den Stand der Quelle bindet (plattform.mjs); ohne Bindung reisst sie. Ist
+# die Version gleich der der CLI, zeigt die Sonde das nicht mehr: FEHLER.
+#
+# Schreibt VB_DB_URL, VB_STORAGE_URL, VB_QUELLE_APIKEY, VB_PROBE_ANMELDUNG
+# und QUELL_STACK in <env-datei>. Kein echter Datensatz, kein Live-Zugang.
 # ============================================================
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/gemeinsam.sh"
@@ -36,11 +42,24 @@ sed -i -E 's/^project_id = .*/project_id = "vb-probe-quelle"/' "$STACK/supabase/
 mkdir -p "$STACK/supabase/migrations"
 cp "$REPO"/supabase/migrations/*.sql "$STACK/supabase/migrations/"
 
+if [ -n "${VB_SONDE_AUTH_VERSION:-}" ]; then
+  # Version der CLI aus einem leeren Ordner (dort liegt keine Bindung)
+  cli_auth="$(cd "$(mktemp -d)" && "$SUPABASE_BIN" services -o json 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",(d)=>s+=d).on("end",()=>{const l=JSON.parse(s);const a=(Array.isArray(l)?l:l.services).find((x)=>/gotrue$/.test(x.name));process.stdout.write(a?.local??"")})')" \
+    || fehler "Auth-Version der CLI nicht lesbar (supabase services) — Sonde kann die Bindung nicht zeigen"
+  [ -n "$cli_auth" ] || fehler "Auth-Version der CLI nicht lesbar (supabase services) — Sonde kann die Bindung nicht zeigen"
+  [ "$cli_auth" != "$VB_SONDE_AUTH_VERSION" ] \
+    || fehler "VB_SONDE_AUTH_VERSION ($VB_SONDE_AUTH_VERSION) ist die Version der CLI — die Sonde zeigt die Bindung so nicht mehr; eine andere Version waehlen"
+  mkdir -p "$STACK/supabase/.temp"
+  printf '%s' "$VB_SONDE_AUTH_VERSION" > "$STACK/supabase/.temp/gotrue-version"
+  echo "  Auth der Quelle: $VB_SONDE_AUTH_VERSION (CLI: $cli_auth)"
+fi
+
 schritt "Quell-Stack aus $(ls "$STACK/supabase/migrations" | wc -l) Migrationen"
 "$SUPABASE_BIN" start --workdir "$STACK" \
   -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor,postgrest > "$STACK/start.log" 2>&1 \
   || { tail -30 "$STACK/start.log" >&2; fehler "Quell-Stack startet nicht"; }
-eval "$("$SUPABASE_BIN" status --workdir "$STACK" -o env 2>/dev/null | grep -E '^(DB_URL|API_URL|SERVICE_ROLE_KEY)=')"
+eval "$("$SUPABASE_BIN" status --workdir "$STACK" -o env 2>/dev/null | grep -E '^(DB_URL|API_URL|SERVICE_ROLE_KEY|ANON_KEY)=')"
 case "$DB_URL" in *127.0.0.1:543*) ;; *) fehler "Quelle ist nicht der lokale Stack ($DB_URL)";; esac
 verbindung_setzen "$DB_URL"
 
@@ -80,6 +99,7 @@ pg -c "alter role vb_backup with login password '$pw'"
 {
   echo "VB_DB_URL=postgresql://vb_backup:$pw@127.0.0.1:${PGPORT}/postgres"
   echo "VB_STORAGE_URL=$API_URL"
+  echo "VB_QUELLE_APIKEY=$ANON_KEY"
   echo "VB_PROBE_ANMELDUNG=a@probe.invalid:probe-a-passwort"
   echo "QUELL_STACK=$STACK"
 } > "$ENVDATEI"

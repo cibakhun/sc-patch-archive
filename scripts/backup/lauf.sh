@@ -56,16 +56,18 @@ echo "═══ 3/3 Verschluesseln ═══"
 
 # Bericht: nur Zaehlungen, Versionen, Pruefsummen — keine Zeile Nutzerdaten.
 SUPA="$(cd "${TMPDIR:-/tmp}" && "${SUPABASE_BIN:-supabase}" --version 2>/dev/null | head -1)" \
-DAUER=$(( $(date +%s) - T0 )) ARCHIV="$ARCHIV" KLAR="$KLAR" AUS="$AUS" STEMPEL="$STEMPEL" \
+DAUER=$(( $(date +%s) - T0 )) ARCHIV="$ARCHIV" KLAR="$KLAR" PROBE="$PROBE" AUS="$AUS" STEMPEL="$STEMPEL" \
 node -e '
   const fs = require("fs"), path = require("path");
   const m = JSON.parse(fs.readFileSync(path.join(process.env.KLAR, "manifest.json"), "utf8"));
+  const stand = (d) => { try { const p = JSON.parse(fs.readFileSync(path.join(d, "plattform.json"), "utf8")); return { auth: p.auth, storage: p.storage }; } catch { return { auth: null, storage: null }; } };
+  const plattform = { quelle: stand(process.env.KLAR), probe: stand(process.env.PROBE) };
   const sha = fs.readFileSync(process.env.ARCHIV + ".sha256", "utf8").trim().split("\n").map((l) => l.split(/\s+/)[0]);
   const tab = Object.entries(m.tabellen);
   const b = {
     zeit: process.env.STEMPEL, dauer_s: Number(process.env.DAUER), archiv: path.basename(process.env.ARCHIV),
     archiv_bytes: fs.statSync(process.env.ARCHIV).size, archiv_sha256: sha[0], klartext_sha256: sha[1],
-    supabase_cli: process.env.SUPA, quelle: m.quelle, storage: m.storage,
+    supabase_cli: process.env.SUPA, quelle: m.quelle, plattform, storage: m.storage,
     tabellen: tab.length, zeilen: tab.reduce((a, [, t]) => a + t.zeilen, 0),
     zeilen_je_tabelle: Object.fromEntries(tab.filter(([, t]) => t.zeilen > 0).map(([n, t]) => [n, t.zeilen])),
     probe: "bestanden",
@@ -78,6 +80,7 @@ node -e '
     `- sha256 Archiv: \`${b.archiv_sha256}\``,
     `- sha256 Klartext-tar: \`${b.klartext_sha256}\``,
     `- Quelle: Postgres ${b.quelle.server_version}, ${b.quelle.migrationen} Migrationen bis ${b.quelle.letzte_migration}, Auth-Stand ${b.quelle.auth_stand}, Storage-Stand ${b.quelle.storage_stand}`,
+    `- Plattform: Quelle Auth ${plattform.quelle.auth ?? "?"}, Storage ${plattform.quelle.storage ?? "?"} · Probe Auth ${plattform.probe.auth ?? "?"}, Storage ${plattform.probe.storage ?? "?"}`,
     `- ${b.supabase_cli ? "Supabase-CLI " + b.supabase_cli : "Supabase-CLI ?"}`, "",
     "| Tabelle | Zeilen |", "|---|---:|",
     ...Object.entries(b.zeilen_je_tabelle).map(([n, v]) => `| ${n} | ${v} |`), "",
