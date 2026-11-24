@@ -70,7 +70,9 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // Reihe) bei 52, sie steht jetzt auf dem Ist-Stand.
 // Stand 22.11.2026: 59 — Zugang verify-item3d.mjs (Items in 3D); die Klinke
 // stand bei 53, der Bestand davor bei 58, sie steht jetzt auf dem Ist-Stand.
-const MIN_SCRIPTS = 59;
+// Stand 24.11.2026: 60 — Zugang verify-item3d-befunde.mjs (Befunde der
+// 3D-Modelle gegen die Merkmal-Tabelle).
+const MIN_SCRIPTS = 60;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

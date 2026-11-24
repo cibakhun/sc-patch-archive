@@ -1,20 +1,34 @@
-// DDS lesen und Blockformate entpacken (BC1, BC3, BC4, BC5), ohne fremde
-// Werkzeuge. Star Citizen teilt große Bilder: die .dds trägt Kopf und die
-// kleinsten Stufen, jede .dds.N genau eine größere Stufe (größeres N =
+// DDS lesen und entpacken (BC1–BC5, BC7, unkomprimiert RGB/RGBA/Grau, R8),
+// ohne fremde Werkzeuge. Star Citizen teilt große Bilder: die .dds trägt Kopf
+// und die kleinsten Stufen, jede .dds.N genau eine größere Stufe (größeres N =
 // größere Stufe). Welche Stufe ein Teil ist, ergibt sich aus seiner Größe.
 //
-// Kopf: "DDS ", 124 B (Höhe +12, Breite +16, Stufen +28, FourCC +84);
+// Kopf: "DDS ", 124 B (Höhe +12, Breite +16, Stufen +28, Pixelformat ab +76:
+// Schalter +80, FourCC +84, Bits je Pixel +88, Masken R/G/B/A +92..+104);
 // FourCC "DX10" bringt 20 B mehr (DXGI-Format +128).
 // DXGI: 71/72 BC1, 77/78 BC3, 80 BC4 UNORM, 81 BC4 SNORM, 83 BC5 UNORM,
-// 84 BC5 SNORM. BC7 (98/99) liest es nicht.
-const FOURCC = { DXT1: 'bc1', DXT3: 'bc2', DXT5: 'bc3', ATI1: 'bc4', BC4U: 'bc4', BC4S: 'bc4s', ATI2: 'bc5', BC5U: 'bc5', BC5S: 'bc5s' };
-const DXGI = { 71: 'bc1', 72: 'bc1', 77: 'bc3', 78: 'bc3', 80: 'bc4', 81: 'bc4s', 83: 'bc5', 84: 'bc5s', 98: 'bc7', 99: 'bc7' };
-const BLOCK = { bc1: 8, bc2: 16, bc3: 16, bc4: 8, bc4s: 8, bc5: 16, bc5s: 16, bc7: 16 };
+// 84 BC5 SNORM, 95/96 BC6H, 98/99 BC7, 61 R8, 28/29 RGBA8, 87/91 BGRA8.
+// Ohne FourCC ist das Bild unkomprimiert („roh“ + Bits je Pixel); die Masken
+// sagen, welche Bits welcher Kanal sind.
+//
+// Ein Format, das hier nicht steht, wirft beim Lesen; BC6H (HDR) wird gelesen,
+// aber nicht entpackt (decodeLevel wirft). Vorher fielen BC7 und
+// unkomprimierte Bilder im Item-Bäcker still weg (Items in 3D, 23.11.2026);
+// wer ein Bild braucht, fängt den Fehler und meldet ihn.
+import { decodeBc7Level } from './dds-bc7.mjs';
 
-const levelBytes = (fmt, w, h) => Math.max(1, Math.ceil(w / 4)) * Math.max(1, Math.ceil(h / 4)) * BLOCK[fmt];
+const FOURCC = { DXT1: 'bc1', DXT3: 'bc2', DXT5: 'bc3', ATI1: 'bc4', BC4U: 'bc4', BC4S: 'bc4s', ATI2: 'bc5', BC5U: 'bc5', BC5S: 'bc5s' };
+const DXGI = { 28: 'rgba8', 29: 'rgba8', 61: 'r8', 71: 'bc1', 72: 'bc1', 77: 'bc3', 78: 'bc3', 80: 'bc4', 81: 'bc4s', 83: 'bc5', 84: 'bc5s', 87: 'bgra8', 91: 'bgra8', 95: 'bc6h', 96: 'bc6h', 98: 'bc7', 99: 'bc7' };
+const BLOCK = { bc1: 8, bc2: 16, bc3: 16, bc4: 8, bc4s: 8, bc5: 16, bc5s: 16, bc6h: 16, bc7: 16 };
+// Bytes je Pixel der unkomprimierten Formate
+const PIXEL = { r8: 1, rgba8: 4, bgra8: 4, roh8: 1, roh16: 2, roh24: 3, roh32: 4 };
+// feste Masken der DXGI-Formate (R, G, B, A)
+const MASKEN = { r8: [0xff, 0, 0, 0], rgba8: [0xff, 0xff00, 0xff0000, 0xff000000], bgra8: [0xff0000, 0xff00, 0xff, 0xff000000] };
+
+const levelBytes = (fmt, w, h) => (PIXEL[fmt] ? w * h * PIXEL[fmt] : Math.max(1, Math.ceil(w / 4)) * Math.max(1, Math.ceil(h / 4)) * BLOCK[fmt]);
 
 // head: Inhalt der .dds; parts: { N: Inhalt der .dds.N } (fehlende erlaubt)
-// -> { width, height, format, levels: [{ level, w, h, data }] } (größte zuerst)
+// -> { width, height, format, masks?, gray?, levels: [{ level, w, h, data }] } (größte zuerst)
 // Der abgetrennte Alphakanal (.dds.a, Teile .dds.Na) hat denselben Kopf ohne
 // die vier Bytes "DDS ".
 export function readDds(head, parts = {}) {
@@ -23,10 +37,18 @@ export function readDds(head, parts = {}) {
     head = Buffer.concat([Buffer.from('DDS '), head]);
   }
   const height = head.readUInt32LE(12), width = head.readUInt32LE(16), count = Math.max(1, head.readUInt32LE(28));
-  const cc = head.toString('latin1', 84, 88);
-  let format = FOURCC[cc], off = 128;
-  if (cc === 'DX10') { format = DXGI[head.readUInt32LE(128)]; off = 148; }
-  if (!format) throw new Error(`DDS-Format ${cc === 'DX10' ? head.readUInt32LE(128) : cc}`);
+  const cc = head.toString('latin1', 84, 88), pf = head.readUInt32LE(80);
+  let format = FOURCC[cc], off = 128, masks = null, gray = false;
+  if (cc === 'DX10') { format = DXGI[head.readUInt32LE(128)]; off = 148; masks = MASKEN[format] ?? null; gray = format === 'r8'; }
+  else if (!(pf & 4)) {
+    // ohne FourCC: unkomprimiert; Grau (Luminanz, 0x20000) trägt nur R-Maske
+    format = `roh${head.readUInt32LE(88)}`;
+    masks = [92, 96, 100, 104].map((o) => head.readUInt32LE(o) >>> 0);
+    if (!(pf & 1)) masks[3] = 0; // ohne Alpha-Schalter keine Alpha-Maske
+    gray = !!(pf & 0x20000);
+    if (!PIXEL[format]) format = undefined;
+  }
+  if (!format) throw new Error(`DDS-Format ${cc === 'DX10' ? head.readUInt32LE(128) : (pf & 4) ? cc : `roh${head.readUInt32LE(88)}`}`);
   const dims = Array.from({ length: count }, (_, l) => [Math.max(1, width >> l), Math.max(1, height >> l)]);
   const levels = [];
   // Teile: jede Größe passt zu genau einer Stufe
@@ -47,7 +69,7 @@ export function readDds(head, parts = {}) {
     p += n;
   }
   levels.sort((a, b) => a.level - b.level);
-  return { width, height, format, levels };
+  return { width, height, format, masks, gray, levels };
 }
 
 function bc1Block(b, o, out, stride, x0, y0, w, h, alphaFree = true) {
@@ -84,6 +106,8 @@ function bc4Block(b, o, signed) {
 
 // Eine Stufe entpacken -> { w, h, data: Float32Array RGBA } (0..1, SNORM -1..1)
 export function decodeLevel(dds, level = 0) {
+  if (dds.format === 'bc7') return decodeBc7Level(dds, level);
+  if (PIXEL[dds.format]) return decodeRaw(dds, level);
   const L = dds.levels.find((x) => x.level === level) ?? dds.levels[0];
   const { w, h, data: b } = L, f = dds.format;
   const out = new Float32Array(w * h * 4), bw = Math.max(1, Math.ceil(w / 4)), bh = Math.max(1, Math.ceil(h / 4));
@@ -107,5 +131,29 @@ export function decodeLevel(dds, level = 0) {
     } else throw new Error(`Format ${f} wird nicht entpackt`);
   }
   if (f === 'bc1' || f === 'bc3') for (let i = 0; i < out.length; i++) out[i] = tmp[i] / 255;
+  return { w, h, data: out };
+}
+
+// Unkomprimiert: je Pixel n Bytes (little endian), Kanäle nach Maske.
+// Fehlende Farbmaske gibt 0, fehlende Alphamaske 1; Grau füllt G und B mit R.
+function decodeRaw(dds, level) {
+  const L = dds.levels.find((x) => x.level === level) ?? dds.levels[0];
+  const { w, h, data: b } = L, n = PIXEL[dds.format], masks = dds.masks ?? [0, 0, 0, 0];
+  const kanal = masks.map((mk) => {
+    if (!mk) return null;
+    let shift = 0;
+    while (!((mk >>> shift) & 1)) shift++;
+    return { mk, shift, max: mk >>> shift };
+  });
+  const out = new Float32Array(w * h * 4);
+  for (let i = 0; i < w * h; i++) {
+    let px = 0;
+    for (let k = 0; k < n; k++) px += b[i * n + k] * 2 ** (8 * k);
+    for (let c = 0; c < 4; c++) {
+      const K = kanal[c];
+      out[i * 4 + c] = K ? ((px >>> 0 & K.mk) >>> K.shift) / K.max : c === 3 ? 1 : 0;
+    }
+    if (dds.gray) { out[i * 4 + 1] = out[i * 4]; out[i * 4 + 2] = out[i * 4]; }
+  }
   return { w, h, data: out };
 }

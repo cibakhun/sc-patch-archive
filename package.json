@@ -33,6 +33,7 @@
     "verify:hangar-schalter": "node scripts/verify-hangar-schalter.mjs",
     "verify:vorschau-patches": "node scripts/verify-vorschau-patches.mjs",
     "verify:item3d": "node scripts/verify-item3d.mjs",
+    "verify:item3d-befunde": "node scripts/verify-item3d-befunde.mjs",
     "verify:supabase-ziel": "node scripts/verify-supabase-ziel.mjs",
     "verify:backup": "node scripts/verify-backup.mjs",
     "verify:hangar": "node scripts/verify-hangar.mjs",
