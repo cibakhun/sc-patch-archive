@@ -105,11 +105,14 @@
       .replace(/ß/g, 'ss');
   };
   var words = function (s) { return s.match(/[a-z0-9]+/g) || []; };
+  // Namen mit Bindestrich zusaetzlich am Stueck („p8-sc"), damit ein
+  // Tippfehler darin („p8-sx") das Ganze trifft.
+  var glieder = function (s) { return s.match(/[a-z0-9]+(?:-[a-z0-9]+)+/g) || []; };
   var prep = function (j) {
     return (Array.isArray(j) ? j : []).map(function (e) {
       var nt = norm(e.t);
       var nx = norm(e.x);
-      return Object.assign({}, e, { nt: nt, ns: norm(e.s), nx: nx, wt: words(nt), wx: words(nx) });
+      return Object.assign({}, e, { nt: nt, ns: norm(e.s), nx: nx, wt: words(nt), wk: glieder(nt), wx: words(nx) });
     });
   };
   var fill = function (s, n) { return String(s || '').replace('%n%', n); };
@@ -228,13 +231,13 @@
         var p = e.nt.indexOf(terms[i]);
         if (p >= 0 && (at < 0 || p < at)) { at = p; len = terms[i].length; }
       }
-      if (at < 0 && fz) {
-        var re = /[a-z0-9]+/g;
+      // Erst Namen mit Bindestrich am Stueck, dann einzelne Woerter.
+      [/[a-z0-9]+(?:-[a-z0-9]+)+/g, /[a-z0-9]+/g].forEach(function (re) {
         var m;
-        while (at < 0 && (m = re.exec(e.nt))) {
+        while (at < 0 && fz && (m = re.exec(e.nt))) {
           for (var f = 0; f < fz.length; f++) if (fz[f] && fz[f][m[0]]) { at = m.index; len = m[0].length; break; }
         }
-      }
+      });
     }
     if (at < 0) { t.textContent = e.t; return t; }
     if (at > 0) t.appendChild(document.createTextNode(e.t.slice(0, at)));
@@ -373,7 +376,7 @@
     var seen = Object.create(null);
     var liste = [];
     pool.forEach(function (e) {
-      e.wt.concat(e.wx).forEach(function (w) {
+      e.wt.concat(e.wk, e.wx).forEach(function (w) {
         if (!seen[w]) { seen[w] = true; liste.push(w); }
       });
     });
@@ -386,7 +389,7 @@
     var V = null;
     return terms.map(function (q) {
       var k = erlaubt(q);
-      if (!k || /[^a-z0-9]/.test(q)) return null;
+      if (!k || /[^a-z0-9-]/.test(q) || /^-|-$|--/.test(q)) return null;
       for (var i = 0; i < pool.length; i++) if (pool[i].nt.indexOf(q) >= 0 || pool[i].nx.indexOf(q) >= 0) return null;
       V = V || woerterVon(pool);
       if (V.cache[q]) return V.cache[q];
@@ -399,31 +402,53 @@
       return treffer;
     });
   }
+  // Steht q irgendwo am Anfang eines Wortes? Wortgrenze ist ein Zeichen
+  // ausser Buchstabe und Ziffer davor oder ein Grossbuchstabe nach einem
+  // kleinen im Namen („AdrenaPen"). „pen" in „Independent" ist keine.
+  function wortanfang(e, q, at) {
+    var gleich = e.nt.length === e.t.length;
+    for (var p = at; p > 0; p = e.nt.indexOf(q, p + 1)) {
+      if (!/[a-z0-9]/.test(e.nt.charAt(p - 1))) return true;
+      if (gleich && /[a-z]/.test(e.t.charAt(p - 1)) && /[A-Z]/.test(e.t.charAt(p))) return true;
+    }
+    return false;
+  }
   function score(e, terms, whole, fz) {
     var total = 0;
     var abgedeckt = 0;
-    var ganz = 0;
+    var ganzW = 0; // Woerter des Namens, die ein Tippfehler-Wort ganz trifft
+    var ganzT = 0; // Suchwoerter, die ein ganzes Wort des Namens treffen
     for (var i = 0; i < terms.length; i++) {
       var q = terms[i];
       var pts = 0;
       var f = fz && fz[i];
       if (!f) {
         var at = e.nt.indexOf(q);
+        // Am Namensanfang vor Wortanfang vor Wortmitte: „Pen" zeigt die Pens
+        // vor allem, was „inde-pen-dent" heisst.
         if (at === 0) pts = 40;
-        else if (at >= 0) pts = 25;
+        else if (at > 0) pts = wortanfang(e, q, at) ? 32 : 25;
         else if (e.nx.indexOf(q) >= 0) pts = 15;
         else if (e.ns.indexOf(q) >= 0) pts = 8;
         if (at >= 0) abgedeckt += q.length;
       } else {
         // Tippfehler: unter jedem woertlichen Treffer, ein ganzes Wort
-        // besser als ein Wortanfang, je Abweichung weniger.
-        for (var a = 0; a < e.wt.length; a++) {
-          var d = f[e.wt[a]];
+        // besser als ein Wortanfang, je Abweichung weniger. Ein Name mit
+        // Bindestrich („p8-sc") zaehlt so viele Woerter, wie er Glieder hat.
+        var ganzHier = false;
+        for (var a = 0; a < e.wt.length + e.wk.length; a++) {
+          var w = a < e.wt.length ? e.wt[a] : e.wk[a - e.wt.length];
+          var d = f[w];
           if (!d) continue;
           var p = d.voll <= erlaubt(q) ? 20 - 4 * d.voll : 14 - 4 * d.anfang;
           if (p > pts) pts = p;
-          if (d.voll <= erlaubt(q)) { ganz++; abgedeckt += e.wt[a].length; }
+          if (d.voll <= erlaubt(q)) {
+            ganzW += a < e.wt.length ? 1 : w.split('-').length;
+            ganzHier = true;
+            abgedeckt += w.length;
+          }
         }
+        if (ganzHier) ganzT++;
         if (!pts) for (var b = 0; b < e.wx.length; b++) {
           var dx = f[e.wx[b]];
           if (dx) pts = Math.max(pts, dx.voll <= erlaubt(q) ? 10 - 2 * dx.voll : 7 - 2 * dx.anfang);
@@ -437,7 +462,7 @@
     // Schiff vor "Arrow Missile Rack" zeigen, "CF-337 Panther Repeater" die
     // Waffe vor allem, was sie im Namen fuehrt. Mit Tippfehler genauso:
     // „Gladis" meint das Schiff Gladius.
-    if (e.nt === whole || (ganz && ganz === e.wt.length && ganz === terms.length)) total += 30;
+    if (e.nt === whole || (ganzT && ganzT === terms.length && ganzW === e.wt.length)) total += 30;
     // Werkzeuge vor gleich gut passenden Daten: wer auf einer Item-Seite
     // "bruch" oder "raffinerie" tippt, sucht den Rechner, nicht jedes Teil mit
     // "(Bruch)" im Namen.
@@ -457,6 +482,16 @@
     tools.forEach(function (e, i) { hitRow(S, e, [], true, i); });
     if (D.startHint) plain(S, 'scs__hint').textContent = D.startHint;
   }
+  // Beide Teile als ein Pool, dieselbe Liste bis sich ein Teil aendert: der
+  // Tippfehler-Wortschatz haengt an ihr (woerterVon) und bleibt so zwischen
+  // zwei Darstellungen derselben Anfrage erhalten.
+  var gesamtStand = { a: null, b: null, pool: null };
+  function gesamt() {
+    if (gesamtStand.a !== index || gesamtStand.b !== more) {
+      gesamtStand = { a: index, b: more, pool: more ? index.concat(more) : index };
+    }
+    return gesamtStand.pool;
+  }
   function render(S) {
     var q = S.input.value || '';
     var whole = norm(q).trim();
@@ -475,7 +510,7 @@
       return;
     }
     if (!terms.length) { start(S); return; }
-    var pool = more ? index.concat(more) : index;
+    var pool = gesamt();
     var fz = naehe(pool, terms);
     var bewertet = [];
     pool.forEach(function (e, i) {

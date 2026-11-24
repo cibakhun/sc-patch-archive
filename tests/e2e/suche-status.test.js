@@ -410,6 +410,9 @@ const WELT = [
   { k: 'schiff', b: 'Drake', t: 'Cutlass Black', s: 'Drake', u: '/schiffe/cutlass-black.html', x: '' },
   { k: 'schiff', b: 'Aegis', t: 'Gladius', s: 'Aegis', u: '/schiffe/gladius.html', x: '' },
   { k: 'mission', b: 'Delivery', t: 'RSI Disc. Month: Procure Refined Quantainium Collection', s: '', u: '/missionen/q.html', x: '' },
+  // „Pen" steht hier mitten im Wort (Heuristik P14): vor den Pens war das
+  // erste Register mit Missionen und Patches dran.
+  { k: 'mission', b: 'Bounty', t: 'Independent Contractor Bounty', s: '', u: '/missionen/i.html', x: '' },
 ];
 const WELT_MORE = [
   { k: 'item', b: 'Countermeasures', t: 'Aegis Gladius: Köderwerfer', s: '', u: '/items/g1.html', x: '' },
@@ -425,6 +428,10 @@ const WELT_MORE = [
   { k: 'item', b: 'Weapons', t: 'P4-AR-Gewehr (Knochen)', s: '', u: '/items/p2.html', x: 'P4-AR "Boneyard" Rifle' },
   { k: 'item', b: 'Magazine', t: 'P4-AR Magazine (40 cap)', s: '', u: '/items/p3.html', x: '' },
   { k: 'item', b: 'Weapons', t: 'P4-AR Rifle', s: '', u: '/items/p4-ar-rifle.html', x: 'gewehr' },
+  { k: 'item', b: 'Medical', t: 'Serpentine Arms', s: '', u: '/items/serp.html', x: '' },
+  { k: 'item', b: 'Medical', t: 'AdrenaPen Xtra', s: '', u: '/items/adrena.html', x: '' },
+  { k: 'item', b: 'Medical', t: 'Medi-Pen (Hemozal)', s: '', u: '/items/medipen.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P8-SC SMG', s: '', u: '/items/p8-sc.html', x: '' },
 ];
 function bootWelt(lang) {
   ERSTER.splice(0, ERSTER.length, ...WELT);
@@ -513,6 +520,34 @@ for (const lang of ['de', 'en']) {
         s.win.__scsOpen();
         await flush();
         assert.equal((await suche(s, 'karna'))[0], 'Karna Rifle');
+        assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('Wortanfang vor Wortmitte: „pen" zeigt die Pens vor „Independent" (P14)', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'pen');
+        // Beide Wortanfaenge (nach Bindestrich, im Binnen-Grossbuchstaben) vor
+        // beiden Wortmitten — auch ueber die Gruppen hinweg.
+        const pens = ['Medi-Pen (Hemozal)', 'AdrenaPen Xtra'];
+        assert.deepEqual(t.slice(0, 2).sort(), [...pens].sort(), t.join(' / '));
+        assert.ok(t.indexOf('Serpentine Arms') > 1 && t.indexOf('Independent Contractor Bounty') > 1, t.join(' / '));
+        assert.match(s.optionen()[0].className, /scs__hit--item/);
+      } finally { zurueck(); }
+    });
+
+    test('ein Tippfehler im Namen mit Bindestrich: „P8-SX" findet die P8-SC', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'P8-SX'))[0], 'P8-SC SMG');
+        const mark = s.optionen()[0].find('scs__t').children.find((c) => c.tagName === 'MARK');
+        assert.equal(mark && mark.textContent, 'P8-SC');
+        // Woertlich bleibt woertlich: „P4-AR" sucht nicht unscharf.
         assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
       } finally { zurueck(); }
     });

@@ -162,9 +162,11 @@ const t = useTranslations(lang);
     z-index: 3;
   }
 
-  /* Touch: kein Esc, kein Strg+K — das Wort statt der Taste, wie im Dialog. */
+  /* Touch: kein Esc, kein Strg+K — das Wort statt der Taste, wie im Dialog.
+     Der Tastenhinweis im Feld faellt ganz weg (Heuristik P78). */
   @media (hover: none) and (pointer: coarse) {
-    .hs__x-key {
+    .hs__x-key,
+    .hero__search .k {
       display: none;
     }
     .hs__x-tap {
