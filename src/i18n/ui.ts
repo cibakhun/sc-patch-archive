@@ -454,6 +454,7 @@ const UI = {
     'arch.versions': 'Versionen',
     'arch.toTop': 'Nach oben',
     'arch.evo': 'Evolution: jedes Spielsystem über alle Patches',
+    'arch.chronik': 'Chronik',
   },
   en: {
     // -- Navigation --
@@ -863,6 +864,7 @@ const UI = {
     'arch.versions': 'releases',
     'arch.toTop': 'Back to top',
     'arch.evo': 'Evolution: every game system across every patch',
+    'arch.chronik': 'Chronicle',
   },
 } as const;
 

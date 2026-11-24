@@ -52,36 +52,6 @@ export const EXCLUSIONS = [
       'weiterhin auf — belegt durch Bruch C der Negativkontrolle (04-01-SUMMARY.md).',
   },
   {
-    id: 'X-onepager-de-only',
-    mode: 'cut-region',
-    /* Welche EN-Pfade betroffen sind (EN-Pfad-Stamm, siehe 04-02-PLAN.md
-       <residue_argument>) — nur diese beiden Themenseiten tragen den
-       bedingten Onepager-Verweis. */
-    match: (enPath) =>
-      enPath === 'dist/topics/4-0-0-contested-zones.html' ||
-      enPath === 'dist/topics/4-2-0-storm-breaker.html',
-    /* Nur die DEUTSCHE Fassung traegt den Block — sie wird geschnitten,
-       nicht die englische (die hat ihn nie gerendert). */
-    side: 'de',
-    /* Anker: die section.opl-wrap OEFFNET den Block; tagName 'section'
-       laesst cutRegion() bis zur zugehoerigen </section> schneiden
-       (Depth-Zaehlung, siehe scripts/verify-sync.mjs cutRegion()). */
-    openTagPattern: () => /<section\s+class="opl-wrap reveal"[^>]*>/,
-    tagName: 'section',
-    reason:
-      'src/components/OnepagerLink.astro (seit 24.11.2026 dort, vorher in ' +
-      'src/components/topics/4-0-0-contested-zones.astro und 4-2-0-storm-breaker.astro): ' +
-      '{de && <section class="opl-wrap">…} — den Onepager gibt es nur auf Deutsch ' +
-      '(public/onepager/contested-zones/, public/onepager/storm-breaker/), die EN-Fassung hat ' +
-      'ihn noch nie verlinkt und soll das ausdruecklich auch nicht anfangen. Daran haengen auch ' +
-      'die vier ungepaarten Dateien aus Zusicherung 1 (dist/onepager/*/index.html, ' +
-      'dist/downloads/onepager-*.html) — dieselbe bewusste EN-Luecke, nur auf Dateiebene statt ' +
-      'auf Abschnittsebene. Die Downloads-Zeile danach (div.opl-dl) steht in beiden Fassungen. ' +
-      'Anker ist section.opl-wrap (OnepagerLink.astro); ' +
-      'verschwindet die Bedingung oder die Klasse, trifft diese Ausnahme auf kein Paar mehr zu ' +
-      'und der Zombie-Waechter (Zusicherung 5) schlaegt an.',
-  },
-  {
     id: 'X-impressum-mstv',
     mode: 'cut-region',
     match: (enPath) => enPath === 'dist/impressum.html',

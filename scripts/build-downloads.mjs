@@ -58,6 +58,9 @@ async function inlineOnepager(slug, html, dir) {
   let out = html.replace(rel, (whole, file) => seen.get(file) ?? whole);
   // absolute /assets/… (Fonts) -> Produktions-URL (online laden, offline Fallback)
   out = out.replaceAll('/assets/', `${PROD_BASE}/assets/`);
+  // Rueckweg-Links zur Themenseite (/topics/…, /de/topics/…) zeigen in der
+  // Offline-Datei auf die Seite selbst statt ins Dateisystem.
+  out = out.replace(/href="\/(?!\/)/g, `href="${PROD_BASE}/`);
   return out;
 }
 
