@@ -24,6 +24,7 @@ import { vRoleCig, vSize, vSizeClass, sizeClassLabel } from '../i18n/vehicleText
 import { COMPARE, type GroupKey } from './hangar/bay';
 import { STAT, statValue, type StatKey } from './hangar/catalog';
 import { buildArmament, type ArmRow } from './shipFacts';
+import { realName } from './holoDaten';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 
@@ -75,6 +76,10 @@ function teileAusZeile(r: ArmRow): Teil[] {
   // Datenblatt die Groessenzeilen ohne Namen und darunter die Namen als
   // Notiz; der Vergleich ebenso, die Notiz als eigene Zeile.
   if (r.note) out.push([0, '', r.note]);
+  // Ohne Einzelzeilen und Notiz steht im Datenblatt nur der Wert im Kopf der
+  // Gruppe (etwa "2× Werfer" bei Gegenmassnahmen ohne Serienbelegung); der
+  // Vergleich nennt ihn ebenso, statt die Gruppe fallen zu lassen.
+  if (!out.length && r.value) out.push([0, '', r.value]);
   return out;
 }
 
@@ -98,7 +103,8 @@ export function teileVon(d: VehicleData, lang: Locale): Partial<Record<TeilGrupp
     }
   }
   for (const [g, k] of Object.entries(KOMPONENTEN) as [TeilGruppe, keyof VehicleData['components']][]) {
-    const list = (d.components?.[k] ?? []) as { name: string; size: number | null; count: number }[];
+    // Platzhalter blendet das Datenblatt aus (realName), der Vergleich ebenso.
+    const list = ((d.components?.[k] ?? []) as { name: string; size: number | null; count: number }[]).filter(realName);
     add(g, list.map((c) => [c.count, groesse(c.size), c.name]));
   }
   return out;

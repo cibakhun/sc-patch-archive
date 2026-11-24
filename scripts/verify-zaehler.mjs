@@ -140,6 +140,7 @@ const LOGIN = 'Anmeldung: Passwortfeld, Ruecksprung der Discord-Anmeldung und Zi
 const REGISTER = 'Registrierung: Passwortfeld, Discord-Anmeldung startet hier';
 const RESET = 'Passwort vergessen: Teil des Anmeldeablaufs, fordert den Wiederherstellungslink an';
 const UPDATE = 'Neues Passwort: Ziel des Wiederherstellungslinks, Passwortfeld';
+const FLOTTE = 'Meine Flotte: liest bei Anmeldung die Sitzung und zeigt Kontoinhalt (gespeicherte Schiffe), Kontopfad wie das Dashboard';
 const KEIN_ZAEHLER = [
   { seite: 'account.html', anlass: KONTO },
   { seite: 'de/account.html', anlass: KONTO },
@@ -151,6 +152,8 @@ const KEIN_ZAEHLER = [
   { seite: 'de/account/reset.html', anlass: RESET },
   { seite: 'account/update-password.html', anlass: UPDATE },
   { seite: 'de/account/update-password.html', anlass: UPDATE },
+  { seite: 'account/fleet.html', anlass: FLOTTE },
+  { seite: 'de/account/fleet.html', anlass: FLOTTE },
   {
     seite: 'gate.html',
     anlass: 'Torseite der Vorschau: Anmeldung mit Passwortfeld und Ruecksprung der Discord-Anmeldung (eigenes Dokument, ohne Layout.astro)',

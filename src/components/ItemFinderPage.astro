@@ -10,6 +10,7 @@ import Attribution from './Attribution.astro';
 import Datenstand from './Datenstand.astro';
 import { standItems, datumLang } from '../lib/datenstand';
 import ItemFinderApp from './ItemFinderApp.astro';
+import ItemsWerkbankHinweis from './items/ItemsWerkbankHinweis.astro';
 import DB from '../../assets/universal-items.json';
 import { localeFromPath } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
@@ -164,6 +165,9 @@ const mitFundortSpiel = db.items.some((i) => i.fund != null);
       <div class="uf-mark"><h1><span class="thin">Star Citizen</span>Item Finder</h1></div>
     </div>
   </section>
+
+  {/* Nur im Vorschau-Bau: der Weg zur Items-Werkbank (Prototyp). */}
+  <ItemsWerkbankHinweis lang={lang} />
 
   <ItemFinderApp lang={lang} />
 
