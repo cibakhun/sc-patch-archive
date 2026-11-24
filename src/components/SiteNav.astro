@@ -401,6 +401,20 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 <div class="snav-deck" id="snavDeck" hidden role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
   <div class="snav-deck__back" data-deck-close></div>
   <div class="snav-deck__frame">
+    {/* Sprache und Effekte stehen im DOM VOR der Liste (UX-Audit A7): am Handy
+        sitzen sie oben im Menue, und die Tab-Folge soll dieselbe sein wie
+        das Bild. Am Desktop schiebt `order` den Fuss wieder nach unten; die
+        Fokus-Falle kreist, also bleibt die Folge auch dort lueckenlos. */}
+    <footer class="snav-deck__foot">
+      <FxToggle place="deck" />
+      <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
+      <div class="snav-deck__hints" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
+        <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>
+        <span><kbd>Esc</kbd> {t('nav.deck.hint.close')}</span>
+      </div>
+    </footer>
+
     <div class="snav-deck__body">
       <!-- Bühne: wird per JS aus der aktiven Zeile gefüllt (aria-hidden, weil
            sie den Inhalt der Liste nur wiederholt — Screenreader lesen die
@@ -487,16 +501,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         ))}
       </nav>
     </div>
-
-    <footer class="snav-deck__foot">
-      <FxToggle place="deck" />
-      <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
-      <div class="snav-deck__hints" aria-hidden="true">
-        <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
-        <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>
-        <span><kbd>Esc</kbd> {t('nav.deck.hint.close')}</span>
-      </div>
-    </footer>
   </div>
 </div>
 {crumbLd && <script type="application/ld+json" set:html={jsonForScript(crumbLd)} />}
@@ -1971,6 +1975,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
   /* ---- Fuß ---- */
   .snav-deck__foot {
+    order: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2056,9 +2061,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     /* Sprache und Effekte stehen am Handy OBEN im Menue, nicht nach allen
        Gruppen (UX-Audit A7, TF M7): beide sind Einstellungen fuer die ganze
        Seite, und unten fand sie nur, wer die Liste bis zum Ende rollte. Die
-       Datenblaetter zeigen die Sprache an derselben Stelle ihres Menues. */
+       Datenblaetter zeigen die Sprache an derselben Stelle ihres Menues. Im
+       DOM steht der Fuss schon vorn; hier faellt nur das Desktop-`order` weg. */
     .snav-deck__foot {
-      order: -1;
+      order: 0;
       justify-content: center;
       padding-top: 0;
       padding-bottom: clamp(0.6rem, 1.4vh, 1rem);
