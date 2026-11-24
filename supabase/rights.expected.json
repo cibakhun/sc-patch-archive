@@ -62,6 +62,8 @@
     "function public.notification_settings_stamp()": { "warum": "Triggerfunktion auf notification_settings (Zeitstempel, refinery_discord_since)" },
     "function public.refinery_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
     "function public.refinery_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
+    "function public.chat_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
+    "function public.chat_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
@@ -102,6 +104,7 @@
     "sequence public.favorites_id_seq": { "warum": "identity" },
     "sequence public.refinery_jobs_id_seq": { "warum": "identity" },
 
+    "table private.chat_discord_notified": { "warum": "nur chat_discord_due/chat_discord_sent (security definer), 20261124100000" },
     "table private.checkout_attempts": { "warum": "nur checkout_rate_ok (security definer)" },
     "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
     "table private.rsi_attempts": { "warum": "nur rsi_rate_ok (service_role)" },
@@ -165,6 +168,10 @@
     "column public.notification_settings.lang": {
       "authenticated": ["INSERT", "UPDATE"],
       "warum": "Sprache der Discord-Nachricht; RLS: eigene Zeile"
+    },
+    "column public.notification_settings.chat_discord": {
+      "authenticated": ["INSERT", "UPDATE"],
+      "warum": "Schalter Discord-Hinweis bei ungelesenen Chat-Nachrichten (FriendsManager); RLS: eigene Zeile (20261124100000)"
     },
     "table public.support_progress": {
       "anon": ["SELECT"],

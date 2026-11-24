@@ -602,6 +602,35 @@ console.log('\n▸ Website-Spiegel (site-db)');
     assert.equal(calls[0].url, 'https://x.supabase.co/rest/v1/rpc/refinery_discord_due');
     assert.deepEqual(JSON.parse(calls[1].init.body), { p_ids: [5] });
   });
+  await ta('chat_due keeps only deliverable rows', async () => {
+    calls.length = 0;
+    const body = JSON.stringify({ rows: [
+      { msg_id: 70, discord_user_id: ID, lang: 'de', sender_name: 'NovaWing', sender_handle: 'nova_wing', unread: 2, last_at: '2026-11-24T09:00:00Z' },
+      { msg_id: 71, discord_user_id: 'nope' },
+      { msg_id: '72', discord_user_id: ID },
+    ] });
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body }]) });
+    const rows = await db.chatDue();
+    assert.deepEqual(rows.map((r) => r.msg_id), [70]);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'chat_due' });
+  });
+  await ta('chat_sent sends unique positive ids and refuses junk before any request', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body: '{"updated":2}' }]) });
+    assert.equal((await db.chatSent([9, 10, 9])).updated, 2);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'chat_sent', ids: [9, 10] });
+    await assert.rejects(() => db.chatSent([]), /Nachrichten-IDs/);
+    await assert.rejects(() => db.chatSent([0]), /Nachrichten-IDs/);
+    assert.equal(calls.length, 1);
+  });
+  await ta('legacy key reaches chat notes through the two rpc functions', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, SUPABASE_SERVICE_ROLE_KEY: 'k' }, { fetchImpl: fake([{ status: 200, body: '[]' }, { status: 200, body: '1' }]), log: () => {} });
+    assert.deepEqual(await db.chatDue(), []);
+    assert.equal((await db.chatSent([6])).updated, 1);
+    assert.equal(calls[0].url, 'https://x.supabase.co/rest/v1/rpc/chat_discord_due');
+    assert.deepEqual(JSON.parse(calls[1].init.body), { p_ids: [6] });
+  });
 }
 
 console.log('\n▸ Raffinerie-DMs (refinery-notify)');
@@ -660,6 +689,60 @@ try {
       await notifyRefinery(ctx, { log: () => {} });
     } finally { console.log = loud; }
     assert.equal(sends, 1);
+  });
+} catch (e) {
+  if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install` for discord.js)');
+  else throw e;
+}
+
+console.log('\n▸ Chat-DMs (chat-notify)');
+try {
+  const { chatMessage, notifyChat } = await import('./chat-notify.mjs');
+  const ID = '123456789012345678';
+  const row = (o = {}) => ({ msg_id: 1, discord_user_id: ID, lang: 'de', sender_name: 'NovaWing', sender_handle: 'nova_wing', unread: 1, last_at: '2026-11-24T09:00:00Z', ...o });
+  t('message speaks the stored language and opens the chat with this friend', () => {
+    const de = chatMessage(row()).embeds[0].toJSON();
+    assert.equal(de.title, 'Neue Nachricht auf VerseBase');
+    assert.equal(de.description, '**NovaWing** hat dir auf VerseBase geschrieben.');
+    assert.equal(de.url, 'https://verse-base.com/de/account.html?chat=%40nova_wing#friends');
+    const en = chatMessage(row({ lang: 'xx', unread: 3 })).embeds[0].toJSON();
+    assert.equal(en.description, '**NovaWing** sent you 3 messages on VerseBase.');
+    assert.equal(en.url, 'https://verse-base.com/account.html?chat=%40nova_wing#friends');
+  });
+  t('names cannot format the message, odd handles fall back to the friend list', () => {
+    const e = chatMessage(row({ sender_name: '__x__', sender_handle: 'a b' })).embeds[0].toJSON();
+    assert.match(e.description, /\\_\\_x\\_\\_/);
+    assert.equal(e.url, 'https://verse-base.com/de/account.html#friends');
+  });
+  t('the message never carries more than name, count and link', () => {
+    const j = JSON.stringify(chatMessage(row({ body: 'geheim' })));
+    assert.equal(j.includes('geheim'), false);
+  });
+  await ta('sent and undeliverable notes are marked, a hiccup stays open for the next run', async () => {
+    const marked = [];
+    let n = 0;
+    const send = async () => {
+      n += 1;
+      if (n === 2) throw Object.assign(new Error('Cannot send messages to this user'), { code: 50007 });
+      if (n === 3) throw Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    };
+    const ctx = {
+      siteDb: {
+        chatDue: async () => [row({ msg_id: 1 }), row({ msg_id: 2 }), row({ msg_id: 3 })],
+        chatSent: async (ids) => { marked.push(...ids); return { updated: ids.length }; },
+      },
+      client: { users: { fetch: async () => ({ send }) } },
+    };
+    const loud = console.log; console.log = () => {};
+    try { assert.equal(await notifyChat(ctx, { log: () => {} }), 1); } finally { console.log = loud; }
+    assert.deepEqual(marked, [1, 2]);
+  });
+  await ta('the same read error is logged once, not every minute', async () => {
+    const logged = [];
+    const ctx = { siteDb: { chatDue: async () => { throw new Error('function bot-role-sync: 400 unknown_op'); } }, client: {} };
+    await notifyChat(ctx, { log: (m) => logged.push(m) });
+    await notifyChat(ctx, { log: (m) => logged.push(m) });
+    assert.equal(logged.length, 1);
   });
 } catch (e) {
   if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install` for discord.js)');

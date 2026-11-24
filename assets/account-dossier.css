@@ -1937,6 +1937,13 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .fm-panel--friends{grid-template-columns:minmax(0,1fr) minmax(min(18rem,100%),22rem);column-gap:24px}
 }
 .fm-invite{container:fminv / inline-size;min-width:0;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.fm-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+.fm-notify{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.fm-notify[hidden]{display:none}
+.fm-notify .fm-invite__h > svg{width:18px;height:14px;color:#5865f2}
+.dsr .fm-notify .pf-check{margin:0}
+.fm-notify__hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;font-size:var(--fs-6);line-height:1.4;color:var(--muted)}
+.fm-notify__hint[hidden]{display:none}
 .fm-invite__in{display:flex;flex-direction:column;gap:12px}
 /* Unter der Liste (mittlere Breiten) ist die Karte breit: Link links,
    Discord-Karte rechts daneben statt eines bildschirmhohen Bilds. */

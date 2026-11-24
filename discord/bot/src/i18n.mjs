@@ -128,6 +128,11 @@ export const STRINGS = {
       refineryOres: 'Yield',
       refineryOpen: 'Open tracker',
       refineryFooter: 'Discord notifications are on in your VerseBase refinery tracker. You can switch them off there.',
+      chatTitle: 'New message on VerseBase',
+      chatBody: '**{name}** wrote to you on VerseBase.',
+      chatBodyN: '**{name}** sent you {n} messages on VerseBase.',
+      chatOpen: 'Open chat',
+      chatFooter: 'Discord notes for new messages are on in your VerseBase account (Friends & Social). You can switch them off there.',
     },
     admin: {
       needPerm: 'You need the **Manage Server** permission.',
@@ -235,6 +240,11 @@ export const STRINGS = {
       refineryOres: 'Ausbeute',
       refineryOpen: 'Tracker öffnen',
       refineryFooter: 'Discord-Benachrichtigungen sind in deinem VerseBase-Raffinerie-Tracker an. Dort kannst du sie ausschalten.',
+      chatTitle: 'Neue Nachricht auf VerseBase',
+      chatBody: '**{name}** hat dir auf VerseBase geschrieben.',
+      chatBodyN: '**{name}** hat dir auf VerseBase {n} Nachrichten geschrieben.',
+      chatOpen: 'Chat öffnen',
+      chatFooter: 'Discord-Hinweise auf neue Nachrichten sind in deinem VerseBase-Konto an (Freunde & Social). Dort kannst du sie ausschalten.',
     },
     admin: {
       needPerm: 'Du brauchst die Berechtigung **Server verwalten**.',
