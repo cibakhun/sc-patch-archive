@@ -54,6 +54,8 @@ import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 import { jsonForScript } from '../lib/safeJson';
 import { ausbeuteStand } from '../lib/refineryStand';
+import { REFINERY } from '../lib/refinery';
+import { datumLang } from '../lib/datenstand';
 
 /* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
    der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
@@ -264,9 +266,17 @@ const S_DE = {
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   // Kachel-Abzeichen für ein Erz, das zwei Abbauarten trägt (nur Carinite).
   also: 'auch', tier: 'Stufe',
-  chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
+  // UX-Audit 24.11.2026 (P43): „6 % Chance · bis 100 %" war ohne Erklaerung
+  // nicht lesbar. Jetzt sagt der Text selbst, worauf sich die Zahl bezieht.
+  chance: 'in %p der Brocken', upTo: 'bis %p Anteil', yieldAvg: 'Ø-Anteil',
+  locKey: 'Rechts der zu erwartende Anteil des Erzes am Gestein. Darunter: wie oft ein Brocken das Erz enthält und wie viel höchstens.',
+  locKeyCh: 'Rechts: wie oft ein Brocken hier das Erz enthält.',
+  // UX-Audit 24.11.2026 (P42): eine leere Liste ohne Meldung sah aus wie ein Fehler.
+  noHit: 'Kein Erz und kein Fundort passt zu „%q“.', noHitSys: 'Gefiltert auf %s.',
+  didYou: 'Meintest du', noHitHelp: 'Gesucht wird im Erznamen (englisch oder deutsch) und in den Fundorten.',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
+  sellH: 'Verkauf raffiniert', sellStand: 'Stand %d', sellBest: 'bester Ort', sellAvg: 'Durchschnitt der Terminals',
   bestRef: 'Beste Stationen', bestRefStand: 'Stand %v, von Hand', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
   // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
@@ -300,9 +310,14 @@ const S_EN = {
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   // Tile badge for an ore that carries two mining methods (Carinite only).
   also: 'also', tier: 'Tier',
-  chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
+  chance: 'in %p of rocks', upTo: 'up to %p share', yieldAvg: 'avg share',
+  locKey: 'Right: the expected share of the ore in the rock. Below: how often a rock contains it and the most it can hold.',
+  locKeyCh: 'Right: how often a rock here contains the ore.',
+  noHit: 'No ore or location matches “%q”.', noHitSys: 'Filtered to %s.',
+  didYou: 'Did you mean', noHitHelp: 'The search looks at ore names and locations.',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
+  sellH: 'Selling refined', sellStand: 'as of %d', sellBest: 'best place', sellAvg: 'average across terminals',
   bestRef: 'Best stations', bestRefStand: 'as of %v, by hand', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
   // Phase 12: location view (D-01/D-11) — back-button label and the trace
@@ -337,10 +352,24 @@ const payload = {
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
   craftingPath: href(craftingPath, lang),
   refineryPath: href('/refinery.html', lang),
+  // Querweg zum Routenrechner (UX-Audit 24.11.2026, G3): Erze mit Fundort im
+  // Aaron Halo und die Fundort-Ansicht des Halos verlinken Precision Jump.
+  pjPath: href('/precision-jump.html', lang),
+  // Deutsche Namen der Erze, deren Spielname ein gewoehnliches englisches
+  // Wort ist (UX-Audit 24.11.2026, P42: „Eis" leerte die Liste). Die Suche
+  // kennt sie auf beiden Sprachseiten, angezeigt wird weiter der Spielname.
+  alias: { Aluminum: 'Aluminium', Beryl: 'Beryll', Copper: 'Kupfer', Corundum: 'Korund', Ice: 'Eis', Iron: 'Eisen', Quartz: 'Quarz', Silicon: 'Silizium', Tin: 'Zinn', Titanium: 'Titan', Tungsten: 'Wolfram' },
   fracturingPath,
   shipsByMethod,
+  // Verkaufsorte raffinierter Erze (UX-Audit 24.11.2026, G7): Durchschnitt,
+  // bester Preis und sein Ort je Erz, aus derselben Preistafel wie die
+  // Refinery-Seite. Erze ohne Preis fehlen hier, der Abschnitt bleibt dann zu.
+  sell: Object.fromEntries(REFINERY.ores
+    .filter((o) => o.sell || o.sellMax)
+    .map((o) => [o.name, { a: o.sell, m: o.sellMax, l: o.sellLoc }])),
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
+const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, lang) : '—';
 ---
 
 {/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
@@ -812,9 +841,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   font-size:var(--fs-3);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;
   color:var(--text)}
 .wb__grp + .wb__grp .wb__ghd{margin-top:4px;border-top:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+/* Umbruch statt Ellipse (UX-Audit 24.11.2026, P75): „ROC · ROC-DS · ohne
+   Stufe" verlor am Handy 31 px. Der Kopf darf zweizeilig werden, die Zahl
+   bleibt an der ersten Zeile (align-items:baseline). */
 .wb__ghd__g{flex:1;min-width:0;font-size:var(--fs-2);font-weight:400;letter-spacing:var(--ls-5);
   text-transform:none;color:color-mix(in srgb,var(--muted) 85%,transparent);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  overflow-wrap:anywhere}
 .wb__ghd__n{flex:none;font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums;
   color:color-mix(in srgb,var(--muted) 90%,transparent)}
 /* Bandueberschrift: das Wort in der Stufenfarbe, die Linie in derselben Farbe
@@ -980,10 +1012,25 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__sec h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
   background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
 .wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
+/* Lesehilfe unter der Ueberschrift (P43): eine Zeile, leise, aber lesbar. */
+.wb__key{margin:-1px 0 7px;font-size:var(--fs-2);line-height:1.4;color:var(--muted)}
+/* Leermeldung der Erzsuche (P42) mit Vorschlag als Knopf. */
+.wb__empty.wb__nohit{margin:10px 2px;line-height:1.45}
+.wb__nohit[hidden]{display:none}
+.wb__nohit .wb__sugg{font:inherit;color:var(--accent);background:none;border:0;padding:0;
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.wb__nohit small{display:block;margin-top:4px}
 /* Zeilen als Ableseposten auf dem Schirm: kantiger (Radius 3 statt 7) und mit
    einer feinen Lichtkante oben, damit sie im Schirm liegen statt darauf.
    Polsterung und Raster unveraendert. */
-.wb__row2{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+/* ⚠ minmax(0,1fr) statt 1fr (24.11.2026, UX-Audit Task-Flow F01, M3): bei
+   1fr ist die Untergrenze der Namensspalte die Breite des laengsten Namens
+   am Stueck (.p steht auf nowrap). Am Handy war „Asteroid Cluster (Medium
+   Yield)" damit 294 px breit in einer 263 px schmalen Spalte, und die Zeile
+   wurde an BEIDEN Raendern abgeschnitten — vorne der Name, hinten das
+   Prozentzeichen. Mit der Null-Untergrenze weicht der Name; am Handy bricht
+   er um (Stilblock unten), breiter endet er wie gehabt in der Ellipse. */
+.wb__row2{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;
   padding:5px 9px;border-radius:3px;background:color-mix(in srgb,var(--ink) 46%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
 .wb__row2 .p{font-size:var(--fs-5);font-weight:500;color:var(--text);display:block;
@@ -1015,6 +1062,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    (und stand vor der Rundung ohnehin als 28.29999923 da). */
 .wb__row2 em{font-size:var(--fs-4);color:var(--muted);font-style:normal;width:58px;text-align:right;
   white-space:nowrap;font-family:var(--font-mono,ui-monospace)}
+/* Verkaufszeilen (G7): der Preis mit Einheit ist breiter als die 58 px fuer
+   Prozentwerte und lief am Telefon 30 px ueber den Rand. */
+.wb__row2.is-sell em{width:auto;min-width:58px;color:var(--text)}
 /* Die in der Rig-Leiste gewaehlte Station. */
 .wb__row2.is-pick{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-2) 60%,transparent)}
 /* Klickbare Fundort- UND Erzzeile (Phase 12, D-01/D-02) — wortgleicher
@@ -1497,6 +1547,25 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__seg{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px}
   .wb__pane{height:auto}
   .wb__scroll{max-height:70vh}
+  /* ⚠⚠ GEMESSEN 24.11.2026 bei 390 und 412 px (UX-Audit, Task-Flow F02):
+     Reiter „Signaturen" mit zwei angehefteten Erzen — #wb-pins 0 px hoch bei
+     177 px Inhalt, von beiden Listen samt Ueberschrift war nichts zu sehen.
+     Ursache ist die Null-Basis von .wb__sec2 (flex:1 1 0, s. oben): sie
+     teilt eine FESTE Spaltenhoehe auf, und die gibt es hier nicht mehr —
+     .wb__pane steht auf height:auto. Eine Spalte, deren Hoehe aus ihrem
+     Inhalt kommt, und Kaesten mit Grundhoehe 0 ergeben 0; .wb__pane schneidet
+     mit overflow:hidden den Rest ab. Ab 761 px traegt die Spalte wieder eine
+     feste Hoehe (min(62vh,560px)), dort war es nie falsch.
+     Hier also Grundhoehe = Inhalt; jede Liste scrollt ab 70vh selbst.
+     ⚠ NUR in der Werkbank auf der Seite (.wb__grid), nicht im ausgelagerten
+     Fenster: das ist ebenfalls schmal (360 px), uebernimmt dieses Blatt und
+     traegt dort eine FESTE Hoehe (.wb--pop .wb__pane{height:100%}). Dort
+     muessen beide Listen weiter schrumpfen und innen scrollen, sonst schoebe
+     eine lange Signaturenliste die Fundorte aus dem Fenster (Review PR #420). */
+  .wb__grid .wb__sec2{flex:0 0 auto}
+  /* Lange Ortsnamen umbrechen statt abschneiden (s. .wb__row2 oben): am
+     Handy ist die Zeile so schmal, dass sonst „Asteroid Cluster (Me…" stuende. */
+  .wb__row2 .p{white-space:normal;overflow-wrap:anywhere}
   .wb__grid.has-seg{display:block}
   .wb__grid.has-seg > .wb__pane{display:none}
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
@@ -1515,6 +1584,19 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__rgrp,.wb__frac{width:100%}
   .wb__rgrp .wb__sel{max-width:none}
   .wb__frac{margin-left:0}
+}
+/* ⚠ Telefon (24.11.2026, UX-Audit Task-Flow F01, M2): Rand der Sektion 2 x 16
+   plus Rahmen 34 + 33 px nahmen bei 390 px ein Viertel der Breite; das
+   Suchfeld war 250 px breit, die Fundortzeile 263. Die 34 px Untergrenze des
+   Rahmens sind fuer den Schreibtisch eingemessen („15–32 px waren zu
+   duenn"), wo er neben 1000 px Schirm steht. Auf der Handflaeche liest das
+   Blech auch schmaler als Rahmen; hier 24 px und 10 px Rand — rund 30 px
+   mehr fuer den Inhalt. Die Zierstuecke rechnen sich aus --rahmen mit. */
+/* ⚠ Nicht im ausgelagerten Fenster (.wb--pop): es ist ebenfalls schmal,
+   traegt aber seine eigenen 8 px und kein Gehaeuse. */
+@media(max-width:480px){
+  .wb:not(.wb--pop){padding-left:10px;padding-right:10px}
+  .wb__chassis{--rahmen:24px}
 }
 </style>
 
@@ -1674,6 +1756,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           von verify:help zaehlt die Anker je Sprache — ein Anker bleibt ein
           Anker, egal wie viele Baender darunter liegen. */}
       <div class="wb__scroll" id="wb-list" data-help={hlp('tiles')}>
+        <p class="wb__empty wb__nohit" id="wb-nohit" aria-live="polite" hidden></p>
         {/* ⚠ `div`, NICHT `section`: die Seite traegt eine globale
             `section{padding:…}`-Regel, die der Gruppe hier 99 px oben/unten
             und 72 px seitlich verpasst hat — das Kachelraster verlor dadurch
@@ -1769,8 +1852,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         </div>
       </div>
       <div class="wb__scroll" id="wb-oreview">
-        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
+        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><p class="wb__key" set:text={S.locKey} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
         <div class="wb__sec"><h4 set:text={`${S.bestRef} · ${S.bestRefStand.replace('%v', ausbeuteStand())}`} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec" id="wb-sellsec" hidden><h4 set:text={`${S.sellH} · ${S.sellStand.replace('%d', sellDate)}`} /><div class="wb__refs" id="wb-sell"></div></div>
         <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
       </div>
       <div class="wb__scroll" id="wb-locview" hidden></div>

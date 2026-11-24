@@ -820,8 +820,10 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         supabase.from('discord_role_state').select('discord_user_id').maybeSingle(),
       ]);
       if (prefErr) return;
-      const linked = !!dcRow?.discord_user_id;
-      dc.checked = !!prefs?.chat_discord && linked;
+      // Verbinden oder Trennen auf dieser Seite meldet die Discord-Karte (vb:discord).
+      let linked = !!dcRow?.discord_user_id;
+      let saved = !!prefs?.chat_discord;
+      dc.checked = saved && linked;
       dc.disabled = !linked;
       box.hidden = false;
 
@@ -841,6 +843,13 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         hint.hidden = !hint.childNodes.length;
       };
       showHint();
+      document.addEventListener('vb:discord', (e) => {
+        linked = !!(e as CustomEvent<{ linked?: boolean }>).detail?.linked;
+        dc.checked = saved && linked;
+        dc.disabled = !linked;
+        status.hidden = true;
+        showHint();
+      });
 
       let exists = !!prefs;
       dc.addEventListener('change', async () => {
@@ -859,6 +868,8 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
           if (!error) exists = true;
         }
         if (error) dc.checked = !dc.checked;
+        else saved = row.chat_discord;
+        if (!linked) dc.checked = false;
         dc.disabled = !linked;
         status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
         status.textContent = error ? C.errNet : C.nSaved;

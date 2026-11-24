@@ -9,8 +9,9 @@ import { standItems, STAND } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
-  ITEM_PATCH, categoryPath, db, itemsHubPath, leafCategory, midCategory, num, pageItems, roots,
+  ITEM_PATCH, categoryPath, db, itemsHubPath, num, pageItems, roots,
 } from '../lib/items';
+import { kartenName, kategorienSortiert } from '../lib/itemKategorien';
 import { craftHubPath } from '../lib/crafting';
 import ItemsWerkbankHinweis from './items/ItemsWerkbankHinweis.astro';
 
@@ -49,11 +50,10 @@ const total = db.counts.items;
     <section class="dp-sec">
       <h2>{categoryLabel(r.root, lang)} <span class="dp-muted">({num(r.count, lang)})</span></h2>
       <ul class="dp-cards">
-        {r.nodes.map((c) => (
+        {kategorienSortiert(r.nodes, r.root, lang).map((c) => (
           <li>
             <a class="dp-card dp-card--cat" href={href(categoryPath(c), lang)}>
-              {midCategory(c.cat) && <span class="dp-card-path">{midCategory(c.cat)}</span>}
-              <strong>{leafCategory(c.cat)}</strong>
+              <strong>{kartenName(c.cat, lang, r.nodes.length === 1)}</strong>
               <em>{num(c.items.length, lang)}</em>
             </a>
           </li>

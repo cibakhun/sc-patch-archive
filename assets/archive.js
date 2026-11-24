@@ -300,6 +300,41 @@
     });
   });
 
+  /* ── 6b. Zeitstrahl am Handy (UX-Audit H8) ─────────────────────────────
+     Unter 620 px ist der Streifen breiter als der Schirm. Er startet beim
+     neuesten Patch, rechts, wie die Evolution-Matrix; bis jemand ihn selbst
+     bewegt, bleibt er auch nach einer Drehung dort. Die Klassen blenden die
+     Seite aus, auf der noch Marken liegen. */
+  var rs = $('.ribbon__scroll');
+  if (rs) {
+    var rsBewegt = false;
+    var rsWisch = $('.ribbon__wisch');
+    var rsKanten = function () {
+      // Breit genug (Desktop): kein Scrollkasten, also auch keine Ausblendung.
+      var max = getComputedStyle(rs).overflowX === 'visible' ? 0 : rs.scrollWidth - rs.clientWidth;
+      var links = max > 1 && rs.scrollLeft > 1;
+      rs.classList.toggle('mehr-links', links);
+      rs.classList.toggle('mehr-rechts', max > 1 && rs.scrollLeft < max - 1);
+      if (rsWisch) rsWisch.hidden = !links;
+    };
+    var rsAnsEnde = function () {
+      if (!rsBewegt) rs.scrollLeft = rs.scrollWidth;
+      rsKanten();
+    };
+    ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) {
+      rs.addEventListener(
+        ev,
+        function () {
+          rsBewegt = true;
+        },
+        { passive: true }
+      );
+    });
+    rs.addEventListener('scroll', rsKanten, { passive: true });
+    addEventListener('resize', rsAnsEnde, { passive: true });
+    rsAnsEnde();
+  }
+
   /* ── 7. Back to top ────────────────────────────────────────────────────── */
   var top = $('#totop');
   if (top) {

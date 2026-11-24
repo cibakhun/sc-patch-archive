@@ -159,9 +159,9 @@ export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (s.tempMin != null && s.tempMax != null)
     out.push([t('statTemp'), `${s.tempMin} / ${s.tempMax} °C`]);
   if (s.radiation) out.push([t('statRadiation'), `${n(s.radiation)} REM`]);
-  // oxygen steht nur in Helm-/Anzug-Daten und beantwortet dort die haeufigste
-  // Frage ("wie lange haelt der Helm?"). Das Finder-Modal zeigt es (noch) nicht.
-  if (s.oxygen) out.push([t('statOxygen'), `${n(s.oxygen)} s`]);
+  // Kein Sauerstoff-Eintrag: `oxygen` ist die Atemluft-Kapazitaet des Helms
+  // (atmosphereCapacity), bei allen Helmen 0.02 und keine Zeitangabe; die
+  // Zeile "Sauerstoff-Vorrat 0,02 s" war falsch und unterschied nichts.
   if (s.ndr) out.push([t('statNdr'), n(s.ndr)]);
   if (s.effects && s.effects.length) out.push([t('statEffects'), s.effects.join(', ')]);
   if (s.storageScu) out.push([t('statStorage'), `${n(s.storageScu)} SCU`]);

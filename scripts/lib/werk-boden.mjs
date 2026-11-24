@@ -78,3 +78,44 @@ export function pruefeWerkBoden(stuecke, { boden, alle, oben, frei = [], raum })
   const L = pruefeLage(stuecke, { oben, feld: null, spur: { laenge: 0, rand: 0 }, flach: 0 });
   return { inWand, schwebt: L.schwebt, ineinander: L.ineinander, imWeg, draussen, zahlen: { stuecke: stuecke.length, amBoden, getragen: L.zahlen.getragen, gestapelt: L.zahlen.gestapelt, paare: L.zahlen.paare } };
 }
+
+/** so weit steht die Lampe eines Arbeitsplatzes höchstens vor dem nächsten Stück ihrer Zone, m (und mindestens LICHT_NAH) */
+export const LICHT_FERN = 4;
+export const LICHT_NAH = 0.4;
+/** Höhe der Lampen: über den Stücken am Boden, unter dem Vorbau (2,44 m) */
+export const LICHT_HOEHE = [1.0, 2.4];
+
+/**
+ * Lampen der Arbeitsplätze (WERK_BODEN_LICHT im Viewer) gegen die Zonen und Stücke.
+ * Seit 24.11.2026: Am ausgelieferten Stand gingen die Stücke aus der Ferne im
+ * Dunkel am Wandfuß unter; jede Zone bekam ein Arbeitslicht davor.
+ * @param {{ hoehe: number, orte: Record<string, number[]> }} licht
+ * @param {object[]} stuecke  aus werkBodenStuecke
+ * @param {{ x: number[], z: number[] }} raum  Innenraum der Garage in Hallenmetern
+ * @returns {{ fehlt: string[], zombie: string[], draussen: string[], inStueck: string[], abstand: string[], hoehe: string|null, lampen: number }}
+ */
+export function pruefeWerkLicht(licht, stuecke, raum) {
+  const zonen = [...new Set(stuecke.map((m) => m.zone))], orte = licht?.orte ?? {};
+  const fehlt = zonen.filter((z) => !orte[z]), zombie = Object.keys(orte).filter((z) => !zonen.includes(z));
+  const draussen = [], inStueck = [], abstand = [];
+  const h = licht?.hoehe;
+  const hoehe = typeof h === 'number' && h >= LICHT_HOEHE[0] && h <= LICHT_HOEHE[1] ? null : `${h} m`;
+  // Abstand eines Punkts (x, z) zur Grundfläche eines Stücks (gedreht wie makeRotationY)
+  const weg = (m, x, z) => {
+    const dx = x - m.c[0], dz = z - m.c[1], co = Math.cos(m.a), si = Math.sin(m.a);
+    const u = dx * co - dz * si, v = dx * si + dz * co;
+    return Math.hypot(Math.max(Math.abs(u) - m.hx, 0), Math.max(Math.abs(v) - m.hz, 0));
+  };
+  for (const [z, p] of Object.entries(orte)) {
+    if (!Array.isArray(p) || p.length !== 2 || !p.every(Number.isFinite)) { draussen.push(`${z} (keine Lage [x, z])`); continue; }
+    const [x, zz] = p;
+    if (raum && !(x > raum.x[0] && x < raum.x[1] && zz > raum.z[0] && zz < raum.z[1])) draussen.push(`${z} bei x ${x}, z ${zz}`);
+    for (const m of stuecke) if (weg(m, x, zz) === 0 && typeof h === 'number' && h >= m.y && h <= m.top) inStueck.push(`${z} in ${m.name}`);
+    const eigene = stuecke.filter((m) => m.zone === z);
+    if (eigene.length) {
+      const d = Math.min(...eigene.map((m) => weg(m, x, zz)));
+      if (d < LICHT_NAH || d > LICHT_FERN) abstand.push(`${z} ${d.toFixed(2)} m vor dem nächsten Stück`);
+    }
+  }
+  return { fehlt, zombie, draussen, inStueck, abstand, hoehe, lampen: Object.keys(orte).length };
+}

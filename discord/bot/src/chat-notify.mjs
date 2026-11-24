@@ -54,8 +54,10 @@ export function chatMessage(row) {
   return { embeds: [embed], components: [row1] };
 }
 
-// Gesendet, aber noch nicht als gemeldet bestaetigt: scheitert das Markieren,
-// bekommt niemand denselben Hinweis jede Minute, solange der Prozess laeuft.
+// Erledigt, aber noch nicht als gemeldet bestaetigt. Jeder Lauf holt das
+// zuerst nach und fragt erst danach neu: kaeme fuer dasselbe Paar inzwischen
+// eine neuere Nachricht dazu, haette sie eine andere ID, und ohne Vermerk in
+// der Datenbank ginge vor Ablauf der 30 Minuten eine zweite DM hinaus.
 const unbestaetigt = new Set();
 let letzterFehler = '';
 
@@ -63,6 +65,16 @@ let letzterFehler = '';
 export async function notifyChat(ctx, { log = console.warn } = {}) {
   const { siteDb, client } = ctx;
   if (!siteDb?.chatDue) return 0;
+  if (unbestaetigt.size) {
+    const offen = [...unbestaetigt];
+    try {
+      for (let i = 0; i < offen.length; i += 100) await siteDb.chatSent(offen.slice(i, i + 100));
+      unbestaetigt.clear();
+    } catch (e) {
+      log(`  ! Chat-DMs: ${offen.length} Hinweise noch nicht als gemeldet bestaetigt, kein neuer Versand: ${e.message}`);
+      return 0;
+    }
+  }
   let rows;
   try { rows = await siteDb.chatDue(); }
   catch (e) {
@@ -76,12 +88,10 @@ export async function notifyChat(ctx, { log = console.warn } = {}) {
   const done = [];
   let sent = 0;
   for (const row of rows) {
-    if (unbestaetigt.has(row.msg_id)) { done.push(row.msg_id); continue; }
     try {
       const user = await client.users.fetch(row.discord_user_id);
       await user.send(chatMessage(row));
       done.push(row.msg_id);
-      unbestaetigt.add(row.msg_id);
       sent += 1;
     } catch (e) {
       if (GIVE_UP.has(e?.code)) done.push(row.msg_id);
@@ -89,8 +99,11 @@ export async function notifyChat(ctx, { log = console.warn } = {}) {
     }
   }
   if (done.length) {
-    try { await siteDb.chatSent(done); for (const id of done) unbestaetigt.delete(id); }
-    catch (e) { log(`  ! Chat-DMs: Markieren fehlgeschlagen (${done.length} Hinweise gehen beim naechsten Lauf erneut raus): ${e.message}`); }
+    try { await siteDb.chatSent(done); }
+    catch (e) {
+      for (const id of done) unbestaetigt.add(id);
+      log(`  ! Chat-DMs: Markieren fehlgeschlagen (${done.length} Hinweise, der naechste Lauf bestaetigt sie zuerst): ${e.message}`);
+    }
   }
   console.log(`  · Chat-DMs: ${rows.length} faellig, ${sent} gesendet, ${done.length - sent} ohne neue DM als gemeldet markiert.`);
   return sent;

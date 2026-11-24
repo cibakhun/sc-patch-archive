@@ -940,6 +940,33 @@ export function buehnenHalter() {
   };
 }
 
+/**
+ * Lage eines Hinweises der Ersten Schritte (tipps) entlang seiner Achse: Er
+ * zeigt mit der Spitze auf seinen Knopf und darf so weit rücken, wie die
+ * Spitze ihn noch trifft (lo bis hi, mitte: mittig daneben wie bisher). Bis
+ * 24.11.2026 stand er immer mittig und deckte bei 1600 × 900 den Anfang
+ * langer Namen im Hologramm, bei 1280 × 720 den Kopf der Ausrüstung und
+ * Stern, Vergleich und Link, bei 820 × 900 den Namen der Carrack
+ * (Sichturteile am Stand 6e984ac8). Gewählt wird die Lage, die am wenigsten
+ * Knöpfe der Seite deckt (hart), unter ihnen eine ohne Teile der Bühne
+ * (weich: Name als Hologramm, Tafeln), sonst die nächste zur Mitte; was dann
+ * noch darunter läge, weicht dem Hinweis (er zählt in setSafe als Knopf).
+ * Flächen { l, t, r, b } in px des Fensters, luft: Abstand, der frei bleibt.
+ * @returns {{ p: number, hart: number, weich: number }} hart, weich: gedeckte Fläche in px²
+ */
+export function hinweisPlatz({ lo, hi, mitte, rect, hart = [], weich = [], schritt = 4, luft = 8 }) {
+  const deckt = (a, qs) => qs.reduce((s, q) => s + Math.max(0, Math.min(a.r, q.r + luft) - Math.max(a.l, q.l - luft)) * Math.max(0, Math.min(a.b, q.b + luft) - Math.max(a.t, q.t - luft)), 0);
+  const lagen = [Math.min(hi, Math.max(lo, mitte))];
+  for (let p = lo; p < hi; p += schritt) lagen.push(p);
+  lagen.push(hi);
+  let best = null;
+  for (const p of lagen) {
+    const a = rect(p), h = deckt(a, hart), w = deckt(a, weich), d = Math.abs(p - mitte);
+    if (!best || h < best.hart || (h === best.hart && ((w === 0) > (best.weich === 0) || ((w === 0) === (best.weich === 0) && d < best.d)))) best = { p, hart: h, weich: w, d };
+  }
+  return { p: best.p, hart: best.hart, weich: best.weich };
+}
+
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
 export function boot(doc) {
   const $ = (id) => doc.getElementById(id);
@@ -1059,7 +1086,24 @@ export function boot(doc) {
       else localStorage.removeItem(DOCK_KEY);
     } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
   }
-  dockTog.addEventListener('click', () => setDock(main.dataset.dock === 'closed', true));
+  // Aufgeklappt mit Maus oder Tastatur geht der Fokus gleich ins Suchfeld,
+  // Tippen filtert (UX-Prüfung P83). Am Handy nicht: Dort schöbe sich die
+  // Tastatur über die Liste, bevor man sie gesehen hat.
+  const feinZeiger = window.matchMedia('(pointer: fine)');
+  dockTog.addEventListener('click', () => {
+    const auf = main.dataset.dock === 'closed';
+    setDock(auf, true);
+    if (auf && feinZeiger.matches) $('hg-q').focus({ preventScroll: true });
+  });
+  // Schmal: Der Knopf unter dem Namen führt zur Schiffsauswahl am Seitenende
+  // und klappt sie auf (UX-Prüfung P22). Ohne Skript springt der Link hin.
+  $('hgx-wahl')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    setDock(true, true);
+    // unter die Kopfleiste der Seite, die am Handy oben stehen bleibt
+    const kopf = Math.max(0, $('topbar')?.getBoundingClientRect().bottom ?? 0);
+    window.scrollTo({ top: $('hgx-dock').getBoundingClientRect().top + window.scrollY - kopf - 8, behavior: reduce ? 'auto' : 'smooth' });
+  });
 
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
   // Schliessen geht dorthin zurueck, statt einen zweiten Eintrag zu stapeln.
@@ -3674,26 +3718,58 @@ export function boot(doc) {
     const taste = (e) => { if (e.key === 'Escape') ende(); };
     // an den Knopf legen: neben eine hohe, schmale Leiste am linken Rand (die
     // zugeklappte Schiffsauswahl), sonst ueber ihn, wenn er in der unteren
-    // Haelfte steht, und darunter, wenn in der oberen; die Spitze zeigt auf ihn
+    // Haelfte steht, und darunter, wenn in der oberen; die Spitze zeigt auf ihn.
+    // Entlang der Leiste oder des Knopfs rueckt er weg von Knoepfen der Seite
+    // und von Name und Tafeln der Buehne (hinweisPlatz). Steht er oben im Bild,
+    // weicht ihm, was dann noch darunter laege (er zaehlt in safe als Knopf,
+    // data-platz): Der Name rueckt zur Seite, die Tafeln beginnen unter ihm.
+    // Unten nicht: Dort muessten die Tafeln ueber das Schiff und an den Namen
+    // steigen (820 × 900, beide Tafeln unter dem zweiten Hinweis), er deckt dann
+    // eine Ecke der Tafel, von der er spricht. Gelegt wird einmal je Schritt
+    // und Lage des Knopfs, danach steht er: Sonst rueckte er der Buehne nach,
+    // die gerade ihm ausgewichen ist.
+    const flaechen = (els) => els.filter((el) => el && !el.contains(ziel)).map(sichtbar).filter(Boolean).map((q) => ({ l: q.left, t: q.top, r: q.right, b: q.bottom }));
+    const buehnenTeile = () => {
+      const c = canvas?.getBoundingClientRect(), teile = c ? halter.v.bildTeile?.() : null;
+      return Array.isArray(teile) ? teile.map((q) => ({ l: q.l + c.left, t: q.t + c.top, r: q.r + c.left, b: q.b + c.top })) : [];
+    };
+    let gelegt = '';
     const legen = () => {
       const r = sichtbar(ziel), o = box.offsetParent;
       if (!r || !o) return false;
       const b = o.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, ow = o.clientWidth, oh = o.clientHeight;
+      // Zur Lage gehoeren die Knoepfe der Seite: Kommt die Ablage oder klappt
+      // die Auswahl auf, waehrend der Hinweis steht, legt er sich neu, statt
+      // sie zu decken (CodeRabbit zu #424). Name und Tafeln nicht, die weichen ihm.
+      const hart = flaechen([$('topbar'), doc.querySelector('.hg-title .hgx-actions'), $('hg-tools'), $('hgx-st'), $('hgx-tray'), doc.querySelector('.hg-dock')]);
+      const lage = [i, r.left, r.top, r.width, r.height, b.left, b.top, w, h, ow, oh, ...hart.flatMap((q) => [q.l, q.t, q.r, q.b])].map(Math.round).join();
+      if (lage === gelegt) return true;
+      gelegt = lage;
       const klemm = (v, lo, hi) => Math.round(Math.min(Math.max(lo, v), hi));
+      const weich = buehnenTeile();
+      // die Spitze trifft den Knopf, solange sie 10 px vor seinen Enden bleibt
+      const platz = (lo, hi, mitte, rect) => (hi >= lo ? hinweisPlatz({ lo: Math.round(lo), hi: Math.round(hi), mitte: Math.round(mitte), rect, hart, weich }).p : null);
       if (r.height > r.width * 2 && r.left + r.width / 2 < innerWidth / 3) {
-        const my = r.top + r.height / 2 - b.top, t = klemm(my - h / 2, 12, oh - h - 12);
-        box.style.left = `${Math.round(r.right - b.left + 14)}px`;
+        const my = r.top + r.height / 2 - b.top, x = Math.round(r.right - b.left + 14);
+        const t = platz(Math.max(12, r.top - b.top + 26 - h), Math.min(oh - h - 12, r.bottom - b.top - 26), my - h / 2, (p) => ({ l: b.left + x, t: b.top + p, r: b.left + x + w, b: b.top + p + h })) ?? klemm(my - h / 2, 12, oh - h - 12);
+        box.style.left = `${x}px`;
         box.style.top = `${t}px`;
         box.style.setProperty('--y', `${klemm(my - t, 16, h - 16)}px`);
         box.dataset.seite = 'rechts';
-        return true;
+      } else {
+        const oben = r.top + r.height / 2 > innerHeight / 2;
+        const mx = r.left + r.width / 2 - b.left, t = Math.round(oben ? r.top - b.top - h - 14 : r.bottom - b.top + 14);
+        const l = platz(Math.max(12, r.left - b.left + 26 - w), Math.min(ow - w - 12, r.right - b.left - 26), mx - w / 2, (p) => ({ l: b.left + p, t: b.top + t, r: b.left + p + w, b: b.top + t + h })) ?? klemm(mx - w / 2, 12, ow - w - 12);
+        box.style.left = `${l}px`;
+        box.style.top = `${t}px`;
+        box.style.setProperty('--x', `${klemm(mx - l, 16, w - 16)}px`);
+        box.dataset.seite = oben ? 'oben' : 'unten';
       }
-      const oben = r.top + r.height / 2 > innerHeight / 2;
-      const mx = r.left + r.width / 2 - b.left, l = klemm(mx - w / 2, 12, ow - w - 12);
-      box.style.left = `${l}px`;
-      box.style.top = `${Math.round(oben ? r.top - b.top - h - 14 : r.bottom - b.top + 14)}px`;
-      box.style.setProperty('--x', `${klemm(mx - l, 16, w - 16)}px`);
-      box.dataset.seite = oben ? 'oben' : 'unten';
+      // oben: wie roomTop der Tafeln (hangar-holo3d.js), Oberkante in den oberen 45 %
+      const c = canvas?.getBoundingClientRect();
+      if (c && b.top + parseFloat(box.style.top) - c.top <= c.height * 0.45) box.dataset.platz = 'ja';
+      else delete box.dataset.platz;
+      stageSafe?.();
       return true;
     };
     const zeige = () => {
@@ -3832,11 +3908,14 @@ export function boot(doc) {
         // Ab 761 px liegt links die Schiffsauswahl ueber der Buehne, offen oder
         // als schmale Spalte; schmal steht sie unter der Tafel und zaehlt nicht.
         const side = doc.querySelector('.hg-side'), dockEl = doc.querySelector('.hg-dock'), nav = $('topbar'), acts = title?.querySelector('.hgx-actions');
-        const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray'), $('hgx-st')];
+        // dazu der Hinweis der Ersten Schritte, solange er oben steht (tipps,
+        // legen, data-platz): Name und Tafeln weichen ihm wie den Knoepfen
+        const hint = $('hg-hint'), tipp = $('hgx-tipp'), keep = [$('hg-tools'), hint, $('hgx-tray'), $('hgx-st'), tipp];
         const safe = () => {
           const c = canvas.getBoundingClientRect();
           const on = (el) => {
             if (el === hint && main.dataset.hint === 'seen') return null;
+            if (el === tipp && tipp.dataset.platz !== 'ja') return null;
             const r = el?.getBoundingClientRect();
             return r && r.width && r.height && r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top ? r : null;
           };

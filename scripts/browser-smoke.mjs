@@ -147,7 +147,9 @@ const SEITEN = [
   // Zwei unabhaengige ToolHelp-Instanzen auf EINER Seite (Phase 1.2, Plan 02).
   // Traegt die Probe der lokalen Leiste (UX-Audit A6): der Kopf des Bereichs
   // Mining zeigt die vier Seiten seines Kreislaufs unter der Kopfleiste.
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: (page) => probeLokaleLeiste(page, 'Mining-Thema', 4) },
+  // Und die Signaturen-Spalte am Telefon (probeMiningHandy): dort war sie
+  // bis 24.11.2026 0 px hoch, obwohl Erze angeheftet waren.
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: async (page) => (await probeLokaleLeiste(page, 'Mining-Thema', 4)) ?? (await probeMiningHandy(page)) },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
   // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
@@ -222,7 +224,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
+let miningHandy = 0, aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -1809,6 +1811,107 @@ async function probeZurueckMarke(page, wo) {
   if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur auf der Crafting-Seite weg)`;
   if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
   return null;
+}
+
+/* Grundpruefungen fuer eine Seite in einem eigenen Kontext (Review PR #435):
+   die Lauscher in pruefe() haengen nur an `page`, eine Zusatzseite saehe
+   ohne sie weder JS-Ausnahmen noch eigene HTTP-Fehler noch CSP-Verstoesse.
+   Dieselben drei wie in probeSuche und probeWerkbank; der Zaehl-Host folgt
+   seiner eigenen Regel in pruefe() [3] und bleibt hier draussen. Vor
+   newPage aufrufen, weil der CSP-Lauscher als Init-Skript am Kontext haengt.
+   `grund()` liefert die Befunde als Text oder null. */
+async function zusatzSeite(ctx) {
+  await ctx.addInitScript(() => {
+    window.__cspVerstoesse = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      window.__cspVerstoesse.push(`${e.violatedDirective} ${e.blockedURI || ''}`.trim());
+    });
+  });
+  const p = await ctx.newPage();
+  const befunde = [];
+  p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+  p.on('response', (r) => {
+    if (r.url().startsWith(BASE) && r.status() >= 400) befunde.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+  });
+  const grund = async () => {
+    const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []).catch(() => []))].filter((v) => !ZAEHLER_HOST.test(v));
+    if (csp.length) befunde.push(`CSP-Verstoss: ${csp.slice(0, 3).join(', ')}`);
+    return befunde.length ? befunde.slice(0, 3).join(' | ') : null;
+  };
+  return { p, grund };
+}
+
+/* Mining-Werkbank am Telefon: angeheftete Erze im Reiter „Signaturen".
+   UX-Audit 24.11.2026 (Task-Flow F02, Befund M1): bei 390 und 412 px war
+   #wb-pins 0 px hoch bei 177 px Inhalt, beide Listen samt Ueberschrift
+   unsichtbar. Die Spalte steht dort auf height:auto, und Kaesten mit
+   Grundhoehe 0 (.wb__sec2) ergeben dann 0. Ab 761 px war es nie falsch —
+   deshalb faengt es keine der Varianten oben (1280, und 360 nur fuer
+   `schwer`). Die Probe heftet wie ein Nutzer ein Erz an, wechselt in den
+   Reiter und misst: Ueberschrift und Eintrag muessen innerhalb der Spalte
+   gezeichnet sein, nicht nur im DOM stehen. */
+const MINING_HANDY = [{ breite: 390, hoehe: 844 }, { breite: 412, hoehe: 915 }];
+async function probeMiningHandy(page) {
+  const ziel = page.url();
+  const probleme = [];
+  for (const g of MINING_HANDY) {
+    const ctx = await page.context().browser().newContext({
+      viewport: { width: g.breite, height: g.hoehe }, colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+    });
+    try {
+      await ctx.route('**/*', (route) => (route.request().url().startsWith(BASE) ? route.continue() : route.abort()));
+      await ctx.addInitScript(() => {
+        try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Speicher steht die Hilfe offen, die Probe klickt per DOM */ }
+      });
+      const { p, grund } = await zusatzSeite(ctx);
+      await p.goto(ziel, { waitUntil: 'load' });
+      await p.waitForSelector('.wb__tile .wb__pin', { timeout: 15000 });
+      const m = await mitSichtbar(p, async (_, da) => {
+        const naechstesBild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const nadel = document.querySelector('.wb__tile .wb__pin');
+        const reiter = document.querySelector('[data-seg="sig"]');
+        if (!nadel || !reiter) return { fehlt: !nadel ? 'Anheft-Knopf einer Kachel' : 'Reiter „Signaturen"' };
+        const erz = nadel.getAttribute('data-pin');
+        nadel.click();
+        reiter.click();
+        await naechstesBild();
+        const spalte = document.querySelector('.wb__pane--sig');
+        const liste = document.getElementById('wb-pins');
+        const kopf = document.getElementById('wb-pinsh');
+        const eintrag = liste?.querySelector('.wb__pin-item');
+        const r = (el) => el?.getBoundingClientRect();
+        const rs = r(spalte), rl = r(liste), rk = r(kopf), re = r(eintrag);
+        // Gezeichnet heisst: eigene Hoehe UND innerhalb der Spalte, die mit
+        // overflow:hidden alles darunter abschneidet. Der Eintrag zusaetzlich
+        // innerhalb der Liste selbst: eine 20 px hohe Liste schnitte ihn ab,
+        // obwohl er noch in der Spalte laege (Review PR #420). Und sichtbar
+        // nach der einen Bestimmung oben (SICHTBAR): visibility:hidden oder
+        // Opazitaet 0 lassen die Geometrie stehen (Review PR #429).
+        const im = (x, r) => !!x && !!r && x.height > 0 && x.top >= r.top - 1 && x.bottom <= r.bottom + 1;
+        const drin = (x) => im(x, rs);
+        return {
+          erz,
+          spalteDa: !!rs && rs.height > 0 && getComputedStyle(spalte).display !== 'none',
+          liste: rl ? Math.round(rl.height) : -1,
+          inhalt: liste ? liste.scrollHeight : -1,
+          kopfDrin: drin(rk) && da(kopf),
+          eintragDrin: drin(re) && im(re, rl) && da(eintrag),
+          name: eintrag?.querySelector('.nm')?.textContent || '',
+        };
+      });
+      const befund = await grund();
+      if (befund) probleme.push(`${g.breite} px: ${befund}`);
+      if (m.fehlt) { probleme.push(`${g.breite} px: ${m.fehlt} fehlt`); continue; }
+      miningHandy++;
+      if (!m.spalteDa) probleme.push(`${g.breite} px: Reiter „Signaturen" zeigt keine Spalte`);
+      else if (m.liste <= 0 || !m.eintragDrin || !m.kopfDrin)
+        probleme.push(`${g.breite} px: „${m.erz}" angeheftet, aber die Signaturenliste ist ${m.liste} px hoch bei ${m.inhalt} px Inhalt (Ueberschrift ${m.kopfDrin ? 'sichtbar' : 'abgeschnitten oder unsichtbar'}, Eintrag ${m.eintragDrin ? 'sichtbar' : 'abgeschnitten oder unsichtbar'})`);
+      else if (m.name !== m.erz) probleme.push(`${g.breite} px: angeheftet „${m.erz}", die Liste zeigt „${m.name}"`);
+    } finally {
+      await ctx.close();
+    }
+  }
+  return probleme.length ? `Mining-Werkbank am Telefon: ${probleme.join('; ')}` : null;
 }
 
 /* Lokale Leiste (UX-Audit A6, 24.11.2026): auf den Seiten eines Bereichs mit
@@ -3625,6 +3728,14 @@ const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Bre
 const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
 console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
+// Signaturen-Spalte der Mining-Werkbank am Telefon: je Breite und Sprache
+// eine Messung. Ohne Klinke liefe eine Probe, die den Knopf nicht mehr
+// findet und still nichts misst, gruen durch.
+const MINING_HANDY_SOLL = MINING_HANDY.length * 2;
+const mitMining = seiten.some((x) => x.id === 'mining-thema');
+if (mitMining) console.log(`  Mining-Werkbank am Telefon: Signaturen-Spalte ${miningHandy}-mal gemessen   Untergrenze: ${MINING_HANDY_SOLL}`);
+if (mitMining && miningHandy < MINING_HANDY_SOLL && !fehler.some((f) => f.includes('Mining-Werkbank am Telefon')))
+  fehler.push(`Mining-Werkbank am Telefon: nur ${miningHandy} von ${MINING_HANDY_SOLL} Messungen der Signaturen-Spalte — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Leitstand: ${leitKnoepfe} Bedienelemente in der Tab-Reihenfolge auf ihren Platz im Bild geprueft (Untergrenze ${LEIT_MIN_KNOEPFE} je Sprache)`);
 if (probenLaeufe) console.log(`  Proben: ${probenLaeufe} gefahren, dabei ${probenAntworten} Antworten eigener Ressourcen mitgelesen, ${probenRahmen} davon aus Seiten in einem Rahmen; ${probenEingespielt} Fehlantwort(en) hat eine Probe selbst eingespielt, wie am Szenario erklaert (nicht gewertet)`);

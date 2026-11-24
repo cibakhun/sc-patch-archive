@@ -146,6 +146,15 @@
     var rest = item.obtain.filter(function (o) { return o.price == null; });
     item.obtain = preis.concat(neu, rest);
   }
+  // Hersteller der Sets wie auf der Set-Seite (setHersteller() in
+  // scripts/lib/armor-sets.mjs): Kurzform des Set-Tags -> Anzeigename,
+  // „Unknown" -> kein Hersteller.
+  function setHersteller(m) {
+    m = typeof m === 'string' ? m.trim() : '';
+    if (!m || /^unknown$/i.test(m)) return null;
+    var A = CFG.setHersteller || {};
+    return Object.prototype.hasOwnProperty.call(A, m) ? A[m] : m;
+  }
   function setOf(item) { return item.game && item.game.setId ? SETS[item.game.setId] || null : null; }
 
   // Schlüssel-Stat je Item (Badge auf der Karte + Wert-Sortierung). n = Zahl zum Sortieren.
@@ -189,9 +198,25 @@
     return tr(key, parent);
   }
 
+  // Durchsuchter Text eines Items: Name (auch der deutsche), Kategorie,
+  // Hersteller, Klasse, Untertyp, Set-Name („venture“ findet alle Venture-
+  // Teile, auch die, deren Anzeigename das Wort nicht traegt) und die
+  // Bezugsorte. Ohne den Set-Namen zwischengespeichert, der haengt an SETS.
+  function suchText(item) {
+    if (item._such == null) {
+      var g = item.game || {};
+      var teile = [item.name, item.category, g.manufacturer, g.class, g.subType, g.nameDe];
+      for (var i = 0; i < item.obtain.length; i++) teile.push(item.obtain[i].loc, item.obtain[i].locDe);
+      item._such = teile.filter(Boolean).join('\n').toLowerCase();
+    }
+    var st = setOf(item);
+    return st ? item._such + '\n' + st.name.toLowerCase() : item._such;
+  }
+
   // ---- Filter + Sortierung ----
   function applyFiltersAndSort() {
     var term = searchTerm.toLowerCase().trim();
+    var worte = term ? term.split(/\s+/) : [];
 
     filteredItems = ALL_ITEMS.filter(function (item) {
       if (activeCategory && parentCategory(item.category) !== activeCategory) return false;
@@ -200,25 +225,14 @@
       if (activeWeight && !(item.game && item.game.weight === activeWeight)) return false;
       if (activeRarity && !(item.game && item.game.rarity === activeRarity)) return false;
       if (activeSet && !(item.game && item.game.setId === activeSet)) return false;
-      if (!term) return true;
-      if (item.name.toLowerCase().indexOf(term) !== -1) return true;
-      if (item.category && item.category.toLowerCase().indexOf(term) !== -1) return true;
-      if (item.game) {
-        var g = item.game;
-        if (g.manufacturer && g.manufacturer.toLowerCase().indexOf(term) !== -1) return true;
-        if (g.class && g.class.toLowerCase().indexOf(term) !== -1) return true;
-        if (g.subType && g.subType.toLowerCase().indexOf(term) !== -1) return true;
-        if (g.nameDe && g.nameDe.toLowerCase().indexOf(term) !== -1) return true;
-        // Set-Name mitsuchen: „venture" soll alle Venture-Teile finden, auch die,
-        // deren Anzeigename das Wort nicht traegt.
-        var st = setOf(item);
-        if (st && st.name.toLowerCase().indexOf(term) !== -1) return true;
-      }
-      for (var i = 0; i < item.obtain.length; i++) {
-        if (item.obtain[i].loc.toLowerCase().indexOf(term) !== -1) return true;
-        if (item.obtain[i].locDe && item.obtain[i].locDe.toLowerCase().indexOf(term) !== -1) return true;
-      }
-      return false;
+      if (!worte.length) return true;
+      // Wortweise wie das Filterfeld der Kategorielisten (kategorie-filter.js),
+      // das mit ?q= hierher fuehrt: jedes Suchwort muss irgendwo stehen, nicht
+      // die ganze Eingabe am Stueck in einem Feld („adp core“ findet
+      // „ADP-mk4 Core Justified“).
+      var h = suchText(item);
+      for (var w = 0; w < worte.length; w++) if (h.indexOf(worte[w]) === -1) return false;
+      return true;
     });
 
     filteredItems.sort(function (a, b) {
@@ -1182,7 +1196,7 @@
       FUNDORTE = db.fundorte || null;
       if (FUNDORTE) ALL_ITEMS.forEach(lootZeilen);
       SETS = {};
-      (db.sets || []).forEach(function (s) { SETS[s.id] = s; });
+      (db.sets || []).forEach(function (s) { s.manufacturer = setHersteller(s.manufacturer); SETS[s.id] = s; });
 
       var sub = document.getElementById('uif-subline');
       if (sub && META) {

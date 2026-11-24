@@ -10,10 +10,11 @@ import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/item
 import { lootHinweis } from '../i18n/lootText';
 import {
   ITEM_KENNUNG, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
-  displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
+  displayName, itemPath, itemsHubPath, maxPrice, minPrice, num,
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
   armorSetById, setItemsBySlot, woText,
 } from '../lib/items';
+import { kategorieTitel } from '../lib/itemKategorien';
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo, itemZusatz, itemZwillinge } from '../lib/itemSeo';
 import { bwT } from '../i18n/bezugswegeText';
@@ -132,7 +133,7 @@ const locLabel = (o: { kind: string; loc: string; reason?: string }) => obtainLa
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
-  { label: leafCategory(item.category), href: categoryPath(catSlug) },
+  { label: kategorieTitel(item.category, lang), href: categoryPath(catSlug) },
   { label: name },
 ];
 ---
@@ -421,12 +422,12 @@ const crumbs = [
               {linked ? (
                 <a class="dp-card" href={href(itemPath(r), lang)}>
                   <strong>{displayName(r, lang)}</strong>
-                  <em>{p != null ? <span class="dp-card-price">{t('thFrom')} {auec(p, lang)}</span> : leafCategory(r.category)}</em>
+                  <em>{p != null ? <span class="dp-card-price">{t('thFrom')} {auec(p, lang)}</span> : kategorieTitel(r.category, lang)}</em>
                 </a>
               ) : (
                 <span class="dp-card">
                   <strong>{displayName(r, lang)}</strong>
-                  <em>{leafCategory(r.category)}</em>
+                  <em>{kategorieTitel(r.category, lang)}</em>
                 </span>
               )}
             </li>
@@ -437,7 +438,7 @@ const crumbs = [
   )}
 
   <div class="dp-actions">
-    <a class="dp-btn dp-btn--ghost" href={href(categoryPath(catSlug), lang)}>{t('allInCategory')}: {leafCategory(item.category)}</a>
+    <a class="dp-btn dp-btn--ghost" href={href(categoryPath(catSlug), lang)}>{t('allInCategory')}: {kategorieTitel(item.category, lang)}</a>
     <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
     {/* Nur verlinken, wenn die Patch-Seite existiert — sie ist handgeschrieben
         und folgt einem Datenlauf NICHT automatisch (src/lib/patchPages.ts).

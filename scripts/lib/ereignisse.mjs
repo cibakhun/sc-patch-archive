@@ -46,7 +46,7 @@ export const PLAETZE = ['1-3', '4-10', '11+'];
 // nie ihr Wert.
 export const FILTER = [
   'suche', 'sortierung', 'kategorie', 'groesse', 'verfuegbarkeit', 'gewicht', 'seltenheit', 'ansicht',
-  'typ', 'auftraggeber', 'fraktion', 'gilde', 'ort', 'bauplan', 'legal',
+  'typ', 'auftraggeber', 'ort', 'bauplan', 'legal',
   'hersteller', 'karriere', 'rolle', 'signatur', 'merkmal', 'komponente', 'komponentengroesse',
   'ressource', 'qualitaet', 'system', 'brechbar',
 ];

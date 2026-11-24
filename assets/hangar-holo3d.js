@@ -2138,6 +2138,8 @@ export function holoLayer(ctx) {
       }
       ctx.wake(FADE_MS + 100);
     },
+    // wo die Tafeln gerade im Bild stehen ({ l, t, r, b }, px der Bühne)
+    rects() { return built ? built.panels.filter((P) => P.group.visible && P.rect).map((P) => ({ ...P.rect })) : []; },
     // neues freies Bild: die Ausrüstung richtet ihre Höhe danach
     safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; if (built) redraw(built.left); settledAt = 0; ctx.wake(300); },
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
