@@ -97,6 +97,14 @@ test('[1] rot: einfach angefuehrte Attribute werden gelesen (Review PR #426)', (
   assert.doesNotMatch(r.out, /\[3\] \/archiv\.html/, 'hreflang in einfachen und ohne Anfuehrungszeichen gilt');
 });
 
+test('[3] rot: falsches hreflang-Ziel auch in einfachen und ohne Anfuehrungszeichen (Review PR #426)', () => {
+  const html = `<!doctype html><html><head><link rel='alternate' hreflang='de' href='https://verse-base.com/de/index.html'><link rel=alternate hreflang=en href=https://verse-base.com/index.html></head><body><a class="langsw__opt" href="/de/archiv.html">DE</a><a class="langsw__opt" href="/de/archiv.html">DE</a></body></html>`;
+  const r = lauf(bau({ ...GUT, 'archiv.html': html }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\[3\] \/archiv\.html: hreflang="de" nennt https:\/\/verse-base\.com\/de\/index\.html, erwartet \/de\/archiv\.html/);
+  assert.match(r.out, /\[3\] \/archiv\.html: hreflang="en" nennt https:\/\/verse-base\.com\/index\.html, erwartet \/archiv\.html/);
+});
+
 test('[3] rot: hreflang auf fremden Ursprung', () => {
   const r = lauf(bau({ ...GUT, 'archiv.html': seite({ opt: '/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }).replace('https://verse-base.com/de/archiv.html', 'https://example.org/de/archiv.html') }));
   assert.equal(r.code, 1, r.out);
