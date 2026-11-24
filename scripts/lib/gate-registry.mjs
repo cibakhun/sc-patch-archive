@@ -668,7 +668,7 @@ export const CHECKS = [
     script: 'scripts/verify-bezugswege.mjs',
     rail: 'A',
     checks:
-      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache, gleichnamige Seiten verlinken einander (data-zwilling); [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau bei mehreren Gruppen; [12] Bauplan-Seiten nennen je Material seine Wege und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache, gleichnamige Seiten verlinken einander (data-zwilling); [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau bei mehreren Gruppen; [12] Bauplan-Seiten nennen je Material seine Wege und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
     // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
     // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
@@ -702,6 +702,20 @@ export const CHECKS = [
     // Kategorieseiten), 14.894 Titel ohne Doppel (84 Zwillingsseiten), 218
     // Schiffsteile, 278 Blaetter ohne Weg (Decke 290, vor D6 430), 10.994
     // Bezugstabellen (7.072 mit Filter), 3.252 Material-Seiten.
+    // [11] „—“-Zellen: eine Loot-Zelle auf /items/karna-rifle.html wieder mit
+    // „—“ gefuellt: 1 FEHLER, zurueckgespielt.
+    // [13] und [14] (P52, P64), VORGEFUEHRT ROT am 24.11.2026 gegen den Bau
+    // vor dieser Aenderung: [13] 6 FEHLER (je Sprache Verzeichnis 1.634 gegen
+    // Werkbank 1.626 und „1.626 + 0 ohne Item“ gegen 1.634; „ cSCU“ zweimal
+    // in der Crafting-Datenbank und nur 1 Mengenanzeige in SCU), [14] alle
+    // 712 Handwaffen-Blaetter (Block ohne data-aehnlich). Gegen den neuen Bau
+    // drei Eingriffe, je Datei zurueckgespielt und per sha256 geprueft: die
+    // alte Liste auf /items/karna-rifle.html (sieben Devastator-
+    // Schrotflinten, kein Gewehr), eine vierte Devastator-Ausfuehrung auf
+    // /items/devastator-shotgun.html, die Karna an Stelle 2 von
+    // /de/items/arrowhead-sniper-rifle.html: 3 Befunde, je einer pro
+    // Eingriff. Gruen danach: je Sprache 1.626 / 1.626 / 1.626 + 8 ohne Item
+    // = 1.634, 3 Mengenanzeigen in SCU, 712 Handwaffen-Blaetter.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
