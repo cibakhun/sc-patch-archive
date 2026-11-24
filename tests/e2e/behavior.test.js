@@ -197,6 +197,37 @@ describe('Suche', () => {
   });
 });
 
+describe('Suche in der Adresse (?q=)', () => {
+  test('18a. ?q= fuellt die Suche beim Laden und filtert (Ort aus der Kopfsuche)', async () => {
+    const dom = await setupMockDOM({ db: makeDb(), craft: CRAFT_FIXTURE, search: '?q=Lorville' });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    assert.strictEqual(dom.elements['uif-search-input'].value, 'Lorville');
+    assert.deepStrictEqual(cardTitles(dom), ['Beta Helmet']);
+  });
+
+  test('18b. Ohne ?q= bleibt alles wie bisher', async () => {
+    const dom = await setupMockDOM({ db: makeDb(), craft: CRAFT_FIXTURE });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    assert.strictEqual(dom.elements['uif-search-input'].value, '');
+    assert.strictEqual(cards(dom).length, 6);
+    assert.strictEqual(dom.window.history.calls.length, 0);
+  });
+
+  test('18c. Tippen schreibt ?q= in die Adresse, Leeren nimmt es wieder heraus, ?item bleibt', async () => {
+    const dom = await setupMockDOM({ db: makeDb(), craft: CRAFT_FIXTURE, search: '?item=zz' });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    dom.elements['uif-search-input'].value = 'Cubby Blast';
+    await dom.wait(350);
+    assert.strictEqual(dom.window.history.calls.at(-1), '/item-finder.html?item=zz&q=Cubby+Blast');
+    dom.elements['uif-search-input'].value = '';
+    await dom.wait(350);
+    assert.strictEqual(dom.window.history.calls.at(-1), '/item-finder.html?item=zz');
+  });
+});
+
 describe('Kategorie-Filter', () => {
   let dom;
   beforeEach(async () => {

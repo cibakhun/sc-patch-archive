@@ -1049,6 +1049,30 @@
     }
   }
 
+  // ---- Suche in der Adresse ----
+  // ?q=<Suchtext> fuellt die Suche beim Laden (Links aus der Kopfsuche auf
+  // Orte und Laeden), und die Suche bleibt beim Tippen in der Adresse, damit
+  // Zurueck, Neu laden und Teilen den Stand halten.
+  function adressSuche() {
+    try { return new URLSearchParams(window.location.search || '').get('q') || ''; } catch (e) { return ''; }
+  }
+  var qTimer = 0;
+  function schreibeSuche() {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(function () {
+      try {
+        var p = new URLSearchParams(window.location.search || '');
+        var t = searchTerm.trim();
+        if (t) p.set('q', t); else p.delete('q');
+        var qs = p.toString();
+        var neu = window.location.pathname + (qs ? '?' + qs : '') + (window.location.hash || '');
+        if (neu !== window.location.pathname + (window.location.search || '') + (window.location.hash || '')) {
+          window.history.replaceState(window.history.state, '', neu);
+        }
+      } catch (e) {}
+    }, 300);
+  }
+
   // ---- Events ----
   function initEvents() {
     var searchInput = document.getElementById('uif-search-input');
@@ -1057,6 +1081,7 @@
         searchTerm = e.target.value;
         currentPage = 1;
         applyFiltersAndSort();
+        schreibeSuche();
       });
     }
     var sortSelect = document.getElementById('uif-sort-select');
@@ -1110,6 +1135,12 @@
 
   // ---- Init: Item-DB laden (Rezepte erst mit dem ersten Modal) ----
   function init() {
+    var q0 = adressSuche();
+    if (q0) {
+      searchTerm = q0;
+      var si = document.getElementById('uif-search-input');
+      if (si) si.value = q0;
+    }
     initEvents();
 
     var dbUrl = CFG.dbUrl || '/assets/universal-items.json';
