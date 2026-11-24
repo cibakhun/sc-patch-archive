@@ -11,6 +11,9 @@
 //           <out>/t/<hash>.webp       Bilder, nach Inhalt benannt (Farbvarianten teilen)
 //           <out>/manifest.jsonl      eine Zeile je fertigem Item
 //           <out>/fehler.jsonl        übersprungene oder gescheiterte Items
+// Beide Protokolle tragen je Zeile die Zeit (zeit, ms): manifest.mjs lässt
+// ein Modell weg, wenn sein Item danach gescheitert ist (alter Erfolg, neuer
+// Fehlschlag), bis ein späterer Erfolg es wieder freigibt.
 // Jede Zeile des Manifests trägt die Befunde des Items (merk: Merkmal ->
 // Dreiecke) und halt (ein Merkmal ist unbekannt oder ein Fehler, siehe
 // scripts/lib/item3d-merkmale.mjs); manifest.mjs lässt solche Items weg.
@@ -43,6 +46,7 @@ const zeilen = (f) => {
 };
 // Ein abgebrochener Lauf kann eine halbe letzte Zeile hinterlassen; ohne
 // Kürzung klebte die nächste Zeile daran und ginge mit verloren.
+const fehlerZeile = (OUT, o) => appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ ...o, zeit: Date.now() })}\n`);
 const zeilenendeHeilen = (f) => {
   if (!existsSync(f)) return;
   const b = readFileSync(f);
@@ -100,8 +104,8 @@ async function main() {
     for (const it of list) {
       if (ONLY.length && !ONLY.includes(it.id)) continue;
       const rec = db.recordById.get(it.guid);
-      if (!rec) { appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ id: it.id, fehler: 'kein Record' })}\n`); continue; }
-      if (/(^|\.)test_/i.test(rec.name)) { appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ id: it.id, fehler: `Testeintrag ${rec.name}` })}\n`); continue; }
+      if (!rec) { fehlerZeile(OUT, { id: it.id, fehler: 'kein Record' }); continue; }
+      if (/(^|\.)test_/i.test(rec.name)) { fehlerZeile(OUT, { id: it.id, fehler: `Testeintrag ${rec.name}` }); continue; }
       const obj = db.readRecord(rec, { typed: true, maxDepth: 10 });
       const geo = (obj?.Components ?? []).find((c) => c?.__type === 'SGeometryResourceParams') ?? null;
       (function walk(o, d = 0) { if (!o || typeof o !== 'object' || d > 40) return; if (o.__ref && o.name) refIds.add(o.__ref); for (const v of Object.values(o)) walk(v, d + 1); })(geo);
@@ -174,6 +178,7 @@ async function main() {
   if (ZENSUS) writeFileSync(ZENSUS, '');
   if (LIMIT) todo = todo.slice(0, LIMIT);
   let fertig = 0, fehler = 0, abgestuerzt = 0, verloren = 0;
+  const ohneZaehlung = [];
   log(`${items.length} Items, ${items.length - todo.length} schon fertig, ${todo.length} zu backen${quellenAlt ? ` (davon ${quellenAlt} mit geänderten oder ungeprüften Quellen)` : ''}, ${WORKERS} Arbeiter`);
   if (!todo.length) return summary();
 
@@ -209,10 +214,12 @@ async function main() {
         if (id) bestaetigt.add(id);
         if (m.zensus) { appendFileSync(ZENSUS, `${JSON.stringify(m.zensus)}\n`); fertig++; if (fertig % 200 === 0) log(`Zählung ${fertig}/${todo.length}`); return; }
         if (m.ok) {
-          appendFileSync(join(OUT, 'manifest.jsonl'), `${JSON.stringify({ ...m.ok, tab: TABELLE })}\n`);
+          appendFileSync(join(OUT, 'manifest.jsonl'), `${JSON.stringify({ ...m.ok, tab: TABELLE, zeit: Date.now() })}\n`);
           fertig++;
         } else {
-          appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify(m.fail)}\n`);
+          // Die Zählung schreibt nicht ins Bauprotokoll; ihr fehlt das Item,
+          // und der Lauf endet rot.
+          if (ZENSUS) ohneZaehlung.push(m.fail.id); else fehlerZeile(OUT, m.fail);
           fehler++;
         }
         const n = fertig + fehler, per = (Date.now() - startBake) / n;
@@ -227,7 +234,7 @@ async function main() {
           const [lief, ...rest] = offen;
           abgestuerzt++;
           log(`Arbeiter endete (Code ${code}) während ${lief.id}; ${rest.length} weitere Items der Gruppe neu eingeplant`);
-          if (!ZENSUS) appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ id: lief.id, fehler: `Arbeiter endete beim Backen (Code ${code})` })}\n`);
+          if (ZENSUS) ohneZaehlung.push(lief.id); else fehlerZeile(OUT, { id: lief.id, fehler: `Arbeiter endete beim Backen (Code ${code})` });
           fehler++;
           if (rest.length) queue.unshift(rest);
           if (ersatz < ERSATZ_MAX) { ersatz++; spawn(); }
@@ -238,22 +245,24 @@ async function main() {
     for (let i = 0; i < Math.min(WORKERS, queue.length); i++) spawn();
   });
   const unvollstaendig = () => {
-    if (!abgestuerzt && !verloren) return;
-    log(`UNVOLLSTÄNDIG: ${abgestuerzt} Arbeiter mitten in der Arbeit beendet${verloren ? `, ${verloren} Items nie gebacken` : ''}`);
+    if (!abgestuerzt && !verloren && !ohneZaehlung.length) return false;
+    log(`UNVOLLSTÄNDIG: ${abgestuerzt} Arbeiter mitten in der Arbeit beendet${verloren ? `, ${verloren} Items nie gebacken` : ''}${ohneZaehlung.length ? `, ${ohneZaehlung.length} Items ohne Zählung (${ohneZaehlung.slice(0, 10).join(', ')})` : ''}`);
     process.exitCode = 1;
+    return true;
   };
-  if (ZENSUS) { log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return unvollstaendig(); }
-  summary();
-  unvollstaendig();
+  // „fertig“ nur, wenn nichts fehlt; sonst steht dort UNVOLLSTÄNDIG
+  if (ZENSUS) { if (!unvollstaendig()) log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return; }
+  const offen = unvollstaendig();
+  summary(offen);
 
-  function summary() {
+  function summary(offen = false) {
     const rows = zeilen(join(OUT, 'manifest.jsonl'));
     const tex = new Set(); let glb = 0;
     for (const r of rows.values()) { glb += r.glbKb; for (const h of r.tex ?? []) tex.add(h); }
     let texBytes = 0;
     for (const h of tex) { const f = join(OUT, 't', `${h}.webp`); if (existsSync(f)) texBytes += statSync(f).size; }
     const halt = [...rows.values()].filter((r) => r.halt);
-    log(`fertig: ${rows.size} Items im Bestand (dieser Lauf ${fertig} neu, ${fehler} ohne Modell, ${halt.length} angehalten)`);
+    log(`${offen ? 'Stand (Lauf UNVOLLSTÄNDIG)' : 'fertig'}: ${rows.size} Items im Bestand (dieser Lauf ${fertig} neu, ${fehler} ohne Modell, ${halt.length} angehalten)`);
     if (halt.length) log(`angehalten (manifest.mjs lässt sie weg): ${halt.slice(0, 20).map((r) => r.id).join(', ')}${halt.length > 20 ? ' …' : ''}`);
     log(`Größe: Netze ${(glb / 1024).toFixed(0)} MB, Bilder ${(texBytes / 1048576).toFixed(0)} MB (${tex.size} Bilder, geteilt), zusammen ${((glb * 1024 + texBytes) / 1073741824).toFixed(2)} GB`);
   }

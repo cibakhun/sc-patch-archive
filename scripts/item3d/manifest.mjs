@@ -2,12 +2,17 @@
 // die Seite (src/data/item-3d.json) und den Befundbericht daneben
 // (src/data/item-3d-befunde.json).
 //
-//   node scripts/item3d/manifest.mjs <out> <repo>/src/data/item-3d.json [--alle] [--bucket versebase-items]
+//   node scripts/item3d/manifest.mjs <out> <repo>/src/data/item-3d.json --env <r2.env> [--bucket versebase-items]
+//   node scripts/item3d/manifest.mjs <out> <ziel.json> --alle     (lokal, ohne Upload-Nachweis)
 //
 // In die Liste kommt ein Item nur, wenn
 //   - sein Modell UND alle seine Texturen in <out>/hochgeladen.txt stehen
 //     (ohne --alle; sonst zeigte die Seite einen Knopf, hinter dem nichts liegt),
-//     und dieser Nachweis zum Bucket der Seite gehört (<out>/hochgeladen.ziel),
+//     und dieser Nachweis zu Bucket und Endpunkt der Seite gehört
+//     (<out>/hochgeladen.ziel gegen --bucket und R2_ENDPOINT aus --env; aus
+//     der Datei wird nur der Endpunkt gelesen, als Kennung verglichen),
+//   - sein jüngster Bau gelang: ein späterer Fehlschlag in fehler.jsonl
+//     (Zeit zeit) sperrt das ältere Modell, bis ein neuer Erfolg kommt,
 //   - es mit der Merkmal-Tabelle DIESES Checkouts gebacken wurde (Kennung tab
 //     in der Zeile): dann ist die Einordnung hier dieselbe wie beim Backen,
 //   - es kein Merkmal trägt, das die Tabelle anhält (unbekannt oder Fehler,
@@ -23,10 +28,11 @@ import { einordnen, HALT } from '../lib/item3d-merkmale.mjs';
 
 const argv = process.argv.slice(2);
 const ALLE = argv.includes('--alle'); if (ALLE) argv.splice(argv.indexOf('--alle'), 1);
-const bi = argv.indexOf('--bucket');
-const BUCKET = bi >= 0 ? argv.splice(bi, 2)[1] : 'versebase-items';
+const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv.splice(i, 2)[1] : d; };
+const BUCKET = flag('--bucket', 'versebase-items');
+const ENV = flag('--env', null);
 const [OUT, ZIEL] = argv;
-if (!OUT || !ZIEL) { console.error('Aufruf: node scripts/item3d/manifest.mjs <out> <ziel.json> [--alle]'); process.exit(2); }
+if (!OUT || !ZIEL || (!ALLE && !ENV)) { console.error('Aufruf: node scripts/item3d/manifest.mjs <out> <ziel.json> --env <r2.env> [--bucket …]  |  … --alle'); process.exit(2); }
 const BERICHT = join(dirname(ZIEL), 'item-3d-befunde.json');
 
 // Kennung der Tabelle wie in batch.mjs (dort steht sie als tab in jeder Zeile)
@@ -44,19 +50,34 @@ let oben = new Set();
 if (!ALLE) {
   const zf = join(OUT, 'hochgeladen.ziel');
   const ziel = existsSync(zf) ? JSON.parse(readFileSync(zf, 'utf8')) : null;
-  if (!ziel || ziel.bucket !== BUCKET) {
-    console.error(ziel ? `hochgeladen.txt gehört zu Bucket ${ziel.bucket}, die Seite liest ${BUCKET}: kein gültiger Upload-Nachweis` : 'hochgeladen.ziel fehlt: erst scripts/item3d/upload.mjs laufen lassen (vermerkt das Ziel)');
+  // Endpunkt-Kennung wie in upload.mjs: sha256 des Hosts, 12 Zeichen
+  const ep = readFileSync(ENV, 'utf8').split(/\r?\n/).map((l) => l.match(/^\s*R2_ENDPOINT\s*=\s*(.*?)\s*$/)).find(Boolean)?.[1]?.replace(/^["']|["']$/g, '');
+  if (!ep) { console.error(`R2_ENDPOINT fehlt in ${ENV}`); process.exit(2); }
+  const endpunkt = createHash('sha256').update(new URL(ep).host).digest('hex').slice(0, 12);
+  if (!ziel || ziel.bucket !== BUCKET || ziel.endpunkt !== endpunkt) {
+    console.error(ziel ? `hochgeladen.txt gehört zu ${ziel.bucket} (${ziel.endpunkt}), die Seite liest ${BUCKET} (${endpunkt}): kein gültiger Upload-Nachweis` : 'hochgeladen.ziel fehlt: erst scripts/item3d/upload.mjs laufen lassen (vermerkt das Ziel)');
     process.exit(2);
   }
   if (existsSync(join(OUT, 'hochgeladen.txt'))) oben = new Set(readFileSync(join(OUT, 'hochgeladen.txt'), 'utf8').split(/\r?\n/).filter(Boolean));
 }
 
-// Testeinträge des Spiels (der Lauf lehnt sie ab) fallen auch dann heraus,
-// wenn ein früherer Lauf sie noch gebaut hatte.
-const test = new Set(existsSync(join(OUT, 'fehler.jsonl'))
-  ? readFileSync(join(OUT, 'fehler.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)).filter((f) => /Testeintrag/.test(f.fehler)).map((f) => f.id)
-  : []);
+// Fehlschläge: Testeinträge des Spiels (der Lauf lehnt sie ab) fallen immer
+// heraus, auch wenn ein früherer Lauf sie noch gebaut hatte. Jeder andere
+// Fehlschlag sperrt einen älteren Erfolg (Zeit zeit; Zeilen ohne Zeit zählen
+// als 0, ein Gleichstand sperrt nicht).
+const test = new Set(), gescheitert = new Map();
+if (existsSync(join(OUT, 'fehler.jsonl'))) {
+  for (const l of readFileSync(join(OUT, 'fehler.jsonl'), 'utf8').split(/\r?\n/)) {
+    if (!l.trim()) continue;
+    let f; try { f = JSON.parse(l); } catch { kaputt++; continue; }
+    if (typeof f?.id !== 'string') continue;
+    if (/Testeintrag/.test(f.fehler)) test.add(f.id);
+    gescheitert.set(f.id, Math.max(gescheitert.get(f.id) ?? 0, Number(f.zeit) || 0));
+  }
+}
 for (const id of test) letzte.delete(id);
+let gesperrt = 0;
+for (const [id, z] of [...letzte]) if ((gescheitert.get(id) ?? 0) > (Number(z.zeit) || 0)) { letzte.delete(id); gesperrt++; }
 
 const items = {};
 const merkmale = new Map(); // Schlüssel -> Index im Bericht
@@ -103,6 +124,7 @@ const kb = Object.values(items).reduce((s, e) => s + e[1], 0);
 const n = Object.keys(items).length;
 console.log(`${n} Items in ${ZIEL} (im Schnitt ${Math.round(kb / Math.max(1, n))} KB je Item)`
   + `${ohneUpload ? `, ${ohneUpload} noch nicht hochgeladen` : ''}${ohneDatei ? `, ${ohneDatei} ohne Datei` : ''}${ohneBefund ? `, ${ohneBefund} ohne Befunde (alter Bäcker)` : ''}${kaputt ? `, ${kaputt} kaputte Protokollzeilen` : ''}`);
+if (gesperrt) console.log(`ACHTUNG: ${gesperrt} Items sind nach ihrem letzten Erfolg gescheitert (fehler.jsonl) und darum NICHT in der Liste`);
 if (andereTabelle) console.log(`ACHTUNG: ${andereTabelle} Items mit einer anderen Merkmal-Tabelle gebacken (heute ${TABELLE}) und darum NICHT in der Liste: neu backen (scripts/item3d/batch.mjs)`);
 console.log(`Bericht ${BERICHT}: ${liste.length} Merkmale, ${Object.keys(angehalten).length} Items angehalten`
   + (Object.keys(angehalten).length ? ` (${Object.entries(angehalten).slice(0, 10).map(([id, ks]) => `${id}: ${ks.map((i) => liste[i][0]).join(', ')}`).join('; ')})` : ''));

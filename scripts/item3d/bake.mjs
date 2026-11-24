@@ -55,9 +55,11 @@ const draco3d = req('draco3d');
 // (Normale, Kachelung); versetzte Normalenkarte weggelassen statt verschoben;
 // BC2 gelesen; unlesbare Mischkarte -> Grundschicht; Mipteile nach Breite
 // gewählt; Schillern als geometrischer Median des Verlaufs.
+// 6: Teilnetze mit verschiedenem Material auf denselben UV-Flächen in
+// eigenen Sätzen; Abnutzungs- und Höhenkarte gehören zum Satz.
 // Rückt gemeinsam mit der Tabelle (deren sha steht ebenfalls in der
 // Eingabe-Kennung).
-export const BAKE_VERSION = 5;
+export const BAKE_VERSION = 6;
 export const isWeapon = (item) => /^(WeaponPersonal|WeaponAttachment|Grenade|WeaponMining|Gadget)$/.test(item?.t ?? '');
 export const norm = (p) => { let k = String(p).replace(/\\/g, '/').replace(/^\/+/, '').toLowerCase(); if (!k.startsWith('data/')) k = `data/${k}`; return k; };
 
@@ -92,13 +94,22 @@ export function makeP4kProvider(p4k) {
       // Breite jedes Teils nach seiner Größe (wie readDds die Stufen zuordnet),
       // nicht nach seinem Platz in der Liste: fehlt ein großer Teil, fiele
       // sonst der gewünschte heraus. Unbekannter Kopf: alle Teile.
-      let breite = () => null;
+      // Fällt jede Stufe bis maxW weg (Kopf ohne passende Stufe, kein Teil
+      // klein genug), bleibt der kleinste Teil darüber, statt keine Stufe.
+      let breite = () => null, kopfPasst = true;
       try {
         const d = readDds(headBuf);
+        kopfPasst = d.levels.some((L) => L.w <= maxW);
         breite = (n) => { for (let l = 0; l < 16; l++) { const w = Math.max(1, d.width >> l), h = Math.max(1, d.height >> l); if (levelBytes(d.format, w, h) === n) return w; } return null; };
       } catch { /* Kopf unlesbar: readDds meldet es beim Laden */ }
       const out = {};
-      for (const e of list) { const w = breite(e.usize); if (w !== null && w > maxW) continue; out[num(e)] = p4k.extract(e); }
+      let ersatz = null;
+      for (const e of list) {
+        const w = breite(e.usize);
+        if (w !== null && w > maxW) { if (!ersatz || w < ersatz.w) ersatz = { e, w }; continue; }
+        out[num(e)] = p4k.extract(e);
+      }
+      if (ersatz && !kopfPasst && !Object.keys(out).length) out[num(ersatz.e)] = p4k.extract(ersatz.e);
       return out;
     },
   };
@@ -287,7 +298,8 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     try {
       const dds = readDds(head, provider.ddsParts(`${base}.dds`, { alpha, maxW, headBuf: head }));
       format = dds.format;
-      const lv = dds.levels.find((l) => l.w <= maxW) ?? dds.levels.at(-1);
+      // erste Stufe bis maxW; sonst die kleinste vorhandene
+      const lv = dds.levels.find((l) => l.w <= maxW) ?? dds.levels.reduce((a, b) => (b.w < a.w ? b : a), dds.levels[0]);
       const im = decodeLevel(dds, lv.level);
       im.format = dds.format;
       return { im, zustand: { format } };
@@ -824,13 +836,16 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
         // Weg je Shader (Tabelle): Schichtmaterial nach Mischkarte, ohne sie
         // nur Grundschicht 1; Illum und genäherte Shader mit Farbkarte nach
         // ihr; Aufdrucke durchscheinend obenauf; Glas getönt; sonst Grundfarbe.
-        // Ein Satz teilt sich Bilder (Mischkarte bzw. Farbkarte, Normalenkarte)
-        // und ihre Kachelung: Teilnetze mit anderer Normalenkarte oder
-        // Kachelung bekommen einen eigenen Satz, statt die des ersten zu erben.
+        // Ein Satz teilt sich Bilder (Mischkarte bzw. Farbkarte, Normalenkarte,
+        // Abnutzungs- und Höhenkarte) und ihre Kachelung: Teilnetze mit einer
+        // anderen davon bekommen einen eigenen Satz, statt die des ersten zu
+        // erben. Material je Teilnetz (Schichten, Werte, Glanzkarte) bleibt
+        // im Satz getrennt; überlappen zwei verschiedene, teilt sie unten
+        // die Überlappungsprüfung.
         const tmSig = (r) => { const tm = texModVon(sx, r); return tm ? [tm.tu, tm.tv, tm.ou, tm.ov].join(',') : ''; };
         let art = 'flach', key = null;
         if (shader === 'LayerBlend_V2' && layers.length) {
-          if (ts.mischung) { art = 'schicht'; key = [ts.mischung, ts.normale ?? '', ...['mischung', 'abnutzung', 'hal', 'normale'].map(tmSig)].join('|'); }
+          if (ts.mischung) { art = 'schicht'; key = [ts.mischung, ts.normale ?? '', ts.abnutzung ?? '', ts.hal ?? '', ...['mischung', 'abnutzung', 'hal', 'normale'].map(tmSig)].join('|'); }
           else { art = 'ohneMischung'; key = `lb|${ts.normale ?? att.mtl ?? name}`; }
         } else if (istAufdruck) art = 'aufdruck';
         else if (shader === 'GlassPBR') art = 'glas';
@@ -852,6 +867,46 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
         } else plain.push(prim);
       }
       verts += nV;
+    }
+    // Ein Satz schreibt alle Teilnetze in ein Bild. Liegen zwei Teilnetze mit
+    // verschiedenem Material auf denselben UV-Flächen, kann das Bild dort nur
+    // eins zeigen, und das spätere überschrieb das frühere (Prism
+    // „Irradiated“: Metall, Kunststoff und Gummi auf denselben Flächen).
+    // Solche Teilnetze bekommen einen eigenen Satz. Prüfraster 256; gezählt
+    // wird nur, wo beide Flächen auch ringsum liegen (aneinanderstoßende
+    // Inseln teilen sich sonst ihre Randtexel), und erst über 4 Texel.
+    {
+      const G = 256, neu = new Map(), sigs = new Map();
+      let geteilt = 0;
+      for (const [k, B] of bakes) {
+        if (B.subs.length < 2) { neu.set(k, B); continue; }
+        const teile = [];
+        for (const p of B.subs) {
+          const sig = JSON.stringify([{ ...p.sx.attr, Name: null }, p.sx.children, p.pal ?? null, p.aufdruck ?? null]);
+          if (!sigs.has(sig)) sigs.set(sig, sigs.size + 1);
+          const s = sigs.get(sig);
+          const m = new Uint8Array(G * G);
+          rasterUv(m, G, p.UV, p.I, 1);
+          const innen = (a, j, v) => a[j - 1] === v && a[j + 1] === v && a[j - G] === v && a[j + G] === v;
+          const passt = (t) => {
+            let x = 0;
+            for (let y = 1; y < G - 1; y++) for (let j = y * G + 1; j < y * G + G - 1; j++) {
+              const o = t.besitz[j];
+              if (m[j] && o && o !== s && innen(m, j, 1) && innen(t.besitz, j, o) && ++x > 4) return false;
+            }
+            return true;
+          };
+          let ziel = teile.find(passt);
+          if (!ziel) teile.push((ziel = { besitz: new Uint32Array(G * G), subs: [] }));
+          for (let j = 0; j < m.length; j++) if (m[j]) ziel.besitz[j] = s;
+          ziel.subs.push(p);
+        }
+        teile.forEach((t, i) => { const kk = i ? `${k}#${i}` : k; neu.set(kk, { ...B, key: kk, subs: t.subs }); });
+        geteilt += teile.length - 1;
+      }
+      bakes.clear();
+      for (const [k, B] of neu) bakes.set(k, B);
+      if (geteilt) diag.geteilt = geteilt;
     }
     // Teilnetz ohne Material: fehlt es im Modell. Unter 0,1 % der Dreiecke
     // (Splitter, Defiance-Helme: 7 von 9.000) ist das unsichtbar und genähert,
@@ -936,8 +991,12 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
           if (tx && e) { const mm = [0, 0, 0]; for (let k = 0; k < tx.w * tx.h; k++) for (let j = 0; j < 3; j++) mm[j] += toLin(tx.data[k * 4 + j]) / (tx.w * tx.h); nrm = mm.map((x) => 1 / Math.max(0.02, x)); }
           return { lay: { ...lay, tex: tx, gloss, diffuse, shin, norm: nrm }, tint, spec, glossMul, tiling, pt, path: l.attr.Path, fehlt: lay.missing };
         };
-        const base = ['BaseLayer1', 'BaseLayer2', 'BaseLayer3', 'BaseLayer4'].map((n) => mk(L(n)));
-        const wr = ['WearLayer1', 'WearLayer2', 'WearLayer3', 'WearLayer4'].map((n, i) => mk(L(n)) ?? base[i]);
+        // Mischkarte nicht lesbar: nur Grundschicht 1 und ihre Abnutzung
+        // werden gezeichnet, also auch nur deren Bilder geladen (ein
+        // unlesbares Bild einer ungenutzten Schicht hielte sonst das Item an)
+        const nur1 = schicht && !schichtAn;
+        const base = ['BaseLayer1', 'BaseLayer2', 'BaseLayer3', 'BaseLayer4'].map((n, i) => (nur1 && i > 0 ? null : mk(L(n))));
+        const wr = ['WearLayer1', 'WearLayer2', 'WearLayer3', 'WearLayer4'].map((n, i) => (nur1 && i > 0 ? null : mk(L(n)) ?? base[i]));
         // Aufdruck (nur Waffen, decal_uv2): nichtmetallisch, Glanz aus
         // DiffuseDecalGloss (0..255 wie Shininess), auf der 1. UV
         let dec = null;

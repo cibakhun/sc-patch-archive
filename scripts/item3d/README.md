@@ -44,6 +44,13 @@ kein falsches Modell, sondern eine Lücke mit Namen. Anlass war die Prism
 Bildplätze werden nur über ihre Nummer gelesen, nie über den Dateinamen. Der
 Dateiname führte vorher zu falschen Glanz-, Farb- und Normalbildern.
 
+Teilnetze mit denselben Karten teilen sich ein gebackenes Bild (einen Satz).
+Liegen dabei zwei mit verschiedenem Material auf denselben UV-Flächen, prüft
+der Bäcker das auf einem Raster von 256 und gibt dem späteren einen eigenen
+Satz; vorher überschrieb es das frühere (Backfassung 6: 719 der gelisteten
+Items, darunter Prism, Quartz, Calva). Zum Satz gehören Misch-, Normalen-,
+Abnutzungs- und Höhenkarte samt Kachelung.
+
 Neben den Merkmalen des Materials meldet der Bäcker auch, wie er gebaut hat
 (Schlüssel `Bau …`), und die Tabelle ordnet diese genauso ein:
 
@@ -84,7 +91,7 @@ node scripts\item3d\batch.mjs --p4k <Data.p4k> --list <items.json> --out <out> -
 # Merkmale "unbekannt"? Erst einordnen (Tabelle + Bäcker), dann backen:
 node scripts\item3d\batch.mjs --p4k <Data.p4k> --list <items.json> --out <out>
 node scripts\item3d\upload.mjs <out> --env <r2.env>
-node scripts\item3d\manifest.mjs <out> src\data\item-3d.json
+node scripts\item3d\manifest.mjs <out> src\data\item-3d.json --env <r2.env>
 npm run verify:item3d-befunde
 ```
 
@@ -93,8 +100,13 @@ Lauf backt neu. Jede Zeile des Bauprotokolls trägt die Kennung der Tabelle,
 mit der sie gebacken ist (`tab`); `manifest.mjs` listet nur Zeilen mit der
 Tabelle des eigenen Checkouts, damit die Einordnung im Bericht dieselbe ist
 wie beim Backen. Der Upload vermerkt sein Ziel in `<out>/hochgeladen.ziel`
-(Bucket, Endpunkt nur als Kennung); `manifest.mjs` nimmt den Nachweis nur für
-den Bucket der Seite an. Endet ein Arbeiter des Massenlaufs mitten in einer
+(Bucket, Endpunkt nur als Kennung), nur über https und ohne Weiterleitungen;
+eine alte `hochgeladen.txt` ohne Vermerk übernimmt er nur mit
+`--ziel-bestaetigen`. `manifest.mjs` nimmt den Nachweis nur für Bucket und
+Endpunkt der Seite an (Endpunkt aus `--env`, nur `R2_ENDPOINT` wird gelesen).
+Beide Protokolle tragen je Zeile ihre Zeit: scheitert ein Item nach seinem
+letzten Erfolg, bleibt sein altes Modell aus der Liste, bis ein neuer Erfolg
+kommt. Eine Zählung (`--zensus`), der ein Item fehlt, endet rot. Endet ein Arbeiter des Massenlaufs mitten in einer
 Gruppe, wird das laufende Item als Fehler vermerkt, der Rest neu eingeplant,
 und was übrig bleibt, macht den Lauf rot (`UNVOLLSTÄNDIG`, Exit 1).
 

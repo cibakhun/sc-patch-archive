@@ -44,7 +44,9 @@ export function readDds(head, parts = {}) {
     // ohne FourCC: unkomprimiert; Grau (Luminanz, 0x20000) trägt nur R-Maske
     format = `roh${head.readUInt32LE(88)}`;
     masks = [92, 96, 100, 104].map((o) => head.readUInt32LE(o) >>> 0);
-    if (!(pf & 1)) masks[3] = 0; // ohne Alpha-Schalter keine Alpha-Maske
+    // ohne Alpha-Schalter keine Alpha-Maske; reines Alpha (A8, DDPF_ALPHA
+    // 0x2) trägt seine Maske auch ohne DDPF_ALPHAPIXELS
+    if (!(pf & 1) && !(pf & 2)) masks[3] = 0;
     gray = !!(pf & 0x20000);
     if (!PIXEL[format]) format = undefined;
   }
