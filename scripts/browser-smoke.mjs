@@ -1870,7 +1870,7 @@ async function probeMiningHandy(page) {
       miningHandy++;
       if (!m.spalteDa) probleme.push(`${g.breite} px: Reiter „Signaturen" zeigt keine Spalte`);
       else if (m.liste <= 0 || !m.eintragDrin || !m.kopfDrin)
-        probleme.push(`${g.breite} px: „${m.erz}" angeheftet, aber die Signaturenliste ist ${m.liste} px hoch bei ${m.inhalt} px Inhalt (Ueberschrift ${m.kopfDrin ? 'sichtbar' : 'abgeschnitten'}, Eintrag ${m.eintragDrin ? 'sichtbar' : 'abgeschnitten'})`);
+        probleme.push(`${g.breite} px: „${m.erz}" angeheftet, aber die Signaturenliste ist ${m.liste} px hoch bei ${m.inhalt} px Inhalt (Ueberschrift ${m.kopfDrin ? 'sichtbar' : 'abgeschnitten oder unsichtbar'}, Eintrag ${m.eintragDrin ? 'sichtbar' : 'abgeschnitten oder unsichtbar'})`);
       else if (m.name !== m.erz) probleme.push(`${g.breite} px: angeheftet „${m.erz}", die Liste zeigt „${m.name}"`);
     } finally {
       await ctx.close();
