@@ -2075,9 +2075,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       justify-content: center;
       padding-top: 0;
       padding-bottom: clamp(0.6rem, 1.4vh, 1rem);
-      margin-bottom: 1.2rem;
+      margin-bottom: 0;
       border-top: 0;
       border-bottom: 1px solid var(--line, var(--line-soft));
+    }
+    /* Die Rahmenspur des Inhalts faehrt genau auf dieser Fusslinie, statt
+       21 px darunter eine zweite zu ziehen: oben im Menue standen sonst zwei
+       Striche mit leerem Band dazwischen (Urteil zu WINDOWS #195). Ohne
+       Bewegung bleibt die graue Linie allein. */
+    .snav-deck__body::before {
+      top: -1px;
     }
     /* Der Hinweis des Effekte-Schalters klappt im Fuss nach oben auf — oben
        im Menue waere er unter der Kopfleiste verschwunden. */
