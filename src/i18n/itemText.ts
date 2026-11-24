@@ -8,6 +8,7 @@
 // der Seite "Kuehlrate". Deshalb steht der Katalog jetzt hier.
 
 import { assertLocale, type Locale } from './ui';
+import { lootOrt } from './lootText';
 
 export const ITEM_UI = {
   de: {
@@ -422,6 +423,9 @@ export function obtainLabel(o: { kind: string; loc: string; reason?: string | nu
   // Bestaetigter Fundort: die Ortsart ist eine Gattung („Verteilzentren"),
   // kein Eigenname — sie steht in beiden Sprachen an der Zeile (src/lib/items.ts).
   if (o.ort) return assertLocale(lang, 'obtainLabel') === 'de' ? o.locDe ?? o.loc : o.loc;
+  // Ortsart der eigenen Recherche (unbestaetigt): eigener Text, also in der
+  // Sprache der Seite (src/i18n/lootText.ts, docs/sprachregel.md).
+  if (o.kind === 'loot') return lootOrt(o.loc, assertLocale(lang, 'obtainLabel'));
   if (o.kind !== 'exclusive') return o.loc;
   const key = o.reason ? 'ex' + o.reason.replace(/[^A-Za-z]/g, '') : 'notLootable';
   const s = (ITEM_UI[assertLocale(lang, 'obtainLabel')] as Record<string, string>)[key];

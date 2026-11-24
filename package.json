@@ -61,6 +61,7 @@
     "verify:patch-angaben": "node scripts/verify-patch-angaben.mjs",
     "verify:sprache": "node scripts/verify-sprache.mjs",
     "verify:clienttext": "node scripts/verify-clienttext.mjs",
+    "verify:missionstitel": "node scripts/verify-missionstitel.mjs",
     "datamine:crafting": "node scripts/datamine-crafting.mjs && node scripts/verify-crafting-specs.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",

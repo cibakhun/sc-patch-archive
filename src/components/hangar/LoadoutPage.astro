@@ -314,8 +314,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-sum{grid-template-columns:4fr 2fr 3fr;gap:.5rem}
   .lo-sumg{display:flex;flex-wrap:wrap;gap:.1rem 1rem;padding:.4rem .75rem .5rem}
   .lo-sumg h3{flex:1 0 100%}
-  .lo-st{flex:1 1 0;min-width:0;grid-template-columns:auto 1fr;gap:0 .4rem}
-  .lo-st__l{grid-column:1/-1;font-size:var(--fs-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Etiketten brechen hoechstens auf zwei Zeilen um statt abzureissen; die Werte stehen trotzdem auf einer Linie. */
+  .lo-st{flex:1 1 0;min-width:0;grid-template-columns:auto 1fr;gap:0 .4rem;align-content:end}
+  .lo-st__l{grid-column:1/-1;font-size:var(--fs-5);line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
   .lo-st .lo-d{min-width:0;text-align:left}
   .lo-grid{flex:1 1 auto;min-height:0;margin:0;align-items:stretch;grid-template-columns:minmax(0,clamp(18rem,22vw,24rem)) minmax(0,1fr);gap:1rem}
   .lo-equip{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:.3rem}
