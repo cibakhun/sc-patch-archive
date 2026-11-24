@@ -1681,6 +1681,11 @@
       // Waehrend des eigenen Zurueck steht noch der Blatteintrag an; der
       // popstate stoesst das Schreiben fuer den Listeneintrag neu an.
       if (eigenesZurueck) return;
+      // Ebenso, wenn dieses Zurueck spaeter als der Ersatz-Timer ankommt
+      // (zurueckVerfallen) und noch der Blatteintrag ansteht: der bleibt, wie
+      // er war, damit Vorwaerts ihn so wiederherstellt; was bis dahin
+      // geaendert wird, schreibt der popstate in den Listeneintrag.
+      if (zurueckVerfallen && Date.now() - zurueckVerfallen < 10000 && history.state && history.state.wzBlatt) return;
       var neu = adresse();
       if (neu !== location.pathname + location.search + location.hash) {
         try { history.replaceState(history.state, '', neu); } catch (e) {}
