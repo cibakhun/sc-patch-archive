@@ -76,6 +76,10 @@ const COPY = lang === 'de'
       emptyFavs: 'Noch nichts gemerkt.',
       kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
       kindsAll: { ship: 'Schiff' },
+      // Schiffe, die auch in der Flotte des Besuchers stehen (nicht auf der eigenen Seite)
+      both: 'Habt ihr beide',
+      bothN: '{n} gemeinsam',
+      bothTip: 'Diese Schiffe habt ihr beide in der Flotte: {list}',
       loadout: 'Loadout',
       ctaText: 'Deine eigene Pilotenseite mit Flotte, Rang und Freunden.',
       ctaBtn: 'Profil erstellen',
@@ -122,6 +126,9 @@ const COPY = lang === 'de'
       emptyFavs: 'Nothing bookmarked yet.',
       kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
       kindsAll: { ship: 'Ship' },
+      both: 'You both have it',
+      bothN: '{n} in common',
+      bothTip: 'Ships in both your fleets: {list}',
       loadout: 'Loadout',
       ctaText: 'Your own pilot page with fleet, rank and friends.',
       ctaBtn: 'Create profile',
@@ -318,6 +325,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
           <header class="pp-card__head">
             <h2 id="ppHangarH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-ship"/></svg>{COPY.secHangar}</h2>
             <span class="pp-count" id="ppHangarCount"></span>
+            <span class="pp-both" id="ppHangarBoth" hidden></span>
           </header>
           <div class="pp-card__body">
             <div class="pp-tiles" id="ppHangarGrid"></div>
@@ -384,6 +392,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
 <script type="application/json" id="ppCopyData" set:html={jsonForScript(COPY)}></script>
 <script type="application/json" id="ppShipData" set:html={jsonForScript(SHIPS)}></script>
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+{/* Die Flotte des Besuchers (nur lesen): markiert die Schiffe, die beide haben. */}
+<script is:inline defer src={versioned('assets/fleet.js', '/assets/fleet.js')}></script>
 
 <style is:global>
   /* ---------- Skeleton ---------- */
@@ -733,6 +743,13 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
     font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6);
   }
   .pp-count:empty { display: none; }
+  /* Schiffe, die auch in der Flotte des Besuchers stehen */
+  .pp-both {
+    margin-left: auto; padding: 1px 9px; border-radius: 999px;
+    border: 1px solid color-mix(in srgb, #4ade80 55%, transparent); color: #4ade80;
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); white-space: nowrap;
+  }
+  .pp-both[hidden] { display: none; }
   .pp-card__body { min-height: 0; padding: 14px 18px 18px; }
 
   /* Hangar: Bildkacheln, Name unten auf dem Bild */
@@ -765,6 +782,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
   .pp-tile.is-lo { border-color: rgba(230, 178, 92, 0.6); box-shadow: inset 0 0 0 1px rgba(230, 178, 92, 0.25); }
   .pp-tile.is-lo .pp-tile__k { color: #e6b25c; }
   .pp-tile.is-lo:hover { border-color: #e6b25c; }
+  .pp-tile.is-both { border-color: color-mix(in srgb, #4ade80 60%, transparent); }
+  .pp-tile.is-both .pp-tile__k { color: #4ade80; }
   .pp-tile b {
     font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-10); line-height: 1.15;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
@@ -997,6 +1016,54 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       }).catch(() => { /* bleibt der Weg für Gäste */ });
     }
 
+    // „Habt ihr beide“: Schiffe des Piloten, die auch in der Flotte des
+    // Besuchers stehen. Die Flotte liest nur assets/fleet.js (Gast: dieser
+    // Browser, angemeldet: das Konto). Auf der eigenen Seite markiert nichts;
+    // solange das für einen Angemeldeten nicht feststeht, auch nicht.
+    type FleetSnap = { ids: string[] };
+    type FleetApi = { subscribe: (fn: (s: FleetSnap) => void) => () => void };
+    let bothSnap: FleetSnap | null = null;
+    let bothReady = false; // false, bis klar ist, dass es nicht die eigene Seite ist
+    let bothHandle = '';
+    const paintBoth = () => {
+      const mine = new Set(bothReady && bothSnap ? bothSnap.ids : []);
+      const names: string[] = [];
+      document.querySelectorAll<HTMLElement>('#ppHangarGrid .pp-tile[data-ship]').forEach((t) => {
+        const on = mine.has(t.dataset.ship || '');
+        t.classList.toggle('is-both', on);
+        const kt = t.querySelector('.pp-tile__kt');
+        if (kt) kt.textContent = on ? COPY.both : COPY.kindsAll.ship;
+        if (on) names.push(t.querySelector('b')?.textContent || '');
+      });
+      const badge = $('ppHangarBoth')!;
+      badge.textContent = COPY.bothN.replace('{n}', String(names.length));
+      badge.title = COPY.bothTip.replace('{list}', names.join(', '));
+      badge.hidden = names.length === 0;
+    };
+    const watchBoth = (pilotHandle: string) => {
+      if (bothHandle) { paintBoth(); return; }
+      bothHandle = pilotHandle;
+      supabase.auth.getSession().then(async ({ data }) => {
+        const uid = data.session?.user?.id;
+        if (uid) {
+          // Scheitert die Frage, bleibt die Markierung aus: lieber keine als eine auf der eigenen Seite.
+          const { data: row, error } = await supabase.from('social_profiles').select('id').eq('handle', pilotHandle).maybeSingle();
+          if (error || (row && row.id === uid)) return;
+        }
+        bothReady = true;
+        paintBoth();
+      }).catch(() => { /* ohne Sitzung keine Markierung */ });
+      let subscribed = false;
+      const start = () => {
+        const api = (window as unknown as { VBFleet?: FleetApi }).VBFleet;
+        if (subscribed || !api) return;
+        subscribed = true;
+        api.subscribe((s) => { bothSnap = s; paintBoth(); });
+      };
+      window.addEventListener('vb-fleet-ready', start);
+      start();
+    };
+
     const load = async () => {
       if (!handle) { showState('find'); return; }
       if (!/^[a-z0-9_]{3,24}$/.test(handle)) { showState('notfound'); return; }
@@ -1184,8 +1251,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         const shipName = info?.n || f.label || f.slug;
         const img = cssUrl(thumbs[f.slug] || info?.i);
         const style = img ? ` style="--img:${esc(img)}"` : '';
-        return `<a class="pp-tile${img ? '' : ' no-img'}" href="${favPath('ship', f.slug)}"${style}>${img ? '' : ic('pi-ship')}`
-          + `<span class="pp-tile__k">${ic('pi-ship')}${esc(COPY.kindsAll.ship)}</span><b>${esc(shipName)}</b></a>`;
+        return `<a class="pp-tile${img ? '' : ' no-img'}" href="${favPath('ship', f.slug)}" data-ship="${esc(f.slug)}"${style}>${img ? '' : ic('pi-ship')}`
+          + `<span class="pp-tile__k">${ic('pi-ship')}<span class="pp-tile__kt">${esc(COPY.kindsAll.ship)}</span></span><b>${esc(shipName)}</b></a>`;
       }).join('');
       const grid = $('ppHangarGrid')!;
       const n = loTiles.length + ships.length;
@@ -1200,6 +1267,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       $('ppHangarCount')!.textContent = ships.length ? String(ships.length) : '';
       $('ppHangarEmpty')!.hidden = ships.length > 0;
       $('ppHangarEmpty')!.classList.toggle('pp-empty--row', loTiles.length > 0);
+      watchBoth(String(p.handle));
 
       // Favoriten ohne Schiffe: eine Zeile je Eintrag, Zeichen je Art
       const KC: Record<string, string> = { mineral: 'var(--gold, #e6b25c)', mission: 'var(--accent-2)', item: '#a855f7', patch: '#22c55e', topic: 'var(--muted)' };
