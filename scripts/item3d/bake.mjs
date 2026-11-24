@@ -57,9 +57,11 @@ const draco3d = req('draco3d');
 // gewählt; Schillern als geometrischer Median des Verlaufs.
 // 6: Teilnetze mit verschiedenem Material auf denselben UV-Flächen in
 // eigenen Sätzen; Abnutzungs- und Höhenkarte gehören zum Satz.
+// 7: auch ohne Mischkarte (dort nur Schicht 1 geladen); Mip-Ersatzteil
+// trotz Teil ohne zuordenbare Größe.
 // Rückt gemeinsam mit der Tabelle (deren sha steht ebenfalls in der
 // Eingabe-Kennung).
-export const BAKE_VERSION = 6;
+export const BAKE_VERSION = 7;
 export const isWeapon = (item) => /^(WeaponPersonal|WeaponAttachment|Grenade|WeaponMining|Gadget)$/.test(item?.t ?? '');
 export const norm = (p) => { let k = String(p).replace(/\\/g, '/').replace(/^\/+/, '').toLowerCase(); if (!k.startsWith('data/')) k = `data/${k}`; return k; };
 
@@ -103,13 +105,15 @@ export function makeP4kProvider(p4k) {
         breite = (n) => { for (let l = 0; l < 16; l++) { const w = Math.max(1, d.width >> l), h = Math.max(1, d.height >> l); if (levelBytes(d.format, w, h) === n) return w; } return null; };
       } catch { /* Kopf unlesbar: readDds meldet es beim Laden */ }
       const out = {};
-      let ersatz = null;
+      let ersatz = null, kleinDa = false;
       for (const e of list) {
         const w = breite(e.usize);
         if (w !== null && w > maxW) { if (!ersatz || w < ersatz.w) ersatz = { e, w }; continue; }
+        // ein Teil ohne zuordenbare Größe liefert readDds keine Stufe
+        if (w !== null) kleinDa = true;
         out[num(e)] = p4k.extract(e);
       }
-      if (ersatz && !kopfPasst && !Object.keys(out).length) out[num(ersatz.e)] = p4k.extract(ersatz.e);
+      if (ersatz && !kopfPasst && !kleinDa) out[num(ersatz.e)] = p4k.extract(ersatz.e);
       return out;
     },
   };
@@ -846,7 +850,9 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
         let art = 'flach', key = null;
         if (shader === 'LayerBlend_V2' && layers.length) {
           if (ts.mischung) { art = 'schicht'; key = [ts.mischung, ts.normale ?? '', ts.abnutzung ?? '', ts.hal ?? '', ...['mischung', 'abnutzung', 'hal', 'normale'].map(tmSig)].join('|'); }
-          else { art = 'ohneMischung'; key = `lb|${ts.normale ?? att.mtl ?? name}`; }
+          // ohne Mischkarte zeichnet der Satz Schicht 1 mit Abnutzungs- und
+          // Höhenkarte: auch die gehören samt Kachelung zum Schlüssel
+          else { art = 'ohneMischung'; key = ['lb', ts.normale ?? att.mtl ?? name, ts.abnutzung ?? '', ts.hal ?? '', ...['abnutzung', 'hal', 'normale'].map(tmSig)].join('|'); }
         } else if (istAufdruck) art = 'aufdruck';
         else if (shader === 'GlassPBR') art = 'glas';
         else if (ts.farbe && (shader === 'Illum' || (T && T.art !== 'ja'))) { art = 'farbe'; key = ['f', ts.farbe, ts.normale ?? '', tmSig('farbe'), tmSig('normale')].join('|'); }
