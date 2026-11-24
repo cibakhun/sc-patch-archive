@@ -73,6 +73,9 @@ describe('Verdrahtung', () => {
     assert.match(seite, /hinweisPlatz\(\{ lo: [^}]*rect, hart, weich \}\)/);
     assert.match(seite, /halter\.v\.bildTeile\?\.\(\)/);
     assert.match(seite, /if \(lage === gelegt\) return true;/);
+    // Knöpfe der Seite gehören zur Lage (kommt die Ablage, legt er sich neu), Teile der Bühne nicht
+    assert.match(seite, /const lage = \[[^\]]*\.\.\.hart\.flatMap\(\(q\) => \[q\.l, q\.t, q\.r, q\.b\]\)\]/);
+    assert.doesNotMatch(seite, /const lage = \[[^\n]*weich/);
     assert.match(seite, /stageSafe\?\.\(\);\s*return true;\s*\};/);
   });
 

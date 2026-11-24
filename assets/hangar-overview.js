@@ -3738,11 +3738,15 @@ export function boot(doc) {
       const r = sichtbar(ziel), o = box.offsetParent;
       if (!r || !o) return false;
       const b = o.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, ow = o.clientWidth, oh = o.clientHeight;
-      const lage = [i, r.left, r.top, r.width, r.height, b.left, b.top, w, h, ow, oh].map(Math.round).join();
+      // Zur Lage gehoeren die Knoepfe der Seite: Kommt die Ablage oder klappt
+      // die Auswahl auf, waehrend der Hinweis steht, legt er sich neu, statt
+      // sie zu decken (CodeRabbit zu #424). Name und Tafeln nicht, die weichen ihm.
+      const hart = flaechen([$('topbar'), doc.querySelector('.hg-title .hgx-actions'), $('hg-tools'), $('hgx-st'), $('hgx-tray'), doc.querySelector('.hg-dock')]);
+      const lage = [i, r.left, r.top, r.width, r.height, b.left, b.top, w, h, ow, oh, ...hart.flatMap((q) => [q.l, q.t, q.r, q.b])].map(Math.round).join();
       if (lage === gelegt) return true;
       gelegt = lage;
       const klemm = (v, lo, hi) => Math.round(Math.min(Math.max(lo, v), hi));
-      const hart = flaechen([$('topbar'), doc.querySelector('.hg-title .hgx-actions'), $('hg-tools'), $('hgx-st'), $('hgx-tray'), doc.querySelector('.hg-dock')]), weich = buehnenTeile();
+      const weich = buehnenTeile();
       // die Spitze trifft den Knopf, solange sie 10 px vor seinen Enden bleibt
       const platz = (lo, hi, mitte, rect) => (hi >= lo ? hinweisPlatz({ lo: Math.round(lo), hi: Math.round(hi), mitte: Math.round(mitte), rect, hart, weich }).p : null);
       if (r.height > r.width * 2 && r.left + r.width / 2 < innerWidth / 3) {
