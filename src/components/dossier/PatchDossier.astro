@@ -740,8 +740,11 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
      Kacheln oeffnen Details, ein Bild, ein Video oder fuehren weiter, und nur
      ein blasses Zeichen in der Ecke verriet, was. Jetzt steht das Wort daneben.
      Die Zeichen-Regel jeder Patchseite (.zoomic, Kreis 34 px) bleibt die Basis;
-     hier wird daraus eine Pille, die Hover-Regel der Seite gilt weiter. */
+     hier wird daraus eine Pille, die Hover-Regel der Seite gilt weiter.
+     Die Schiffskarten (13 Patchseiten) tragen ihr Wort ebenso und brauchen
+     sie auch, sonst rutscht es im Raster unter den Kreis. */
   .tile .zoomic,
+  .ship .zoomic,
   .mosaic figure .zoomic {
     width: auto;
     min-width: 34px;
