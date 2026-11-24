@@ -50,8 +50,8 @@ der Bäcker das auf einem Raster von 256 und gibt dem späteren einen eigenen
 Satz; vorher überschrieb es das frühere (Backfassung 6: 719 der gelisteten
 Items, darunter Prism, Quartz, Calva). Zum Satz gehören Misch-, Normalen-,
 Abnutzungs- und Höhenkarte samt Kachelung, auch bei Materialien ohne
-Mischkarte (Backfassung 7: 48 Waffen). Ohne Mischkarte zeichnet und lädt der
-Bäcker nur Schicht 1.
+Mischkarte (Backfassung 7: 45 Waffen und 3 Rüstungsteile). Ohne Mischkarte
+zeichnet und lädt der Bäcker nur Schicht 1.
 
 Neben den Merkmalen des Materials meldet der Bäcker auch, wie er gebaut hat
 (Schlüssel `Bau …`), und die Tabelle ordnet diese genauso ein:

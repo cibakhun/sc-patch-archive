@@ -1,7 +1,7 @@
 {
  "_": "Items in 3D: Befunde je Item aus dem Massenlauf (scripts/item3d/manifest.mjs). merkmale: [Merkmal, Einordnung] nach scripts/lib/item3d-merkmale.mjs; items und angehalten: je Item die Indizes seiner Merkmale (angehalten: nur die anhaltenden). Das Tor verify:item3d-befunde prüft Liste und Bericht gegen die Tabelle.",
  "tabelle": "dbbf29da",
- "liste": "1913ff36e2f4e4a4",
+ "liste": "7a2fcd5d61e69e55",
  "merkmale": [
   ["Bau Färbeart 0","ja"],
   ["Format bc1","ja"],
