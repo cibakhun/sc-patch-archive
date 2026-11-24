@@ -15,7 +15,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
-import { HAS_HANGAR } from '../lib/seo';
+import { bereiche, bereichVon, dienste } from '../lib/bereiche';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
@@ -160,189 +160,38 @@ interface DeckGroup {
   label: string;
   items: DeckItem[];
 }
+// Einträge, Namen, Unterzeilen, Glyphen und Motive kommen aus der einen
+// Bereichsliste (src/lib/bereiche.ts, UX-Audit A1). Hier steht nur noch,
+// welche Gruppe welche Ziele zeigt. Der Hangar steht nur im Vorschau-Bau:
+// bereiche() lässt ihn live weg (HAS_HANGAR).
+const ZIELE = new Map([...bereiche(lang).flatMap((b) => b.seiten), ...dienste(lang)].map((z) => [z.key, z]));
+const pfadHier = pathNoLocale;
+const hier = bereichVon(current);
+const deckItem = (key: string): DeckItem[] => {
+  const z = ZIELE.get(key);
+  if (!z) return [];
+  // Markiert wird die Seite selbst und ihre Unterseiten (Schiff unter
+  // Schiffe, Mission unter Missionen, Konto unter /account/). Das Archiv
+  // nur auf sich selbst: Patch- und Themenseiten sind keine Archiv-Seite.
+  const imBereich = z.key === 'konto'
+    ? pfadHier.startsWith('/account/')
+    : z.key !== 'archiv' && hier?.seite === z.key;
+  return [{
+    href: z.href,
+    label: z.name,
+    sub: z.key === 'themen' ? `${z.sub} · ${topicCount}` : z.sub,
+    icon: z.icon ?? '',
+    media: z.bild ? THUMB(z.bild) : undefined,
+    current: z.path === pfadHier || imBereich,
+    account: z.key === 'konto' || undefined,
+    external: z.extern || undefined,
+  }];
+};
 const deckGroups: DeckGroup[] = [
-  {
-    id: 'mining',
-    label: t('nav.deck.grp.mining'),
-    items: [
-      {
-        href: L('/topics/mining.html'),
-        label: 'Mining',
-        media: THUMB('t-align-1'),
-        sub: t('nav.deck.sub.mining'),
-        current: current.includes('/topics/mining'),
-        // Spitzhacke: das Schliff-Sechseck davor las sich bei 20 px als Herz.
-        icon: '<path d="M8 5a14 14 0 0 1 11 11"/><path d="M4.2 20.2 15.4 9"/>',
-      },
-      {
-        href: L('/fracturing.html'),
-        label: 'Fracturing',
-        sub: t('nav.deck.sub.fracturing'),
-        current: current === L('/fracturing.html'),
-        icon: '<path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/>',
-      },
-      {
-        href: L('/refinery.html'),
-        label: 'Refinery',
-        media: THUMB('t-align-8'),
-        sub: t('nav.deck.sub.refinery'),
-        current: current === L('/refinery.html'),
-        icon: '<path d="M9 3h6M10 3v5.5L4.6 19A1.4 1.4 0 0 0 5.8 21h12.4a1.4 1.4 0 0 0 1.2-2L14 8.5V3"/><path d="M7.5 15h9"/>',
-      },
-      {
-        href: L('/precision-jump.html'),
-        label: 'Precision Jump',
-        sub: t('nav.deck.sub.jump'),
-        current: current === L('/precision-jump.html'),
-        icon: '<circle cx="12" cy="12" r="8"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
-      },
-    ],
-  },
-  {
-    id: 'gear',
-    label: t('nav.deck.grp.gear'),
-    items: [
-      {
-        href: L('/schiffe.html'),
-        label: t('nav.ships'),
-        media: THUMB('t-perseus-1'),
-        sub: t('nav.deck.sub.ships'),
-        current: current === L('/schiffe.html') || current.startsWith(L('/schiffe/')),
-        icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
-      },
-      // Nur im Vorschau-Bau: live gibt es den Hangar nicht (HAS_HANGAR).
-      ...(HAS_HANGAR
-        ? [
-            {
-              href: L('/hangar.html'),
-              label: 'Hangar',
-              // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
-              media: THUMB('img-hammerhead'),
-              sub: t('nav.deck.sub.hangar'),
-              current: current === L('/hangar.html'),
-              // Hallentor: Bogen, Boden, Einfahrt.
-              icon: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
-            },
-          ]
-        : []),
-      {
-        href: L('/missionen.html'),
-        label: t('nav.missions'),
-        media: THUMB('t-tsg-4'),
-        sub: t('nav.deck.sub.missions'),
-        current: current.includes('/missionen'),
-        icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
-      },
-      {
-        href: L('/item-finder.html'),
-        label: 'Item Finder',
-        media: THUMB('cz-loot'),
-        sub: t('nav.deck.sub.items'),
-        current: current === L('/item-finder.html'),
-        icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-      },
-      {
-        href: L('/topics/crafting.html'),
-        label: 'Crafting',
-        media: THUMB('t-craft-1'),
-        sub: t('nav.deck.sub.crafting'),
-        current: current === L('/topics/crafting.html'),
-        icon: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
-      },
-      {
-        href: L('/topics/wikelo-emporium.html'),
-        label: "Wikelo's Emporium",
-        media: THUMB('img-railen'),
-        sub: t('nav.deck.sub.wikelo'),
-        current: current === L('/topics/wikelo-emporium.html'),
-        icon: '<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>',
-      },
-    ],
-  },
-  {
-    id: 'archive',
-    label: t('nav.deck.grp.archive'),
-    items: [
-      {
-        href: L('/archiv.html'),
-        label: t('nav.archive'),
-        media: THUMB('img-vanduul'),
-        sub: t('nav.deck.sub.archive'),
-        current: current === L('/archiv.html'),
-        icon: '<path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>',
-      },
-      {
-        href: L('/archiv.html#themen'),
-        label: t('nav.allTopics'),
-        sub: `${t('nav.deck.sub.topics')} · ${topicCount}`,
-        current: false,
-        icon: '<path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>',
-      },
-      {
-        href: L('/evolution.html'),
-        label: t('nav.evolution'),
-        media: THUMB('t-mesh-1'),
-        sub: t('nav.deck.sub.evolution'),
-        current: current === L('/evolution.html'),
-        icon: '<path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>',
-      },
-    ],
-  },
-  {
-    id: 'account',
-    label: t('nav.deck.grp.account'),
-    items: [
-      {
-        account: true,
-        href: L('/account/login.html'),
-        label: t('nav.account.login'),
-        sub: t('nav.deck.sub.account'),
-        current: current.includes('/account/'),
-        icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-      },
-      {
-        href: L('/downloads.html'),
-        label: t('nav.downloads'),
-        media: THUMB('t-hangar-1'),
-        sub: t('nav.downloads.sub'),
-        current: current === L('/downloads.html'),
-        icon: '<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>',
-      },
-      {
-        href: L('/feedback.html'),
-        label: t('nav.feedback'),
-        media: THUMB('t-def-1'),
-        sub: t('nav.deck.sub.feedback'),
-        current: current === L('/feedback.html'),
-        icon: '<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>',
-      },
-      {
-        href: DISCORD.invite,
-        external: true,
-        label: 'Discord',
-        // BEWUSST ohne `media`: der Server ist kein Ort im Spiel, für den es
-        // ein ehrliches Motiv gäbe — das Markenzeichen trägt die Bühne.
-        sub: t('nav.deck.sub.discord'),
-        current: false,
-        // Einziges gefülltes Glyph der Liste: ein Markenzeichen wird
-        // wiedererkannt, nicht gelesen — als Strichzeichnung wäre es keins
-        // mehr. Der Pfad ist auf die 24er-Bühne der übrigen Icons skaliert
-        // (127.14 breit -> 0.1888) und darin senkrecht zentriert.
-        icon: '<g transform="translate(0 2.9) scale(.1888)" fill="currentColor" stroke="none"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></g>',
-      },
-      {
-        href: L('/support.html'),
-        label: t('nav.support'),
-        // BEWUSST ohne `media`: Support ist kein Ort im Spiel, für den es ein
-        // ehrliches Motiv gäbe — jedes Bild wäre geliehen (vorher t-def-2 =
-        // Bomberanflug auf Infrastruktur). Das Herz-Glyph trägt die Bühne,
-        // wie bei Precision Jump, Alle Themen und Konto.
-        sub: t('nav.deck.sub.support'),
-        current: current === L('/support.html'),
-        icon: '<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1.1 1L12 21l7.7-7.7 1.1-1a5.5 5.5 0 000-7.7z"/>',
-      },
-    ],
-  },
+  { id: 'mining', label: t('nav.deck.grp.mining'), items: ['mining', 'fracturing', 'refinery', 'sprung'].flatMap(deckItem) },
+  { id: 'gear', label: t('nav.deck.grp.gear'), items: ['schiffe', 'hangar', 'missionen', 'finder', 'crafting', 'wikelo'].flatMap(deckItem) },
+  { id: 'archive', label: t('nav.deck.grp.archive'), items: ['archiv', 'themen', 'evolution'].flatMap(deckItem) },
+  { id: 'account', label: t('nav.deck.grp.account'), items: ['konto', 'downloads', 'feedback', 'discord', 'support'].flatMap(deckItem) },
 ];
 // Die Staffelung läuft jetzt PRO GRUPPE, nicht über alle Gruppen hinweg:
 // --gseq (Gruppenindex) und --seq (Zeilenindex innerhalb der Gruppe) werden
