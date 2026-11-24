@@ -569,8 +569,10 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // strahler: so viele Lampen hat die Buehne als Hauptstrahler gestellt (dieselbe Zeile,
 // "…, N Hauptstrahler", im Kopf unter HAUPTSTRAHLER). util-lrgtop, gemessen
 // 18.11.2026: 6, die Fluter unter der Decke. util-xltop seit 20.11.2026: 4, die
-// Fluter ueber den Laengsseiten (HALL_FEST.strahler mit bis 1000 und mal 12). Eine
-// Halle ohne diese Klinke stellt keine; meldet ihre Buehne doch welche, ist der Lauf rot.
+// Fluter ueber den Laengsseiten (HALL_FEST.strahler mit bis 1000 und mal 12).
+// util-smltop und util-medtop seit 24.11.2026: 2 und 4, ihre Fluter ueber der
+// Landeflaeche (dieselben Werte wie Large). Eine Halle ohne diese Klinke stellt
+// keine; meldet ihre Buehne doch welche, ist der Lauf rot.
 // plaetze: so viele Plaetze des Wartungsplatzes stehen am Schiff (Zeile "[hangar]
 // Wartungsplatz bei …: N von M Plätzen", im Kopf unter WARTUNGSPLATZ). Wie viele
 // WORK_DIENST stellt, haengt an der Groesse des Schiffs (ab/bis): 6 Plaetze bekommt
@@ -600,8 +602,8 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // frei 500 -> 610 (rund ein Zehntel unter dem Gemessenen wie bei den anderen Hallen).
 const KLINKE_FEST = {
   'util-lrgtop': { programme: 58, schichten: 2, frei: 610, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6, szenen: 119 },
-  'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
-  'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
+  'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, strahler: 2, ktx: 530 },
+  'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6, strahler: 4 },
   'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6, strahler: 4 },
 };
 // Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle

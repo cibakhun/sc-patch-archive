@@ -771,14 +771,18 @@ const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff
 // In util-xltop (20.11.2026) die vier Fluter über den Längsseiten (je 300, 105 m über dem Boden), mit bis 1000
 // ohne die vier Strahler der Stirnwände und mit mal 12 so stark, dass aufs Schiff so viel Licht kommt wie in der
 // Large-Halle; ohne sie stand die Polaris dort fast schwarz (Aufnahme vom PC, 19.11.2026).
+// In util-smltop und util-medtop (24.11.2026) die Fluter über der Landefläche mit denselben Werten wie in
+// Large (Small zwei je 300, Medium vier je 600, je zur Hälfte auf beiden Seiten): Sie färbten dort Lack und Deck
+// türkis (Origin 300i, 400i und Cutlass Black am Bild vom PC). Krisz am 24.11.2026 zum Licht der Large-Halle:
+// „Schau doch selber“.
 // MAL_MAX: höchster Faktor mal; darüber brennt jeder Lack aus, auch im Abstand der XL-Halle.
 const MAL_MAX = 20;
 const KLINKE = {
   'util-lrgtop': { lampen: 870, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86, strahler: 6 },
   // Small, Medium und XL (18.11.2026), gemessen am Vorschau-Bau mit ihren Modellen; dieselben Regeln wie Large.
   // Gedämpft sind auch dort die Lampen der Kabinen ihrer Frachtaufzüge (Small 1 Aufzug, Medium und XL je 2).
-  'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57 },
-  'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75 },
+  'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57, strahler: 2 },
+  'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75, strahler: 4 },
   'util-xltop': { lampen: 1339, tor: 38, schriftTris: 4348, schirmTris: 422, schirme: 13, tafeln: 12, aufkleber: 159, schilder: 5, kinder: 26, grund: 3, gedaempft: 126, flaechen: 107, ruhe: 162, strahler: 4 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
