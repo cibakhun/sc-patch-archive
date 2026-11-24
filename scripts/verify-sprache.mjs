@@ -116,12 +116,6 @@ const UMLAUT_AUSNAHMEN = [
    reisst der Zombie-Waechter). Neue Fundstellen sind FEHLER. */
 const INTERN_AUSNAHMEN = [
   {
-    name: 'Missionen, Orte ohne Anzeigenamen',
-    bereich: /^\/(?:de\/)?missionen\//,
-    ort: /<li class="md__tag"[^>]*>$|<td class="md__dim md__places"[^>]*>$/,
-    anlass: 'Orte, fuer die die Spieldaten nur einen internen Code haben (RR_P3_L2_CLINIC); Anzeige offen (Staging-Abnahme 04.11.2026)',
-  },
-  {
     name: 'Schiffe, Bauteil ohne Anzeigenamen',
     bereich: /^\/(?:de\/)?schiffe\//,
     ort: /class="sd__slothead"[\s\S]*<div class="n"[^>]*>$/,
