@@ -431,4 +431,17 @@ describe('Filter-Schublade auf dem Handy (TF V26/M4)', () => {
     assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?q=a&sort=pledge-asc');
     assert.strictEqual(ctx.elements['sf-toggle'].getAttribute('data-n'), null);
   });
+
+  test('leere Liste: der Knopf nimmt Filter UND Suche zurueck (Heuristik P18)', () => {
+    const ctx = run('de', '?q=gibtsnichtxyz&maker=orig&sort=pledge-asc');
+    assert.strictEqual(visibleIds(ctx).size, 0);
+    assert.strictEqual(ctx.elements['sf-empty'].hidden, false, 'leere Liste ohne Hinweis');
+    ctx.elements['sf-empty-reset'].click();
+    assert.strictEqual(ctx.elements['sf-q'].value, '');
+    assert.strictEqual(ctx.elements['sf-maker'].value, '');
+    assert.strictEqual(visibleIds(ctx).size, TOTAL);
+    assert.strictEqual(ctx.elements['sf-empty'].hidden, true);
+    assert.strictEqual(ctx.elements['sf-sort'].value, 'pledge-asc', 'die Sortierung ist kein Filter');
+    assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?sort=pledge-asc');
+  });
 });

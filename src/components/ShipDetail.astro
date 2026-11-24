@@ -133,6 +133,12 @@ const armStats = buildArmStats(d, lang);
 const turretDpsTotal =
   d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
 const desc = vDesc(d, lang);
+// Heuristik P23: 98 Schiffe haben keinen deutschen Text, die deutsche Seite
+// zeigte den englischen ohne ein Wort dazu. Jetzt traegt er lang="en"
+// (Vorlese- und Silbentrennung) und darunter einen Hinweis. Der Hinweis
+// steht nach den DATEN auf beiden Seiten und ist auf der englischen nur
+// versteckt — verify:sync vergleicht die Elementfolge beider Sprachen.
+const descNurEn = !!desc && !!d.descriptionEn && (!d.descriptionDe || d.descriptionDe.trim() === d.descriptionEn.trim());
 const slots: [string, { name: string; size: number | null; count: number }[]][] = (
   [
     [t('ship.slot.generators'), (d.components?.powerPlants ?? []).filter(realName)],
@@ -158,7 +164,12 @@ const stageStats: { label: string; value: string }[] = [
   // 0 m ist kein Schiff — siehe Begruendung an `dims` oben.
   { label: t('ship.stage.length'), value: d.lengthM != null && d.lengthM > 0 ? `${d.lengthM.toLocaleString(loc)} m` : '—' },
   { label: t('ship.stage.crew'), value: crewFmt(d) },
-  { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
+  // Bergbauschiffe ohne Frachtraum (Prospector, Golem) zeigten hier "Fracht
+  // 0 SCU", obwohl sie 32 SCU Erz fassen (Heuristik P54). Dann steht das Erz
+  // an dieser Stelle; die 0 SCU Fracht bleibt bei allen anderen echt.
+  !d.cargoSCU && d.oreSCU
+    ? { label: t('ship.stage.ore'), value: `${d.oreSCU.toLocaleString(loc)} SCU` }
+    : { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
   { label: t('ship.stage.scm'), value: d.scmSpeed != null ? `${d.scmSpeed} m/s` : '—' },
   {
     label: buyMin ? t('ship.stage.priceIngame') : t('ship.stage.pledge'),
@@ -230,6 +241,13 @@ const sysPortCount = (gr: string): number => holoData?.ports.filter((p) => p.g =
 // Inhaltsgruppen (CONTENT_GROUPS_SOURCE, weiter unten) ist keine Kosmetik: nur
 // fuer diese hier darf der Client viewer.setFilter() aufrufen.
 const portGroups = holoData?.groups ?? [];
+// Bewaffnung ohne Marker am Rumpf (Heuristik P23): die Cyclone AA, MT und TR
+// tragen Waffen und Raketen, ihr Mesh hat dafuer aber keine Punkte — bis
+// 24.11.2026 fehlte ihnen deshalb der ganze Reiter. Dann steht die
+// Bewaffnung als Textabschnitt in der Leiste, wie Kaufen oder Leistung, und
+// die Buehne zeigt dazu keine Marker (cfg.groups kennt sie nicht).
+const armsOhneMarker = armament.length > 0 && !portGroups.includes('arms');
+const sysGroups: readonly string[] = armsOhneMarker ? [...portGroups, 'arms'] : portGroups;
 
 // Belastbarkeit der gezeigten Positionen — steuert die Herkunfts-Zeile unter dem
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
@@ -330,7 +348,7 @@ const CONTENT_GROUPS_SOURCE: {
     renders: profile.length > 0,
   },
   {
-    id: 'context', label: t('ship.ch.context'), rail: t('ship.ch.context'), icon: IC.versicherung,
+    id: 'context', label: t('ship.ch.context'), rail: t('ship.rail.context'), icon: IC.versicherung,
     code: ctxCode,
     count: [
       viz.insurance.length > 0,
@@ -1832,6 +1850,7 @@ span.sd__ref{color:var(--muted)}
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   transition:color var(--dur-fast) var(--ease-ui)}
 .favhangar:hover{color:var(--accent)}
+.sd__desc-note{max-width:78ch;margin:-1.1rem 0 1.6rem;padding-left:1.15rem;font-size:var(--fs-6);color:var(--muted)}
 </style>
 
 <SiteNav
@@ -1934,6 +1953,12 @@ span.sd__ref{color:var(--muted)}
             <span class="js-fleet-txt">{t('fleet.add')}</span>
           </button>
           <button type="button" class="favretry" data-fleet-retry data-fleet-unsaved={t('fleet.retry')} data-fleet-unsynced={t('fleet.resync')} hidden>{t('fleet.retry')}</button>
+          {/* Vergleich (UX-Audit E7, TF B08): fuehrt zur Schiffsliste mit diesem
+              Schiff markiert; dort waehlt man das zweite. */}
+          <a class="favhangar favcmp" href={`${ziel('schiffe', lang).href}?cmp=${id}`}>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>{t('ship.cmp')}</span>
+          </a>
           {HAS_HANGAR && (
             <a class="favhangar" href={L(`/hangar.html?ship=${id}`)}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 20V11a9 9 0 0 1 18 0v9M2 20h20M8 20v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2096,7 +2121,7 @@ span.sd__ref{color:var(--muted)}
         Punkt 2, Vorbelegung ohne Klick) -- das Skript unten haelt es beim
         Umschalten synchron; Punkt 6 des Vertrags gewinnt gegen den
         aelteren aria-pressed-Wortlaut (siehe Planungsnotizen). */}
-    {(portGroups.length + contentGroups.length) > 0 && (
+    {(sysGroups.length + contentGroups.length) > 0 && (
       <nav class="holo__rail" id="holorail" aria-label={t('ship.console.rail.aria')}>
         {portGroups.map((gr, i) => (
           <a href={`#sys-${gr}`} data-g={gr} aria-current={i === 0 ? 'true' : undefined}>
@@ -2114,10 +2139,19 @@ span.sd__ref{color:var(--muted)}
             einen Text — sie sahen bis hierher identisch aus, obwohl ein Klick
             voellig Verschiedenes tut. Eine Zaesur vor dem ersten
             Inhaltseintrag sagt das, ohne ein Wort zu kosten. */}
+        {armsOhneMarker && (
+          <a href="#sys-arms" data-g="arms" data-kind="inhalt"
+            class={portGroups.length > 0 ? 'is-schnitt' : undefined}
+            aria-current={portGroups.length === 0 ? 'true' : undefined}>
+            <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON.arms} /></svg>
+            <span class="holo__rail-lb">{t('holo.grp.arms' as any)}</span>
+            <span class="holo__rail-ct">{armament.length}</span>
+          </a>
+        )}
         {contentGroups.map((cg, i) => (
           <a href={`#sys-${cg.id}`} data-g={cg.id} data-kind="inhalt"
-            class={i === 0 && portGroups.length > 0 ? 'is-schnitt' : undefined}
-            aria-current={portGroups.length === 0 && i === 0 ? 'true' : undefined}>
+            class={i === 0 && portGroups.length > 0 && !armsOhneMarker ? 'is-schnitt' : undefined}
+            aria-current={portGroups.length === 0 && !armsOhneMarker && i === 0 ? 'true' : undefined}>
             <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={cg.icon} /></svg>
             <span class="holo__rail-lb">{cg.rail}</span>
             <span class="holo__rail-ct">{cg.count}</span>
@@ -2146,13 +2180,13 @@ span.sd__ref{color:var(--muted)}
         Ausstattungs-Kapitel (SCHRITT 4 -- der Umzug, keine zweite
         Aggregation derselben Aussage); prop/other bekommen die neue, aber
         strukturgleiche Stueckzahl-Liste (sysKindCounts). */}
-    {holoData && holoData.groups.map((gr) => (
+    {sysGroups.map((gr) => (
       <section class="holo__sys" id={`sys-${gr}`} data-g={gr} aria-label={t(`holo.grp.${gr}` as any)}>
         <h2 class="holo__sys-h">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
           {t(`holo.grp.${gr}` as any)}
         </h2>
-        <p class="holo__sys-ct">{t('ship.console.count').replace('%n%', String(sysPortCount(gr)))}</p>
+        <p class="holo__sys-ct">{sysPortCount(gr) > 0 ? t('ship.console.count').replace('%n%', String(sysPortCount(gr))) : t('ship.console.count0')}</p>
 
         {gr === 'arms' && (
           <>
@@ -2626,7 +2660,7 @@ span.sd__ref{color:var(--muted)}
       </section>
     )}
   </section>
-  {(portGroups.length + contentGroups.length) > 0 && (
+  {(sysGroups.length + contentGroups.length) > 0 && (
     /* 16-04-PLAN.md Task 1, SCHRITT 2 (16-UI-SPEC.md Detailvertrag Punkt
        6.3, "kein Flackern"): setzt die Klasse has-console UNMITTELBAR nach
        dem Konsolen-Markup, synchron waehrend der Parser noch hier steht --
@@ -2666,14 +2700,15 @@ span.sd__ref{color:var(--muted)}
       Systemabschnitte stehen gestapelt in .holo, wo D-02 sie verlangt.
       Reihenfolge: erst das Schiff, dann seine Kennwerte, dann die Liste der
       gewaehlten Gruppe — vorher stand die Liste vor den Kennwerten. */}
-  {(portGroups.length + contentGroups.length) > 0 && (
+  {(sysGroups.length + contentGroups.length) > 0 && (
     <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
   )}
 
   <div class="sd">
 
 
-    {desc && <p class="sd__desc">{desc}</p>}
+    {desc && <p class="sd__desc" lang={descNurEn && lang === 'de' ? 'en' : undefined}>{desc}</p>}
+    {descNurEn && <p class="sd__desc-note" hidden={lang !== 'de'}>{t('ship.desc.nurEn')}</p>}
 
 
     {similar.length > 0 && (
