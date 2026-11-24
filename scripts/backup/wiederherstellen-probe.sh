@@ -23,8 +23,18 @@
 #   5. (nur Sonde) Anmeldung mit einem Probe-Konto: VB_PROBE_ANMELDUNG=
 #      "<mail>:<passwort>" — zeigt, dass Passwort-Hashes wieder tragen
 #
+# PLATTFORM-STAND: Auth und Storage des Stacks laufen in der Version, die
+# sichern.sh bei der Quelle abgefragt hat (plattform.json, plattform.mjs).
+# Supabase hebt beide im gehosteten Projekt selbst an; mit den Versionen der
+# CLI brach das Zurueckspielen am 17.11.2026 an einer neuen Auth-Spalte ab.
+# Laesst sich eine gebundene Version nicht starten (Image nicht abrufbar),
+# startet der Stack einmal mit den Versionen der CLI (WARNUNG), und der
+# Abgleich der Migrationslisten nennt, was dann abweicht.
+#
 # VB_STACK_BEHALTEN=1 laesst den Stack danach laufen, um einzelne Zeilen
 # daraus zu lesen (Teil-Wiederherstellung, docs/betrieb/datenbank-backup.md).
+# VB_PROBE_OHNE_BINDUNG=1 laesst die Bindung weg (nur fuer die Gegenprobe:
+# sie zeigt, dass die Probe ohne sie an einem anderen Stand reisst).
 # ============================================================
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/gemeinsam.sh"
@@ -56,13 +66,39 @@ schritt "Abgeschotteter Stack ($NAME)"
 # eigener Name und eigene Ports (553xx), damit ein Quell-Stack daneben laufen kann
 sed -i -E "s/^project_id = .*/project_id = \"$NAME\"/; s/^(port|shadow_port) = 543/\1 = 553/" "$STACK/supabase/config.toml"
 mkdir -p "$STACK/supabase/migrations"
-"$SUPABASE_BIN" start --workdir "$STACK" \
-  -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor,postgrest > "$PROBE/stack.log" 2>&1 \
-  || { tail -30 "$PROBE/stack.log" >&2; fehler "Stack startet nicht"; }
+if [ "${VB_PROBE_OHNE_BINDUNG:-}" = 1 ]; then
+  echo "  WARNUNG ohne Bindung an den Stand der Quelle (VB_PROBE_OHNE_BINDUNG=1, nur Gegenprobe)"
+else
+  node "$REPO/scripts/backup/plattform.mjs" binden "$QUELLE/plattform.json" "$STACK/supabase/.temp"
+fi
+stack_starten() {
+  "$SUPABASE_BIN" start --workdir "$STACK" \
+    -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor,postgrest > "$PROBE/stack.log" 2>&1
+}
+if ! stack_starten; then
+  if [ -f "$STACK/supabase/.temp/gotrue-version" ] || [ -f "$STACK/supabase/.temp/storage-version" ]; then
+    tail -5 "$PROBE/stack.log" >&2
+    echo "  WARNUNG Stack startet mit den Versionen der Quelle nicht — zweiter Versuch mit den Versionen der CLI"
+    "$SUPABASE_BIN" stop --no-backup --workdir "$STACK" >/dev/null 2>&1 || true
+    rm -f "$STACK/supabase/.temp/gotrue-version" "$STACK/supabase/.temp/storage-version"
+    stack_starten || { tail -30 "$PROBE/stack.log" >&2; fehler "Stack startet nicht"; }
+  else
+    tail -30 "$PROBE/stack.log" >&2; fehler "Stack startet nicht"
+  fi
+fi
 eval "$("$SUPABASE_BIN" status --workdir "$STACK" -o env 2>/dev/null | grep -E '^(DB_URL|API_URL|SERVICE_ROLE_KEY|ANON_KEY)=')"
 case "$DB_URL" in *127.0.0.1:553*) ;; *) fehler "Probe-Datenbank ist nicht der lokale Stack ($DB_URL)";; esac
 echo "  $API_URL, Datenbank 127.0.0.1:553xx"
 verbindung_setzen "$DB_URL"
+
+schritt "Plattform-Stand: Probe gegen Quelle"
+# die Probe fragt sich selbst wie sichern.sh die Quelle (Ergebnis fuer den Bericht)
+VB_QUELLE_APIKEY="$ANON_KEY" node "$REPO/scripts/backup/plattform.mjs" quelle "$PROBE/plattform.json" "$API_URL"
+# dieselben Ausdruecke wie auth_migrationen/storage_migrationen in katalog.sql
+pg -c "select json_build_object(
+  'auth_migrationen', (select coalesce(json_agg(version order by version), '[]') from auth.schema_migrations),
+  'storage_migrationen', (select coalesce(json_agg(name order by id), '[]') from storage.migrations))" > "$PROBE/stand.json"
+node "$REPO/scripts/backup/plattform.mjs" abgleich "$QUELLE/katalog.json" "$PROBE/stand.json"
 
 schritt "Wiederherstellen (eine Transaktion)"
 cat "$REPO/scripts/backup/vorbereitung.sql" \

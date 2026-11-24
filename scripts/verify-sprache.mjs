@@ -121,12 +121,8 @@ const MIN_NAMENSPAARE = Number(argWert('--klinke-namen') ?? 5_500);
 // Tor (Zombie-Waechter).
 const WORT_AUSNAHMEN = [
   {
-    wort: 'Torso',
-    anlass: 'auch Englisch: Kategoriename der Spieldaten (Armour / Torso) in Brotkrume und Kategoriekarte der Item-Seiten; die Oberflaeche nennt den Slot "Core".',
-  },
-  {
     wort: 'Station',
-    anlass: 'auch Englisch: Spaltenkopf der Raffinerie- und Mining-Tabellen und ein Item-Name in der Liste "Other".',
+    anlass: 'auch Englisch: Spaltenkopf der Raffinerie- und Mining-Tabellen und ein Item-Name ("Engineering Control Station", Schiffssysteme).',
   },
 ];
 

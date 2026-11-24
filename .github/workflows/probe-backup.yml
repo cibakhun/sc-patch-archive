@@ -40,7 +40,12 @@ concurrency:
 
 env:
   # dieselbe CLI-Version wie in scripts/backup/vorlage-backup-repo.yml
-  SUPABASE_CLI: '3.0.0'
+  SUPABASE_CLI: '3.3.0'
+  # Auth der erfundenen Quelle laeuft absichtlich NICHT in der Version der CLI
+  # (3.3.0 bringt v2.198.0 mit) — so wie Live, wenn Supabase Auth anhebt. Die
+  # Probe muss sich an den Stand der Quelle binden (plattform.mjs), sonst
+  # reisst der Vergleich. Gleich der CLI-Version: probe-quelle.sh reisst.
+  VB_SONDE_AUTH_VERSION: 'v2.197.0'
 
 jobs:
   probe:
