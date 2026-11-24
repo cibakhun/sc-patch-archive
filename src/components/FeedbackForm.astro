@@ -14,6 +14,12 @@
 // SEITE_OK), setzt ihn nur als Text, zeigt „Betrifft: …“ mit Knopf zum
 // Entfernen und schickt ihn als Feld Seite/Page mit. Ohne Skript bleibt das
 // Formular wie es war, nur ohne Seitenangabe.
+//
+// „Feedback“ aus Menue und Fuss (seit 24.11.2026, UX-Audit A8) kommt mit
+// ?seite=<Pfad> von JEDER eigenen Seite (feedbackHref in bereiche.ts). Das
+// zeigt dieselbe Zeile „Betrifft: …“ und schickt das Feld Seite/Page mit,
+// laesst aber Betreff, Platzhalter und Discord-Hinweis beim allgemeinen
+// Feedback: wer von dort kommt, meldet nicht unbedingt einen Wert.
 import { FEEDBACK, FEEDBACK_DEMO, DISCORD } from '../consts';
 
 interface Props {
@@ -183,6 +189,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   .fbx { max-width: 760px; margin: 0 auto; }
 
   .fbx-card {
+    /* Sprungziel von „Falschen Wert melden“ und „Feedback“ (P98): nicht
+       unter der festen Kopfleiste landen. */
+    scroll-margin-top: calc(var(--nav-h, 68px) + 1rem);
     border: 1px solid var(--line);
     background: linear-gradient(180deg, var(--surface), var(--bg-2));
     padding: clamp(1.3rem, 4vw, 2.3rem);box-shadow:0 30px 80px -34px var(--shadow-color), var(--glow, 0 0 0 transparent);
@@ -362,6 +371,10 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     // 102 Zeichen, eine Grenze haette nur kuenftige Seiten abgeschnitten),
     // nur als Text gesetzt, nie als HTML.
     var SEITE_OK = /^\/(?:de\/)?(?:items|crafting|schiffe|missionen)\/[a-z0-9][a-z0-9-]*\.html$/;
+    // ?seite=<Pfad> aus Menue und Fuss: jede eigene Seite. Nur Abschnitte aus
+    // Kleinbuchstaben, Ziffern und Bindestrich (also kein //, kein Schema,
+    // keine Abfrage), auch die Startseite (/) und /de.html.
+    var SEITE_ALLG = /^\/(?:[a-z0-9][a-z0-9-]*\/)*(?:[a-z0-9][a-z0-9-]*\.html)?$/;
     var about = document.getElementById('fbAbout');
     var aboutPath = document.getElementById('fbAboutPath');
     var discord = document.getElementById('fbDiscord');
@@ -372,18 +385,31 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     var subjectStd = subjectEl ? subjectEl.value : '';
     var phStd = msgEl.getAttribute('placeholder');
     var seite = '';
-    function setSeite(p) {
+    // Art der Angabe: 'wert' (Falschen Wert melden) oder 'seite' (allgemein).
+    // Ohne zweites Argument bleibt die Art, die schon galt (Neustart nach dem
+    // Absenden).
+    var art = '';
+    function setSeite(p, a) {
       seite = p || '';
+      art = seite ? (a || art) : '';
+      var wert = art === 'wert';
       about.hidden = !seite;
-      discord.hidden = !seite;
+      discord.hidden = !wert;
       aboutPath.textContent = seite;
-      if (subjectEl) subjectEl.value = seite ? form.getAttribute('data-subject-wert') : subjectStd;
-      msgEl.setAttribute('placeholder', seite ? form.getAttribute('data-ph-wert') : phStd);
+      if (subjectEl) subjectEl.value = wert ? form.getAttribute('data-subject-wert') : subjectStd;
+      msgEl.setAttribute('placeholder', wert ? form.getAttribute('data-ph-wert') : phStd);
     }
     try {
       var q = new URLSearchParams(location.search);
-      var vonSeite = q.get('wert') || '';
-      if (SEITE_OK.test(vonSeite)) setSeite(vonSeite);
+      var vonWert = q.get('wert') || '';
+      var vonSeite = q.get('seite') || '';
+      if (SEITE_OK.test(vonWert)) setSeite(vonWert, 'wert');
+      else if (SEITE_ALLG.test(vonSeite)) setSeite(vonSeite, 'seite');
+      // Wer mit einer Seite kommt, will melden, nicht lesen: gleich zum
+      // vorbefuellten Formular statt auf den Kopf der Seite (Heuristik P98,
+      // „das Formular liegt unter dem Falz“). Ohne Fokus ins Textfeld: das
+      // oeffnete am Handy ungefragt die Tastatur.
+      if (seite) form.scrollIntoView({ block: 'start' });
     } catch (e) {}
     document.getElementById('fbAboutX').addEventListener('click', function () { setSeite(''); msgEl.focus(); });
 

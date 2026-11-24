@@ -30,6 +30,14 @@ const SUPABASE_HOST = new URL(SUPABASE.url).host;
    Dieselbe Zeile wie in 404.astro, damit beide dasselbe meinen. */
 :root{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace}
 body{font-family:var(--font-body)}
+/* Rahmen wie auf den anderen Seiten (Heuristik P79, 24.11.2026): diese Seite
+   laedt kein Seiten-Stylesheet. Der Browser liess deshalb seinen Rand von
+   8 px um den Inhalt stehen, den Hintergrund durchsichtig und jeden Link
+   unterstrichen, auch in Kopf- und Fussleiste. Links im Text bleiben als
+   Links erkennbar. */
+body{margin:0;background:var(--bg);color:var(--text)}
+a{color:inherit;text-decoration:none}
+.lg-wrap a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em}
 
 
 
@@ -307,8 +315,9 @@ body{font-family:var(--font-body)}
       <li><strong>rating</strong> (1–5 stars, optional)</li>
       <li><strong>e-mail address</strong> (optional, only if you want a reply; it is set as the
         reply-to address)</li>
-      <li><strong>the page whose value you report</strong> (only its path, such as /items/…; only
-        when you come via “Report a wrong value”, and you can remove it before sending)</li>
+      <li><strong>the page you come from, or whose value you report</strong> (only its path, such
+        as /items/…; only when you come via “Report a wrong value” or via the feedback link in the
+        menu or footer of a page, and you can remove it before sending)</li>
       <li>fixed form details (form key, subject, sender name, a field for spam protection)</li>
       <li>technically, your IP address, browser identifier and language setting, the origin
         verse-base.com and the time of submission</li>

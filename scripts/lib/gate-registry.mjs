@@ -350,6 +350,16 @@ export const CHECKS = [
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
   },
   {
+    // Neuzugang (24.11.2026, Heuristik P13), schnell: liest dist/ als Text.
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess.
+    id: 'verify:rechtsfuss',
+    npm: 'verify:rechtsfuss',
+    script: 'scripts/verify-rechtsfuss.mjs',
+    rail: 'A',
+    checks:
+      'jede gebaute Seite verlinkt Impressum und Datenschutz (Rechtsfuss aus Layout.astro, wo die Seite keinen eigenen Fuss mit beiden Links hat); ausgenommen nur benannte Seiten ohne Layout mit Anlass und Zombie-Waechter (Tor, Hangar-Bucht, Onepager), Klinke 17.000 Seiten',
+  },
+  {
     // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
     // und dist/ als Text. Kein env-Feld: kein git, kein Netz, kein
     // Kindprozess im Skript — die Helfer aus src/lib/ werden wie bei
