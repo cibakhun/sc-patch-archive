@@ -369,3 +369,66 @@ describe('Zustand in der Adresse (HE B05, TF T2)', () => {
     assert.strictEqual(b.elements['sf-count'].textContent, a.elements['sf-count'].textContent);
   });
 });
+
+describe('Filter-Schublade auf dem Handy (TF V26/M4)', () => {
+  test('Knopf oeffnet und schliesst, aria-expanded laeuft mit', () => {
+    const ctx = run('de');
+    const mehr = ctx.elements['sf-mehr'];
+    const knopf = ctx.elements['sf-toggle'];
+    knopf.click();
+    assert.ok(mehr.classList.contains('is-open'));
+    assert.strictEqual(knopf.getAttribute('aria-expanded'), 'true');
+    ctx.elements['sf-close'].click();
+    assert.ok(!mehr.classList.contains('is-open'));
+    assert.strictEqual(knopf.getAttribute('aria-expanded'), 'false');
+    knopf.click();
+    ctx.elements['sf-show'].click();
+    assert.ok(!mehr.classList.contains('is-open'), '"N Treffer anzeigen" schliesst wie das Kreuz');
+  });
+
+  test('der Knopf zaehlt gesetzte Filter, die Mindestgroesse nicht eigens', () => {
+    const ctx = run('de');
+    const knopf = ctx.elements['sf-toggle'];
+    assert.strictEqual(knopf.getAttribute('data-n'), null);
+    selectMaker(ctx, 'orig');
+    assert.strictEqual(knopf.getAttribute('data-n'), '1');
+    selectComponent(ctx, 'w');
+    selectSize(ctx, 3);
+    assert.strictEqual(knopf.getAttribute('data-n'), '2');
+    selectComponent(ctx, '');
+    selectMaker(ctx, '');
+    assert.strictEqual(knopf.getAttribute('data-n'), null);
+  });
+
+  test('"N Treffer anzeigen" nennt die Zahl der sichtbaren Karten', () => {
+    for (const lang of ['de', 'en']) {
+      const ctx = run(lang);
+      selectMaker(ctx, 'orig');
+      const n = visibleIds(ctx).size;
+      assert.ok(n > 0 && n < TOTAL);
+      assert.strictEqual(ctx.elements['sf-show'].textContent, LABELS[lang].show.replace('{n}', String(n)));
+      assert.ok(!ctx.elements['sf-show'].classList.contains('is-leer'));
+    }
+  });
+
+  test('ohne Treffer sagt der Knopf das und wird grau', () => {
+    const ctx = run('de');
+    ctx.elements['sf-q'].value = 'gibtsnichtxyz';
+    assert.strictEqual(visibleIds(ctx).size, 0);
+    assert.strictEqual(ctx.elements['sf-show'].textContent, LABELS.de.none);
+    assert.ok(ctx.elements['sf-show'].classList.contains('is-leer'));
+  });
+
+  test('Zuruecksetzen nimmt die acht Felder zurueck, Suche und Sortierung bleiben', () => {
+    const ctx = run('de', '?q=a&maker=orig&comp=w&compsize=3&sort=pledge-asc');
+    ctx.elements['sf-reset'].click();
+    for (const id of ['sf-maker', 'sf-career', 'sf-rolefam', 'sf-size', 'sf-sig', 'sf-feat', 'sf-comp', 'sf-compsize']) {
+      assert.strictEqual(ctx.elements[id].value, '', id + ' ist nicht zurueckgesetzt');
+    }
+    assert.strictEqual(ctx.elements['sf-compsize'].disabled, true);
+    assert.strictEqual(ctx.elements['sf-q'].value, 'a');
+    assert.strictEqual(ctx.elements['sf-sort'].value, 'pledge-asc');
+    assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?q=a&sort=pledge-asc');
+    assert.strictEqual(ctx.elements['sf-toggle'].getAttribute('data-n'), null);
+  });
+});

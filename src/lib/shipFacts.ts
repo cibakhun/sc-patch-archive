@@ -8,6 +8,7 @@ import type { CollectionEntry } from 'astro:content';
 import { useTranslations, type Locale } from '../i18n/ui';
 import { vType, vSize, vStatus, vFoci, vTurret } from '../i18n/vehicleText';
 import { resolveGuns } from './weaponSizes';
+import LOADOUTS from '../data/ship-loadouts.json';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 export type Fact = { label: string; value: string; key?: string };
@@ -76,7 +77,7 @@ export type ArmLine = {
   name: string | null;
 };
 export type ArmRow = {
-  key: 'pilot' | 'turret' | 'missile' | 'cm';
+  key: 'pilot' | 'turret' | 'mining' | 'missile' | 'cm';
   label: string;
   meta?: string;
   lines: ArmLine[];
@@ -171,22 +172,48 @@ export function buildArmament(d: VehicleData, lang: Locale): ArmRow[] {
   const loc = numLoc(lang);
   const PAYLOAD = payloadMap(t);
   const rows: ArmRow[] = [];
+  const { guns, gunSizes, mining, miningTurrets, turrets } = splitMining(d);
 
-  if (d.fixedWeapons.length) {
+  if (guns.length) {
     // Name -> Größe zurückrechnen; nur bei sauberer Gegenprobe je Waffe zeigen
-    const { lines, exact } = gunLines(d.fixedWeapons, d.fixedWeaponSizes);
-    assignMounts(lines, d.fixedWeaponMounts);
+    const { lines, exact } = gunLines(guns, gunSizes);
+    assignMounts(lines, mining.length ? [] : d.fixedWeaponMounts);
     rows.push({
       key: 'pilot',
       label: t('arm.pilotFixed'),
-      meta: `${countOf(d.fixedWeapons)} ${t('arm.weapons')}`,
+      meta: `${countOf(guns)} ${t('arm.weapons')}`,
       lines,
-      note: exact ? undefined : namesNote(d.fixedWeapons),
+      note: exact ? undefined : namesNote(guns),
       value: d.pilotDps ? `${num(d.pilotDps, loc)} DPS` : undefined,
     });
   }
 
-  for (const tr of d.turrets) {
+  /* Mining-Laser als eigene Zeile (UX-Audit TF F10/V15): bis 24.11.2026
+     standen sie unter den Pilotenwaffen — der Prospector meldete "3 Waffen",
+     und wer den Laser suchte, fand ihn zwischen zwei Repeatern. Turmgebundene
+     Laser (MOLE) ziehen mit ihren Stationen hierher um. */
+  if (mining.length || miningTurrets.length) {
+    const lines: ArmLine[] = mining
+      .map((w) => ({ size: w.size ?? null, mount: null, count: w.count, name: w.name }))
+      .sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
+    const notes: string[] = [];
+    let stations = 0;
+    for (const tr of miningTurrets) {
+      const g = gunLines(tr.weapons, tr.sizes);
+      lines.push(...g.lines);
+      if (!g.exact) notes.push(namesNote(tr.weapons));
+      stations += tr.stations;
+    }
+    rows.push({
+      key: 'mining',
+      label: t('arm.mining'),
+      meta: stations ? `${stations} ${stations === 1 ? t('arm.station') : t('arm.stations')}` : undefined,
+      lines,
+      note: notes.length ? notes.join(' · ') : undefined,
+    });
+  }
+
+  for (const tr of turrets) {
     const { lines, exact } = gunLines(tr.weapons, tr.sizes);
     // Waffen pro Station — nur wenn es aufgeht, sonst ist die Turmliste
     // unvollständig und die Rechnung wäre erfunden
@@ -229,12 +256,66 @@ export function buildArmament(d: VehicleData, lang: Locale): ArmRow[] {
     rows.push({
       key: 'cm',
       label: t('arm.countermeasures'),
-      lines: [],
+      // Die Werfer selbst mit Namen (UX-Audit IA C5): sie sind schiffsgebundene
+      // Teile mit eigener Item-Seite ("Aegis Gladius - Decoy Launcher") und
+      // waren von der Schiffsseite aus nicht zu erreichen. Die Namen kommen
+      // aus der Serienbelegung; ShipDetail verlinkt sie wie jede andere Zeile.
+      lines: cmLines(d.id),
       value: `${d.cmLaunchers}× ${t('arm.launchers')}`,
     });
   }
 
   return rows;
+}
+
+/* ---------- Mining-Laser von den Waffen trennen ---------- */
+type Fitted = VehicleData['fixedWeapons'][number];
+type Turret = VehicleData['turrets'][number];
+/** Ein Mining-Laser — an der Klasse (Mining_Laser_…), sonst am Namen. */
+export const isMiningLaser = (w: { name: string; cls?: string }): boolean =>
+  /^mining_laser/i.test(w.cls ?? '') || /\bmining laser\b/i.test(w.name);
+
+function splitMining(d: VehicleData): {
+  guns: Fitted[];
+  gunSizes: { size: number; count: number }[];
+  mining: Fitted[];
+  miningTurrets: Turret[];
+  turrets: Turret[];
+} {
+  const mining = d.fixedWeapons.filter(isMiningLaser);
+  const guns = d.fixedWeapons.filter((w) => !isMiningLaser(w));
+  // Die Groessenliste traegt die Laser mit — fuer die Gegenprobe in
+  // gunLines muessen sie dort ebenfalls heraus, sonst geht sie nie auf.
+  const rest = new Map<number, number>();
+  for (const s of d.fixedWeaponSizes) rest.set(s.size, (rest.get(s.size) ?? 0) + s.count);
+  for (const w of mining) if (typeof w.size === 'number') rest.set(w.size, (rest.get(w.size) ?? 0) - w.count);
+  const gunSizes = [...rest].filter(([, c]) => c > 0).map(([size, count]) => ({ size, count }));
+  // Ein Turm zaehlt als Laser-Turm, wenn ALLE seine Waffen Laser sind.
+  const laserTurm = (tr: Turret) => tr.weapons.length > 0 && tr.weapons.every(isMiningLaser);
+  return {
+    guns,
+    gunSizes,
+    mining,
+    miningTurrets: d.turrets.filter(laserTurm),
+    turrets: d.turrets.filter((tr) => !laserTurm(tr)),
+  };
+}
+
+/* ---------- Gegenmassnahmen-Werfer aus der Serienbelegung ---------- */
+interface LoadoutLeaf { name: string | null; size: number; cat: string; count: number }
+const SHIP_LOADOUTS = (LOADOUTS as unknown as { ships: Record<string, Record<string, LoadoutLeaf[]>> }).ships;
+function cmLines(id: string): ArmLine[] {
+  const by = new Map<string, ArmLine>();
+  for (const leaves of Object.values(SHIP_LOADOUTS[id] ?? {})) {
+    for (const l of leaves) {
+      if (l.cat !== 'countermeasure' || !l.name) continue;
+      const k = `${l.name}|${l.size}`;
+      const line = by.get(k);
+      if (line) line.count += l.count;
+      else by.set(k, { size: l.size, mount: null, count: l.count, name: l.name });
+    }
+  }
+  return [...by.values()].sort((a, b) => (b.size ?? 0) - (a.size ?? 0) || (a.name ?? '').localeCompare(b.name ?? '', 'en'));
 }
 
 /**
@@ -249,11 +330,19 @@ export function buildArmStats(d: VehicleData, lang: Locale): ArmStat[] {
   // Pilotseitig zählt dagegen die Waffenliste, nicht die Größenliste — für die
   // paar Waffen ohne auflösbare Größe fehlt dort ein Eintrag, das Schiff hat
   // sie aber trotzdem. Die Spanne bildet sich nur aus den bekannten Größen.
-  const turretSizes = d.turrets.flatMap((tr) => expandSizes(tr.sizes));
-  const gunSizes = [...expandSizes(d.fixedWeaponSizes), ...turretSizes];
-  const gunCount = countOf(d.fixedWeapons) + turretSizes.length;
+  // Mining-Laser zaehlen nicht als Waffen (eigene Kachel, siehe splitMining).
+  const sm = splitMining(d);
+  const turretSizes = sm.turrets.flatMap((tr) => expandSizes(tr.sizes));
+  const gunSizes = [...expandSizes(sm.gunSizes), ...turretSizes];
+  const gunCount = countOf(sm.guns) + turretSizes.length;
   if (gunCount)
     stats.push({ n: gunCount, label: t('arm.stat.guns'), range: sizeRange(gunSizes) });
+  const miningSizes = [
+    ...expandSizes(sm.mining.filter((w) => typeof w.size === 'number') as { size: number; count: number }[]),
+    ...sm.miningTurrets.flatMap((tr) => expandSizes(tr.sizes)),
+  ];
+  const miningCount = countOf(sm.mining) + sm.miningTurrets.reduce((n, tr) => n + countOf(tr.sizes), 0);
+  if (miningCount) stats.push({ n: miningCount, label: t('arm.stat.mining'), range: sizeRange(miningSizes) });
   const rackCount = countOf(d.missileRacks);
   if (rackCount)
     stats.push({
@@ -262,8 +351,11 @@ export function buildArmStats(d: VehicleData, lang: Locale): ArmStat[] {
       range: sizeRange(expandSizes(d.missileRacks.filter((r) => r.size != null) as { size: number; count: number }[])),
       gold: true,
     });
-  if (d.turrets.length)
-    stats.push({ n: d.turrets.reduce((n, tr) => n + tr.stations, 0), label: t('arm.stat.stations') });
+  // Stationen reiner Laser-Tuerme nennt schon die Mining-Zeile ("3 Stationen");
+  // hier zaehlen nur Tuerme mit Waffen, sonst liest die MOLE sich wie ein
+  // Schiff mit drei Geschuetztuermen.
+  const stations = sm.turrets.reduce((n, tr) => n + tr.stations, 0);
+  if (stations) stats.push({ n: stations, label: t('arm.stat.stations') });
   if (d.cmLaunchers) stats.push({ n: d.cmLaunchers, label: t('arm.stat.cm') });
   return stats;
 }

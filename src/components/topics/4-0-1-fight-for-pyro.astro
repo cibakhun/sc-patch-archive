@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -62,7 +63,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-1.html' : '/patches/sc-4-0-1.html'}>Alpha 4.0.1 · Save Stanton II</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Dynamisches Event' : ' &nbsp;·&nbsp; Dynamic Event'} /></div>
       <h1><span class="thin">{de ? 'Save Stanton · Kapitel 2' : 'Save Stanton · Chapter 2'}</span>Fight for Pyro</h1>
       <p class="lead">{de ? 'Der Krieg verlagert sich nach Pyro: in Kapitel 2 der Save-Stanton-Kampagne schwörst du dich dauerhaft einer von drei Fraktionen zu und entscheidest mit, wem das gesetzlose System gehört.' : 'The war moves to Pyro: in Chapter 2 of the Save Stanton campaign you pledge yourself permanently to one of three factions and help decide who owns the lawless system.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Dynamisches Event' : 'Dynamic Event'}</span><span class="tag">{de ? '3 Fraktionen' : '3 Factions'}</span><span class="tag">{de ? 'Permanente Wahl' : 'Permanent Choice'}</span><span class="tag">Ripper SMG</span><span class="tag">Pyro</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Dynamisches Event' : 'Dynamic Event'}</Schlagwort><Schlagwort>{de ? '3 Fraktionen' : '3 Factions'}</Schlagwort><Schlagwort>{de ? 'Permanente Wahl' : 'Permanent Choice'}</Schlagwort><Schlagwort>Ripper SMG</Schlagwort><Schlagwort>Pyro</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

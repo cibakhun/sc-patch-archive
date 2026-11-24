@@ -1462,6 +1462,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     flex-direction: column;
     width: min(1240px, 100%);
     height: 100%;
+    /* Der Rahmen bringt seine Box-Regel selbst mit: ohne border-box kam der
+       Innenabstand zu 100 % Hoehe dazu, und auf Seiten ohne globales
+       box-sizing (Datenschutz, Impressum, Support, Hangar, Advanced
+       Loadout, Chronik 4.10.3) ragte der Rahmen am Handy rund 100 px unter
+       den Bildschirm. Genau dort, am Fuss des Menues, steht DE/EN — er war
+       nicht zu erreichen (UX-Audit 24.11.2026, gemessen mit iPhone 13). */
+    box-sizing: border-box;
     margin: 0 auto;
     padding: clamp(4.5rem, 7vh, 5.5rem) clamp(1.1rem, 4vw, 2.6rem) clamp(1rem, 3vh, 1.9rem);
     overflow-y: auto;

@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -53,7 +54,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-4-0.html' : '/patches/sc-4-4-0.html'}>Alpha 4.4.0 · Welcome to Nyx</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Sternsystem' : ' &nbsp;·&nbsp; Star System'} /></div>
       <h1><span class="thin">{de ? 'Das dritte Sternsystem' : 'The third star system'}</span>Nyx</h1>
       <p class="lead">{de ? 'Dunkel, asteroidendicht, nebelverhangen: mit 4.4.0 wird Nyx das dritte voll simulierte Sternsystem — Heimat des Glaciem Ring und der in den Fels gebauten Stadt Levski.' : 'Dark, asteroid-dense, fog-shrouded: with 4.4.0, Nyx becomes the third fully simulated star system — home to the Glaciem Ring and the city of Levski carved into the rock.'}</p>
-      <div class="tags"><span class="tag">{de ? 'Sternsystem' : 'Star system'}</span><span class="tag">Glaciem Ring</span><span class="tag">Levski</span><span class="tag">Delamar</span><span class="tag">Peoples Alliance</span></div>
+      <div class="tags"><Schlagwort>{de ? 'Sternsystem' : 'Star system'}</Schlagwort><Schlagwort>Glaciem Ring</Schlagwort><Schlagwort>Levski</Schlagwort><Schlagwort>Delamar</Schlagwort><Schlagwort>Peoples Alliance</Schlagwort></div>
       <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
