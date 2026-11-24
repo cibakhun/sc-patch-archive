@@ -75,11 +75,14 @@ export const CHECKS = [
       'die Bestandszahlen (Items, Fahrzeuge, Blueprints, Wikelo-Vertraege und -Warenposten, gebaute Seiten je Bereich, Sitemaps) liegen ueber ihren Klinken — ein Datenlauf darf den Bestand nicht still verkleinern',
   },
   {
+    // Laeuft ueber scripts/run-e2e.mjs statt `node --test`: node zaehlt eine
+    // Suite, die beim Laden abbricht, nicht als Fehler (Anlass 24.11.2026,
+    // tests/e2e/schiff-vergleich.test.js). Der Laeufer zaehlt selbst.
     id: 'test:e2e',
     npm: 'test:e2e',
-    script: 'tests/e2e/',
+    script: 'scripts/run-e2e.mjs',
     rail: 'A',
-    checks: 'Verhalten der echten Inline-Skripte gegen ein Mock-DOM (node:vm) plus Integritaet der Item-DB',
+    checks: 'Verhalten der echten Inline-Skripte gegen ein Mock-DOM (node:vm) plus Integritaet der Item-DB (jede .test.js unter tests/e2e/); rot auch, wenn eine Suite beim Laden abbricht, und unter den Klinken fuer Dateien und bestandene Tests',
   },
   {
     id: 'verify',
