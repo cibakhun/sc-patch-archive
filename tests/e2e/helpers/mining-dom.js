@@ -281,7 +281,11 @@ function buildPayload() {
     // haette pctRight() in assets/mining-workbench.js "undefined" statt "UP-TO"
     // in den Text gemischt, ungeprueft, weil kein Testfall den rechten Text
     // bisher wortwoertlich verglich. locPinsFull ist neu (Grenze bei 128).
-    chance: 'CHANCE', upTo: 'UP-TO', locPinsFull: 'LOC-PINS-FULL',
+    // Seit 24.11.2026 (UX-Audit P43) Vorlagen mit %p fuer die Zahl.
+    chance: 'CHANCE %p', upTo: 'UP-TO %p', locPinsFull: 'LOC-PINS-FULL',
+    locKey: 'LOC-KEY', locKeyCh: 'LOC-KEY-CH',
+    // Leermeldung der Erzsuche (UX-Audit P42).
+    noHit: 'NO-HIT %q', noHitSys: 'NO-HIT-SYS %s', didYou: 'DID-YOU', noHitHelp: 'NO-HIT-HELP',
     // Phase 12: Fundort-Ansicht (D-01/D-07) -- Zurueck-Knopf-Beschriftung und
     // das Spur-Abzeichen.
     backToOre: 'BACK-TO-ORE', trace: 'TRACE',
@@ -375,6 +379,11 @@ export function makeMiningDomContext(opts = {}) {
   }
   root.appendChild(listEl);
   root.appendChild(reg(mk('span', 'wb-count')));
+  // Suchfeld und Leermeldung der Erzsuche (UX-Audit 24.11.2026, P42).
+  root.appendChild(reg(mk('input', 'wb-q')));
+  const noHitEl = reg(mk('p', 'wb-nohit'));
+  noHitEl.hidden = true;
+  root.appendChild(noHitEl);
 
   // Mitte — Kopf + Fundorte + Beste Stationen + Verweise (Task 1, Phase 9).
   root.appendChild(reg(mk('div', 'wb-orehead')));

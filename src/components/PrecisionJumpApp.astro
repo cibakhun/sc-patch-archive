@@ -805,14 +805,19 @@ const CLIENT = {
 
     <!-- ==== Result ==== -->
     <div class="pj-result" id="pj-result" aria-live="polite">
-      <!-- Die Reiselinie: Start links, Ziel rechts, massstaeblich. Die
-           Bandzone liegt als Feld darauf, die Austrittsmarke an ihrer Stelle.
-           Sie steht VOR dem Ausloesewert: die zurueckgelegte Strecke ist die
-           Zahl, die ein Mensch braucht — der 15-stellige Rohwert ist das,
-           was man im Spiel abliest, und damit zweite Ordnung. -->
-      <!-- Die Karte steht direkt unter der Bedienung und gross: wer zwei
-           Anker waehlt, soll die Route sofort sehen, ohne zu scrollen.
-           Alles Abgelesene folgt darunter. -->
+      <!-- Der Ausloesewert steht direkt unter der Bedienung, die Karte
+           folgt (UX-Audit 24.11.2026, P45): unter der Karte lag er rund
+           800 px (Handy 650 px) unter dem Bandfeld, und wer eine Eingabe
+           aendert, sah die Wirkung erst nach dem Rollen. Er ist der Wert,
+           den man im Spiel abliest -- das Ergebnis der Seite. Die Karte
+           erklaert ihn und bleibt gross. -->
+      <div class="pj-trigger" id="pj-trigger">
+        <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
+        <div class="pj-trigger__val" id="pj-trigval">0</div>
+        <div class="pj-trigger__sub" id="pj-trigsub"></div>
+        <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
+      </div>
+
       <figure class="pj-map">
         <div class="pj-map__frame">
           <svg id="pj-svg" viewBox="0 0 1000 1000" role="img" aria-label={S.mapTitle}></svg>
@@ -827,13 +832,6 @@ const CLIENT = {
           </span>
         </figcaption>
       </figure>
-
-      <div class="pj-trigger" id="pj-trigger">
-        <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
-        <div class="pj-trigger__val" id="pj-trigval">0</div>
-        <div class="pj-trigger__sub" id="pj-trigsub"></div>
-        <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
-      </div>
 
       <div class="pj-stats" id="pj-stats"></div>
 
@@ -962,6 +960,16 @@ const CLIENT = {
   var nf0 = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
   var nf2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
   var nf3 = new Intl.NumberFormat(loc, { maximumFractionDigits: 3 });
+  /* Spielformat (UX-Audit 24.11.2026, P56): so zeigt das Debug-Overlay die
+     Koordinaten, ohne Tausendertrenner und mit Punkt. Verglichen wird im
+     Flug Ziffer fuer Ziffer -- im deutschen Format (13.513.958.774,764)
+     waere das eine Uebersetzungsaufgabe. Hoechstens drei Nachkommastellen
+     wie bisher, Kopierwert und Anzeige sind dieselbe Zeichenkette. */
+  function spiel(v) {
+    var r = Math.round(v * 1000) / 1000;
+    var t = (r === 0 ? 0 : r).toFixed(3);
+    return t.replace(/0+$/, '').replace(/\.$/, '');
+  }
   var fill = function (s, map) { return Object.keys(map).reduce(function (a, k) { return a.split('%' + k + '%').join(map[k]); }, s); };
 
   // Anker als Map (id -> record)
@@ -1209,11 +1217,11 @@ const CLIENT = {
     setStatus(conf.cls === 'ok' && plane.cls === 'ok' ? 'ok' : (conf.cls === 'bad' || plane.cls === 'bad' ? 'bad' : 'warn'));
 
     byId('pj-trigaxis').textContent = T.monitor + ' ' + axis.toUpperCase() + ' · ' + trend;
-    byId('pj-trigval').textContent = nf3.format(trig);
+    byId('pj-trigval').textContent = spiel(trig);
     byId('pj-trigsub').textContent = rising ? T.triggerSubUp : T.triggerSubDown;
     var copyBtn = byId('pj-copy');
     copyBtn.style.visibility = 'visible';
-    copyBtn.dataset.value = String(trig);
+    copyBtn.dataset.value = spiel(trig);
 
     // Vier Kennwerte statt acht. Gestrichen, weil anderswo schon vorhanden:
     // Route (steht an beiden Achsenenden), Zielband (Achsen-Zonenlabel und
@@ -1228,9 +1236,9 @@ const CLIENT = {
       card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));
 
     byId('pj-coordstitle').textContent = T.coordsTitle;
-    byId('pj-cx').textContent = nf3.format(exit.x);
-    byId('pj-cy').textContent = nf3.format(exit.y);
-    byId('pj-cz').textContent = nf3.format(exit.z);
+    byId('pj-cx').textContent = spiel(exit.x);
+    byId('pj-cy').textContent = spiel(exit.y);
+    byId('pj-cz').textContent = spiel(exit.z);
 
     // Bandfenster auf der Beobachtungsachse
     var innerRoots = rootsForRadius(start, end, band.innerRadiusKm * 1000);

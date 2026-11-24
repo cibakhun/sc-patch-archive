@@ -177,10 +177,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      die Chance steht in der Fundort-Ansicht bereits rechts (pctRight()) --
      hier faellt der Chance-Teil deshalb weg, nur der Hoechstanteil bleibt. */
   function pctSub(l, byChance) {
-    if (byChance) return l.ms != null ? T.upTo + ' ' + nPct(l.ms) + ' %' : '';
+    if (byChance) return l.ms != null ? T.upTo.replace('%p', nPct(l.ms) + ' %') : '';
     var t = [];
-    if (l.ch != null) t.push(nPct(l.ch) + ' % ' + T.chance);
-    if (l.ms != null) t.push(T.upTo + ' ' + nPct(l.ms) + ' %');
+    if (l.ch != null) t.push(T.chance.replace('%p', nPct(l.ch) + ' %'));
+    if (l.ms != null) t.push(T.upTo.replace('%p', nPct(l.ms) + ' %'));
     return t.join(' · ');
   }
   var TYPE_LBL = {
@@ -243,6 +243,52 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   var MAXCLUSTER = { common: 6, uncommon: 5, rare: 4, epic: 3, legendary: 2 };
   var listEl = $('wb-list');
 
+  /* Erzsuche (UX-Audit 24.11.2026, P42): deutsche Namen aus der Nutzlast
+     zaehlen wie der Spielname, und eine leere Liste sagt, warum sie leer
+     ist -- mit dem naechstliegenden Erznamen als Vorschlag, wenn der
+     Suchtext nur um einen Tippfehler (ab 7 Zeichen zwei) daneben liegt.
+     Verglichen wird auch mit dem Namensanfang gleicher Laenge, damit
+     „Quantan" schon auf Quantainium zeigt. */
+  var ALIAS = D.alias || {};
+  function abstand(a, b) {
+    var prev = [], cur = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i];
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function vorschlag(q) {
+    if (q.length < 4) return null;
+    var grenze = q.length >= 7 ? 2 : 1, best = null, bestD = grenze + 1;
+    for (var n in byName) {
+      var namen = [n.toLowerCase()];
+      if (ALIAS[n]) namen.push(String(ALIAS[n]).toLowerCase());
+      for (var k = 0; k < namen.length; k++) {
+        var d = Math.min(abstand(q, namen[k]), abstand(q, namen[k].slice(0, q.length)));
+        if (d < bestD || (d === bestD && best !== null && n < best)) { bestD = d; best = n; }
+      }
+    }
+    return best;
+  }
+  function renderNoHit(q, shown) {
+    var box = $('wb-nohit');
+    if (!box) return;
+    if (!q || shown > 0) { box.hidden = true; box.innerHTML = ''; return; }
+    var roh = S.q.trim();
+    var html = esc(T.noHit.replace('%q', roh));
+    if (S.sys) html += ' ' + esc(T.noHitSys.replace('%s', S.sys));
+    var v = vorschlag(q);
+    if (v) html += ' ' + esc(T.didYou) + ' <button type="button" class="wb__sugg" data-sugg="' + esc(v) + '">' + esc(v) + '</button>?';
+    html += '<small>' + esc(T.noHitHelp) + '</small>';
+    box.innerHTML = html;
+    box.hidden = false;
+  }
+
   function renderList() {
     var q = S.q.trim().toLowerCase(), shown = 0;
     var tiles = listEl.querySelectorAll('.wb__tile');
@@ -273,6 +319,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
       var hit = !q || m.name.toLowerCase().indexOf(q) >= 0 ||
+        (ALIAS[m.name] && String(ALIAS[m.name]).toLowerCase().indexOf(q) >= 0) ||
         m.locs.some(function (l) { return (l.p || '').toLowerCase().indexOf(q) >= 0; });
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
       el.style.display = hit ? '' : 'none';
@@ -305,6 +352,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       grps[gi].hidden = !gOn;
     }
     $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + '/' + D.minerals.length;
+    renderNoHit(q, shown);
   }
 
   /* Siebter Parameter pinKey (optional): NUR der Fundort-Aufruf uebergibt
@@ -570,6 +618,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         }).join('') +
         '</div></div>';
     }
+    /* Lesehilfe (P43): rechts steht hier die Chance, nicht der Ertrag. */
+    if (html) html = '<div class="wb__sec"><p class="wb__key">' + esc(T.locKeyCh) + '</p></div>' + html;
     if (D.pjPath && S.selLoc === HALO) html = '<div class="wb__sec"><div class="wb__links">' + haloLink() + '</div></div>' + html;
     if (locView) locView.innerHTML = html;
   }
@@ -1256,6 +1306,19 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
       if (at >= 0) S.pins.splice(at, 1); else S.pins.push(pn);
       renderAll(); return;
+    }
+    /* Vorschlag der Leermeldung (P42): ein Tipp korrigiert die Suche UND
+       waehlt das Erz -- wer „Quantanium" tippt, will Quantainium sehen. */
+    var sugg = t.closest('[data-sugg]');
+    if (sugg) {
+      var sv0 = sugg.getAttribute('data-sugg');
+      if (byName[sv0]) {
+        S.q = sv0;
+        if ($('wb-q')) $('wb-q').value = sv0;
+        S.sel = sv0; S.view = 'ore';
+        renderAll(); zurAnsichtAmHandy();
+      }
+      return;
     }
     var tile = t.closest('.wb__tile');
     /* Eine Erz-Auswahl bedeutet immer Erz-Ansicht (Claudes Ermessen, in

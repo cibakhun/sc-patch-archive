@@ -534,8 +534,8 @@ test('Merklisten-Eintrag zeigt System, Chance, Hoechstanteil und Ø-Anteil aus d
   const art = TYPE_LBL[cat.t] ? ctx.T[TYPE_LBL[cat.t]] : null;
   const ort = art ? `${art} · ${cat.s}` : cat.s;
   const teile = [];
-  if (cat.ch != null) teile.push(`${nPctForTest(cat.ch)} % ${ctx.T.chance}`);
-  if (cat.ms != null) teile.push(`${ctx.T.upTo} ${nPctForTest(cat.ms)} %`);
+  if (cat.ch != null) teile.push(ctx.T.chance.replace('%p', `${nPctForTest(cat.ch)} %`));
+  if (cat.ms != null) teile.push(ctx.T.upTo.replace('%p', `${nPctForTest(cat.ms)} %`));
   assert.strictEqual(sysSpan.textContent, teile.length ? `${ort} · ${teile.join(' · ')}` : ort);
 
   const valuesEm = meta.querySelector('em');

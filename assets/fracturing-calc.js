@@ -71,6 +71,18 @@
   var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-GB');
   function n0(v) { return NF.format(Math.round(v)); }
   function n2(v) { return D.lang === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2); }
+  /* Faktor im Rechenweg mit so vielen Stellen, dass die Zeile mit den
+     ANGEZEIGTEN Werten aufgeht (UX-Audit 24.11.2026, P66): 4.930 × 0,34
+     stand dort neben 1.652, gerechnet war mit 0,335 -- nachgerechnet 1.676,
+     die Zeile sah falsch aus, obwohl das Ergebnis stimmte. Zwei Stellen,
+     wo sie reichen; sonst bis zu vier. `links` ist der angezeigte (gerundete)
+     linke Wert, `ergebnis` der Wert rechts. */
+  function nFaktor(v, links, ergebnis) {
+    var soll = Math.round(ergebnis), l = Math.round(links), d = 2;
+    for (; d < 4; d++) if (Math.round(l * Number(v.toFixed(d))) === soll) break;
+    var t = v.toFixed(d);
+    return D.lang === 'de' ? t.replace('.', ',') : t;
+  }
   /* Der Res-Mod ist meistens glatt (-30 %), durch Module aber auch krumm
      (-24,5 %). Feste zwei Nachkommastellen haetten aus jedem glatten Wert
      ein „-30,00 %" gemacht — laut vorgelesene Genauigkeit, die es nicht gibt. */
@@ -167,11 +179,16 @@
       $('fc-math').innerHTML = '<p class="fc__empty">' + esc(T.noPhys) + '</p>';
       return;
     }
+    /* Widerstand und Ladefaktor mit denselben Stellen: 1 − 0,665 = 0,335
+       soll auch so dastehen, nicht als 0,67 neben 0,335. */
+    var ladung = nFaktor(v.charge, lo.dps * lo.dpsMult, v.avail);
+    var stellen = ladung.length - ladung.search(/[.,]/) - 1;
+    var nW = function (x) { var t = x.toFixed(stellen); return D.lang === 'de' ? t.replace('.', ',') : t; };
     var rows = [
-      [T.mLaser, n0(lo.dps) + (lo.dpsMult !== 1 ? ' × ' + n2(lo.dpsMult) : ''), n0(lo.dps * lo.dpsMult)],
-      [S.resScan !== null ? T.resScan : T.mResist, n2(resOf(m)) + (lo.resMod ? ' · ' + (lo.resMod > 0 ? '+' : '') + nPct(lo.resMod) : ''), n2(v.Reff)],
-      [T.mCharge, n0(lo.dps * lo.dpsMult) + ' × ' + n2(v.charge), n0(v.avail)],
-      [T.mMass, n0(S.mass) + ' × ' + n2(D.params.decayPerMass || 0.2), n0(v.req)]
+      [T.mLaser, n0(lo.dps) + (lo.dpsMult !== 1 ? ' × ' + nFaktor(lo.dpsMult, lo.dps, lo.dps * lo.dpsMult) : ''), n0(lo.dps * lo.dpsMult)],
+      [S.resScan !== null ? T.resScan : T.mResist, nW(resOf(m)) + (lo.resMod ? ' · ' + (lo.resMod > 0 ? '+' : '') + nPct(lo.resMod) : ''), nW(v.Reff)],
+      [T.mCharge, n0(lo.dps * lo.dpsMult) + ' × ' + ladung, n0(v.avail)],
+      [T.mMass, n0(S.mass) + ' × ' + nFaktor(D.params.decayPerMass || 0.2, S.mass, v.req), n0(v.req)]
     ];
     $('fc-math').innerHTML = rows.map(function (r) {
       return '<div class="fc__mrow"><span class="p">' + esc(r[0]) + '</span>' +
