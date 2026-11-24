@@ -280,7 +280,16 @@ export const CHECKS = [
     script: 'scripts/verify-item3d.mjs',
     rail: 'A',
     checks:
-      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+    // [2] seit IA C8 (24.11.2026): ein Modell darf die fruehere Id seines
+    // Items im Dateinamen tragen, wenn nginx/umzuege.conf genau diese Adresse
+    // auf das Item umleitet (6 nach dem Zusammenlegen, z. B. lynx-legs ->
+    // m/lynx-legs-2.….glb). VORGEFUEHRT ROT im Vorschau-Bau derselben
+    // Lieferung: den EN-Umzug lynx-legs-2 -> lynx-legs entfernt -> 1 FEHLER
+    // [2] lynx-legs; oracle-helmet auf m/lynx-legs-2.….glb gesetzt (fremde
+    // fruehere Id) -> 1 FEHLER [2] oracle-helmet; je exit 1, zurueckgespielt,
+    // sha256 wie vorher. Die Fassung vor der Lockerung meldet am selben Stand
+    // alle 6 als FEHLER. Gruen: 2.965 Eintraege, 6 unter frueherer Adresse.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
