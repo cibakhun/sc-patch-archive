@@ -10,7 +10,7 @@
 // statt fremde Nachweise zu übernehmen; manifest.mjs prüft Bucket und
 // Endpunkt. Eine alte hochgeladen.txt ohne Zielvermerk wird nur mit
 // --ziel-bestaetigen dem aktuellen Ziel zugeordnet.
-import { readFileSync, existsSync, appendFileSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync, statSync, writeFileSync, linkSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash, createHmac } from 'node:crypto';
 
@@ -72,11 +72,21 @@ else if (!DRY) {
     process.exit(2);
   }
   if (existsSync(doneFile)) console.log(`hochgeladen.txt ohne Zielvermerk: wird ${ZIEL.bucket} (${ZIEL.endpunkt}) zugeordnet (bestätigt)`);
-  // anlegen nur, wenn noch keiner da ist: ein gleichzeitiger Lauf mit anderem
-  // Ziel kann den Vermerk nicht überschreiben
-  try { writeFileSync(zielFile, `${JSON.stringify(ZIEL)}\n`, { flag: 'wx' }); } catch (e) { if (e.code !== 'EEXIST') throw e; zielPruefen(); }
+  // Erst vollständig in eine eigene Datei schreiben, dann exklusiv als
+  // Vermerk verlinken: ein gleichzeitiger Lauf kann ihn weder überschreiben
+  // noch halb geschrieben lesen. Wer verliert, prüft den Vermerk des anderen.
+  const tmp = `${zielFile}.${process.pid}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(ZIEL)}\n`);
+  let schonDa = false;
+  try { linkSync(tmp, zielFile); } catch (e) { if (e.code !== 'EEXIST') { unlinkSync(tmp); throw e; } schonDa = true; }
+  unlinkSync(tmp);
+  if (schonDa) zielPruefen();
 }
-const done = new Set(existsSync(doneFile) ? readFileSync(doneFile, 'utf8').split(/\r?\n/).filter(Boolean) : []);
+// Nachweise gelten nur mit passendem Zielvermerk oder bestätigt; die Probe
+// (--dry) rechnet eine Liste ohne Vermerk darum nicht als hochgeladen.
+const doneGilt = existsSync(doneFile) && (existsSync(zielFile) || BESTAETIGT);
+if (DRY && existsSync(doneFile) && !doneGilt) console.log('hochgeladen.txt ohne Zielvermerk: zählt in der Probe nicht als Nachweis');
+const done = new Set(doneGilt ? readFileSync(doneFile, 'utf8').split(/\r?\n/).filter(Boolean) : []);
 const type = (f) => (f.endsWith('.glb') ? 'model/gltf-binary' : f.endsWith('.webp') ? 'image/webp' : f.endsWith('.png') ? 'image/png' : 'application/octet-stream');
 // Nur was die jüngste Zeile je Item in manifest.jsonl nennt: ein neu gebackenes
 // Teil lässt seine alte Datei liegen, die braucht niemand mehr. Texturen zuerst,

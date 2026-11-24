@@ -863,7 +863,8 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
           for (const r of art === 'farbe' ? ['farbe', 'glanzfarbe', 'normale'] : ['mischung', 'abnutzung', 'normale', 'hal']) if (ts[r]) benutzt.add(ts[r]);
           if (aufdruck) benutzt.add(aufdruck);
           if (ts.schillern && /%IRIDESCENCE\b/.test(sx.attr.StringGenMask ?? '')) benutzt.add(ts.schillern);
-          for (const l of layers) { const ly = layerOf(l.attr.Path); if (ly.t1) benutzt.add(ly.t1); }
+          // ohne Mischkarte zeichnet der Bäcker nur Schicht 1 (s. nur1)
+          for (const l of layers) { if (art === 'ohneMischung' && !/^(Base|Wear)Layer1$/.test(l.attr.Name ?? '')) continue; const ly = layerOf(l.attr.Path); if (ly.t1) benutzt.add(ly.t1); }
         } else plain.push(prim);
       }
       verts += nV;
@@ -991,10 +992,10 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
           if (tx && e) { const mm = [0, 0, 0]; for (let k = 0; k < tx.w * tx.h; k++) for (let j = 0; j < 3; j++) mm[j] += toLin(tx.data[k * 4 + j]) / (tx.w * tx.h); nrm = mm.map((x) => 1 / Math.max(0.02, x)); }
           return { lay: { ...lay, tex: tx, gloss, diffuse, shin, norm: nrm }, tint, spec, glossMul, tiling, pt, path: l.attr.Path, fehlt: lay.missing };
         };
-        // Mischkarte nicht lesbar: nur Grundschicht 1 und ihre Abnutzung
-        // werden gezeichnet, also auch nur deren Bilder geladen (ein
+        // Ohne Mischkarte oder mit unlesbarer: nur Grundschicht 1 und ihre
+        // Abnutzung werden gezeichnet, also auch nur deren Bilder geladen (ein
         // unlesbares Bild einer ungenutzten Schicht hielte sonst das Item an)
-        const nur1 = schicht && !schichtAn;
+        const nur1 = ohne || (schicht && !schichtAn);
         const base = ['BaseLayer1', 'BaseLayer2', 'BaseLayer3', 'BaseLayer4'].map((n, i) => (nur1 && i > 0 ? null : mk(L(n))));
         const wr = ['WearLayer1', 'WearLayer2', 'WearLayer3', 'WearLayer4'].map((n, i) => (nur1 && i > 0 ? null : mk(L(n)) ?? base[i]));
         // Aufdruck (nur Waffen, decal_uv2): nichtmetallisch, Glanz aus
