@@ -3477,10 +3477,11 @@ span.sd__ref{color:var(--muted)}
           // noch lud (D-04 laedt erst beim Scrollen) — hier den tatsaechlich
           // aktiven Rail-Stand nachholen, damit die Buehne von Anfang an nur
           // GENAU eine Gruppe zeigt, nie die alte Mehrfachauswahl.
-          // Dieselbe Einschraenkung wie in showGroup(): steht gerade eine
-          // Inhaltsgruppe (D-01) offen, waehrend der Viewer fertig laedt,
-          // darf sein Erstfilter die Buehne nicht leeren.
-          if (activeGroup && isPortGroup(activeGroup)) viewer.setFilter([activeGroup]);
+          // Derselbe Vertrag wie in showGroup(): eine offene Portgruppe zeigt
+          // nur ihre Marker, eine offene Inhaltsgruppe (D-01, auch die
+          // Bewaffnung ohne Marker aus P23) gar keine — sonst blieben die
+          // Vorgabe-Marker stehen, wenn die Wahl vor dem Laden fiel.
+          if (activeGroup) viewer.setFilter(isPortGroup(activeGroup) ? [activeGroup] : []);
           // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
           // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
           // sie per setLabels(false) ganz abschalten, mit der Begruendung,

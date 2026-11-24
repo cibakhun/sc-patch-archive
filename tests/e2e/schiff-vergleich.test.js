@@ -164,11 +164,27 @@ describe('Vergleich: Daten aus dem einen Kennwert-Verzeichnis', async () => {
     assert.ok(mit >= 8, `nur ${mit} Schiffe mit Mining-Gruppe (Klinke 8)`);
   });
 
+  test('ohne saubere Zuordnung: Groessenzeilen bleiben, die Namensnotiz kommt dazu (wie im Datenblatt)', () => {
+    let gesehen = 0;
+    for (const e of entries) {
+      for (const r of M.buildArmament(e.data, 'de')) {
+        if (r.key !== 'pilot' || !r.note || !r.lines.length) continue;
+        const list = de.schiffe[e.id].teile.pilot;
+        assert.equal(list.length, r.lines.length + 1, `${e.id}: ${list.length} statt ${r.lines.length}+1 Zeilen`);
+        assert.ok(list.slice(0, -1).every((t) => t[0] > 0 && t[1]), `${e.id}: Groessenzeile ohne Anzahl oder Groesse`);
+        assert.deepEqual(list.at(-1), [0, '', r.note], `${e.id}: Notiz fehlt am Ende`);
+        gesehen++;
+      }
+    }
+    assert.ok(gesehen >= 1, 'kein Schiff mit Namensnotiz gefunden (Probe leer)');
+    console.log(`  Pilotenwaffen mit Namensnotiz: ${gesehen} Schiffe`);
+  });
+
   test('kein Turm faellt heraus: jede Turmzeile des Datenblatts landet in einer Gruppe', () => {
     let tuerme = 0;
     for (const e of entries) {
       const zeilen = M.buildArmament(e.data, 'en').filter((r) => r.key === 'turret');
-      const erwartet = zeilen.reduce((n, r) => n + (r.lines.length || (r.note ? 1 : 0)), 0);
+      const erwartet = zeilen.reduce((n, r) => n + r.lines.length + (r.note ? 1 : 0), 0);
       const s = en.schiffe[e.id];
       const da = ['manned', 'remote', 'pdc'].reduce((n, g) => n + (s.teile[g]?.length ?? 0), 0);
       assert.equal(da, erwartet, `${e.id}: ${da} von ${erwartet} Turmzeilen im Vergleich`);

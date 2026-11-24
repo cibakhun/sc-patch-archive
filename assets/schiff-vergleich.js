@@ -339,7 +339,10 @@ export function start(doc) {
     if (j) {
       e.preventDefault();
       const ziel = dlg.querySelector(`tbody[data-sec="${j.getAttribute('data-sv-jump')}"]`);
-      if (ziel) scroll.scrollTo({ top: ziel.offsetTop - (table.tHead?.offsetHeight ?? 0), behavior: 'smooth' });
+      // Ein ausdrueckliches behavior uebergeht die CSS-Regel fuer reduzierte
+      // Bewegung, also hier selbst fragen.
+      const ruhig = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (ziel) scroll.scrollTo({ top: ziel.offsetTop - (table.tHead?.offsetHeight ?? 0), behavior: ruhig ? 'auto' : 'smooth' });
     }
   });
 

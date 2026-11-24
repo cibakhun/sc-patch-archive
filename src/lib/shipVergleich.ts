@@ -71,9 +71,10 @@ const groesse = (s: number | null | undefined): string => (s != null ? `S${s}` :
 
 function teileAusZeile(r: ArmRow): Teil[] {
   const out: Teil[] = r.lines.map((l) => [l.count, groesse(l.size), l.name ?? '']);
-  // Ohne saubere Zuordnung (Namen und Groessen gehen nicht auf) nennt das
-  // Datenblatt die Namen als Notiz; der Vergleich ebenso, als eigene Zeile.
-  if (r.note && out.every((t) => !t[2])) return [[0, '', r.note]];
+  // Ohne saubere Zuordnung (Namen und Groessen gehen nicht auf) zeigt das
+  // Datenblatt die Groessenzeilen ohne Namen und darunter die Namen als
+  // Notiz; der Vergleich ebenso, die Notiz als eigene Zeile.
+  if (r.note) out.push([0, '', r.note]);
   return out;
 }
 
