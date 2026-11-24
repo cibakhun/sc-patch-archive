@@ -13,8 +13,7 @@ export function joinNames(names: string[], and: string): string {
 /** Name eines Feldes aus seinem Label, ohne das Pflicht-Sternchen. */
 function nameOf(input: HTMLInputElement): string {
   const lbl = input.id ? input.form?.querySelector<HTMLLabelElement>(`label[for="${input.id}"]`) : null;
-  const t = (lbl?.childNodes[0]?.textContent || lbl?.textContent || input.name || '').replace('*', '').trim();
-  return t;
+  return (lbl?.childNodes[0]?.textContent || lbl?.textContent || input.name || '').replace(/\*/g, '').trim();
 }
 
 /**
@@ -24,12 +23,16 @@ function nameOf(input: HTMLInputElement): string {
 export function missingFields(form: HTMLFormElement, status: HTMLElement): boolean {
   const fields = Array.from(form.querySelectorAll<HTMLInputElement>('input[required]'));
   const leer = fields.filter((f) => (f.type === 'password' ? f.value : f.value.trim()) === '');
+  // Markiert heißt: aria-invalid und ein Verweis auf den Satz im Statusfeld.
+  const gut = (f: HTMLInputElement) => { f.removeAttribute('aria-invalid'); f.removeAttribute('aria-errormessage'); };
   for (const f of fields) {
-    if (leer.includes(f)) f.setAttribute('aria-invalid', 'true');
-    else f.removeAttribute('aria-invalid');
+    if (leer.includes(f)) {
+      f.setAttribute('aria-invalid', 'true');
+      if (status.id) f.setAttribute('aria-errormessage', status.id);
+    } else gut(f);
     if (!f.dataset.leerHoerer) {
       f.dataset.leerHoerer = '1';
-      f.addEventListener('input', () => f.removeAttribute('aria-invalid'));
+      f.addEventListener('input', () => gut(f));
     }
   }
   if (!leer.length) return false;

@@ -70,7 +70,8 @@ function boot(root: HTMLElement) {
 
   /* ------------------------------------------------------------ Zahlen --- */
   const announce = (changed = true) => {
-    document.dispatchEvent(new CustomEvent('vb:saved', { detail: { favs: favs.length, changed } }));
+    // favs zählt die Flotte (nur Schiffe), wie die Profilkarte sie nennt.
+    document.dispatchEvent(new CustomEvent('vb:saved', { detail: { favs: favs.filter((f) => f.kind === 'ship').length, changed } }));
   };
 
   /* --------------------------------------- Schaufenster (Pilotenseite) --- */

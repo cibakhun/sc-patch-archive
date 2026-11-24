@@ -416,7 +416,7 @@ import { layoutList, shipLabel } from './account-layouts';
         const url = document.getElementById('ovPubUrl');
         const h = /^[a-z0-9_]{3,24}$/.test(profileState.handle || '') ? String(profileState.handle) : '';
         if (h) {
-          const path = (lang === 'de' ? '/de/pilot/' : '/pilot/') + h;
+          const path = (lang === 'de' ? '/de/pilot/' : '/pilot/') + encodeURIComponent(h);
           pubLink.href = path;
           pubLink.dataset.state = 'open';
           if (lbl) lbl.textContent = pubLink.dataset.open || '';
@@ -1649,7 +1649,8 @@ import { layoutList, shipLabel } from './account-layouts';
         .from('favorites')
         .select('id, kind, slug, label, created_at')
         .order('created_at', { ascending: false });
-      favCount = (favs || []).length;
+      // Die Profilkarte nennt die Zahl „Flotte“: nur Schiffe (andere Arten stehen unter „Gemerkt“).
+      favCount = (favs || []).filter((f: { kind?: string }) => f.kind === 'ship').length;
 
       // Echte Freundes-Anzahl aus der DB (ersetzt den frueheren localStorage-Zaehler)
       try {
