@@ -813,7 +813,11 @@ const CLIENT = {
            erklaert ihn und bleibt gross. -->
       <div class="pj-trigger" id="pj-trigger">
         <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
-        <div class="pj-trigger__val" id="pj-trigval">0</div>
+        {/* lang="en": der Wert steht im Format des Spiels (P56), und das
+            zeigt englisch -- ohne Tausendertrenner, mit Punkt. Dieselbe
+            Kennzeichnung wie englischer Spieltext auf deutschen Seiten;
+            verify:sprache und verify:clienttext pruefen ihn danach. */}
+        <div class="pj-trigger__val" id="pj-trigval" lang="en">0</div>
         <div class="pj-trigger__sub" id="pj-trigsub"></div>
         <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
       </div>
@@ -838,9 +842,9 @@ const CLIENT = {
       <div class="pj-coords">
         <div class="pj-coords__title" id="pj-coordstitle"></div>
         <div class="pj-coords__grid">
-          <div class="pj-coord"><span>X</span><b id="pj-cx">—</b></div>
-          <div class="pj-coord"><span>Y</span><b id="pj-cy">—</b></div>
-          <div class="pj-coord"><span>Z</span><b id="pj-cz">—</b></div>
+          <div class="pj-coord"><span>X</span><b id="pj-cx" lang="en">—</b></div>
+          <div class="pj-coord"><span>Y</span><b id="pj-cy" lang="en">—</b></div>
+          <div class="pj-coord"><span>Z</span><b id="pj-cz" lang="en">—</b></div>
         </div>
       </div>
 

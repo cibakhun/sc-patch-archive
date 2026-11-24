@@ -841,9 +841,12 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
   font-size:var(--fs-3);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;
   color:var(--text)}
 .wb__grp + .wb__grp .wb__ghd{margin-top:4px;border-top:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+/* Umbruch statt Ellipse (UX-Audit 24.11.2026, P75): „ROC · ROC-DS · ohne
+   Stufe" verlor am Handy 31 px. Der Kopf darf zweizeilig werden, die Zahl
+   bleibt an der ersten Zeile (align-items:baseline). */
 .wb__ghd__g{flex:1;min-width:0;font-size:var(--fs-2);font-weight:400;letter-spacing:var(--ls-5);
   text-transform:none;color:color-mix(in srgb,var(--muted) 85%,transparent);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  overflow-wrap:anywhere}
 .wb__ghd__n{flex:none;font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums;
   color:color-mix(in srgb,var(--muted) 90%,transparent)}
 /* Bandueberschrift: das Wort in der Stufenfarbe, die Linie in derselben Farbe
