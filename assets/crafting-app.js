@@ -1221,7 +1221,12 @@
     // Ohne Slug (Karte ohne Namenslink) gäbe es keinen stabilen Schlüssel —
     // dann lieber nur das Detail öffnen als Müll speichern.
     if (!s && (ownBtn || addBtn)) { e.stopPropagation(); return; }
-    if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (WB) wbNeu(ownBtn, 'is-knall'); if (state.ownedOnly) apply(); return; }
+    if (ownBtn) {
+      e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (WB) wbNeu(ownBtn, 'is-knall'); if (state.ownedOnly) apply();
+      // Messereignis nur, wenn der Bauplan „Im Besitz“ wird, nicht beim Abwaehlen.
+      if (owned[s] && e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'besitz' });
+      return;
+    }
     if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); if (WB) { wbNeu(addBtn, 'is-knall'); wbFlug(addBtn); } renderPlanner(); flashPlan(); if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' }); return; }
     openModal(+i);
   });
@@ -2083,19 +2088,40 @@
       fokusZurueck();
     }
     // wire qty buttons
-    $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.inc; plan[k]++; markDirty(k); renderPlanner(); syncCards(); }); });
-    $$('[data-dec]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.dec; plan[k]--; if (plan[k] <= 0) delete plan[k]; markDirty(k); renderPlanner(); syncCards(); }); });
-    $$('[data-rm]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.rm; delete plan[k]; markDirty(k); renderPlanner(); syncCards(); }); });
+    $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function (e) { var k = btn.dataset.inc; plan[k]++; markDirty(k); planerMenge(e); renderPlanner(); syncCards(); }); });
+    $$('[data-dec]', listEl).forEach(function (btn) { btn.addEventListener('click', function (e) { var k = btn.dataset.dec; plan[k]--; if (plan[k] <= 0) delete plan[k]; markDirty(k); planerMenge(e); renderPlanner(); syncCards(); }); });
+    $$('[data-rm]', listEl).forEach(function (btn) { btn.addEventListener('click', function (e) { var k = btn.dataset.rm; delete plan[k]; markDirty(k); planerMenge(e); renderPlanner(); syncCards(); }); });
+  }
+  // Messereignis planer (assets/ereignisse.js): eine Mengenaenderung im
+  // Planer (+, −, ✕) zaehlt je Seitenaufruf einmal, sonst waere jedes
+  // Hochzaehlen ein Ereignis. Nur echte Bedienung.
+  var planerMengeGezaehlt = false;
+  function planerMenge(e) {
+    if (planerMengeGezaehlt || !e || !e.isTrusted || !window.vbEreignis) return;
+    planerMengeGezaehlt = true;
+    window.vbEreignis('planer', { aktion: 'menge' });
+  }
+  // Einkaufsliste -> Fundorte: die Posten sind Links auf die Mining-Seite
+  // des Materials (mineNameHtml). Die mittlere Taste oeffnet sie auch.
+  var planShop = $('#cdb-plan-shop');
+  if (planShop) {
+    var zuDenFundorten = function (e) {
+      if (!e.isTrusted || (e.type === 'auxclick' && e.button !== 1)) return;
+      if (e.target.closest && e.target.closest('a.cdb-mine') && window.vbEreignis) window.vbEreignis('planer', { aktion: 'abbau' });
+    };
+    planShop.addEventListener('click', zuDenFundorten);
+    planShop.addEventListener('auxclick', zuDenFundorten);
   }
   function syncCards() { cards.forEach(refreshCardState); }
   var clearBtn = $('#cdb-plan-clear');
-  if (clearBtn) clearBtn.addEventListener('click', function () {
+  if (clearBtn) clearBtn.addEventListener('click', function (e) {
     // Jeder geleerte Blueprint muss einzeln zum Server (die Zeile wird gelöscht) —
     // die Slugs also VOR dem Leeren einsammeln.
     var wiped = Object.keys(plan);
     plan = {};
     wiped.forEach(markDirty);
     renderPlanner(); syncCards();
+    if (wiped.length && e.isTrusted && window.vbEreignis) window.vbEreignis('planer', { aktion: 'leeren' });
   });
   // Werkbank R7: der Planer zeigt seinen Stand, sobald das Skript laeuft,
   // nicht erst mit den Daten: leer den Hinweis, bei einem gespeicherten
