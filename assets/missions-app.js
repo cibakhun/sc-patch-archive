@@ -75,8 +75,9 @@
   // ergaenzt Suchtext). Dann bleiben freigegebene Karten und Rollposition;
   // jede echte Filter- oder Sortieraenderung beginnt wieder bei GRP Karten.
   // Gibt zurueck, ob es eine solche Aenderung war (Stand wie zuletzt, etwa
-  // dieselbe Suche noch einmal, zaehlt nicht).
-  var zuletzt = null;
+  // dieselbe Suche noch einmal, zaehlt nicht). zuletzt ist der zuletzt
+  // angewandte Nutzerstand, gerendert der Stand, den die Liste zeigt.
+  var zuletzt = null, gerendert = null;
   function apply(halten) {
     halten = halten === true;
     var toks = (q.value || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -106,22 +107,20 @@
     if (out) out.textContent = txt;
     if (outM) outM.textContent = txt;
     if (none) none.hidden = n !== 0;
-    if (halten) {
-      // Umsortieren unter dem Leser: die Scroll-Verankerung des Browsers
-      // folgte sonst einer umgehaengten Karte, die Seite sprang (gemessen
-      // rund 5.000 px). Fuer diesen einen Durchgang aus, Stelle bleibt.
-      var root = document.documentElement, y = window.scrollY;
-      root.style.overflowAnchor = 'none';
-      sort();
-      window.scrollTo(0, y);
-      requestAnimationFrame(function () { requestAnimationFrame(function () { root.style.overflowAnchor = ''; }); });
-    } else if (neu) {
+    if (neu) {
       limit = GRP;
       sort();
       zumAnfang();
+    } else if (halten || stand !== gerendert) {
+      // Neu platzieren ohne Zuruecksetzen: der Index kam nach, oder die
+      // Darstellung zeigt noch einen anderen Stand (der Index filterte mit
+      // einer Eingabe, die danach zurueckgenommen wurde). Grenze und Stelle
+      // bleiben; die Seite steht dabei still (gemessen, Desktop, Index
+      // ordnet 120 freigegebene Karten neu: 0 px).
+      sort();
     }
-    // Gleicher Stand wie zuletzt: Treffer und Reihenfolge sind dieselben,
-    // es gibt nichts umzustellen (und keine Stelle anzufassen).
+    // Sonst gleicher Stand wie dargestellt: nichts umzustellen.
+    gerendert = stand;
     toUrl();
     return neu;
   }
