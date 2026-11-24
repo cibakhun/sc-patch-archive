@@ -193,6 +193,7 @@ nichts gegen Live.
    - Variable `VB_AGE_EMPFAENGER`: der öffentliche Schlüssel `age1…` aus
      Schritt 1 (mehrere durch Leerzeichen, z. B. ein zweiter Notfallschlüssel).
    - optional Secret `HEALTHCHECK_URL`, siehe [Wächter](#wächter-gegen-stille-ausfälle).
+   - Secret `VB_ALARM_WEBHOOK` (Discord-Webhook für rote Läufe), ebenda.
 5. **Workflow anlegen**: `scripts/backup/vorlage-backup-repo.yml` als
    `.github/workflows/live-backup.yml` ins private Repo, `QUELLE_SHA` auf den
    Commit von `staging`, auf dem `probe-backup.yml` grün war. Wer die Datei
@@ -335,9 +336,24 @@ Es entsteht dann kein Archiv; das letzte grüne bleibt das aktuelle.
 
 ## Wächter gegen stille Ausfälle
 
-Ein roter Lauf meldet sich (E-Mail von GitHub, Issue). Ein Lauf, der **gar
-nicht startet** (Zeitplan aus, Repo deaktiviert), meldet sich nicht von
-selbst. Zwei Wege, beide offen:
+Vom 17. bis 24.11.2026 war die Sicherung acht Tage rot, und niemand hat es
+gemerkt, obwohl jeden Tag ein Issue entstand. Seitdem meldet sich ein roter
+Lauf an zwei Stellen:
+
+- **Discord**: ist das Secret `VB_ALARM_WEBHOOK` gesetzt (Webhook-URL eines
+  privaten Kanals des Betreibers, z. B. `#staff-chat`), schickt jeder rote
+  Lauf sofort eine Nachricht mit dem Link zum Lauf, ohne Daten, und der
+  nächste grüne Lauf eine Entwarnung. Einrichten: Discord → Servereinstellungen
+  → Integrationen → Webhooks → Neuer Webhook; die URL als Secret im privaten
+  Repo eintragen (nie in einen Chat oder ein öffentliches Repo: wer sie hat,
+  kann in den Kanal posten).
+- **Ein Issue statt eines je Tag**: der erste rote Lauf öffnet
+  „Live-Backup fehlgeschlagen (seit …)" und erwähnt den Repo-Besitzer; jeder
+  weitere rote Tag wird ein Kommentar darin. Der nächste grüne Lauf schließt
+  alle offenen Issues mit diesem Titelanfang.
+
+Ein Lauf, der **gar nicht startet** (Zeitplan aus, Repo deaktiviert), meldet
+sich nicht von selbst. Zwei Wege, beide offen:
 
 - **Healthchecks.io** (kostenlos, Server in der EU): bekommt nur einen Ping
   ohne Daten und schickt eine E-Mail, wenn 26 Stunden keiner kam. URL als

@@ -101,7 +101,11 @@ function binden(datei, temp) {
     console.log('  WARNUNG keine plattform.json in der Sicherung (aeltere Sicherung) — die Probe nimmt die Versionen der CLI');
     return;
   }
-  const stand = json(datei);
+  let stand;
+  try { stand = json(datei); } catch (e) {
+    console.log(`  WARNUNG plattform.json nicht lesbar (${e.message}) — die Probe nimmt die Versionen der CLI`);
+    return;
+  }
   const gebunden = [];
   mkdirSync(temp, { recursive: true });
   for (const d of DIENSTE) {

@@ -98,13 +98,51 @@ jobs:
         if: env.HEALTHCHECK_URL != ''
         run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" > /dev/null || true
 
-      - name: Fehler melden (Issue)
+      # Ein roter Lauf meldet sich sofort und an EINER Stelle: ein offenes Issue
+      # (jeder weitere rote Tag ein Kommentar darin, nicht ein Issue je Tag) und,
+      # wenn das Secret VB_ALARM_WEBHOOK gesetzt ist, eine Nachricht in den
+      # Discord-Kanal des Betreibers. Der naechste gruene Lauf schliesst das
+      # Issue und gibt dort Entwarnung. Keine Daten in den Nachrichten, nur der
+      # Link zum Lauf in diesem privaten Repo.
+      - name: Entwarnung (offene Fehlermeldung schliessen)
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VB_ALARM_WEBHOOK: ${{ secrets.VB_ALARM_WEBHOOK }}
+        run: |
+          lauf="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          offen="$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
+            --jq '.[] | select(.pull_request == null) | select(.title | startswith("Live-Backup fehlgeschlagen")) | .number')"
+          [ -n "$offen" ] || exit 0
+          for n in $offen; do
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="Wieder gruen: $lauf" > /dev/null
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$n" -f state=closed -f state_reason=completed > /dev/null
+          done
+          if [ -n "$VB_ALARM_WEBHOOK" ]; then
+            jq -n --arg t "✅ Live-Sicherung wieder grün ($(date -u +%F)): $lauf" '{content: $t, allowed_mentions: {parse: []}}' \
+              | curl -fsS -m 10 --retry 3 -H 'content-type: application/json' --data-binary @- "$VB_ALARM_WEBHOOK" > /dev/null || true
+          fi
+
+      - name: Fehler melden (Discord, Issue)
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
+          VB_ALARM_WEBHOOK: ${{ secrets.VB_ALARM_WEBHOOK }}
         run: |
-          # zuerst der Ping: scheitert das Issue, kommt die Meldung trotzdem an
+          lauf="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          heute="$(date -u +%F)"
+          # zuerst die Pings: scheitert das Issue, kommt die Meldung trotzdem an
           if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" > /dev/null || true; fi
-          gh issue create --repo "$GITHUB_REPOSITORY" \
-            --title "Live-Backup fehlgeschlagen ($(date -u +%F))" \
-            --body "Lauf: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID — kein Archiv entstanden. Anleitung: https://github.com/$QUELLE_REPO/blob/staging/docs/betrieb/datenbank-backup.md#wenn-ein-lauf-rot-ist"
+          if [ -n "$VB_ALARM_WEBHOOK" ]; then
+            jq -n --arg t "🔴 Live-Sicherung rot ($heute), kein Archiv entstanden: $lauf" '{content: $t, allowed_mentions: {parse: []}}' \
+              | curl -fsS -m 10 --retry 3 -H 'content-type: application/json' --data-binary @- "$VB_ALARM_WEBHOOK" > /dev/null || true
+          fi
+          offen="$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
+            --jq '[.[] | select(.pull_request == null) | select(.title | startswith("Live-Backup fehlgeschlagen")) | .number] | min // empty')"
+          if [ -n "$offen" ]; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$offen/comments" -f body="Wieder rot am $heute: $lauf" > /dev/null
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues" \
+              -f title="Live-Backup fehlgeschlagen (seit $heute)" \
+              -f body="@$GITHUB_REPOSITORY_OWNER Lauf: $lauf — kein Archiv entstanden. Jeder weitere rote Tag kommt als Kommentar hierher, der naechste gruene Lauf schliesst dieses Issue. Anleitung: https://github.com/$QUELLE_REPO/blob/staging/docs/betrieb/datenbank-backup.md#wenn-ein-lauf-rot-ist" > /dev/null
+          fi
