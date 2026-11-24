@@ -8,6 +8,8 @@
 import DB from '../data/missions.json';
 import type { Locale } from '../i18n/ui';
 import { lesbarerBezeichner } from './lesbar';
+import { baueMissionsNamen, titelTeile, titelText, zusatzText, deCamel as deCamelTitel } from './missionTitel';
+import type { MissionName } from './missionTitel';
 
 export interface MissionRep {
   faction: string | null;
@@ -121,6 +123,103 @@ export const db = DB as unknown as MissionsDb;
 export const missions = db.missions;
 export const missionBySlug = new Map(missions.map((m) => [m.slug, m]));
 
+/* ---------- Lesbare, unterscheidbare Namen (UX-Audit F1) ---------- */
+// Einmal fuer alle Missionen gerechnet: der Zusatz einer Mission haengt
+// davon ab, welche anderen Missionen gleich heissen (src/lib/missionTitel.ts).
+const NAMEN = baueMissionsNamen(missions, db.localities);
+/** Missionen, die auch mit Zusatz noch gleich lauten (Selbstauskunft fuer Tore). */
+export const missionNamenRestDoppelt = NAMEN.restDoppelt;
+
+export function missionName(m: Pick<Mission, 'slug' | 'title'>): MissionName {
+  return NAMEN.get(m.slug) ?? { teile: titelTeile(m.title), titel: titelText(titelTeile(m.title)), abgeleitet: false, zusatz: [] };
+}
+/** Unterscheidende Merkmale als eine Zeile: „Hydrogen · 1 Abholort, 2 Ziele" (leer, wenn der Titel allein eindeutig ist). */
+export const missionZusatz = (m: Pick<Mission, 'slug' | 'title'>, lang: Locale) => zusatzText(missionName(m), lang);
+/**
+ * Titel und Zusatz in einer Zeile, fuer <title>, Suchtreffer und Listen
+ * anderer Seiten: „Hauler Needed for Small Shipment (Hydrogen · 1 Abholort,
+ * 2 Ziele)". Ohne Zusatz nur der Titel.
+ */
+export function missionVollname(m: Pick<Mission, 'slug' | 'title'>, lang: Locale): string {
+  const n = missionName(m);
+  const z = zusatzText(n, lang);
+  return z ? `${n.titel} (${z})` : n.titel;
+}
+/** Suchwoerter einer Mission: Titel, Zusatz in beiden Sprachen, Vorlage ohne Klammern. */
+export function missionSuchwoerter(m: Mission): string {
+  const n = missionName(m);
+  return [n.titel, zusatzText(n, 'en'), zusatzText(n, 'de'), m.title.replace(/\{([^}]*)\}/g, (_, t) => deCamelTitel(t))].join(' ');
+}
+
+/* ---------- Orte und Regionen lesbar (UX-Audit F2) ---------- */
+// Fuer Stationen in Pyro fuehren die Spieldaten teils nur eine Kennung
+// („RR_P1_L2_CLINIC" = Klinik der Raststation am Lagrange-Punkt L2 von
+// Pyro I). Kennt die Ortsliste die Station (rr-p3-l1 = Starlight Service
+// Station), steht ihr Name da; sonst der Name, den das Spiel fuer den Punkt
+// selbst benutzt („PYR1 L2"), bzw. der Planet fuer die Station im niedrigen
+// Orbit („Monox LEO"). „Clinic" bleibt englisch wie „Checkmate Clinic" in
+// denselben Daten.
+const ORT_BY_ID = new Map(db.localities.map((l) => [l.id, l.name]));
+export function ortName(p: string): string {
+  const x = /^RR_P(\d)_(L\d|LEO)(_CLINIC)?$/.exec(p);
+  if (!x) return p;
+  const station = ORT_BY_ID.get(`rr-p${x[1]}-${x[2].toLowerCase()}`)
+    ?? (x[2] === 'LEO' ? `${ORT_BY_ID.get(`pyro${x[1]}`) ?? `PYR${x[1]}`} LEO` : `PYR${x[1]} ${x[2]}`);
+  return x[3] ? `${station} Clinic` : station;
+}
+
+// Die vier Pyro-Regionen der Contracts: welche Planeten dazugehoeren, steht
+// in ihrer Ortsliste. „Region B" sagt Spielern ohne das nichts.
+const PYRO_PLANETEN = new Set((db.localities.find((l) => l.id === 'pyrostar')?.places ?? []).filter((p) => !/^Pyro( System)?$/.test(p)));
+const REGION_HINWEIS = new Map<string, string[]>();
+for (const l of db.localities) {
+  if (!/^region[a-d]$/.test(l.id)) continue;
+  REGION_HINWEIS.set(l.name, l.places.filter((p) => PYRO_PLANETEN.has(p)));
+}
+const undListe = (pl: string[], lang: Locale) =>
+  pl.length > 1 ? `${pl.slice(0, -1).join(', ')} ${lang === 'de' ? 'und' : 'and'} ${pl[pl.length - 1]}` : pl[0];
+/** „Region B" -> „Pyro, um Bloom" (null fuer Orte, die sich selbst erklaeren). */
+export function regionHinweis(name: string, lang: Locale): string | null {
+  const pl = REGION_HINWEIS.get(name);
+  if (!pl || !pl.length) return null;
+  return lang === 'de' ? `Pyro, um ${undListe(pl, lang)}` : `Pyro, around ${undListe(pl, lang)}`;
+}
+/**
+ * Erklaerung fuer alle Pyro-Regionen einer Mission in EINEM Satz, nach
+ * Buchstaben sortiert: „Region B liegt in Pyro, um Bloom." bzw. bei mehreren
+ * „Pyro-Regionen: A um Pyro I und Monox · B um Bloom". null ohne Region.
+ */
+export function regionenHinweis(names: string[], lang: Locale): string | null {
+  const r = [...new Set(names)].filter((n) => REGION_HINWEIS.get(n)?.length).sort();
+  if (!r.length) return null;
+  if (r.length === 1) {
+    const pl = undListe(REGION_HINWEIS.get(r[0])!, lang);
+    return lang === 'de' ? `${r[0]} liegt in Pyro, um ${pl}.` : `${r[0]} is in Pyro, around ${pl}.`;
+  }
+  const teile = r.map((n) => `${n.replace(/^Region /, '')} ${lang === 'de' ? 'um' : 'around'} ${undListe(REGION_HINWEIS.get(n)!, lang)}`);
+  return `${lang === 'de' ? 'Pyro-Regionen' : 'Pyro regions'}: ${teile.join(' · ')}`;
+}
+
+// Karrierestufen standen in Datenreihenfolge („Junior – Master – Rookie").
+// Jede Gilde hat ihre eigene Leiter; die Woerter darin folgen aber derselben
+// Ordnung. Unbekanntes bleibt in seiner Reihenfolge am Ende.
+const RANG_STUFEN: RegExp[] = [
+  /^Neutral$/, /Applicant|Prospective/, /Trainee|Probationary/, /^Rookie$/, /Jr\.|Junior/,
+  /^Associate$/, /^(?:Member|Contractor|Security Contractor|Guild Member)$/, /Trusted/, /Experienced/,
+  /Sr\.|Senior/, /Veteran/, /Elite/, /Lead/, /Head/, /Master|Steward/, /Prestige/,
+];
+const rangStufe = (r: string) => { const i = RANG_STUFEN.findIndex((re) => re.test(r)); return i < 0 ? RANG_STUFEN.length : i; };
+/** Karrierestufen von niedrig nach hoch („Rookie, Junior, Master"). */
+export function rangFolge(ranks: string[]): string[] {
+  return ranks.map((r, i) => ({ r, i, s: rangStufe(r) })).sort((a, b) => a.s - b.s || (/Prestige/.test(a.r) && /Prestige/.test(b.r) ? a.r.localeCompare(b.r) : a.i - b.i)).map((x) => x.r);
+}
+
+/** Orte und Systeme in Datenreihenfolge, die Pyro-Regionen danach nach Buchstaben (vorher „Region D, Region A, Region B"). */
+export function regionFolge(names: string[]): string[] {
+  return names.map((n, i) => ({ n, i, r: /^Region [A-Z]$/.test(n) ? 1 : 0 }))
+    .sort((a, b) => a.r - b.r || (a.r ? a.n.localeCompare(b.n) : a.i - b.i)).map((x) => x.n);
+}
+
 /* ---------- Format ---------- */
 const NUM = { de: 'de-DE', en: 'en-US' } as const;
 export const uec = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
@@ -158,6 +257,30 @@ export function rewardLabel(m: Mission, lang: Locale): string | null {
   return m.rewardMin === m.rewardMax
     ? uec(m.rewardMax, lang)
     : `${uec(m.rewardMin, lang)} – ${uec(m.rewardMax, lang)}`;
+}
+
+/**
+ * Belohnung als Anzeige (UX-Audit F3). 829 Missionen fuehren keine feste
+ * Zahl: der Lohn entsteht beim Annehmen aus der Schwierigkeit. Dort stand
+ * „wird zur Laufzeit berechnet" — richtig, aber keine Antwort. Jetzt
+ * „variiert" mit dem Grund als Hinweis; feste Betraege und Spannen wie
+ * bisher. `zahl` sagt, ob ein Betrag dasteht (fuer die Zahlschrift).
+ */
+export function belohnung(m: Pick<Mission, 'rewardMin' | 'rewardMax' | 'calcReward'>, lang: Locale): { text: string; zahl: boolean; hinweis: string | null } {
+  if (m.rewardMax) {
+    const t = m.rewardMin !== m.rewardMax ? `${uec(m.rewardMin, lang)} – ${uec(m.rewardMax, lang)}` : uec(m.rewardMax, lang);
+    return { text: `${t} aUEC`, zahl: true, hinweis: null };
+  }
+  if (m.calcReward) {
+    return lang === 'de'
+      ? { text: 'variiert', zahl: false, hinweis: 'Den Lohn berechnet das Spiel beim Annehmen aus der Schwierigkeit — eine feste Zahl gibt es nicht.' }
+      : { text: 'varies', zahl: false, hinweis: 'The game sets the payout when you accept, based on difficulty — there is no fixed number.' };
+  }
+  // 155 Missionen nennen weder Betrag noch Berechnung (Bergungsrechte,
+  // Notrufbaken, Beutezuege). „keine" behauptete mehr, als die Daten sagen.
+  return lang === 'de'
+    ? { text: 'nicht genannt', zahl: false, hinweis: 'Der Auftrag nennt keinen Betrag in aUEC.' }
+    : { text: 'not listed', zahl: false, hinweis: 'The contract lists no aUEC amount.' };
 }
 
 /** Vergleichsoperator der Reputationsbedingung, sprachneutral als Zeichen. */
@@ -232,61 +355,35 @@ export function bpCount(m: Mission): number {
 }
 
 /* ---------- SEO-Meta (Titel/Description ohne rohe Platzhalter) ---------- */
-// 227 Missionstitel tragen Laufzeit-Platzhalter ({TargetName}, {ReputationRank},
-// …). Auf der SEITE bleiben sie als gestylte Marker sichtbar (Ehrlichkeit),
-// aber in <title>/og:title/meta description stuende sonst rohes CamelCase —
-// "Bounty Assignment: TargetName (HRT)" sieht in Suchergebnissen kaputt aus.
-// Kuratiertes Woerterbuch fuer die Titel-Slots; Fallback ist CamelCase-Split.
-const PH_TITLE: Record<string, string> = {
-  // Bounty-/Vermissten-Familien: das Spiel setzt einen NPC-Namen ein
-  targetname: 'Target',
-  last: 'Target', // {Last} = Nachname des Ziels
-  // Orts-Slots, die nicht schon selbst lesbar sind ({Location} bleibt via Split)
-  defendlocationwrapperlocation: 'Location',
-  address: 'Location',
-  // D-03 (Slot-Art erhalten statt kollabieren, Phase 18 Plan 02): die vier
-  // Ortsarten, die braces() in scripts/datamine-missions.mjs jetzt aus dem
-  // ersten statt dem letzten Trennsegment bildet ({PlayLocation}/
-  // {Destination}/{PickupLocation}/{DropoffLocation} statt {Address}).
-  playlocation: 'Location',
-  destination: 'Destination',
-  pickuplocation: 'Pickup Location',
-  dropofflocation: 'Dropoff Location',
-  racetype: 'Race',
-  // Rang-/Frachtklassen-/Lohn-Slots: ersatzlos — der Satz traegt ohne sie
-  // ("{ReputationRank} Hauler Needed for {CargoGradeToken} Shipment"
-  //  -> "Hauler Needed for Shipment")
-  reputationrank: '',
-  cargogradetoken: '',
-  reward: '',
-  // Recovery-/Delivery-Familien tragen den ganzen Titel im Token
-  timesensitiverecovertitle: 'Time-Sensitive Recovery',
-  recoverstashtitle: 'Stash Recovery',
-  recoverstashstealtitle: 'Stash Recovery',
-  localdeliverydrugprodtitle: 'Local Delivery',
-  // Einzelfall "{Title} ({Item})" (mission-station-wastedisposal, Typ maintenance)
-  title: 'Maintenance',
-  item: '',
-};
+// 247 Missionstitel tragen Laufzeit-Platzhalter ({TargetName}, {ReputationRank},
+// …). Seit dem UX-Audit (24.11.2026, F1) stehen sie nirgends mehr als
+// Kaestchen im Titel: missionTitel.ts setzt bekannte Werte ein, laesst
+// Rang/Lohn ersatzlos fallen und schreibt den Rest als allgemeines Wort
+// („Target", „Location"). Die Vorlage mit Marken zeigt nur noch der Hinweis
+// auf der Detailseite (Ehrlichkeitsregel).
 
 /** "CargoGradeToken" -> "Cargo Grade Token"; "location" -> "Location". */
-const deCamel = (s: string) =>
-  s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^[a-z]/, (c) => c.toUpperCase());
+const deCamel = deCamelTitel;
+
+// Beschriftung der Marken in der Vorlage (Hinweis auf der Detailseite).
+const PH_LABEL: Record<string, string> = {
+  targetname: 'Target', last: 'Target',
+  defendlocationwrapperlocation: 'Location', address: 'Location', playlocation: 'Location',
+  pickuplocation: 'Pickup Location', dropofflocation: 'Dropoff Location',
+  racetype: 'Race', reputationrank: 'Reputation Rank', reward: 'Reward',
+};
 
 /**
- * Lesbare Beschriftung einer Chip-Marke (D-03, Phase 18 Plan 02) — erst
- * PH_TITLE, sonst deCamel(). Anders als seoTitle() darf sie NICHT ersatzlos
- * loeschen: Marken mit leerem PH_TITLE-Wert (z.B. "reward") sind fuer den
- * Suchmaschinentitel verzichtbar, bleiben aber auf der Seite selbst als
- * sichtbarer Marker stehen — die Ehrlichkeitsregel hinter PH_TITLE.
+ * Lesbare Beschriftung einer Marke in der Titel-Vorlage (D-03, Phase 18
+ * Plan 02) — erst PH_LABEL, sonst deCamel(). Ersatzlos geloescht wird hier
+ * nichts: die Vorlage zeigt jede Stelle, die das Spiel fuellt.
  */
 export function phLabel(marke: string): string {
   const k = String(marke).toLowerCase();
   // „Token" ist Entwickler-Wort, kein Spielbegriff — die Marke zeigt die Sache
   // (03.11.2026: „Cargo Grade Token" stand in 78 Titeln).
   if (k === 'cargogradetoken') return 'Cargo Grade';
-  const v = PH_TITLE[k];
-  return v ? v : deCamel(marke);
+  return PH_LABEL[k] ?? deCamel(marke);
 }
 
 /** Missionstitel ohne den Laufzeit-Platzhalter am Ende („Target Shattered Blade: {TargetName}" -> „Target Shattered Blade"). */
@@ -294,21 +391,14 @@ export function kurztitel(title: string): string {
   return String(title).replace(/[\s:,–—-]*\{[^}]*\}\s*$/, '');
 }
 
-/** Missionstitel fuer <title>/og — Platzhalter ersetzt, Trenner aufgeraeumt. */
+/**
+ * Missionstitel ohne Klammern, nur aus dem Titeltext (wer nur den Titel hat,
+ * z. B. Bauplan-Seiten und Suche): Platzhalter wie in missionTitel.ts. Wer
+ * die Mission hat, nimmt missionVollname() — der kennt Frachtklasse und
+ * Unterscheider.
+ */
 export function seoTitle(title: string): string {
-  const fest = String(title).replace(/\{[^}]*\}/g, ' ');
-  // Steht das Ersatzwort schon im festen Titel, faellt der Slot weg:
-  // "Target Shattered Blade: {TargetName}" -> "Target Shattered Blade"
-  // statt "Target Shattered Blade: Target".
-  const schonDa = (w: string) => !!w && new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(fest);
-  return String(title)
-    .replace(/\{([^}]*)\}/g, (_, t) => {
-      const w = PH_TITLE[t.toLowerCase()] ?? deCamel(t);
-      return schonDa(w) ? '' : w;
-    })
-    .replace(/\(\s*\)/g, ' ') // leere Klammerpaare nach ersatzlosen Slots
-    .replace(/\s{2,}/g, ' ')
-    .replace(/^[\s,:–—-]+|[\s,:–—-]+$/g, '');
+  return titelText(titelTeile(title));
 }
 
 /**
@@ -335,9 +425,9 @@ export function searchText(m: Mission): string {
     // desc nur als Anfang: die vollen DataCore-Briefe (bis ~2 KB) standen hier
     // komplett drin und machten den Missionen-Index zur 3,7-MB-Seite. Gesucht
     // wird realistisch nach Titel/Namen/Orten — 200 Zeichen Brieftext reichen.
-    m.title, m.desc ? clip(seoText(m.desc), 200) : '',
+    missionSuchwoerter(m), m.desc ? clip(seoText(m.desc), 200) : '',
     ...m.typeNames, ...m.giverNames, ...m.factionNames,
-    ...m.localityNames, ...m.places.slice(0, 12),
+    ...m.localityNames, ...m.places.slice(0, 12).map(ortName),
     ...m.titleVariants.map((v) => `${v.org} ${v.text}`),
     ...m.guilds, ...m.orgs,
     ...m.blueprints.flatMap((p) => p.blueprints.map((b) => b.name)).slice(0, 30),

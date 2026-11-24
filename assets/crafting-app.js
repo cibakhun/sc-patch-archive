@@ -9,6 +9,13 @@
   var ICONS = CFG.icons || {}; // inline-SVG-Strings aus src/lib/icons.ts
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
+  // Wertnamen („Recoil Smoothness“) und Pfadglieder („Vehiclegear“) in der
+  // Sprache der Seite (src/i18n/craftingWerte.ts). Auf EN fehlen die
+  // Tabellen, dann bleibt der Name aus dem Rezept stehen.
+  var WERTE = CFG.werte || {};
+  var GLIEDER = CFG.glieder || {};
+  function wertName(s) { return WERTE[s] || s; }
+  function pfadName(p) { return String(p || '').split(' / ').map(function (g) { return GLIEDER[g] || g; }).join(' / '); }
 
   // ---- Werkbank (Skizze 016-3; seit der Abnahme am 13.11.2026 die Crafting-Seite) ----
   // Dasselbe Werkzeug, anders gestellt: das Rezept steht als feste Mitte
@@ -224,8 +231,11 @@
     d.name = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
     var catEl = $('.cbp__cat', card);
     var subEl = catEl && catEl.querySelector('em');
-    d.sub = subEl ? subEl.textContent.trim() : '';
-    d.cat = catEl && catEl.firstChild ? String(catEl.firstChild.nodeValue || '').trim() : '';
+    // Schluessel fuer Filter (data-top/data-sub, englisch wie die Haken), die
+    // sichtbare Fassung in der Sprache der Seite zusaetzlich fuer die Suche.
+    d.sub = catEl && catEl.dataset.sub != null ? catEl.dataset.sub : subEl ? subEl.textContent.trim() : '';
+    d.cat = catEl && catEl.dataset.top ? catEl.dataset.top : catEl && catEl.firstChild ? String(catEl.firstChild.nodeValue || '').trim() : '';
+    d.catText = catEl ? catEl.textContent.trim().toLowerCase() : '';
     d.mis = $('.cbp__mis', card) ? '1' : '0';
     var ings = 0;
     if (WB) {
@@ -264,7 +274,7 @@
     // ein einzelner Chip, bleibt das Feld leer statt eines Ersatzwerts (D-06).
     $$('.cbp__spec li', card).forEach(function (li) {
       var txt = li.textContent.trim();
-      if (li.classList.contains('tone')) { d.tone = txt.toLowerCase(); return; }
+      if (li.classList.contains('tone')) { d.tone = (txt + (li.dataset.roh ? ' ' + li.dataset.roh : '')).toLowerCase(); return; }
       // Der Groessen-Chip traegt EINE oder MEHRERE Groessen ("S4" bzw.
       // "S3 / S4 / S6") — hinter manchen Anzeigenamen stecken mehrere
       // Spiel-Items verschiedener Groesse. Alle ins dataset, damit die Karte
@@ -920,6 +930,7 @@
       // bleibt aber ueber die Freitextsuche auffindbar.
       if (d.name.indexOf(q) < 0 && d.res.indexOf(q) < 0 && (d.leaf || '').indexOf(q) < 0 &&
         (d.sub || '').toLowerCase().indexOf(q) < 0 && (d.cat || '').toLowerCase().indexOf(q) < 0 &&
+        (d.catText || '').indexOf(q) < 0 &&
         (d.tone || '').indexOf(q) < 0) return false;
     }
     var catKeys = Object.keys(state.cats).filter(function (k) { return state.cats[k]; });
@@ -1465,7 +1476,7 @@
         '<span class="wbr-fest__n">' + esc(b.name) + '</span>' +
         '<button type="button" class="wbr-fest__p" data-plan="' + i + '">' + wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span></button></div></div>' +
       '<div class="wbr-kopf" data-cat="' + gruppe + '"><div class="wbr-emb" aria-hidden="true">' + WB_RING + wg(g) + '</div>' +
-        '<div class="wbr-kopf__t"><div class="cbm__cat wbr-pfad">' + wbPfad(b.category) + '</div><h2 class="cbm__name">' + esc(b.name) + '</h2>' +
+        '<div class="wbr-kopf__t"><div class="cbm__cat wbr-pfad">' + wbPfad(pfadName(b.category)) + '</div><h2 class="cbm__name">' + esc(b.name) + '</h2>' +
         (marken ? '<ul class="wbr-chips">' + marken + '</ul>' : '') + '</div></div>' +
       '<div class="wbr-kenn">' + feld('clock', tr('craftTime', 'Craft-Zeit'), fmtTime(b.craft_time_seconds)) +
         (b.tiers != null ? feld('tier', tr('tier', 'Tier'), b.tiers) : '') +
@@ -1499,7 +1510,7 @@
       html += '<div class="cbm__meta">';
       html += '<button type="button" class="cbm__plan" data-plan="' + i + '">' + wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span></button>';
     } else {
-      html += '<div class="cbm__cat">' + esc(b.category || '') + '</div>';
+      html += '<div class="cbm__cat">' + esc(pfadName(b.category)) + '</div>';
       html += '<h2 class="cbm__name">' + esc(b.name) + '</h2>';
       html += '<div class="cbm__meta">';
       html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
@@ -1529,7 +1540,7 @@
           var wirk = [];
           (ing.quality_effects || []).forEach(function (qe) { if (qe.stat && wirk.indexOf(qe.stat) < 0) wirk.push(qe.stat); });
           html += '<div class="wbi-kopf"><div class="cbm__slot">' + esc(ing.slot || '') + '</div>' +
-            (wirk.length ? '<span class="wbi-wirk">' + wirk.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</span>' : '') + '</div>';
+            (wirk.length ? '<span class="wbi-wirk">' + wirk.map(function (x) { return '<span>' + esc(wertName(x)) + '</span>'; }).join('') + '</span>' : '') + '</div>';
         } else html += '<div class="cbm__slot">' + esc(ing.slot || '') + '</div>';
         (ing.options || []).forEach(function (o) {
           // Zutatenname ist der Sprung zum Fundort — genau hier steht man, wenn
@@ -1627,7 +1638,7 @@
         if (oc.getAttribute('data-z') !== keys.join('|')) {
           oc.innerHTML = keys.map(function (k) {
             var e = perStat[k];
-            return '<div class="wbo"><span class="wbo__k">' + esc(k) + (e.hasMul && e.base == null ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
+            return '<div class="wbo"><span class="wbo__k">' + esc(wertName(k)) + (e.hasMul && e.base == null ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
               '<span class="wbo__v">' + (e.hasMul ? '<span class="cbm__b0"></span>' + wi('arrow') : '') + '<span class="cbm__b1"></span>' + (e.hasMul ? '<em></em>' : '') + '</span>' +
               '<div class="wbo__bar" aria-hidden="true"><i class="wbo__fill"></i><i class="wbo__null"></i></div></div>';
           }).join('');
@@ -1665,13 +1676,13 @@
           if (indexed) anyIndexed = true;
           var result = base * e.mul;
           var pct = Math.round((e.mul - 1) * 1000) / 10;
-          return '<div class="cbm__ostat"><span>' + esc(k) + (indexed ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
+          return '<div class="cbm__ostat"><span>' + esc(wertName(k)) + (indexed ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
             '<b><span class="cbm__b0">' + fmtSmart(base) + '</span> → <span class="cbm__b1">' + fmtSmart(result) + '</span> ' +
             '<em>(' + (pct >= 0 ? '+' : '') + pct.toLocaleString(LOC) + '%)</em></b></div>';
         }
         // additive (base unbekannt) → Delta
         var d = roundSmart(e.add);
-        return '<div class="cbm__ostat"><span>' + esc(k) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + fmtSmart(e.add) + '</span></b></div>';
+        return '<div class="cbm__ostat"><span>' + esc(wertName(k)) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + fmtSmart(e.add) + '</span></b></div>';
       }).join('');
       if (noteEl) {
         noteEl.innerHTML = tr('simNote', 'Die Werte folgen der Qualität der Zutaten (0–1000), je nach Wert als Faktor auf den Grundwert oder als Zuschlag.') +
@@ -1746,7 +1757,7 @@
     e.pool.forEach(function (p) {
       var b = DB.blueprints[p.i];
       var dc = p.dc != null ? Math.round(p.dc * 100) + '%' : '';
-      var cat = (b.category || '').split(' / ').slice(0, 2).join(' / ');
+      var cat = pfadName((b.category || '').split(' / ').slice(0, 2).join(' / '));
       var karte = WB ? KARTE_BY_I[p.i] : null;
       if (WB) html += '<li data-cat="' + esc(karte ? karte.dataset.cat : '') + '"><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
         wg(karte ? karte.getAttribute('data-g') : null) +
