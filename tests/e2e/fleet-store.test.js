@@ -480,6 +480,27 @@ test('meldet sich ein anderes Konto an, verlässt der Spiegel des vorigen den Br
   assert.deepEqual(tab.snapshot(), { ids: ['anvl-arrow'], mode: 'account', sync: 'synced', error: null, merged: 0 });
 });
 
+test('ein Kontowechsel mitten im Abgleich meldet sich, auch wenn der Schnappschuss gleich aussieht', async () => {
+  // Die Pilotenseite prüft bei jeder Meldung owner(): bliebe sie aus, gälte
+  // die Prüfung des vorigen Kontos weiter („Habt ihr beide“ auf der eigenen Seite).
+  const b = makeBrowser({ session: 'user-1' });
+  b.server.hold('GET');
+  const tab = b.open();
+  await b.drain();
+  const before = tab.snapshot();
+  assert.equal(before.sync, 'syncing', 'der erste Abgleich hängt');
+  const owners = [];
+  tab.fleet.subscribe(() => owners.push(tab.fleet.owner()));
+  owners.length = 0;
+  b.signIn('user-2');
+  await b.drain();
+  assert.equal(tab.fleet.owner(), 'user-2');
+  assert.deepEqual(tab.snapshot(), before, 'Liste, Modus und Abgleich sehen gleich aus');
+  assert.equal(owners.at(-1), 'user-2', 'die Abonnenten erfahren vom neuen Konto');
+  b.server.release();
+  await b.settle();
+});
+
 test('toggle() im Konto antwortet erst, wenn der Schreibversuch gelaufen ist', async () => {
   const b = makeBrowser({ session: 'user-1' });
   const tab = b.open();
