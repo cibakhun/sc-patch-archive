@@ -816,6 +816,12 @@
     ei  Buchten vom Stand vor P20 (Mining-Laser unter Pilotenwaffen
         und bemannten Türmen): 20 Abweichungen in 8 Buchten je
         Sprache, Mole mit drei Turm-Lasern                          -> [26]
+    ej  dist/de/hangar-bay/misc-prospector.html mit „2 von 999
+        laufen“ an der Schildsumme (1 Abweichung: die Gesamtzahl
+        der Generatoren zählt mit)                                  -> [25]
+    ek  dort data-g="shield" umbenannt (1 Abweichung, 423 statt 424
+        Buchten mit Schild: Schildgruppe fehlt, obwohl 2 von 3
+        laufen)                                                     -> [25]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3631,7 +3637,7 @@ const SCHILD = { schiffe: 188, mehr: 31 };
   if (!act || typeof act !== 'object') fail('[25] dist/hangar-layouts.json traegt kein shieldAct: Werkstatt und Loadout zaehlten wieder jeden Generator');
   const schiffswert = new Map(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.map((v) => [v.id, v.shieldHp]));
   let schiffe = 0, mehr = 0, buchten = 0;
-  const bad = [], ohneSerie = [];
+  const bad = [], ohneSerie = [], gesamt = new Map();
   if (lib && (typeof lib.groupTotals !== 'function' || typeof lib.shipSlots !== 'function' || typeof lib.activeShields !== 'function')) {
     fail('[25] dist/assets/hangar-layouts.js liefert groupTotals, shipSlots und activeShields nicht mehr');
     lib = null;
@@ -3640,31 +3646,40 @@ const SCHILD = { schiffe: 188, mehr: 31 };
     for (const [id, rows] of Object.entries(ld.ships ?? {})) {
       const slots = lib.shipSlots(rows).filter((x) => x.group === 'shield');
       if (!slots.length) continue;
+      const n = slots.reduce((a, x) => a + x.count, 0);
+      gesamt.set(id, n);
       // Ohne Serienteil an einem Generator hat die Werkstatt keine Serie zu
       // summieren; das ist eine Luecke der Teileliste, kein Widerspruch der
       // Regel. Gezaehlt und genannt, die Klinke haelt den Rest.
       if (slots.some((x) => !ld.items?.[x.stock])) { ohneSerie.push(id); continue; }
       schiffe++;
-      const n = slots.reduce((a, x) => a + x.count, 0);
       if (act[id]) mehr++;
       const serie = lib.groupTotals(slots, {}, ld.items ?? {}, null, null, act[id] ?? 0).get('shield')?.stock ?? 0;
       const soll = schiffswert.get(id);
       if (typeof soll !== 'number') bad.push(`${id}: ${n} Generatoren in der Werkstatt, aber kein Schildwert des Schiffs`);
       else if (Math.abs(serie - soll) > 0.5) bad.push(`${id}: in Serie ${serie} HP aus ${n} Generatoren (${act[id] ? `es laufen ${act[id]}` : 'alle zaehlen'}), das Schiff ${soll} HP`);
     }
-    // Die Bucht: der Zusatz an der Schildsumme genau dort, wo shieldAct steht, mit derselben Zahl
+    // Die Bucht: der Zusatz an der Schildsumme genau dort, wo shieldAct steht,
+    // mit beiden Zahlen der Werkstatt („2 von 3 laufen“ / „2 of 3 running“).
+    // Fehlt die Schildgruppe einer Bucht, deren Schiff laufende Generatoren
+    // hat, ist das ebenso ein Befund wie ein falscher Zusatz.
     for (const lang of ['en', 'de']) {
       for (const b of BAYS[lang]) {
         const html = readFileSync(join(DIST, b.file), 'utf8');
         const i = html.indexOf('data-g="shield"');
-        if (i < 0) continue;
+        const a = act[b.name] ?? 0;
+        const m = gesamt.get(b.name);
+        if (i < 0) {
+          if (a) bad.push(`${b.file}: keine Schildgruppe, obwohl in der Werkstatt ${a} von ${m ?? '?'} Generatoren laufen`);
+          continue;
+        }
         buchten++;
         const kopf = html.slice(i, html.indexOf('</h3>', i));
         const zusatz = /<small> · ([^<]*)<\/small>/.exec(kopf)?.[1] ?? null;
-        const a = act[b.name] ?? 0;
+        const z = zusatz ? /^(\d+)\D+(\d+)\D*$/.exec(zusatz) : null;
         if (!a && zusatz) bad.push(`${b.file}: Zusatz „${zusatz}“ an der Schildsumme, aber in der Werkstatt zaehlen alle Generatoren`);
-        else if (a && !zusatz) bad.push(`${b.file}: es laufen ${a} Generatoren, die Bucht sagt es nicht`);
-        else if (a && !zusatz.startsWith(`${a} `)) bad.push(`${b.file}: Zusatz „${zusatz}“, in der Werkstatt laufen ${a}`);
+        else if (a && !zusatz) bad.push(`${b.file}: es laufen ${a} von ${m ?? '?'} Generatoren, die Bucht sagt es nicht`);
+        else if (a && (!z || Number(z[1]) !== a || Number(z[2]) !== m)) bad.push(`${b.file}: Zusatz „${zusatz}“, in der Werkstatt laufen ${a} von ${m ?? '?'}`);
       }
     }
   }
