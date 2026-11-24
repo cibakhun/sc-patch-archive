@@ -69,6 +69,9 @@
     if (item.obtain.length > 0) return true;
     if (item.guide) return true;
     var g = item.game;
+    // Mehrdeutige Namen tragen ihre Werte je Ausfuehrung in variants (wie
+    // isIndexable): auch sie haben ein Datenblatt.
+    if (g && g.variants && g.variants.length) return true;
     if (!g || !g.stats) return false;
     for (var k in g.stats) if (Object.prototype.hasOwnProperty.call(g.stats, k)) return true;
     return false;

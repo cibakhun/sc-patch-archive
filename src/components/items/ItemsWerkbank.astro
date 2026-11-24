@@ -156,13 +156,13 @@ const allePfad = href('/items-werkbank.html', lang);
 
   <div class="wz-bar">
     <button class="wz-knopf wz-filterknopf" id="wz-filterknopf" type="button" aria-expanded="false" aria-controls="wz-schublade" data-offcanvas-toggle="wz-schublade"><span class="wi wi--filter" aria-hidden="true"></span>{W.filter}</button>
-    <label class="wz-suche" id="wz-suche">
-      <span class="wz-sr">{W.sucheLabel}</span>
+    <div class="wz-suche" id="wz-suche">
+      <label class="wz-sr" for="wz-q">{W.sucheLabel}</label>
       <span class="wi wi--search" aria-hidden="true"></span>
       <input type="search" id="wz-q" placeholder={W.suche} autocomplete="off" spellcheck="false" enterkeyhint="search" />
       <kbd aria-hidden="true">/</kbd>
       <button class="wz-leeren" id="wz-leeren" type="button" aria-label={W.leeren}><span class="wi wi--close" aria-hidden="true"></span></button>
-    </label>
+    </div>
     <label class="wz-sort">
       <span class="wz-sr">{W.sortLabel}</span>
       <select id="wz-sort">
@@ -188,6 +188,9 @@ const allePfad = href('/items-werkbank.html', lang);
     {baum.map((g) => (
       <div class="wz-gr" data-root={g.root} style={`--kc:${g.farbe}`}>
         <button class="wz-gr__kopf" type="button" data-gruppe={g.slug} aria-expanded="false"><span class="wz-z" data-g={g.g} aria-hidden="true"></span><span title={g.name}>{g.name}</span><em>{n(g.n)} {W.nItems}</em><span class="wi wi--chev" aria-hidden="true"></span></button>
+        {/* Ohne Skript klappt nichts: dann steht statt des Knopfs diese
+            Ueberschrift da (noscript-Regel unten). */}
+        <p class="wz-gr__titel" hidden><span class="wz-z" data-g={g.g} aria-hidden="true"></span><span>{g.name}</span><em>{n(g.n)} {W.nItems}</em></p>
         <ul class="wz-gr__liste">
           {g.blaetter.map((b) => (
             <li><a href={href(`/items/category/${b.slug}.html`, lang)} data-kat={b.slug}><span>{b.name}</span><em>{n(b.n)}</em></a></li>
@@ -205,7 +208,7 @@ const allePfad = href('/items-werkbank.html', lang);
         Listen (unter 1180 px dort, wo sonst die Chips stehen); Suche und
         Treffer brauchen das Skript und sagen das. */}
     <noscript>
-      <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf .wi--chev,.wz-gitter,.wz-chips{display:none!important}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
+      <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
       <p class="wz-ohne-js">{W.ohneJs}</p>
     </noscript>
     <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true">

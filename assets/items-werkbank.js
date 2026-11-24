@@ -70,6 +70,9 @@
     if (it.obtain.length > 0) return true;
     if (it.guide) return true;
     var g = it.game;
+    // Mehrdeutige Namen tragen ihre Werte je Ausfuehrung in variants (wie
+    // isIndexable): auch sie haben ein Datenblatt.
+    if (g && g.variants && g.variants.length) return true;
     if (!g || !g.stats) return false;
     for (var k in g.stats) if (Object.prototype.hasOwnProperty.call(g.stats, k)) return true;
     return false;
@@ -995,6 +998,11 @@
     var erzA = erzVon(it);
     if (it._page) {
       h += '<a class="wzb-haupt" href="' + esc(itemUrl(it)) + '"><span class="wi wi--sheet" aria-hidden="true"></span>' + esc(w('datenblatt')) + '</a>';
+    }
+    // Erze verweisen immer auf die Mining-Seite (die Quellen darunter sagen
+    // das); hat das Erz ein Datenblatt, steht der Verweis als Nebenlink.
+    if (erzA && it._page) {
+      h += '<a class="wzb-neben" href="' + esc(erzA.url) + '"><span>' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>';
     } else if (erzA) {
       h += '<a class="wzb-haupt" href="' + esc(erzA.url) + '"><span class="wi wi--mining" aria-hidden="true"></span>' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + '</a>';
     }
@@ -1335,6 +1343,16 @@
     // bis hierher, siehe dort). Sonst verfaellt ein wartender Schreibvorgang.
     if (eigenes) schreibeUrl();
     else clearTimeout(urlTimer);
+    // Noch vor dem Katalog: was er nach dem Laden oeffnet, kommt jetzt aus
+    // dem Eintrag, auf dem man steht, nicht mehr aus dem beim Start; die
+    // Filter ebenso. Ohne Navigation bleibt es beim Tieflink und bei dem,
+    // was man waehrend des Ladens getippt hat.
+    if (!bereit) {
+      var pw = new URLSearchParams(location.search);
+      wunsch = { item: pw.get('item'), satz: pw.get('satz') };
+      if (!eigenes) filterAusAdresse();
+      return;
+    }
     var offen = el.blatt.classList.contains('is-offen');
     if (!eigenes && bereit && filterAusAdresse()) anwenden({ ohneUrl: true });
     if (!(e.state && e.state.wzBlatt)) {
@@ -1533,6 +1551,10 @@
   el.aktiv.addEventListener('click', function (e) {
     var c = e.target.closest('[data-weg]');
     if (!c) return;
+    // Der Chip verschwindet beim Neuzeichnen; hatte er den Fokus, geht der
+    // an den Chip, der jetzt an seiner Stelle steht, sonst an den Filterknopf.
+    var fokus = c.contains(document.activeElement);
+    var pos = Array.prototype.indexOf.call(el.aktiv.querySelectorAll('[data-weg]'), c);
     var k = c.getAttribute('data-weg');
     if (k === 'kat') { S.gruppe = null; S.blatt = null; }
     else if (k === 'set') S.set = null;
@@ -1541,6 +1563,11 @@
     else if (k === 'pk') S.pk = null;
     else if (k === 'sel') S.sel = null;
     anwenden();
+    if (fokus) {
+      var rest = el.aktiv.querySelectorAll('[data-weg]');
+      var ziel = rest[Math.min(pos, rest.length - 1)] || (el.fk.offsetParent ? el.fk : el.q);
+      try { ziel.focus({ preventScroll: true }); } catch (e2) {}
+    }
   });
   function allesZurueck() {
     S.gruppe = null; S.blatt = null; S.set = null; S.art = 'all'; S.gr = null; S.pk = null; S.sel = null;
