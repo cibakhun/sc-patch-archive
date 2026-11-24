@@ -21,6 +21,11 @@ import { patchesMentioning } from '../lib/patchMentions';
 import Item3d from './Item3d.astro';
 import { item3dFor } from '../lib/item3d';
 import { HAS_HANGAR } from '../lib/seo';
+import { bwT } from '../i18n/bezugswegeText';
+import { fill } from '../i18n/itemText';
+import { auec } from '../lib/items';
+import { bezugswege } from '../lib/bezugswege';
+import { wikeloBlueprintTrades } from '../lib/itemLinks';
 
 interface Props { bp: BlueprintEntry; lang: Locale }
 const { bp, lang } = Astro.props;
@@ -67,6 +72,24 @@ const dmgRes = stats.damage_resistance;
 // formatResist ist dieselbe Funktion, die das Item-Datenblatt benutzt — gleiche
 // Rechnung, gleiche Kanal-Labels in beiden Sprachen.
 const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
+
+// Ohne Missionsquelle (UX-Audit Paket D2, 940 von 1.634 Bauplaenen): ehrlich
+// „Quelle unbekannt" statt der Vermutung „evtl. über Shop oder Reputation",
+// dazu was man stattdessen tun kann. Wikelo-Tausch ist ein bekannter Weg.
+const bt = bwT(lang);
+const wikeloBp = wikeloBlueprintTrades(bp.name);
+const wikeloBpHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(`${bp.name} Blueprint`)}`;
+const itemWege = (() => {
+  if (missions.length > 0 || !linkedItem) return [];
+  const w = bezugswege(linkedItem);
+  const out: string[] = [];
+  if (w.kaufen) out.push(fill(bt('bpNextItemBuy'), { p: auec(w.kaufen.ab, lang) }));
+  if (w.finden && (w.finden.bestaetigt.length || w.finden.recherche.length)) out.push(bt('bpNextItemFind'));
+  if (w.abWerk.length) out.push(bt('bpNextItemStock'));
+  if (w.wikelo > 0) out.push(bt('bpNextItemWikelo'));
+  return out;
+})();
+const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(Astro.url.pathname).replace(/%2F/g, '/')}`;
 ---
 <DataShell
   lang={lang}
@@ -208,8 +231,8 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   )}
 
   {/* -- Missions-Quellen: verlinkt auf die vorhandenen Missions-Datenblaetter -- */}
-  <section class="dp-sec">
-    <h2>{t('bpMissions')}</h2>
+  <section class="dp-sec" id="missionen">
+    <h2>{missions.length > 0 ? t('bpMissions') : bt('bpSourceTitle')}</h2>
     {missions.length > 0 ? (
       <>
         <div class="dp-tablewrap">
@@ -239,9 +262,26 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
           </table>
         </div>
         <p class="dp-note">{t('bpMissionsNote')}</p>
+        {wikeloBp > 0 && <div class="dp-actions bp-wikelo"><a class="dp-btn" href={wikeloBpHref}>{bt('bpSourceWikelo')} →</a></div>}
       </>
     ) : (
-      <p class="dp-callout">{t('bpNoMissions')}</p>
+      <>
+        {wikeloBp > 0 ? (
+          <>
+            <p class="dp-callout" data-quelle="wikelo">{fill(bt('bpSourceWikeloText'), { patch: craftPatch })}</p>
+            <div class="dp-actions bp-wikelo"><a class="dp-btn" href={wikeloBpHref}>{bt('bpSourceWikelo')} →</a></div>
+          </>
+        ) : (
+          <p class="dp-callout" data-quelle="unbekannt"><b>{bt('bpSourceUnknown')}</b> {fill(bt('bpSourceUnknownText'), { patch: craftPatch })}</p>
+        )}
+        <h3>{bt('bpNextTitle')}</h3>
+        <ul class="dp-next">
+          {itemWege.length > 0 && linkedItem && (
+            <li>{fill(bt('bpNextItem'), { wege: itemWege.join(', ') })} <a href={`${href(itemPath(linkedItem), lang)}#so-bekommst-du-es`}>{bt('bpNextItemOpen')} →</a></li>
+          )}
+          <li>{bt('bpNextReport')} <a href={meldenHref} rel="nofollow" data-hinweis>{bt('report')} →</a></li>
+        </ul>
+      </>
     )}
   </section>
 
@@ -268,3 +308,28 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
     {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>
+
+<style>
+  /* „Was du stattdessen tun kannst" (Paket D2): schlichte Liste im Ton der
+     Huelle, je Zeile ein naechster Schritt mit Link. */
+  .dp-next {
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+    max-width: 72ch;
+  }
+  .dp-next li {
+    position: relative;
+    padding: 0.35rem 0 0.35rem 1.1rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .dp-next li::before {
+    content: '›';
+    position: absolute;
+    left: 0.2rem;
+    color: var(--tone-1);
+  }
+  .dp-next a { white-space: nowrap; }
+  .bp-wikelo { margin-top: 0.8rem; }
+</style>
