@@ -74,6 +74,9 @@
   // halten: nur der Suchindex kam nach, der Treffer nie wegnimmt (er
   // ergaenzt Suchtext). Dann bleiben freigegebene Karten und Rollposition;
   // jede echte Filter- oder Sortieraenderung beginnt wieder bei GRP Karten.
+  // Gibt zurueck, ob es eine solche Aenderung war (Stand wie zuletzt, etwa
+  // dieselbe Suche noch einmal, zaehlt nicht).
+  var zuletzt = null;
   function apply(halten) {
     halten = halten === true;
     var toks = (q.value || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -83,6 +86,9 @@
     var vGiver = kFor === 'giver' ? idFor : '', vFaction = kFor === 'faction' ? idFor : '';
     var vGuild = kFor === 'guild' ? idFor : '';
     var vBp = selBp ? selBp.value : '';
+    var stand = [toks.join(' '), vFor, vType, vLoc, vLegal, vBp, selSort.value].join('\u0001');
+    var neu = !halten && stand !== zuletzt;
+    zuletzt = stand;
     var n = 0;
     for (var i = 0; i < cards.length; i++) {
       var c = cards[i];
@@ -106,12 +112,15 @@
       sort();
       window.scrollTo(0, y);
       requestAnimationFrame(function () { requestAnimationFrame(function () { root.style.overflowAnchor = ''; }); });
-    } else {
+    } else if (neu) {
       limit = GRP;
       sort();
       zumAnfang();
     }
+    // Gleicher Stand wie zuletzt: Treffer und Reihenfolge sind dieselben,
+    // es gibt nichts umzustellen (und keine Stelle anzufassen).
     toUrl();
+    return neu;
   }
 
   // Wer tief in der Liste filtert, sah danach Leere oder die Mitte der neuen
@@ -298,7 +307,7 @@
   }
 
   var timer = null;
-  function debounced() { clearTimeout(timer); timer = setTimeout(apply, 110); }
+  function debounced() { clearTimeout(timer); timer = setTimeout(function () { timer = null; apply(); }, 110); }
 
   var SELECTS = [selType, selFor, selLoc, selBp, selLegal, selSort].filter(Boolean);
   q.addEventListener('input', debounced);
@@ -393,13 +402,27 @@
     // angefordert hat. Verglichen wird mit der Stelle beim Oeffnen (yOffen):
     // scrollY liest am Telefon direkt nach dem Entsperren noch 0. Ziel ist
     // die Zeile mit Filterknopf und Trefferzahl, auf der dann der Fokus steht.
+    // Eine Suche, die beim Schliessen noch in der Verzoegerung von
+    // debounced() steckt, laeuft hier mit: sonst kaeme apply() erst nach dem
+    // Schliessen, und zumAnfang() saehe keine offene Schublade mehr. Sie
+    // laeuft nach der Standardaktion der Taste (Esc leert ein Suchfeld), also
+    // mit dem Wert, der danach im Feld steht. Nur der Wechsel offen -> zu
+    // zaehlt; am Schreibtisch wechselt auf demselben Element is-weg.
     if (!window.MutationObserver) return;
     var kopf = document.querySelector('.mx__mbar') || grid;
     var oben = function (el) { var y = 0; for (; el; el = el.offsetParent) y += el.offsetTop; return y; };
+    var warOffen = false;
     new MutationObserver(function () {
-      if (!nachZu || panel.classList.contains('is-open')) return;
-      nachZu = false;
+      var offen = panel.classList.contains('is-open');
+      if (offen === warOffen) return;
+      warOffen = offen;
+      if (offen) return;
+      var offeneSuche = !!timer;
+      if (timer) { clearTimeout(timer); timer = null; }
       setTimeout(function () {
+        if (offeneSuche && apply()) nachZu = true;
+        if (!nachZu) return;
+        nachZu = false;
         var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
         var ziel = Math.max(0, oben(kopf) - Math.round(nav));
         if (yOffen > ziel + 1) window.scrollTo(0, ziel);
