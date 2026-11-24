@@ -24,7 +24,7 @@
     inh: $('wz-blatt-inh'), x: $('wz-blatt-x'), zur: $('wz-blatt-zur'), q: $('wz-q'), suche: $('wz-suche'),
     leeren: $('wz-leeren'), sort: $('wz-sort'), fk: $('wz-filterknopf'), sch: $('wz-schublade'),
     schX: $('wz-schublade-x'), fReset: $('wz-f-reset'), fZeigen: $('wz-f-zeigen'),
-    fArt: $('wz-f-art'), fGr: $('wz-f-gr'), fPk: $('wz-f-pk'), fSel: $('wz-f-sel')
+    fArt: $('wz-f-art'), fGr: $('wz-f-gr'), fPk: $('wz-f-pk'), fSel: $('wz-f-sel'), bereich: $('wz-bereich')
   };
   var UEBERBLICK = el.inh.innerHTML;
   var NF = DE ? 'de-DE' : 'en-US';
@@ -821,6 +821,14 @@
     var alt = el.chips.querySelector('.wz-chips__reihe + .wz-chips__reihe');
     var x1 = el.chips.firstElementChild ? el.chips.firstElementChild.scrollLeft : 0;
     var x2 = alt ? alt.scrollLeft : 0;
+    // Lag der Fokus auf einem Chip (Enter auf einer Gruppe), geht er an den
+    // neuen Chip derselben Art und desselben Schluessels, sonst an die
+    // gewaehlte Gruppe: das Neuzeichnen soll ihn nicht auf die Seite werfen.
+    var fa = document.activeElement, fokusSel = null;
+    if (fa && el.chips.contains(fa)) {
+      fokusSel = fa.hasAttribute('data-chipblatt') ? '[data-chipblatt="' + cssEsc(fa.getAttribute('data-chipblatt')) + '"]'
+        : '[data-chip="' + cssEsc(fa.getAttribute('data-chip') || '') + '"]';
+    }
     el.chips.innerHTML = r1 + r2;
     var n1 = el.chips.firstElementChild;
     if (n1) n1.scrollLeft = x1;
@@ -830,6 +838,10 @@
     var an = el.chips.querySelector('.wz-chip.is-an');
     if (an && n1 && (an.offsetLeft < n1.scrollLeft || an.offsetLeft + an.offsetWidth > n1.scrollLeft + n1.clientWidth)) {
       n1.scrollLeft = an.offsetLeft - 12;
+    }
+    if (fokusSel) {
+      var nf = el.chips.querySelector(fokusSel) || an || el.chips.querySelector('[data-chip]');
+      if (nf) { try { nf.focus({ preventScroll: true }); } catch (e) {} }
     }
   }
   el.chips.addEventListener('click', function (e) {
@@ -1213,7 +1225,7 @@
   // Das Zurueck aus telefonZu() selbst (Schliessen-Knopf, Gruppe, „Set-Teile
   // zeigen“): sein popstate laesst einen wartenden Schreibvorgang stehen,
   // denn den hat der Aufrufer gerade fuer die Liste angestossen.
-  var eigenesZurueck = false;
+  var eigenesZurueck = false, zurueckTimer = 0;
   // Offen deckt das Blatt die Seite ganz zu. Alles daneben wird inert,
   // damit Tab und Vorleser im Blatt bleiben; beim Schliessen kommt genau
   // das zurueck, was hier gesetzt wurde.
@@ -1242,6 +1254,11 @@
     // verzoegerten schreibeUrl(): geht man zurueck, bevor der schreibt, findet
     // Vorwaerts sonst einen Eintrag ohne Item und oeffnet das Blatt nicht.
     // Der Eintrag der Liste darunter bleibt, wie er ist.
+    // Steht man schon auf einem Blatteintrag (das Fenster war zwischendurch
+    // breit und hat nur das Overlay geschlossen), dient er weiter; sonst
+    // laege ein zweiter darueber, und Schliessen oeffnete das Blatt gleich
+    // wieder.
+    else if (history.state && history.state.wzBlatt) { try { history.replaceState(history.state, '', adresse()); } catch (e) {} blattGeschoben = true; }
     else { try { history.pushState({ wzBlatt: 1 }, '', adresse()); blattGeschoben = true; } catch (e) {} }
     setTimeout(function () { try { el.box.focus({ preventScroll: true }); } catch (e) {} }, 30);
   }
@@ -1254,6 +1271,10 @@
       blattGeschoben = false;
       eigenesZurueck = true;
       try { history.back(); } catch (e) { eigenesZurueck = false; }
+      // Kommt kein popstate (Verlauf blockiert), darf die Adresse nicht
+      // dauerhaft stehen bleiben.
+      clearTimeout(zurueckTimer);
+      if (eigenesZurueck) zurueckTimer = setTimeout(function () { if (eigenesZurueck) { eigenesZurueck = false; schreibeUrl(); } }, 1000);
     }
     blattGeschoben = false;
     var k = markiere();
@@ -1308,7 +1329,12 @@
   window.addEventListener('popstate', function (e) {
     var eigenes = eigenesZurueck;
     eigenesZurueck = false;
-    if (!eigenes) clearTimeout(urlTimer);
+    clearTimeout(zurueckTimer);
+    // Eigenes Zurueck: jetzt erst steht der Eintrag der Liste an, und dorthin
+    // gehoert der Stand, den der Aufrufer gesetzt hat (schreibeUrl wartet
+    // bis hierher, siehe dort). Sonst verfaellt ein wartender Schreibvorgang.
+    if (eigenes) schreibeUrl();
+    else clearTimeout(urlTimer);
     var offen = el.blatt.classList.contains('is-offen');
     if (!eigenes && bereit && filterAusAdresse()) anwenden({ ohneUrl: true });
     if (!(e.state && e.state.wzBlatt)) {
@@ -1316,8 +1342,10 @@
       if (bereit && !auswahlAusAdresse(!eigenes) && (S.item || S.satz)) ueberblick({ ohneUrl: !eigenes });
       return;
     }
-    if (!bereit || !TELEFON.matches || offen) return;
-    if (auswahlAusAdresse(true)) telefonAuf(true);
+    // Auswahl aus der Adresse in jeder Breite; nur das Overlay ist Sache
+    // des Telefons.
+    if (!bereit) return;
+    if (auswahlAusAdresse(true) && TELEFON.matches && !offen) telefonAuf(true);
   });
   el.x.addEventListener('click', function () { telefonZu(false); });
   el.blatt.addEventListener('click', function (e) { if (e.target === el.blatt) telefonZu(false); });
@@ -1422,6 +1450,7 @@
     if (ni === idx) return;
     while (ni >= GEZEIGT && GEZEIGT < TREFFER.length) mehr();
     var x = TREFFER[ni];
+    pfeilWahl = x.id;
     if (key === 'satz') oeffneSatz(x, { still: true }); else oeffneItem(x, { still: true });
     var k = markiere();
     if (k) k.scrollIntoView({ block: 'nearest', behavior: STILL.matches ? 'auto' : 'smooth' });
@@ -1429,13 +1458,23 @@
 
   /* ---------- Suche, Sortierung, Ansicht, Reiter ---------- */
   var tippTimer = 0;
+  // Was die Pfeiltasten zuletzt gewaehlt haben: Enter oeffnet dann diesen
+  // Treffer (am Telefon im Blatt), nicht den ersten. Tippen hebt das auf.
+  var pfeilWahl = null;
   el.q.addEventListener('input', function () {
+    pfeilWahl = null;
     el.suche.classList.toggle('hat-text', !!el.q.value);
     clearTimeout(tippTimer);
     tippTimer = setTimeout(function () { S.q = el.q.value.trim(); anwenden(); }, 110);
   });
   el.q.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(tippTimer); S.q = el.q.value.trim(); anwenden(); if (TREFFER[0]) { if (S.tab === 'sets') oeffneSatz(TREFFER[0]); else oeffneItem(TREFFER[0]); } }
+    if (e.key === 'Enter') {
+      e.preventDefault(); clearTimeout(tippTimer); S.q = el.q.value.trim(); anwenden();
+      var ziel = null;
+      if (pfeilWahl) for (var i = 0; i < TREFFER.length; i++) if (TREFFER[i].id === pfeilWahl) { ziel = TREFFER[i]; break; }
+      ziel = ziel || TREFFER[0];
+      if (ziel) { if (S.tab === 'sets') oeffneSatz(ziel); else oeffneItem(ziel); }
+    }
   });
   el.leeren.addEventListener('click', function (e) {
     e.preventDefault();
@@ -1460,7 +1499,13 @@
   }
   function setzeTab(t, still) {
     S.tab = t;
-    wz.querySelectorAll('.wz-reiter__b').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === t ? 'true' : 'false'); });
+    wz.querySelectorAll('.wz-reiter__b').forEach(function (b) {
+      var an = b.getAttribute('data-tab') === t;
+      b.setAttribute('aria-selected', an ? 'true' : 'false');
+      b.tabIndex = an ? 0 : -1;
+      if (an && el.bereich) el.bereich.setAttribute('aria-labelledby', b.id);
+    });
+    pfeilWahl = null;
     if (!still) anwenden();
   }
   wz.querySelectorAll('.wz-reiter__b').forEach(function (b) {
@@ -1470,6 +1515,19 @@
       setzeTab(t, true);
       if (t === 'sets') { S.set = null; }
       anwenden();
+    });
+    // Reiterleiste nach APG: Pfeile, Pos1 und Ende wechseln und aktivieren.
+    b.addEventListener('keydown', function (e) {
+      var alle = Array.prototype.slice.call(wz.querySelectorAll('.wz-reiter__b'));
+      var i = alle.indexOf(b), n = -1;
+      if (e.key === 'ArrowRight') n = (i + 1) % alle.length;
+      else if (e.key === 'ArrowLeft') n = (i - 1 + alle.length) % alle.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = alle.length - 1;
+      if (n < 0) return;
+      e.preventDefault();
+      alle[n].focus();
+      alle[n].click();
     });
   });
   el.aktiv.addEventListener('click', function (e) {
@@ -1557,6 +1615,9 @@
   function schreibeUrl() {
     clearTimeout(urlTimer);
     urlTimer = setTimeout(function () {
+      // Waehrend des eigenen Zurueck steht noch der Blatteintrag an; der
+      // popstate stoesst das Schreiben fuer den Listeneintrag neu an.
+      if (eigenesZurueck) return;
       var neu = adresse();
       if (neu !== location.pathname + location.search + location.hash) {
         try { history.replaceState(history.state, '', neu); } catch (e) {}

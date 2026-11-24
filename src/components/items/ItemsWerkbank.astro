@@ -58,7 +58,7 @@ const W = {
     nItems: 'Items', nSets: 'Sets', laden: 'Katalog wird geladen…',
     fArt: 'Fundart', fGroesse: 'Größe', fKlasse: 'Panzerungsklasse', fSel: 'Seltenheit',
     zuruecksetzen: 'Zurücksetzen', zeigen: '{n} zeigen', keine: 'Keine Treffer', schliessen: 'Schließen',
-    leerT: 'Nichts gefunden', ladeT: 'Nicht geladen', ladeK: 'Erneut laden', leerX: 'Versuch einen anderen Begriff oder nimm einen Filter heraus.', leerK: 'Alles zurücksetzen',
+    ohneJs: 'Suche und Filter brauchen JavaScript. Die Kategorien führen auch so zu ihren Listen.', leerT: 'Nichts gefunden', ladeT: 'Nicht geladen', ladeK: 'Erneut laden', leerX: 'Versuch einen anderen Begriff oder nimm einen Filter heraus.', leerK: 'Alles zurücksetzen',
     ueTitel: 'Item-Katalog', ueLead: `${n(total)} Items aus Star Citizen ${ITEM_PATCH}: Werte, Preise und Fundorte. Wähle eine Gruppe oder ein Item.`,
     kItems: 'Items', kQuelle: 'mit Bezugsquelle', kBlatt: 'Datenblätter', kSets: 'Sets',
     tippSuche: 'Suche', tippBlaettern: 'blättern', tippEsc: 'schließen',
@@ -86,7 +86,7 @@ const W = {
     nItems: 'Items', nSets: 'Sets', laden: 'Loading catalog…',
     fArt: 'Availability', fGroesse: 'Size', fKlasse: 'Armor class', fSel: 'Rarity',
     zuruecksetzen: 'Reset', zeigen: 'Show {n}', keine: 'No results', schliessen: 'Close',
-    leerT: 'Nothing found', ladeT: 'Not loaded', ladeK: 'Try again', leerX: 'Try another term or remove a filter.', leerK: 'Reset everything',
+    ohneJs: 'Search and filters need JavaScript. The categories still lead to their lists.', leerT: 'Nothing found', ladeT: 'Not loaded', ladeK: 'Try again', leerX: 'Try another term or remove a filter.', leerK: 'Reset everything',
     ueTitel: 'Item catalog', ueLead: `${n(total)} items from Star Citizen ${ITEM_PATCH}: stats, prices and locations. Pick a group or an item.`,
     kItems: 'Items', kQuelle: 'with a source', kBlatt: 'Data sheets', kSets: 'Sets',
     tippSuche: 'search', tippBlaettern: 'step through', tippEsc: 'close',
@@ -139,8 +139,8 @@ const allePfad = href('/items-werkbank.html', lang);
 <div class="wz wz--items wz-auftakt" id="wz" data-lang={lang}>
   <header class="wz-kopf">
     <div class="wz-reiter" role="tablist" aria-label={W.tabItems}>
-      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-items" data-tab="items" aria-selected="true"><span class="wi wi--grid4" aria-hidden="true"></span>{W.tabItems}<em>{n(total)}</em></button>
-      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-sets" data-tab="sets" aria-selected="false"><span class="wi wi--layers" aria-hidden="true"></span>{W.tabSets}<em>{n(armorSets.length)}</em></button>
+      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-items" data-tab="items" aria-selected="true" aria-controls="wz-bereich" tabindex="0"><span class="wi wi--grid4" aria-hidden="true"></span>{W.tabItems}<em>{n(total)}</em></button>
+      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-sets" data-tab="sets" aria-selected="false" aria-controls="wz-bereich" tabindex="-1"><span class="wi wi--layers" aria-hidden="true"></span>{W.tabSets}<em>{n(armorSets.length)}</em></button>
     </div>
     {/* Prototyp-Marke (die Seite gibt es nur im Vorschau-Bau): Rueckweg zu
         den beiden bisherigen Seiten, solange sie nicht abgenommen ist. */}
@@ -199,8 +199,15 @@ const allePfad = href('/items-werkbank.html', lang);
 
   <div class="wz-chips" id="wz-chips" aria-label={W.gruppen}></div>
 
-  <section class="wz-liste" aria-label={W.nItems}>
+  <section class="wz-liste" id="wz-bereich" role="tabpanel" aria-labelledby="wz-tab-items">
     <div class="wz-zahl" id="wz-zahl"><b id="wz-n">{n(total)}</b><span id="wz-n-l">{W.nItems}</span><span class="wz-aktiv" id="wz-aktiv"></span></div>
+    {/* Ohne Skript: die Kategorien stehen offen da und fuehren auf ihre
+        Listen (unter 1180 px dort, wo sonst die Chips stehen); Suche und
+        Treffer brauchen das Skript und sagen das. */}
+    <noscript>
+      <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf .wi--chev,.wz-gitter,.wz-chips{display:none!important}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
+      <p class="wz-ohne-js">{W.ohneJs}</p>
+    </noscript>
     <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true">
       {Array.from({ length: 12 }, () => (
         <div class="wz-k wz-k--leer" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
