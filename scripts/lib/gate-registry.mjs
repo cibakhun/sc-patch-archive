@@ -184,6 +184,14 @@ export const CHECKS = [
     checks: 'WCAG-AA-Kontrast an jeder Stelle, an der eine dekorative Schicht am Hintergrund von Text beteiligt ist — aus echten Bildpunkten gerechnet, nicht aus CSS abgeleitet',
   },
   {
+    // Ausnahme X-zwilling-je-sprache am 24.11.2026 entfernt: seit Paket C4
+    // heissen Items in beiden Sprachen englisch, der Zwillingshinweis steht
+    // auf EN und DE gleich (ohne die Ausnahme 0 unerklaerte Paare).
+    // VORGEFUEHRT ROT am selben Tag: p.dp-zwilling aus
+    // dist/de/items/deadrig-noxious-shotgun-2.html entfernt -> „Unerklaerter
+    // Rest (Soll 0): 1", EN p.dp-note.dp-zwilling gegen DE ul.dp-keys;
+    // mit der alten Ausnahme blieb derselbe Bruch gruen (79 Paare
+    // geschnitten). Datei zurueck, sha256 150c1023… wie vorher.
     id: 'verify:sync',
     npm: 'verify:sync',
     script: 'scripts/verify-sync.mjs',
