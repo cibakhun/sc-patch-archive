@@ -22,7 +22,9 @@ import { DataUtils } from 'three';
 import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, gitterDunkelste, RICHTUNGEN, TOL } from '../../scripts/lib/hall-gitter.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const QUELLE = readFileSync(join(ROOT, 'assets/hangar-viewer.js'), 'utf8');
+// Unter Windows (core.autocrlf) liegt der Viewer mit CRLF vor; die Zeilen unten
+// sind mit \n geschrieben. Deshalb erst auf LF bringen.
+const QUELLE = readFileSync(join(ROOT, 'assets/hangar-viewer.js'), 'utf8').replace(/\r\n/g, '\n');
 // die erste Halle mit Grundlicht, so wie das Tor den Block liest
 const FEST = JSON.parse(/\/\* hall-fest \*\/([\s\S]*?)\/\* \/hall-fest \*\//.exec(QUELLE)[1]);
 const ID = Object.keys(FEST).find((id) => FEST[id].grund > 0);
