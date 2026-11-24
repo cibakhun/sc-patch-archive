@@ -1813,6 +1813,34 @@ async function probeZurueckMarke(page, wo) {
   return null;
 }
 
+/* Grundpruefungen fuer eine Seite in einem eigenen Kontext (Review PR #435):
+   die Lauscher in pruefe() haengen nur an `page`, eine Zusatzseite saehe
+   ohne sie weder JS-Ausnahmen noch eigene HTTP-Fehler noch CSP-Verstoesse.
+   Dieselben drei wie in probeSuche und probeWerkbank; der Zaehl-Host folgt
+   seiner eigenen Regel in pruefe() [3] und bleibt hier draussen. Vor
+   newPage aufrufen, weil der CSP-Lauscher als Init-Skript am Kontext haengt.
+   `grund()` liefert die Befunde als Text oder null. */
+async function zusatzSeite(ctx) {
+  await ctx.addInitScript(() => {
+    window.__cspVerstoesse = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      window.__cspVerstoesse.push(`${e.violatedDirective} ${e.blockedURI || ''}`.trim());
+    });
+  });
+  const p = await ctx.newPage();
+  const befunde = [];
+  p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+  p.on('response', (r) => {
+    if (r.url().startsWith(BASE) && r.status() >= 400) befunde.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+  });
+  const grund = async () => {
+    const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []).catch(() => []))].filter((v) => !ZAEHLER_HOST.test(v));
+    if (csp.length) befunde.push(`CSP-Verstoss: ${csp.slice(0, 3).join(', ')}`);
+    return befunde.length ? befunde.slice(0, 3).join(' | ') : null;
+  };
+  return { p, grund };
+}
+
 /* Mining-Werkbank am Telefon: angeheftete Erze im Reiter „Signaturen".
    UX-Audit 24.11.2026 (Task-Flow F02, Befund M1): bei 390 und 412 px war
    #wb-pins 0 px hoch bei 177 px Inhalt, beide Listen samt Ueberschrift
@@ -1835,7 +1863,7 @@ async function probeMiningHandy(page) {
       await ctx.addInitScript(() => {
         try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Speicher steht die Hilfe offen, die Probe klickt per DOM */ }
       });
-      const p = await ctx.newPage();
+      const { p, grund } = await zusatzSeite(ctx);
       await p.goto(ziel, { waitUntil: 'load' });
       await p.waitForSelector('.wb__tile .wb__pin', { timeout: 15000 });
       const m = await mitSichtbar(p, async (_, da) => {
@@ -1871,6 +1899,8 @@ async function probeMiningHandy(page) {
           name: eintrag?.querySelector('.nm')?.textContent || '',
         };
       });
+      const befund = await grund();
+      if (befund) probleme.push(`${g.breite} px: ${befund}`);
       if (m.fehlt) { probleme.push(`${g.breite} px: ${m.fehlt} fehlt`); continue; }
       miningHandy++;
       if (!m.spalteDa) probleme.push(`${g.breite} px: Reiter „Signaturen" zeigt keine Spalte`);
