@@ -1269,7 +1269,18 @@
     // laege ein zweiter darueber, und Schliessen oeffnete das Blatt gleich
     // wieder.
     else if (history.state && history.state.wzBlatt) { try { history.replaceState(history.state, '', adresse()); } catch (e) {} blattGeschoben = true; }
-    else { try { history.pushState({ wzBlatt: 1 }, '', adresse()); blattGeschoben = true; } catch (e) {} }
+    else {
+      // Wartet noch ein Schreibvorgang (Enter in der Suche wendet sie an und
+      // oeffnet im selben Zug den ersten Treffer), gehoert er dem Eintrag der
+      // Liste: dorthin, bevor der Blatteintrag darueber entsteht, mit der
+      // Auswahl, die dort stand. Sonst traefe er den Blatteintrag, und
+      // Zurueck zeigte die Liste ohne die Suche.
+      if (urlTimer && !eigenesZurueck) {
+        clearTimeout(urlTimer); urlTimer = 0;
+        try { history.replaceState(history.state, '', adresse(true)); } catch (e) {}
+      }
+      try { history.pushState({ wzBlatt: 1 }, '', adresse()); blattGeschoben = true; } catch (e) {}
+    }
     setTimeout(function () { try { el.box.focus({ preventScroll: true }); } catch (e) {} }, 30);
   }
   function telefonZu(ausHistorie) {
@@ -1355,8 +1366,10 @@
     // Eigenes Zurueck: jetzt erst steht der Eintrag der Liste an, und dorthin
     // gehoert der Stand, den der Aufrufer gesetzt hat (schreibeUrl wartet
     // bis hierher, siehe dort). Sonst verfaellt ein wartender Schreibvorgang.
+    // Ebenso die noch nicht angewendete Eingabe: das Feld zeigt jetzt die
+    // Suche des Eintrags, und der Tipp-Timer schriebe sie (getrimmt) zurueck.
     if (eigenes) schreibeUrl();
-    else clearTimeout(urlTimer);
+    else { clearTimeout(urlTimer); urlTimer = 0; clearTimeout(tippTimer); }
     // Noch vor dem Katalog: was er nach dem Laden oeffnet, kommt jetzt aus
     // dem Eintrag, auf dem man steht, nicht mehr aus dem beim Start; die
     // Filter ebenso. Ohne Navigation bleibt es beim Tieflink und bei dem,
@@ -1417,9 +1430,14 @@
       if (c2) STAPEL.push(c2);
       oeffneSatz(st, { stapel: true, still: true });
     } else if (t.hasAttribute('data-setfilter')) {
+      // Zeigt genau die Teile des Sets: Filter, die nur fuer Items gelten
+      // (Art, Groesse, Klasse, Seltenheit), und die Suche, die den Set-Namen
+      // traf und nicht jedes Teil, fallen weg.
       S.set = t.getAttribute('data-setfilter');
       setzeTab('items', true);
       S.gruppe = null; S.blatt = null;
+      S.art = 'all'; S.gr = null; S.pk = null; S.sel = null;
+      clearTimeout(tippTimer); S.q = ''; el.q.value = ''; el.suche.classList.remove('hat-text');
       telefonZu(false);
       anwenden();
     } else if (t.hasAttribute('data-gruppe') && t.tagName === 'BUTTON') {
@@ -1588,13 +1606,8 @@
     S.q = ''; el.q.value = ''; el.suche.classList.remove('hat-text');
     anwenden();
   }
-  // Ueberblick: die Gruppen-Kacheln (statisch im Blatt).
-  el.inh.addEventListener('click', function (e) {
-    var g = e.target.closest('.wzu__g');
-    if (!g) return;
-    var grp = G_SLUG[g.getAttribute('data-gruppe')];
-    if (grp) waehleKat(grp, null);
-  });
+  // Die Gruppen-Kacheln des Ueberblicks (statisch im Blatt) sind
+  // button[data-gruppe]; die waehlt der Klick-Handler am Blatt oben.
 
   // „/“ gehoert hier der eigenen Suche. Die Seitensuche (search-overlay.js)
   // lauscht am document und laesst die Taste, wenn sie schon vergeben ist
@@ -1609,7 +1622,6 @@
   }, true);
   document.addEventListener('keydown', function (e) {
     var t = e.target;
-    var tipp = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
     if (e.key === 'Escape') {
       var hilfe = wz.querySelector('.wz-hilfe[open]');
       if (hilfe) { hilfe.removeAttribute('open'); return; }
@@ -1618,9 +1630,14 @@
       if (t === el.q && el.q.value) { el.q.value = ''; S.q = ''; el.suche.classList.remove('hat-text'); anwenden(); }
       return;
     }
-    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && (!tipp || t === el.q) && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    // Pfeile blaettern durch die Treffer, wenn der Fokus in der Suche, in der
+    // Trefferliste oder nirgends steht. Auf jedem anderen Element (Kopfleiste,
+    // Leiste, Blatt) behalten sie ihre eigene Aufgabe, ebenso ohne Treffer
+    // und im offenen Blatt am Telefon (dort rollen sie).
+    var ort = !t || t === document.body || t === document.documentElement || t === el.q || el.gitter.contains(t);
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && ort && !e.altKey && !e.ctrlKey && !e.metaKey) {
       if (el.sch.classList.contains('is-open') || el.blatt.classList.contains('is-offen')) return;
-      if (t && t.closest && t.closest('.wz-blatt__box')) return;
+      if (!TREFFER.length) return;
       e.preventDefault();
       schritt(e.key === 'ArrowDown' ? 1 : -1);
     }
@@ -1634,7 +1651,7 @@
   /* ---------- Adresse ---------- */
   var urlTimer = 0;
   // Adresse des aktuellen Zustands (Filter, Suche, Auswahl).
-  function adresse() {
+  function adresse(alteAuswahl) {
     var p = new URLSearchParams();
     if (S.tab === 'sets') p.set('tab', 'sets');
     if (S.tab === 'items') {
@@ -1648,14 +1665,19 @@
     if (S.sel) p.set('sel', S.sel);
     if (S.set) p.set('set', S.set);
     if (S.sort !== 'relevanz') p.set('sort', S.sort);
-    if (S.item) p.set('item', S.item);
-    if (S.satz) p.set('satz', S.satz);
+    // alteAuswahl: die Auswahl, die in der Adresse steht, statt der neuen
+    // (fuer den Listeneintrag unter einem Blatt, siehe telefonAuf).
+    var a = alteAuswahl ? new URLSearchParams(location.search) : null;
+    var item = a ? a.get('item') : S.item, satz = a ? a.get('satz') : S.satz;
+    if (item) p.set('item', item);
+    if (satz) p.set('satz', satz);
     var qs = p.toString();
     return location.pathname + (qs ? '?' + qs : '') + location.hash;
   }
   function schreibeUrl() {
     clearTimeout(urlTimer);
     urlTimer = setTimeout(function () {
+      urlTimer = 0;
       // Waehrend des eigenen Zurueck steht noch der Blatteintrag an; der
       // popstate stoesst das Schreiben fuer den Listeneintrag neu an.
       if (eigenesZurueck) return;

@@ -206,9 +206,11 @@ const allePfad = href('/items-werkbank.html', lang);
     <div class="wz-zahl" id="wz-zahl"><b id="wz-n">{n(total)}</b><span id="wz-n-l">{W.nItems}</span><span class="wz-aktiv" id="wz-aktiv"></span></div>
     {/* Ohne Skript: die Kategorien stehen offen da und fuehren auf ihre
         Listen (unter 1180 px dort, wo sonst die Chips stehen); Suche und
-        Treffer brauchen das Skript und sagen das. */}
+        Treffer brauchen das Skript und sagen das. Was ohne Skript nichts
+        tut, ist weg: Reiter, Bedienleiste, Tastenhilfe, die Gruppen-Kacheln
+        im Ueberblick. Die Rueckwege im Kopf bleiben. */}
     <noscript>
-      <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
+      <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips,.wz-reiter,.wz-bar,.wz-hilfe,.wzu .wzb-inh{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
       <p class="wz-ohne-js">{W.ohneJs}</p>
     </noscript>
     <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true">
