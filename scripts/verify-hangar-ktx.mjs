@@ -264,9 +264,11 @@ if (mittelWerte.size < MIN_MITTEL && mitMittel >= MIN_MITTEL) fail(`[4] nur ${mi
 say('[5] Der ausgelieferte Viewer und sein Loader');
 let naht = 0;
 const VIEWER = join(DIST, 'assets', 'hangar-viewer.js');
+const aufLf = (t) => t.replace(/\r\n/g, '\n');
 if (!existsSync(VIEWER)) fail('[5] dist/assets/hangar-viewer.js fehlt');
 else {
-  const src = readFileSync(VIEWER, 'utf8');
+  // auf LF: Unter Windows (core.autocrlf) kommt dist/ mit CRLF, die Muster erwarten \n
+  const src = aufLf(readFileSync(VIEWER, 'utf8'));
   const bau = /^export const KTX_BAU = '([^']+)';$/m.exec(src)?.[1];
   if (bau !== BAU) fail(`[5] der Viewer hängt Rezept ${bau ?? '(keins gefunden)'} an die URL, die Zwillinge tragen ${BAU}: nach einem Rezeptwechsel lüde der Browser ein Jahr lang die alten Dateien aus seinem Cache (KTX_BAU in assets/hangar-viewer.js und BAU in scripts/lib/hangar-ktx.mjs gehören zusammen)`);
   else naht++;
@@ -316,9 +318,9 @@ say(`    ${naht} von 10 Stellen in Ordnung`);
 /* ---------- [6] Nahtstellen im Viewer ---------- */
 say('[6] Nahtstellen im Viewer');
 {
-  const src = existsSync(VIEWER) ? readFileSync(VIEWER, 'utf8') : '';
+  const src = existsSync(VIEWER) ? aufLf(readFileSync(VIEWER, 'utf8')) : '';
   const ctrlFile = join(DIST, 'assets', 'hangar-overview.js');
-  const ctrl = existsSync(ctrlFile) ? readFileSync(ctrlFile, 'utf8') : '';
+  const ctrl = existsSync(ctrlFile) ? aufLf(readFileSync(ctrlFile, 'utf8')) : '';
   const V = 'dist/assets/hangar-viewer.js';
   const NAHT = [
     ['Zwilling zuerst gefragt', /const images = embeddedImages\(8, \(parser\) => shipTex\.count\(parser\), SMALL \? TEX_MAX : 0, ktxTwin\);/.test(src) && /const p = id === null \? bild\(\) : Promise\.resolve\(id\)\.then\(\(k\) => \(k \? twin\.load\(k\) : null\)\)/.test(src),
