@@ -164,7 +164,7 @@ const UI = {
     'ship.holo.loading': '3D-Modell lädt … %p% %',
     'ship.holo.error': '3D-Modell konnte nicht geladen werden.',
     // -- Interaktives Komponenten-Hologramm --
-    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Scrollen: zoomen',
+    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Strg + Mausrad: zoomen',
     'holo.activate': 'Hologramm aktivieren',
     'holo.panel.title': 'Komponenten-Details',
     'holo.panel.size': 'Größe',
@@ -395,6 +395,10 @@ const UI = {
     'do.notesRsi': 'Offizielle Patch Notes (RSI)',
     'do.fixesList': 'Alle Fehlerbehebungen in den offiziellen Notes',
     'do.unvNote': '* unbestätigt · ',
+    // Querwege aus dem Dossier (UX-Audit H3, 24.11.2026)
+    'do.evoChip': '%s% über alle Patches (Evolution)',
+    'do.toArchive': 'Alle Patches im Archiv',
+    'do.toEvo': 'Jedes System über alle Patches: Evolution',
     // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
     'tf.topic': 'Thema',
     'tf.source': 'Quelle Alpha',
@@ -440,6 +444,7 @@ const UI = {
     'arch.entry': 'Eintrag',
     'arch.versions': 'Versionen',
     'arch.toTop': 'Nach oben',
+    'arch.evo': 'Evolution: jedes Spielsystem über alle Patches',
   },
   en: {
     // -- Navigation --
@@ -571,7 +576,7 @@ const UI = {
     'ship.holo.loading': 'Loading 3D model … %p% %',
     'ship.holo.error': 'Could not load 3D model.',
     // -- Interactive component hologram --
-    'holo.hint': 'Drag: rotate · right-drag: pan · scroll: zoom',
+    'holo.hint': 'Drag: rotate · right-drag: pan · Ctrl + wheel: zoom',
     'holo.activate': 'Activate hologram',
     'holo.panel.title': 'Component details',
     'holo.panel.size': 'Size',
@@ -790,6 +795,10 @@ const UI = {
     'do.notesRsi': 'Official patch notes (RSI)',
     'do.fixesList': 'All fixes in the official notes',
     'do.unvNote': '* unverified · ',
+    // Querwege aus dem Dossier (UX-Audit H3, 24.11.2026)
+    'do.evoChip': '%s% across every patch (Evolution)',
+    'do.toArchive': 'All patches in the archive',
+    'do.toEvo': 'Every system across every patch: Evolution',
     // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
     'tf.topic': 'Topic',
     'tf.source': 'Source · Alpha',
@@ -835,6 +844,7 @@ const UI = {
     'arch.entry': 'entry',
     'arch.versions': 'releases',
     'arch.toTop': 'Back to top',
+    'arch.evo': 'Evolution: every game system across every patch',
   },
 } as const;
 

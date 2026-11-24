@@ -88,6 +88,7 @@
     "datamine:loot": "node scripts/datamine-loot.mjs && node scripts/apply-loot-fundorte.mjs",
     "apply:loot-fundorte": "node scripts/apply-loot-fundorte.mjs",
     "verify:loot-fundorte": "node scripts/verify-loot-fundorte.mjs",
+    "verify:bezugswege": "node scripts/verify-bezugswege.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
     "verify:crafting": "node scripts/verify-crafting-specs.mjs",
     "verify:vehicles": "node scripts/verify-vehicles.mjs",

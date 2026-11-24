@@ -79,6 +79,13 @@ body::-webkit-scrollbar,
      Schrift erbt die Textfarbe (hell auf hellem Akzent, 1,6:1). */
   --ink: #05070d;
 
+  /* Ziffern- und Messwertschrift. Werkzeuge wie Fracturing und Mining
+     benutzen var(--font-mono), definieren es aber nicht in
+     ihrer eigenen Palette — ohne diesen Rückfallwert fielen ihre Zahlen auf
+     die Serifenschrift des Browsers oder auf Consolas. Eine Palette, die den
+     Token selbst setzt, gewinnt weiter (sie steht nach theme.css). */
+  --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+
   /* --- Schleier: Filme auf Flächen (nicht auf Fotos) --- */
   --veil: rgba(0, 0, 0, 0.4); /* abdunkelnder Chip-/Tag-Hintergrund */
   --veil-2: rgba(0, 0, 0, 0.55); /* kräftiger, z. B. runde Icon-Knöpfe */

@@ -178,15 +178,14 @@ const de = lang === 'de';
     </div>
   </section>
 
-  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — die EN-Seite
-      verlinkte ihn deshalb noch nie und soll das auch nicht anfangen. */}
-  {de && (
+  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — OnepagerLink
+      zeigt ihn deshalb nur auf der DE-Seite; die EN-Seite bekommt nur den Weg
+      zu den Downloads (UX-Audit H3, 24.11.2026). */}
   <OnepagerLink
     href="/onepager/storm-breaker/index.html"
     title="Storm Breaker — Visueller Guide"
     note="Eigenständiger Onepager: Farro- & Lazarus-Karten, Wetter-Events und Loot im Überblick."
   />
-  )}
 
 </main>
 
