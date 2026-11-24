@@ -906,6 +906,117 @@
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
   // =========================================================
+  //  SUCHE: Tippfehler und deutsche Gattungswoerter
+  // =========================================================
+  // Dieselbe Nachsicht wie die Kopfsuche (assets/search-overlay.js, UX-Audit
+  // 24.11.2026, HE P02). Jedes Suchwort muss treffen, egal in welcher
+  // Reihenfolge; Gross/Klein, Akzente und ß zaehlen nicht. Steht ein
+  // Suchwort auf KEINER Karte woertlich, trifft es ab 4 Zeichen mit einem
+  // Tippfehler, ab 8 mit zweien, gemessen am Wortanfang: „Karna Rifel" findet
+  // die Karna Rifle, „Arclight Pistl" die Pistole. Dazu kennt jede Karte die
+  // deutschen Gattungswoerter ihres Namens und ihrer Kategorie (CFG.gattung,
+  // aus src/lib/searchAliases.ts): „karna gewehr" findet die Karna Rifle auch
+  // auf der englischen Seite. Angezeigt wird davon nichts.
+  //
+  // norm, abstand und erlaubt sind woertliche Kopien aus search-overlay.js;
+  // tests/e2e/werkbank-suche.test.js haelt beide Stellen gleich.
+  var GATTUNG = (CFG.gattung || []).map(function (z) { return [new RegExp(z[0], 'i'), z[1]]; });
+  var norm = function (s) {
+    return (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/ß/g, 'ss');
+  };
+  function abstand(q, w, k) {
+    var m = q.length;
+    var n = Math.min(w.length, m + k);
+    if (w.length < m - k) return null;
+    var vor2 = null;
+    var vor = [];
+    var j;
+    for (j = 0; j <= n; j++) vor[j] = j;
+    for (var i = 1; i <= m; i++) {
+      var cur = [i];
+      var min = i;
+      for (j = 1; j <= n; j++) {
+        var v = Math.min(vor[j] + 1, cur[j - 1] + 1, vor[j - 1] + (q.charCodeAt(i - 1) === w.charCodeAt(j - 1) ? 0 : 1));
+        if (vor2 && j > 1 && q.charCodeAt(i - 1) === w.charCodeAt(j - 2) && q.charCodeAt(i - 2) === w.charCodeAt(j - 1)) v = Math.min(v, vor2[j - 2] + 1);
+        cur[j] = v;
+        if (v < min) min = v;
+      }
+      if (min > k) return null;
+      vor2 = vor;
+      vor = cur;
+    }
+    var anfang = k + 1;
+    for (j = 0; j <= n; j++) if (vor[j] < anfang) anfang = vor[j];
+    if (anfang > k) return null;
+    return { voll: w.length <= m + k ? vor[w.length] : k + 1, anfang: anfang };
+  }
+  var erlaubt = function (q) { return q.length >= 8 ? 2 : q.length >= 4 ? 1 : 0; };
+
+  // Suchtext je Karte: Name, alle Zutaten, Kategorie (Schluessel und
+  // Anzeige), Ton und Gattungswoerter, normalisiert; dazu seine Woerter und
+  // Bindestrich-Namen am Stueck („p4-ar"). Neu gerechnet, sobald die DB die
+  // volle Zutatenliste und den ganzen Kategoriepfad nachliefert.
+  var SUCHTEXT = {};
+  var vokabel = null; // alle Woerter aller Karten, fuer die Tippfehler
+  function suchtext(card) {
+    var d = card.dataset;
+    var b = DB && DB.blueprints ? DB.blueprints[+d.i] : null;
+    var c = SUCHTEXT[d.i];
+    if (c && c.res === d.res && c.db === !!b) return c;
+    var pfad = (d.cat || '') + ' / ' + (d.sub || '') + (b && b.category ? ' / ' + b.category : '');
+    var roh = d.name + ' ' + pfad;
+    var gattung = [];
+    GATTUNG.forEach(function (z) { if (z[0].test(roh)) gattung.push(z[1]); });
+    var h = norm([d.name, (d.res || '').split('|').join(' '), d.leaf || '', d.sub || '', d.cat || '',
+      d.catText || '', d.tone || '', gattung.join(' ')].join(' '));
+    c = SUCHTEXT[d.i] = {
+      res: d.res, db: !!b, h: h,
+      w: (h.match(/[a-z0-9]+/g) || []).concat(h.match(/[a-z0-9]+(?:-[a-z0-9]+)+/g) || []),
+    };
+    vokabel = null;
+    return c;
+  }
+  // Einmal je Eingabe: die Suchwoerter, und zu jedem, das nirgends woertlich
+  // steht, die Woerter in Tippfehler-Naehe (null = woertlich suchen).
+  function suchPlan(q) {
+    var terms = norm(q).split(/\s+/).filter(Boolean);
+    if (!terms.length) return null;
+    var alle = cards.map(suchtext);
+    var fz = terms.map(function (t) {
+      var k = erlaubt(t);
+      if (!k || /[^a-z0-9-]/.test(t) || /^-|-$|--/.test(t)) return null;
+      for (var i = 0; i < alle.length; i++) if (alle[i].h.indexOf(t) >= 0) return null;
+      if (!vokabel) {
+        var seen = Object.create(null);
+        vokabel = { liste: [], cache: Object.create(null) };
+        alle.forEach(function (s) {
+          s.w.forEach(function (w) { if (!seen[w]) { seen[w] = true; vokabel.liste.push(w); } });
+        });
+      }
+      if (vokabel.cache[t]) return vokabel.cache[t];
+      var nah = Object.create(null);
+      vokabel.liste.forEach(function (w) { if (abstand(t, w, k)) nah[w] = true; });
+      return (vokabel.cache[t] = nah);
+    });
+    return { terms: terms, fz: fz };
+  }
+  function trifftSuche(card, suche) {
+    var s = suchtext(card);
+    for (var i = 0; i < suche.terms.length; i++) {
+      var nah = suche.fz[i];
+      if (!nah) { if (s.h.indexOf(suche.terms[i]) < 0) return false; continue; }
+      var ok = false;
+      for (var j = 0; j < s.w.length && !ok; j++) ok = !!nah[s.w[j]];
+      if (!ok) return false;
+    }
+    return true;
+  }
+
+  // =========================================================
   //  FILTER + SORT
   // =========================================================
   var state = {
@@ -913,18 +1024,12 @@
     sort: 'name', view: load('craft.view.v1', 'grid')
   };
 
-  function matches(card) {
+  function matches(card, suche) {
     var d = card.dataset;
-    if (state.q) {
-      var q = state.q;
-      // d.tone deckt den Ton mit ab (SC2) — der Ton bekommt bewusst keine
-      // eigene Filtergruppe (Scope Fence nennt nur Groesse und Grade),
-      // bleibt aber ueber die Freitextsuche auffindbar.
-      if (d.name.indexOf(q) < 0 && d.res.indexOf(q) < 0 && (d.leaf || '').indexOf(q) < 0 &&
-        (d.sub || '').toLowerCase().indexOf(q) < 0 && (d.cat || '').toLowerCase().indexOf(q) < 0 &&
-        (d.catText || '').indexOf(q) < 0 &&
-        (d.tone || '').indexOf(q) < 0) return false;
-    }
+    // Der Suchtext deckt den Ton mit ab (SC2) — der Ton bekommt bewusst keine
+    // eigene Filtergruppe (Scope Fence nennt nur Groesse und Grade),
+    // bleibt aber ueber die Freitextsuche auffindbar.
+    if (suche && !trifftSuche(card, suche)) return false;
     var catKeys = Object.keys(state.cats).filter(function (k) { return state.cats[k]; });
     if (catKeys.length && !state.cats[d.cat]) return false;
     var subKeys = Object.keys(state.subs).filter(function (k) { return state.subs[k]; });
@@ -971,8 +1076,9 @@
 
   function apply() {
     var shown = 0, erste = -1, letzte = -1;
+    var suche = state.q ? suchPlan(state.q) : null;
     for (var i = 0; i < cards.length; i++) {
-      var vis = matches(cards[i]);
+      var vis = matches(cards[i], suche);
       cards[i].hidden = !vis;
       if (vis) { shown++; if (erste < 0) erste = i; letzte = i; }
     }

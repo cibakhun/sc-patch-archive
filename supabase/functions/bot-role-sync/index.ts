@@ -28,6 +28,13 @@
 //          50), aus public.refinery_discord_due — keine user_id.
 //   {"op":"refinery_sent","ids":[n, …]}
 //       -> 200 {"updated":n}   markiert 1-100 Auftraege als gemeldet.
+//   {"op":"chat_due"}
+//       -> 200 {"rows":[{msg_id, discord_user_id, lang, sender_name,
+//          sender_handle, unread, last_at}, …]}   faellige Hinweise auf
+//          ungelesene Chat-Nachrichten (hoechstens 50, je Absender einer), aus
+//          public.chat_discord_due — keine user_id, kein Nachrichtentext.
+//   {"op":"chat_sent","ids":[n, …]}
+//       -> 200 {"updated":n}   markiert 1-100 Hinweise (msg_id) als gemeldet.
 //
 // set und stats sind reine UPDATEs per discord_user_id, nie INSERT: die Zeile
 // legt die Datenbank selbst an, wenn ein Konto Discord verknuepft. 0 Zeilen
@@ -45,7 +52,8 @@
 // beschriftet). Kein CORS: reine Server-zu-Server-Schnittstelle.
 // Die beiden refinery-Ops lesen und schreiben nur ueber die zwei
 // security-definer-Funktionen der Migration 20261030180000; die Function
-// selbst fasst refinery_jobs nicht an.
+// selbst fasst refinery_jobs nicht an. Ebenso die beiden chat-Ops ueber die
+// Funktionen der Migration 20261124100000; direct_messages fasst sie nicht an.
 //
 // Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
 // also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
@@ -162,6 +170,24 @@ Deno.serve(async (req: Request) => {
         return reply(400, { error: 'invalid_ids' });
       }
       const { data, error } = await admin.rpc('refinery_discord_sent', { p_ids: ids });
+      if (error) throw error;
+      return reply(200, { updated: Number(data) || 0 });
+    }
+
+    if (body.op === 'chat_due') {
+      if (!onlyKeys(body, ['op'])) return reply(400, { error: 'unknown_field' });
+      const { data, error } = await admin.rpc('chat_discord_due', { p_limit: 50 });
+      if (error) throw error;
+      return reply(200, { rows: data ?? [] });
+    }
+
+    if (body.op === 'chat_sent') {
+      if (!onlyKeys(body, ['op', 'ids'])) return reply(400, { error: 'unknown_field' });
+      const ids = body.ids;
+      if (!Array.isArray(ids) || ids.length < 1 || ids.length > 100 || !ids.every((v) => nonNegInt(Number.MAX_SAFE_INTEGER)(v) && (v as number) >= 1)) {
+        return reply(400, { error: 'invalid_ids' });
+      }
+      const { data, error } = await admin.rpc('chat_discord_sent', { p_ids: ids });
       if (error) throw error;
       return reply(200, { updated: Number(data) || 0 });
     }

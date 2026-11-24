@@ -81,6 +81,8 @@ const ICON = {
   mining: '<path d="M8 5a14 14 0 0 1 11 11"/><path d="M4.2 20.2 15.4 9"/>',
   fracturing: '<path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/>',
   refinery: '<path d="M9 3h6M10 3v5.5L4.6 19A1.4 1.4 0 0 0 5.8 21h12.4a1.4 1.4 0 0 0 1.2-2L14 8.5V3"/><path d="M7.5 15h9"/>',
+  // Liste mit Punkten: der Ablauf in Schritten (Mining in fuenf Schritten).
+  ablauf: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/>',
   sprung: '<circle cx="12" cy="12" r="8"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
   wikelo: '<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>',
   archiv: '<path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>',
@@ -265,6 +267,19 @@ export const BEREICHE: BereichQuelle[] = [
         such: 'aaron halo quantum quantensprung routen routes',
         icon: ICON.sprung,
         bild: 't-mesh-2',
+      },
+      {
+        // UX-Audit 24.11.2026, Paket G12 (Task-Flow F11): die vier Werkzeuge
+        // als Ablauf fuer Neulinge. Steht zuletzt, damit „Mining" in der
+        // Leiste weiter zum Werkzeug fuehrt (bereiche(): erste Seite).
+        key: 'mining-start',
+        path: '/mining-guide.html',
+        name: { de: 'Mining in fünf Schritten', en: 'Mining in five steps' },
+        kurz: { de: 'Einstieg', en: 'Getting started' },
+        sub: { de: 'Vom Scan zum Verkauf', en: 'From scan to sale' },
+        pre: ['/mining-guide.html'],
+        such: 'mining guide anleitung einstieg anfaenger anfänger beginner neuling how to start schritte steps ablauf loop',
+        icon: ICON.ablauf,
       },
     ],
   },

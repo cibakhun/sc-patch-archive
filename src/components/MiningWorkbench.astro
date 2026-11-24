@@ -764,10 +764,14 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
 /* ---------------- Spalte 1: Kachelraster, alle 37 ---------------- */
 .wb__filters{flex:0 0 auto;padding:9px 10px;display:flex;flex-direction:column;gap:7px;position:relative}
 .wb__filters .tool-help__summary{padding:6px 10px;font-size:var(--fs-5);line-height:1.3}
-/* Der Koerper liegt ueber dem Kachelraster, und tool-help.js klappt ihn beim
-   Erstbesuch von selbst auf (D-09) — der erste Eindruck ist also eine
-   teilweise zugedeckte Mineralliste. Der Kasten ist deshalb von 400 auf 244 px
-   eingeschnuert; ganz aufloesen laesst sich der Konflikt hier NICHT:
+/* Der Koerper liegt ueber dem Kachelraster. Bis 24.11.2026 klappte
+   tool-help.js ihn beim Erstbesuch von selbst auf (D-09), und der erste
+   Eindruck war eine teilweise zugedeckte Mineralliste. Seit UX-Audit Paket K
+   (PR #422) laesst tool-help.js schwebende Rumpfe (position:absolute, wie
+   dieser hier) beim Erstbesuch zu und vermerkt sie nicht als gesehen; die
+   Hilfe ist einen Klick entfernt. Was folgt, gilt fuer den aufgeklappten
+   Kasten. Er war schon vorher von 400 auf 244 px eingeschnuert; ganz
+   aufloesen liess sich der Konflikt hier NICHT:
    · Blosses Weiter-Einschnueren hilft nicht — das Raster ist nur rund 330 px
      hoch und beginnt direkt unter der Filterleiste, jede fuer vier Schritte
      brauchbare Hoehe deckt es zu.
@@ -775,10 +779,10 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
      wurde vorgefuehrt: `.wb__pane` traegt `overflow:hidden`, der Kasten wird
      dadurch restlos weggeschnitten und die Hilfe ist unsichtbar — schlimmer
      als zugedeckt. Nicht noch einmal versuchen.
-   · Das Auto-Oeffnen abzustellen oder ToolHelp aus der Spalte zu heben, waere
-     ein Eingriff in den geteilten Vertrag bzw. ins Hoehenbudget — eine
-     Produktentscheidung, keine Fehlerbehebung. Steht als Sichturteil in
-     .planning/notes/mining-werkbank-defekte.md. */
+   · ToolHelp aus der Spalte zu heben, waere ein Eingriff ins Hoehenbudget —
+     eine Produktentscheidung, keine Fehlerbehebung. Steht als Sichturteil in
+     .planning/notes/mining-werkbank-defekte.md. Das Auto-Oeffnen ist mit
+     #422 fuer schwebende Rumpfe ohnehin abgestellt (s. oben). */
 /* ⚠⚠ ZWEI Zeilen, die zusammengehoeren — einzeln richtet keine etwas aus.
    `position:relative` macht das <details> zum Bezug des absolut gesetzten
    Rumpfes. Ohne sie fiel der Bezug auf .wb__filters (die einzige positionierte
@@ -797,7 +801,7 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
   z-index:14;background:var(--surface);border-radius:12px;line-height:1.45;
   box-shadow:0 10px 30px color-mix(in srgb,var(--ink) 60%,transparent);
   /* ⚠ 15.08.2026 von 244 auf 168 px: mit dem Gehaeuse ist die Bildflaeche
-     kuerzer, und der beim Erstbesuch selbsttaetig aufklappende Kasten deckte
+     kuerzer, und der damals beim Erstbesuch selbsttaetig aufklappende Kasten deckte
      das Kachelraster VOLLSTAENDIG zu — der erste Eindruck der Seite war eine
      Anleitung ohne Minerale. Bei 168 px bleiben zwei Kachelzeilen sichtbar,
      der Kasten scrollt dafuer intern.

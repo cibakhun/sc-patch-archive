@@ -30,6 +30,7 @@ import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 import { jsonForScript } from '../lib/safeJson';
 import { items, pageItemIds, itemPath } from '../lib/items';
+import { imBruchrechner } from '../lib/itemLinks';
 
 /* Titel ins Gehaeuse (15.08.2026), wie bei der Mining-Werkbank: das Kopfband
    der Grafik traegt ihn, der separate `.hero` der Seite faellt dafuer weg. */
@@ -88,8 +89,12 @@ const sheetOf = (name: string) => {
   const id = itemIdByName.get(name);
   return id && pageItemIds.has(id) ? href(itemPath(id), lang) : null;
 };
+// Auswahl: imBruchrechner (src/lib/itemLinks.ts), dieselbe Regel, nach der
+// die Item-Blaetter hierher verlinken. Laser der Groesse 0 (Bodenfahrzeuge)
+// fehlen seit 24.11.2026; sie standen mit der kleinsten Kraft am Ende der
+// Liste, ein gespeicherter Index auf sie faellt auf den Vorgabe-Laser zurueck.
 const lasers = (MODEL.lasers as any[])
-  .filter((l) => !l.builtIn && l.mining && l.mining.dps)
+  .filter(imBruchrechner)
   .map((l) => ({ n: l.name, size: l.size, slots: l.moduleSlots || 0, dps: Math.round(l.mining.dps), mods: l.mods || {}, sheet: sheetOf(l.name) }))
   .sort((a, b) => b.dps - a.dps);
 const modules = (MODEL.modules as any[])
@@ -148,7 +153,7 @@ const S = de ? {
   refLead: 'Ertrag je Station für', refGo: 'In der Refinery ansehen →',
   sheet: 'Datenblatt →', scanH: 'Laut Scanner', massNum: 'Masse', resNum: 'Widerstand in %',
   resPh: 'vom Erz', resScan: 'Widerstand laut Scanner', scanTag: 'Scannerwert',
-  cmpTitle: 'Laser vergleichen', cmpLead: 'Verhältnis für das gewählte Erz mit der eingestellten Masse und dem Gadget, ohne Module. Spaltenköpfe sortieren.',
+  cmpTitle: 'Laser vergleichen', cmpLead: 'Verhältnis für das gewählte Erz mit der eingestellten Masse und dem Gadget, ohne Module. Spaltenköpfe sortieren. Laser der Größe 0 für Bodenfahrzeuge wie den ROC fehlen: der Rechner gilt für Schiffslaser.',
   thLaser: 'Laser', thSize: 'Größe', thDps: 'Leistung', thRes: 'Widerstand', thInst: 'Instabilität', thWin: 'Ladefenster', thSlots: 'Module', thRatio: 'Verhältnis',
   pick: 'Wählen', picked: 'gewählt',
 } : {
@@ -166,7 +171,7 @@ const S = de ? {
   refLead: 'Yield per station for', refGo: 'Open in Refinery →',
   sheet: 'Data sheet →', scanH: 'From your scanner', massNum: 'Mass', resNum: 'Resistance in %',
   resPh: 'from ore', resScan: 'Resistance from scanner', scanTag: 'scanner value',
-  cmpTitle: 'Compare lasers', cmpLead: 'Ratio for the selected ore with the mass and gadget you set, without modules. Click a heading to sort.',
+  cmpTitle: 'Compare lasers', cmpLead: 'Ratio for the selected ore with the mass and gadget you set, without modules. Click a heading to sort. Size 0 lasers for ground vehicles such as the ROC are left out: the calculator covers ship lasers.',
   thLaser: 'Laser', thSize: 'Size', thDps: 'Power', thRes: 'Resistance', thInst: 'Instability', thWin: 'Charge window', thSlots: 'Modules', thRatio: 'Ratio',
   pick: 'Pick', picked: 'picked',
 };

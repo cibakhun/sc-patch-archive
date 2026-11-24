@@ -236,7 +236,8 @@ a{color:inherit;text-decoration:none}
     <p>
       Werkzeuge und Einstellungen dieser Website legen Daten <strong>lokal in deinem
       Browser</strong> ab: Arbeitsstände (Crafting-Plan und „Im Besitz“-Markierungen, Flotte,
-      Hangar-Layouts, Mining-Werkbank, Rechner-Eingaben wie die Precision-Jump-Route) und
+      Hangar-Layouts, Mining-Werkbank, Refinery-Aufträge, Rechner-Eingaben wie die
+      Precision-Jump-Route) und
       Einstellungen (Darstellung, Leistungsmodus, Hangar-Optionen, ob du einen Hinweis schon
       gesehen hast). Nur für die Dauer eines Tabs (sessionStorage) kommen kleine Merker dazu, etwa
       die Angabe für den Zurück-Link zur vorigen Seite. Ohne Anmeldung schickt kein Skript diese
@@ -257,8 +258,8 @@ a{color:inherit;text-decoration:none}
       Flotte und Hangar-Layouts speichern ihre Inhalte dann zusätzlich in deinem
       <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
       Browser behält eine Kopie. Was du ohne Anmeldung in diesem Browser angelegt hattest, wandert
-      beim ersten Abgleich ins Konto; die Flotte wird dort zu Favoriten. Mining-Vorlagen und
-      Refinery-Aufträge liegen nur im Konto. Meldest du dich im Konto-Dashboard ab (auch mit
+      beim ersten Abgleich ins Konto; die Flotte wird dort zu Favoriten. Refinery-Aufträge liegen
+      danach nur im Konto, ohne Kopie im Browser, Mining-Vorlagen gibt es nur im Konto. Meldest du dich im Konto-Dashboard ab (auch mit
       „Überall abmelden“) oder löschst das Konto, entfernt die Seite Sitzung, Konto-Rolle, Profilkopie, RSI-Code und die Konto-Kopien
       der Werkzeuge aus diesem Browser.
     </p>
@@ -594,6 +595,23 @@ a{color:inherit;text-decoration:none}
       gelesen hast. Dafür fragt dein Browser beim Laden einer Seite, danach jede Minute, solange
       der Tab sichtbar ist, und bei der Rückkehr auf den Tab bei Supabase nach. Die Zahlen
       speichert die Website nicht, und Nachrichten gelten dadurch nicht als gelesen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+    </p>
+
+    <p>
+      Unter „Freunde &amp; Social“ im Konto-Dashboard kannst du den <strong>Discord-Hinweis bei
+      neuen Nachrichten</strong> anschalten (nur mit verbundenem Discord, siehe
+      <a href="#discord">Discord</a>). Bleibt dann eine Nachricht an dich 5 Minuten ungelesen,
+      während die Website seit 3 Minuten kein Lebenszeichen von dir hat (siehe
+      <a href="#presence">Online-Status</a>), schickt dir unser
+      <a href="#discord-server">Discord-Bot</a> eine Privatnachricht: wer dir geschrieben hat
+      (Anzeigename und Handle) und wie viele Nachrichten, mit einem Link zum Chat, je Freund
+      höchstens einmal in 30 Minuten. Dafür gibt das Konto-System dem Bot deine Discord-ID, die
+      Sprache der Website, auf der du den Hinweis angeschaltet hast, Anzeigename und Handle des
+      Absenders und die Zahl der Nachrichten; den Text einer Nachricht und Konto-IDs bekommt er
+      nicht. Gespeichert werden der Schalter, wann du ihn angeschaltet hast, und je Absender, bis
+      zu welcher Nachricht und wann du zuletzt einen Hinweis bekommen hast; das wird gelöscht,
+      sobald du oder der Absender sein Konto löscht. Die Privatnachricht selbst liegt danach bei
+      Discord. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 
     <h2 id="presence">Online-Status (nur mit Konto)</h2>

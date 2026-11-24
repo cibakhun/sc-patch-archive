@@ -182,6 +182,11 @@ select json_build_object(
   'server_version', current_setting('server_version'),
   'auth_stand', (select max(version) from auth.schema_migrations),
   'storage_stand', (select max(id) from storage.migrations),
+  -- ganze Listen fuer plattform.mjs abgleich: laeuft die Probe auf einem
+  -- anderen Auth-/Storage-Stand als die Quelle, steht hier, welche Migration
+  -- ihr fehlt (oder zu viel ist), bevor das Zurueckspielen daran reisst
+  'auth_migrationen', (select coalesce(json_agg(version order by version), '[]') from auth.schema_migrations),
+  'storage_migrationen', (select coalesce(json_agg(name order by id), '[]') from storage.migrations),
   'migrationen', (select count(*) from supabase_migrations.schema_migrations),
   'letzte_migration', (select max(version) from supabase_migrations.schema_migrations),
   'objekte', (select json_object_agg(kategorie, liste order by kategorie)

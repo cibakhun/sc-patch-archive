@@ -144,7 +144,12 @@ export interface ShipPaints {
 type Finish = Partial<Record<'a' | 'b' | 'c', { specular?: string; gloss?: number }>>;
 type PaintRow = { id: string; name: string; a: string; b: string; c: string; pattern?: boolean; finish?: Finish };
 type PaintFile = { ships?: Record<string, { base: { a: string; b: string; c: string }; paints: PaintRow[] }> };
-const PAINT_FILE = (Object.values(import.meta.glob('../../data/ship-paints.json', { eager: true, import: 'default' }))[0] ?? {}) as PaintFile;
+// Beide Spieldateien (diese und die Halterungen unten) liest erst build(),
+// nicht das Laden des Moduls: import.meta.glob gibt es nur im Vite-Bau.
+// bay.ts zieht diese Datei herein, und Tests buendeln bay.ts mit esbuild;
+// auf Modulebene brach dort schon der Import ab, und die Suite lief still
+// nicht mehr (24.11.2026, tests/e2e/schiff-vergleich.test.js).
+const paintFile = (): PaintFile => (Object.values(import.meta.glob('../../data/ship-paints.json', { eager: true, import: 'default' }))[0] ?? {}) as PaintFile;
 const HEX = /^#[0-9a-f]{6}$/;
 
 // Optional wie die Lackierungen: src/data/ship-missile-racks.json entsteht auf
@@ -158,7 +163,7 @@ const HEX = /^#[0-9a-f]{6}$/;
 type RackPort = { rack?: string; fit?: string[]; locked?: boolean };
 type RackRow = { name?: string; size?: number; n?: number; ms?: number; types?: string[] };
 type RackFile = { ships?: Record<string, Record<string, RackPort>>; racks?: Record<string, RackRow> };
-const RACK_FILE = (Object.values(import.meta.glob('../../data/ship-missile-racks.json', { eager: true, import: 'default' }))[0] ?? {}) as RackFile;
+const rackFile = (): RackFile => (Object.values(import.meta.glob('../../data/ship-missile-racks.json', { eager: true, import: 'default' }))[0] ?? {}) as RackFile;
 const RACK_CATEGORIES = new Set(['Vehiclegear / Weapons / Missile Racks', 'Vehiclegear / Weapons / Bomb Racks']);
 
 /** Munitionstypen des Spiels (Port-Typ 'Missile.Torpedo', 'Bomb', ...) als Arten der Werkstatt; ohne Untertyp jede Rakete. */
@@ -310,6 +315,8 @@ function waysOf(it: Item): Record<string, number | string> {
 let memo: { data: LayoutData; json: string; hash: string } | null = null;
 
 function build(): LayoutData {
+  const PAINT_FILE = paintFile();
+  const RACK_FILE = rackFile();
   // Katalog: je Art und Groesse ein Eintrag; Namen mit mehreren Groessen
   // bekommen je Groesse einen eigenen Schluessel '<id>~<groesse>'.
   const out: Record<string, LayoutItem> = {};
