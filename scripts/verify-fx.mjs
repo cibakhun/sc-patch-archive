@@ -121,8 +121,8 @@ console.log('\n[3] Not-Ausgang (?nofx-Abfragezeichenkette) in dist/**/*.html');
 /* ---- Zusicherung 4: Schalter genau einmal, und zwar im Menuefuss ---- */
 console.log('\n[4] js-fx-toggle: genau ein Schalter je Seite, im Menuefuss, keiner in der Leiste');
 {
-  // Untergrenze der Seiten mit Schalter (alle Seiten mit voller Navigation;
-  // gemessen 24.11.2026: 3 806 live). Darunter liefe die Pruefung leer.
+  // Untergrenze der Seiten mit voller Navigation (gemessen 24.11.2026:
+  // 3 330 live, 3 338 im Vorschau-Bau). Darunter liefe die Pruefung leer.
   const KLINKE = 3000;
   const bad = [];
   let mit = 0;
@@ -130,18 +130,25 @@ console.log('\n[4] js-fx-toggle: genau ein Schalter je Seite, im Menuefuss, kein
   // Klasse: die steht auch im Schalt-Skript von Layout.astro und damit auf
   // jeder Seite, auch auf den Datenblaettern ohne Schalter.
   const KNOPF = `fxsw ${TOGGLE}`;
+  // Pruefpflichtig ist jede Seite mit voller Navigation (SiteNav, id="topbar"),
+  // ob sie einen Schalter traegt oder nicht: fehlt er dort, ist das ein Fehler
+  // und kein uebersprungener Fall. Ein Schalter ausserhalb der vollen
+  // Navigation ist ebenso falsch montiert. Datenblaetter (DataShell) haben
+  // beides nicht und bleiben aussen vor.
+  const VOLLE_NAV = 'id="topbar"';
   for (const f of htmlFiles) {
     const html = htmlCache.get(f);
     const knoepfe = count(html, KNOPF);
-    if (!knoepfe) continue;
+    const nav = html.includes(VOLLE_NAV);
+    if (!nav && !knoepfe) continue;
     mit++;
     const deck = count(html, 'fxsw-wrap--deck');
     const bar = count(html, 'fxsw-wrap--bar');
-    if (knoepfe !== 1 || deck !== 1 || bar !== 0) bad.push(`${f} (${knoepfe} Knoepfe, Menue ${deck}x, Leiste ${bar}x)`);
+    if (!nav || knoepfe !== 1 || deck !== 1 || bar !== 0) bad.push(`${f} (${nav ? 'volle Navigation' : 'OHNE volle Navigation'}, ${knoepfe} Knoepfe, Menue ${deck}x, Leiste ${bar}x)`);
   }
-  console.log(`    Seiten mit Schalter: ${mit} (Klinke ${KLINKE})`);
+  console.log(`    Seiten mit voller Navigation oder Schalter: ${mit} (Klinke ${KLINKE})`);
   console.log(`    davon nicht genau einmal im Menue oder noch in der Leiste — Soll: 0   Ist: ${bad.length}`);
-  if (mit < KLINKE) fail(`nur ${mit} Seiten tragen den Effekte-Schalter, erwartet mindestens ${KLINKE}`);
+  if (mit < KLINKE) fail(`nur ${mit} Seiten mit voller Navigation oder Effekte-Schalter, erwartet mindestens ${KLINKE}`);
   if (bad.length) fail(`Effekte-Schalter falsch montiert: ${bad.slice(0, 10).join(', ')}`);
 }
 
