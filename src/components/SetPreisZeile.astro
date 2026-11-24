@@ -29,7 +29,7 @@ const ohne = p.ab != null && p.ohnePreis.length
   ? fill(t('setPreisOhne'), { teile: p.ohnePreis.map(slotName).join(', ') })
   : null;
 const ort = p.ort
-  ? fill(t('setPreisOrt'), { laden: obtainLabel({ kind: 'shop', loc: p.ort.loc }, lang), preis: auec(p.ort.summe, lang) })
+  ? fill(t(p.ohnePreis.length ? 'setPreisOrtTeil' : 'setPreisOrt'), { n, laden: obtainLabel({ kind: 'shop', loc: p.ort.loc }, lang), preis: auec(p.ort.summe, lang) })
     + (p.ort.weitere === 1 ? ` (${t('setPreisOrtEiner')})` : p.ort.weitere > 1 ? ` (${fill(t('setPreisOrtMehr'), { n: p.ort.weitere })})` : '')
   : null;
 ---

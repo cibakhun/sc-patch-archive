@@ -1342,6 +1342,13 @@
       wbGeschoben = true;
     } catch (e) {}
   }
+  // Das Rezept, das gerade offen ist (auch unter einem Missions-Pool, den es
+  // geoeffnet hat), sonst null.
+  function offenesRezept() {
+    if (currentEntry && currentEntry.t === 'bp') return currentEntry.i;
+    for (var k = modalStack.length - 1; k >= 0; k--) if (modalStack[k].t === 'bp') return modalStack[k].i;
+    return null;
+  }
   function wbEintragZu() {
     wbGeschoben = false;
     wbZurueck = true;
@@ -1371,8 +1378,12 @@
       var offen = !!modal && !modal.classList.contains('is-leer');
       // Eigenes Zurueck (Schliessen-Knopf, Esc, Sprung zum Zerlege-Rechner):
       // geschlossen ist schon. Wer in der Zwischenzeit ein Rezept geoeffnet
-      // hat, bekommt seinen Eintrag jetzt.
-      if (eigenes) { if (offen) wbEintrag(); return; }
+      // hat, bekommt seinen Eintrag jetzt, und der traegt das Rezept in der
+      // Adresse (sonst oeffnete Vorwaerts es spaeter nicht wieder).
+      if (eigenes) {
+        if (offen) { wbEintrag(); var r = offenesRezept(); if (r != null) wbAdresse(r); }
+        return;
+      }
       if (e.state && e.state.wbRezept) {
         // Vorwaerts auf einen Rezept-Eintrag: das Rezept wieder oeffnen.
         wbGeschoben = true;

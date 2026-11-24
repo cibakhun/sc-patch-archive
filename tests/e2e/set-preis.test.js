@@ -28,7 +28,7 @@ describe('Set-Preis', async () => {
   const laden = (i) => (i.obtain || []).filter((o) => o.kind === 'shop' && typeof o.price === 'number' && o.price > 0);
 
   test('jedes Set: Summe, fehlende Teile und Laden stimmen mit dem Katalog (Selbstauskunft)', () => {
-    let sets = 0, mitPreis = 0, mitOrt = 0;
+    let sets = 0, mitPreis = 0, mitOrt = 0, mitTeilOrt = 0;
     for (const s of M.armorSets) {
       sets++;
       const p = M.setPreis(s.id);
@@ -44,25 +44,42 @@ describe('Set-Preis', async () => {
       assert.deepEqual(p.ohnePreis, ohne, `${s.id}: ohne Ladenpreis`);
       assert.equal(p.ab, ohne.length === kern.length ? null : summe, `${s.id}: Summe`);
       if (p.ab != null) mitPreis++;
+      // Laden: unabhaengig nachgerechnet. Jeder Laden, der jedes Kernteil mit
+      // Ladenpreis fuehrt (ab zwei solchen Teilen), mit seiner Summe; gewaehlt
+      // ist der guenstigste, die uebrigen zaehlen als „weitere“.
+      const bepreist = kern.filter(([slot]) => !ohne.includes(slot));
+      const kandidaten = [];
+      if (bepreist.length >= 2) {
+        const orte = new Set(bepreist[0][1].flatMap(laden).map((o) => o.loc));
+        for (const loc of orte) {
+          let summeDort = 0, alle = true;
+          for (const [, list] of bepreist) {
+            const dort = list.flatMap(laden).filter((o) => o.loc === loc).map((o) => o.price);
+            if (!dort.length) { alle = false; break; }
+            summeDort += Math.min(...dort);
+          }
+          if (alle) kandidaten.push(summeDort);
+        }
+      }
+      assert.equal(!!p.ort, kandidaten.length > 0, `${s.id}: Laden genau dann, wenn einer jedes Kernteil mit Preis fuehrt`);
       if (p.ort) {
         mitOrt++;
-        assert.ok(p.ohnePreis.length === 0 && p.teile.length >= 2, `${s.id}: Laden nur bei vollstaendigem Preis`);
-        let ortSumme = 0;
-        for (const [, list] of kern) {
-          const dort = list.flatMap(laden).filter((o) => o.loc === p.ort.loc).map((o) => o.price);
-          assert.ok(dort.length, `${s.id}: ${p.ort.loc} fuehrt nicht jedes Kernteil`);
-          ortSumme += Math.min(...dort);
-        }
-        assert.equal(p.ort.summe, ortSumme, `${s.id}: Summe im Laden`);
+        if (ohne.length) mitTeilOrt++;
+        assert.equal(p.ort.summe, Math.min(...kandidaten), `${s.id}: der guenstigste gemeinsame Laden`);
+        assert.equal(p.ort.weitere, kandidaten.length - 1, `${s.id}: Zahl der weiteren Laeden`);
+        const dortSumme = bepreist.reduce((a, [, list]) => a + Math.min(...list.flatMap(laden).filter((o) => o.loc === p.ort.loc).map((o) => o.price)), 0);
+        assert.equal(p.ort.summe, dortSumme, `${s.id}: ${p.ort.loc} fuehrt jedes Kernteil mit Preis zu dieser Summe`);
         assert.ok(p.ort.summe >= p.ab, `${s.id}: ein Laden kann nicht unter der Summe der guenstigsten Teile liegen`);
       }
     }
-    console.log(`set-preis: ${sets} Sets geprueft, ${mitPreis} mit Preis, ${mitOrt} mit Laden fuer alle Kernteile`);
-    // Klinken, gemessen am 24.11.2026: 143 Sets, 48 mit Preis, 19 mit einem
-    // Laden fuer alle Kernteile (zwei und mehr).
+    console.log(`set-preis: ${sets} Sets geprueft, ${mitPreis} mit Preis, ${mitOrt} mit gemeinsamem Laden (davon ${mitTeilOrt} nur fuer die Teile mit Preis)`);
+    // Klinken, gemessen am 24.11.2026: 143 Sets, 48 mit Preis, 21 mit einem
+    // Laden fuer jedes Kernteil mit Preis (zwei und mehr), 2 davon ohne Preis
+    // fuer ein weiteres Kernteil (FBL-8a, Lynx).
     assert.ok(sets >= 140, `nur ${sets} Sets`);
     assert.ok(mitPreis >= 48, `nur ${mitPreis} Sets mit Preis`);
-    assert.ok(mitOrt >= 19, `nur ${mitOrt} Sets mit Laden fuer alles`);
+    assert.ok(mitOrt >= 21, `nur ${mitOrt} Sets mit gemeinsamem Laden`);
+    assert.ok(mitTeilOrt >= 2, `nur ${mitTeilOrt} Sets mit Laden fuer die Teile mit Preis`);
   });
 
   test('Rechnung am Beispiel: guenstigste Variante je Teil, Laden mit allem', () => {
@@ -71,5 +88,9 @@ describe('Set-Preis', async () => {
     assert.deepEqual(p.ohnePreis, []);
     assert.ok(p.ab > 0);
     assert.ok(p.ort && p.ort.summe >= p.ab, "ADP-mk4 gibt es in einem Laden ganz");
+    // Ohne Ladenpreis fuer den Helm: der Laden gilt fuer die drei anderen.
+    const f = M.setPreis('fbl-8a');
+    assert.deepEqual(f.ohnePreis, ['Helmet']);
+    assert.ok(f.ort && f.ort.summe >= f.ab, 'FBL-8a: Laden fuer Torso, Arme und Beine');
   });
 });

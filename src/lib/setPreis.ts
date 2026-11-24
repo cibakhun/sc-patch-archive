@@ -11,7 +11,8 @@
 //
 // Dazu der guenstigste Laden, der jedes Kernteil des Sets fuehrt (in
 // irgendeiner Variante): „wo bekomme ich alles an einem Ort“, der zweite Teil
-// desselben Befunds.
+// desselben Befunds. Hat ein Kernteil keinen Ladenpreis, zaehlen fuer den
+// Laden nur die Teile mit Preis (FBL-8a, Lynx: drei von vier).
 import { setItemsBySlot, type Item, type Obtain } from './items';
 
 export const KERN_SLOTS = ['Helmet', 'Torso', 'Arms', 'Legs'] as const;
@@ -23,7 +24,9 @@ export interface SetPreis {
   ohnePreis: string[];
   /** Summe der guenstigsten Variante je Kernteil mit Ladenpreis, sonst null. */
   ab: number | null;
-  /** Guenstigster Laden mit allen Kernteilen (nur bei zwei und mehr Teilen, alle mit Preis). */
+  /** Guenstigster Laden, der jedes Kernteil mit Ladenpreis fuehrt (bei zwei
+   *  und mehr solchen Teilen). Fehlt einem Kernteil der Ladenpreis, deckt der
+   *  Laden nur die uebrigen; die Zeile sagt das. */
   ort: { loc: string; summe: number; weitere: number } | null;
 }
 
@@ -57,9 +60,11 @@ export function setPreis(id: string): SetPreis {
   }
   const mitPreis = teile.length - ohnePreis.length;
   let ort: SetPreis['ort'] = null;
-  if (teile.length >= 2 && !ohnePreis.length) {
+  // laeden kennt nur Kernteile mit Ladenpreis: wer so viele fuehrt, wie es
+  // davon gibt, fuehrt alle.
+  if (mitPreis >= 2) {
     const voll = [...laeden.entries()]
-      .filter(([, l]) => l.size === teile.length)
+      .filter(([, l]) => l.size === mitPreis)
       .map(([loc, l]) => ({ loc, summe: [...l.values()].reduce((a, b) => a + b, 0) }))
       .sort((a, b) => a.summe - b.summe || a.loc.localeCompare(b.loc, 'en'));
     if (voll.length) ort = { ...voll[0], weitere: voll.length - 1 };
