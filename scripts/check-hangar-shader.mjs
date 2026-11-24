@@ -358,6 +358,23 @@
    1339 Spiellampen (1325 nach Gruppierung) gesetzt, 126 gedämpft, 4
    Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die Carrack in
    der Large-Halle unveraendert 6 (Klinke 6).
+   Seit 24.11.2026 auch Small und Medium (Klinke 2 und 4, dieselben
+   Werte wie Large; Krisz zum Licht der Large-Halle: „Schau doch
+   selber“, beim Urteil fanden sich dort dieselben tuerkisen Fluter).
+   Vorgefuehrt rot am Vorschau-Bau des Commits „Hangar: Licht der
+   Large-Halle auch in Small und Medium“ (gebaut als b630d6c0, bevor er
+   auf den neuesten staging-Stand gesetzt wurde; derselbe Viewer) auf
+   dem PC, der
+   ausgelieferte Viewer ohne strahler in der Zeile der Halle, je 1
+   FEHLER: ohne --ship (Gladius, Small) „die Buehne der Halle
+   util-smltop hat 0 Hauptstrahler gestellt, Klinke 2: …“; mit --ship
+   drak-cutlass-black „die Buehne der Halle util-medtop hat 0
+   Hauptstrahler gestellt, Klinke 4: …“. Ohne Eingriff: „… 6 Lampen aus
+   379 Spiellampen (373 nach Gruppierung) gesetzt, 28 gedämpft, 2
+   Hauptstrahler …“ und „Hauptstrahler: 2 (Klinke 2)“, in Medium „… 6
+   Lampen aus 653 Spiellampen (648 nach Gruppierung) gesetzt, 86
+   gedämpft, 4 Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die
+   Carrack unveraendert 6 (Klinke 6).
 
    ARBEITSSZENEN (21.11.2026, Krisz auf der Karte vom 15.11.2026: „Alle
    vier einbauen“). Die Large-Halle traegt vier Arbeitsszenen an ihren

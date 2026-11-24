@@ -617,6 +617,29 @@
        (.planning/WINDOWS.md), und dass die Bühne im Browser vier
        Hauptstrahler stellt (check:hangar-shader, Klinke strahler in
        KLINKE_FEST).
+   (xii) 24.11.2026, Hauptstrahler auch in Small und Medium (Krisz auf
+       die Frage, ob das Licht der Large-Halle passt: „Schau doch
+       selber“; beim Urteil an Bildern vom PC gefunden: Dieselben
+       türkisen Fluter färbten dort Lack und Deck von 300i, 400i und
+       Cutlass Black). HALL_FEST.strahler mit den Werten der Large-Halle,
+       Klinke strahler 2 (Small) und 4 (Medium). Am Vorschau-Bau des
+       Commits „Hangar: Licht der Large-Halle auch in Small und Medium“
+       (gebaut als b630d6c0, bevor er auf den neuesten staging-Stand
+       gesetzt wurde; derselbe Viewer) auf dem PC dreimal rot, je 1 FEHLER, danach
+       zurückgestellt (Läufer .cache/licht/rot.ps1, nicht im Repo):
+       util-smltop ohne strahler im ausgelieferten Viewer: „[3]
+       util-smltop: die Halle hat eine Klinke strahler (2), HALL_FEST
+       nennt fuer sie keine Hauptstrahler mehr — ihre Fluter strahlten
+       wieder in der Farbe des Spiels …“; util-medtop ohne strahler:
+       dasselbe für util-medtop mit „(4)“; eine Kopie des Tors ohne die
+       Klinke strahler von util-smltop: „[3] util-smltop:
+       HALL_FEST.strahler stellt 2 Hauptstrahler, die Halle hat keine
+       Klinke strahler (KLINKE) — fiele die Einstellung wieder weg,
+       bliebe das Tor gruen“. Ohne Eingriff grün: „2 Hauptstrahler ab
+       Staerke 300 (1 auf +x mal 1, 1 auf -x mal 0.5, Anteil Weiss 0.65;
+       Klinke 2)“ und „4 Hauptstrahler ab Staerke 300 (2 auf +x mal 1, 2
+       auf -x mal 0.5, …; Klinke 4)“. Dass die Bühne sie im Browser
+       stellt, hält check:hangar-shader (dort unter HAUPTSTRAHLER).
    (y) 21.11.2026, die Arbeitsszenen der Large-Halle ([5]; Krisz auf
        der Karte vom 15.11.2026: „Alle vier einbauen“). Einundzwanzig
        Eingriffe in den ausgelieferten Viewer (Block WORK_DEKO_FEST,
