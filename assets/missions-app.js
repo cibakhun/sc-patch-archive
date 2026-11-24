@@ -88,7 +88,10 @@
     var vBp = selBp ? selBp.value : '';
     var stand = [toks.join(' '), vFor, vType, vLoc, vLegal, vBp, selSort.value].join('\u0001');
     var neu = !halten && stand !== zuletzt;
-    zuletzt = stand;
+    // Nur echte Durchgaenge merken: kommt der Index waehrend der Verzoegerung
+    // einer neuen Eingabe, filtert apply(true) schon mit ihr, der folgende
+    // Durchgang aus debounced() muss sie aber noch als Aenderung erkennen.
+    if (!halten) zuletzt = stand;
     var n = 0;
     for (var i = 0; i < cards.length; i++) {
       var c = cards[i];
