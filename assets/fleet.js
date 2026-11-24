@@ -6,7 +6,12 @@
 // laufen auseinander.
 //
 // API (Hangar und Datenblatt verlassen sich darauf):
-//   VBFleet.ids() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
+//   VBFleet.ids() / ships() / owner() / has(id) / toggle(id, label) / add(id, label) / remove(id)
+//   / subscribe(fn) / retry() / dismissMerged()
+//   ships() = Kopien [{id,label}] für Listen (/account/fleet.html „Meine Flotte“).
+//   add/remove = wie toggle, aber nur in eine Richtung: ist das Schiff schon da
+//   bzw. schon weg, bleibt die Flotte, wie sie ist (gelesen aus der Ablage).
+//   owner() = Konto-ID der Flotte oder '' (Gast): „Rückgängig“ gilt nur für sie.
 //   snapshot = { ids, mode: 'guest'|'account', sync: 'local'|'syncing'|'synced'|'error',
 //                error: null|'offline'|'auth'|'write'|'read', merged }
 //   <button data-fleet-ship="<id>" data-fleet-label="<Name>">: aria-pressed setzt
@@ -272,13 +277,26 @@
     if (el.closest('[data-fleet-retry]')) request(true);
   }
 
-  function toggle(id, label) {
+  // want: undefined = umschalten (Datenblatt, Hangar); true/false = nur in
+  // diese Richtung (add/remove für „Entfernen“ und „Rückgängig“ auf
+  // /account/fleet.html). Hat ein anderer Tab schon entfernt oder hinzugefügt
+  // und ist dessen storage-Ereignis hier noch nicht angekommen, bleibt es
+  // dabei: entschieden wird an derselben Lesung der Ablage, die auch
+  // geschrieben wird, nicht an der Anzeige.
+  function change(id, label, want) {
     if (typeof id !== 'string' || !ID_RE.test(id)) return Promise.resolve(false);
     label = cleanLabel(label, id);
     if (!uid) {
-      // Ohne nutzbaren Speicher hält die Seite die Flotte nur im Arbeitsspeicher.
-      var g = storageBroken ? ships.slice() : readGuest();
+      var g = storageBroken ? null : readGuest();
+      // Ohne nutzbaren Speicher (auch wenn er bei dieser Lesung erst versagt
+      // hat) hält die Seite die Flotte nur im Arbeitsspeicher.
+      if (storageBroken) g = ships.slice();
       var at = find(g, id);
+      if (want !== undefined && (at !== -1) === want) {
+        ships = g;
+        notify();
+        return Promise.resolve(want);
+      }
       if (at === -1) g.push({ id: id, label: label });
       else g.splice(at, 1);
       writeGuest(g);
@@ -287,6 +305,10 @@
       return Promise.resolve(at === -1);
     }
     var on = find(computeView(), id) === -1;
+    if (want !== undefined && on !== want) {
+      refresh();
+      return Promise.resolve(want);
+    }
     var m = readMirror(uid);
     var i = find(m.ships, id);
     if (on && i === -1) m.ships.push({ id: id, label: label });
@@ -304,6 +326,7 @@
     flushTimer = setTimeout(function () { flushTimer = null; request(false); }, FLUSH_MS);
     return new Promise(function (resolve) { waiters.push({ id: id, resolve: resolve }); });
   }
+  function toggle(id, label) { return change(id, label); }
 
   // Web Locks reihen die Läufe aller Tabs: ein zweiter Tab liest offene
   // Absichten erst, wenn der erste sie bestätigt hat, und schickt sie nicht
@@ -611,8 +634,12 @@
 
   window.VBFleet = {
     ids: function () { return ships.map(function (s) { return s.id; }); },
+    ships: function () { return ships.map(function (s) { return { id: s.id, label: s.label }; }); },
+    owner: function () { return uid || ''; },
     has: has,
     toggle: toggle,
+    add: function (id, label) { return change(id, label, true); },
+    remove: function (id) { return change(id, '', false); },
     subscribe: function (fn) {
       if (typeof fn !== 'function') return function () {};
       subs.push(fn);

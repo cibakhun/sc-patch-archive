@@ -128,6 +128,20 @@ describe('Sprachregel: Helfer', () => {
     assert.ok(gleich >= 1, 'kein Schiff mit gleicher Fassung gefunden — Test prueft nichts mehr');
   });
 
+  test('displayName/altName: englischer Name in beiden Sprachen, deutscher als Zweitname (C4)', async () => {
+    const I = await bundle(['src/lib/items.ts']);
+    const mitDe = ITEMS.filter((i) => i.game?.nameDe && i.game.nameDe.trim() !== i.name);
+    assert.ok(mitDe.length >= 2000, `nur ${mitDe.length} Items mit eigenem deutschem Namen`);
+    for (const i of mitDe) {
+      assert.equal(I.displayName(i, 'de'), i.name, i.id);
+      assert.equal(I.displayName(i, 'en'), i.name, i.id);
+      assert.equal(I.altName(i, 'de'), i.game.nameDe.trim(), i.id);
+      assert.equal(I.altName(i, 'en'), i.game.nameDe.trim(), i.id);
+    }
+    const gleich = ITEMS.find((i) => i.game?.nameDe && i.game.nameDe.trim() === i.name);
+    if (gleich) assert.equal(I.altName(gleich, 'de'), null, 'gleicher Name ist kein Zweitname');
+  });
+
   test('fremdLang: nur wenn der Text nicht in der Sprache der Seite steht', () => {
     assert.equal(M.fremdLang('de', 'en'), 'en');
     assert.equal(M.fremdLang('de', 'de'), undefined);

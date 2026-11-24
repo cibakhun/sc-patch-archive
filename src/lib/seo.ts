@@ -39,6 +39,9 @@ function toBaseForm(pathname: string): string {
  */
 export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account.html',
+  // „Meine Flotte“: zeigt nur, was im Browser oder im Konto liegt; für
+  // Suchmaschinen steht dort nichts.
+  '/account/fleet.html',
   '/account/reset.html',
   '/account/update-password.html',
   '/pilot.html',
@@ -74,6 +77,13 @@ export const IS_STAGING: boolean =
  * hangarImBau() in scripts/lib/hangar-switch.mjs (Begruendung dort).
  */
 export const HAS_HANGAR: boolean = IS_STAGING;
+
+/**
+ * Die Items-Werkbank (Items und Item Finder als ein Werkzeug) steht nur im
+ * Vorschau-Bau, bis Krisz sie abnimmt (24.11.2026). Links dorthin fragen
+ * diesen Wert; Seiten und Pruefung: scripts/lib/vorschau-seiten.mjs.
+ */
+export const HAS_ITEMS_WERKBANK: boolean = IS_STAGING;
 
 /** true, wenn dieser Pfad (DE oder EN) auf noindex stehen soll. */
 export function isNoindex(pathname: string): boolean {

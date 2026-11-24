@@ -1,0 +1,31 @@
+---
+// Weg zur Items-Werkbank von den bisherigen Seiten — nur im Vorschau-Bau
+// (HAS_ITEMS_WERKBANK, scripts/lib/vorschau-seiten.mjs). Live gibt es die
+// Werkbank nicht, also auch keinen Weg dorthin; verify:hangar-schalter [4]
+// prueft das am Live-Artefakt, [5] am Vorschau-Artefakt, dass beide
+// bisherigen Seiten in beiden Sprachen hinfuehren.
+// Vorbild: die Prototyp-Zeile der Crafting-Werkbank (09.11. bis 13.11.2026).
+import { HAS_ITEMS_WERKBANK } from '../../lib/seo';
+import { href } from '../../i18n/ui';
+interface Props { lang: 'de' | 'en' }
+const { lang } = Astro.props;
+const de = lang === 'de';
+// Eine ruhige Zeile, Violett wie der Finder, damit sie nicht wie eine
+// Warnung liest. Eigene Farbwerte: die Verzeichnisseite hat andere
+// Seitenfarben als der Finder.
+const CSS = `.iw-weg{max-width:calc(var(--maxw,1180px) + var(--vb-breit,0px));margin:.9rem auto 0;padding:.6rem clamp(1rem,4vw,2rem);display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .8rem;font-size:var(--fs-7);color:var(--muted)}
+.iw-weg b{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-4);color:#120f1c;background:#FFB84D;padding:.1rem .45rem;border-radius:3px}
+.iw-weg a{color:#A78BFA;text-decoration:none;border-bottom:1px solid rgba(167,139,250,.35);font-weight:600;white-space:nowrap}
+.iw-weg a:hover{border-color:#A78BFA}`;
+---
+{HAS_ITEMS_WERKBANK && (
+  <>
+    {/* Stil nur mit der Zeile: der Live-Bau soll ihn nicht mitschleppen. */}
+    <style is:inline set:html={CSS} />
+    <p class="iw-weg">
+      <b>{de ? 'Neu' : 'New'}</b>
+      <span>{de ? 'Items und Item Finder als eine Werkbank, als Prototyp.' : 'Items and Item Finder as one workbench, as a prototype.'}</span>
+      <a href={href('/items-werkbank.html', lang)}>{de ? 'Ausprobieren' : 'Try it'} →</a>
+    </p>
+  </>
+)}

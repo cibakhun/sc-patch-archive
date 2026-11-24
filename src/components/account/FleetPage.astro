@@ -1,0 +1,355 @@
+---
+// „Meine Flotte" (/account/fleet.html): die Schiffe, die man auf ihrem
+// Datenblatt mit „Zur Flotte" aufnimmt, als eigene Seite. Gäste sehen die
+// Flotte aus diesem Browser, angemeldet steht die des Kontos da. Lesen,
+// Entfernen, Abgleich und die Übernahme der Gast-Schiffe beim Anmelden macht
+// assets/fleet.js (der EINE Schreiber der Flotte); diese Seite zeichnet nur
+// dessen Schnappschuss (VBFleet.subscribe) und ruft remove/add/retry/dismissMerged.
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    loading: 'Lade deine Flotte …',
+    noJs: 'Diese Seite braucht JavaScript: Die Flotte liegt in deinem Browser oder in deinem Konto.',
+    guest: 'Gespeichert in diesem Browser. Mit einem Konto hast du deine Flotte auf jedem Gerät, und die Schiffe von hier kommen mit.',
+    login: 'Anmelden', register: 'Konto erstellen',
+    synced: 'Mit deinem Konto abgeglichen.',
+    syncing: 'Gleiche mit deinem Konto ab …',
+    error: 'Noch nicht mit dem Konto abgeglichen. Deine Schiffe sind in diesem Browser sicher und gehen beim nächsten Abgleich mit.',
+    retry: 'Erneut abgleichen',
+    merged1: '1 Schiff aus diesem Browser ist jetzt in deinem Konto.',
+    mergedN: '{n} Schiffe aus diesem Browser sind jetzt in deinem Konto.',
+    ok: 'Verstanden',
+    count1: '1 Schiff', countN: '{n} Schiffe',
+    emptyT: 'Noch keine Schiffe in deiner Flotte.',
+    emptyB: 'Auf jedem Schiffsdatenblatt steht „Zur Flotte“. Damit nimmst du ein Schiff auf, und es steht dann hier.',
+    toShips: 'Zu den Schiffen',
+    toAccount: 'Flotte und Loadouts im Konto',
+    remove: '{name} aus der Flotte nehmen',
+    removed: '{name} ist nicht mehr in deiner Flotte.',
+    undo: 'Rückgängig',
+    open: 'Datenblatt öffnen',
+  },
+  en: {
+    loading: 'Loading your fleet …',
+    noJs: 'This page needs JavaScript: your fleet lives in your browser or in your account.',
+    guest: 'Saved in this browser. With an account your fleet is on every device, and the ships from here come along.',
+    login: 'Sign in', register: 'Create account',
+    synced: 'Synced with your account.',
+    syncing: 'Syncing with your account …',
+    error: 'Not synced with your account yet. Your ships are safe in this browser and go along with the next sync.',
+    retry: 'Sync again',
+    merged1: '1 ship from this browser is now in your account.',
+    mergedN: '{n} ships from this browser are now in your account.',
+    ok: 'Got it',
+    count1: '1 ship', countN: '{n} ships',
+    emptyT: 'No ships in your fleet yet.',
+    emptyB: 'Every ship data sheet has “Add to fleet”. Use it and the ship shows up here.',
+    toShips: 'Browse ships',
+    toAccount: 'Fleet and loadouts in your account',
+    remove: 'Remove {name} from your fleet',
+    removed: '{name} is no longer in your fleet.',
+    undo: 'Undo',
+    open: 'Open data sheet',
+  },
+}[lang];
+
+const self = href('/account/fleet.html', lang);
+const loginHref = href('/account/login.html', lang) + '?next=' + encodeURIComponent(self);
+const registerHref = href('/account/register.html', lang) + '?next=' + encodeURIComponent(self);
+const shipsHref = href('/schiffe.html', lang);
+const accountHref = href('/account.html', lang) + '#favs';
+const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
+---
+
+<div class="acx-card flt" id="flt" data-lang={lang} data-ship-base={shipBase}
+  data-copy={JSON.stringify({
+    guest: COPY.guest, synced: COPY.synced, syncing: COPY.syncing, error: COPY.error,
+    merged1: COPY.merged1, mergedN: COPY.mergedN, count1: COPY.count1, countN: COPY.countN,
+    remove: COPY.remove, removed: COPY.removed, open: COPY.open,
+  })}>
+  <div class="flt-head">
+    <p class="flt-state" id="fltState" role="status" aria-live="polite">{COPY.loading}</p>
+    <span class="flt-count" id="fltCount"></span>
+  </div>
+  <div class="flt-acts" id="fltGuest" hidden>
+    <a class="acx-submit flt-btn" href={loginHref}>{COPY.login}</a>
+    <a class="flt-link" href={registerHref}>{COPY.register}</a>
+  </div>
+  <div class="flt-acts" id="fltErr" hidden>
+    <button type="button" class="acx-submit flt-btn" id="fltRetry">{COPY.retry}</button>
+  </div>
+  <div class="flt-note" id="fltMerged" hidden>
+    <span id="fltMergedTxt"></span>
+    <button type="button" class="flt-link" id="fltMergedOk">{COPY.ok}</button>
+  </div>
+
+  <ul class="flt-grid" id="fltList"></ul>
+
+  <div class="flt-empty" id="fltEmpty" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.4c2.9 2.2 4.6 5.9 4.6 9.6L15 17H9l-1.6-5C7.4 8.3 9.1 4.6 12 2.4z"/><path d="M9 21l3-3 3 3"/><circle cx="12" cy="10" r="1.6"/></svg>
+    <p><b>{COPY.emptyT}</b> {COPY.emptyB}</p>
+  </div>
+
+  <p class="flt-undo" id="fltUndo" hidden>
+    <span id="fltUndoTxt"></span>
+    <button type="button" class="flt-link" id="fltUndoBtn">{COPY.undo}</button>
+  </p>
+
+  <div class="flt-foot">
+    <a class="flt-link" href={shipsHref}>{COPY.toShips} &rarr;</a>
+    <a class="flt-link" id="fltAccount" href={accountHref} hidden>{COPY.toAccount} &rarr;</a>
+  </div>
+  <noscript><p class="flt-state">{COPY.noJs}</p></noscript>
+</div>
+
+{/* global: die Karten entstehen im Skript und tragen keine Astro-Kennung;
+    alle Regeln hängen an .flt. */}
+<style is:global>
+  .flt { display: grid; gap: 1.1rem; }
+  .flt [hidden] { display: none !important; }
+  .flt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .flt-state { margin: 0; flex: 1 1 22rem; color: var(--muted); line-height: 1.55; font-size: var(--fs-8); }
+  .flt-count { font-family: var(--font-mono); font-size: var(--fs-6); color: var(--accent); white-space: nowrap; }
+  .flt-acts { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+  .flt-btn { text-decoration: none; }
+  .flt-link {
+    padding: 0; border: 0; background: none; cursor: pointer; color: var(--accent);
+    font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-7);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .flt-link:hover { color: #fff; }
+  .flt-note {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 0.8rem 1rem; border: 1px solid color-mix(in srgb, var(--ok, #5ad19a) 45%, transparent); border-radius: 10px;
+    background: color-mix(in srgb, var(--ok, #5ad19a) 8%, transparent); font-size: var(--fs-7);
+  }
+  .flt-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); }
+  /* Am Handy zwei Karten nebeneinander, am breiten Schirm etwas größere. */
+  @media (min-width: 700px) { .flt-grid { grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); } }
+  .flt-card { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+  .flt-card:hover { border-color: var(--accent); }
+  .flt-card__link { display: grid; grid-template-rows: auto auto; color: var(--text); text-decoration: none; }
+  .flt-card__img { position: relative; overflow: hidden; aspect-ratio: 16 / 9; display: grid; place-items: center; background: linear-gradient(160deg, #18233a, #0b111e); }
+  .flt-card__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .flt-card__img svg { width: 40px; height: 40px; fill: none; stroke: var(--muted); stroke-width: 1.4; }
+  .flt-card__name { padding: 0.65rem 2.6rem 0.75rem 0.85rem; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-8); line-height: 1.3; }
+  .flt-card__x {
+    position: absolute; right: 6px; bottom: 6px; width: 32px; height: 32px; display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 8px; background: rgba(5, 7, 13, 0.6); color: var(--muted); cursor: pointer;
+  }
+  .flt-card__x:hover, .flt-card__x:focus-visible { color: #fff; border-color: var(--hot, #f4708a); background: var(--hot, #f4708a); }
+  .flt-card__x svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .flt-empty { display: flex; gap: 1rem; align-items: flex-start; padding: 1.2rem; border: 1px dashed var(--line-2); border-radius: 10px; }
+  .flt-empty svg { width: 34px; height: 34px; flex: none; fill: none; stroke: var(--muted); stroke-width: 1.5; }
+  .flt-empty p { margin: 0; color: var(--muted); line-height: 1.55; }
+  .flt-empty b { display: block; color: var(--text); margin-bottom: 0.2rem; }
+  .flt-undo { margin: 0; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: var(--fs-7); }
+  .flt-foot { display: flex; gap: 0.6rem 1.6rem; flex-wrap: wrap; padding-top: 0.4rem; border-top: 1px solid var(--line-soft); }
+</style>
+
+<script>
+  type Ship = { id: string; label: string };
+  type Snap = { ids: string[]; mode: 'guest' | 'account'; sync: 'local' | 'syncing' | 'synced' | 'error'; error: string | null; merged: number };
+  type Fleet = {
+    ids(): string[];
+    ships?(): Ship[];
+    owner?(): string;
+    toggle(id: string, label: string): Promise<boolean>;
+    add(id: string, label: string): Promise<boolean>;
+    remove(id: string): Promise<boolean>;
+    subscribe(fn: (s: Snap) => void): () => void;
+    retry(): Promise<unknown>;
+    dismissMerged(): void;
+  };
+
+  const root = document.getElementById('flt');
+  if (root) {
+    const C = JSON.parse(root.dataset.copy || '{}') as Record<string, string>;
+    const base = root.dataset.shipBase || '/schiffe/';
+    const $ = (id: string) => document.getElementById(id)!;
+    const fill = (t: string, v: Record<string, string | number>) => t.replace(/\{(\w+)\}/g, (x, k) => (k in v ? String(v[k]) : x));
+    const coll = new Intl.Collator(root.dataset.lang === 'de' ? 'de' : 'en', { sensitivity: 'base', numeric: true });
+    let thumbs: Record<string, string> = {};
+    let fleet: Fleet | null = null;
+    let last: Snap | null = null;
+
+    const svg = (paths: string, cls = '') => {
+      const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      s.setAttribute('viewBox', '0 0 24 24');
+      s.setAttribute('aria-hidden', 'true');
+      if (cls) s.setAttribute('class', cls);
+      for (const d of paths.split('|')) {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', d);
+        s.appendChild(p);
+      }
+      return s;
+    };
+    const shipIcon = () => svg('M12 2.4c2.9 2.2 4.6 5.9 4.6 9.6L15 17H9l-1.6-5C7.4 8.3 9.1 4.6 12 2.4z|M9 21l3-3 3 3');
+    // Nur eigene Pfade und https: das Bild kommt aus einer Datei der Seite.
+    const safeImg = (u: string) => (typeof u === 'string' && (/^\/(?!\/)/.test(u) || /^https:\/\//.test(u)) ? u : '');
+
+    const card = (s: Ship) => {
+      const li = document.createElement('li');
+      li.className = 'flt-card';
+      li.dataset.ship = s.id;
+      const a = document.createElement('a');
+      a.className = 'flt-card__link';
+      a.href = base + encodeURIComponent(s.id) + '.html';
+      a.title = C.open;
+      const pic = document.createElement('span');
+      pic.className = 'flt-card__img';
+      const src = safeImg(thumbs[s.id] || '');
+      if (src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        // Kommt das Bild nicht, steht das Schiffszeichen da statt eines kaputten Bilds.
+        img.addEventListener('error', () => img.replaceWith(shipIcon()), { once: true });
+        pic.appendChild(img);
+      } else {
+        pic.appendChild(shipIcon());
+      }
+      const name = document.createElement('span');
+      name.className = 'flt-card__name';
+      name.textContent = s.label;
+      a.append(pic, name);
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'flt-card__x';
+      const lbl = fill(C.remove, { name: s.label });
+      x.title = lbl;
+      x.setAttribute('aria-label', lbl);
+      x.appendChild(svg('M6 6l12 12M18 6L6 18'));
+      x.addEventListener('click', () => remove(s));
+      li.append(a, x);
+      return li;
+    };
+
+    // Entfernen mit Rückgängig. remove/add wirken nur in eine Richtung: hat ein
+    // anderer Tab das Schiff schon entfernt, holt das × es nicht zurück.
+    // Rückgängig gilt nur für die Flotte, aus der das Schiff kam: meldet sich
+    // in einem anderen Tab jemand ab oder ein anderes Konto an, verfällt es.
+    let undoShip: Ship | null = null;
+    let undoFrom = '';
+    let focusShip = '';
+    const whose = (snap: Snap | null) => (snap ? snap.mode + ':' + (fleet?.owner?.() || '') : '');
+    const dropUndo = () => {
+      undoShip = null; undoFrom = ''; $('fltUndo').hidden = true;
+    };
+    const remove = (s: Ship) => {
+      if (!fleet) return;
+      void fleet.remove(s.id);
+      undoShip = s;
+      undoFrom = whose(last);
+      $('fltUndoTxt').textContent = fill(C.removed, { name: s.label });
+      $('fltUndo').hidden = false;
+      ($('fltUndoBtn') as HTMLButtonElement).focus();
+    };
+    // Fokus an eine Karte (Link oder ×); false, wenn sie nicht dasteht.
+    const focusCard = (id: string, x = false, preventScroll = false) => {
+      const li = Array.from($('fltList').children).find((n) => (n as HTMLElement).dataset.ship === id);
+      const el = li?.querySelector<HTMLElement>(x ? '.flt-card__x' : '.flt-card__link');
+      if (el) el.focus({ preventScroll });
+      return !!el;
+    };
+    // Kein Ziel mehr: die erste Karte, sonst „Zu den Schiffen“ im Fuß.
+    const focusFallback = () => {
+      ($('fltList').querySelector<HTMLElement>('.flt-card__link') || root.querySelector<HTMLElement>('.flt-foot a'))?.focus();
+    };
+    $('fltUndoBtn').addEventListener('click', () => {
+      const s = undoShip;
+      const same = !!(fleet && s && whose(last) === undoFrom);
+      if (same) {
+        // add liest die Ablage, nicht die Anzeige: fehlt das Schiff dort, kommt
+        // es zurück, auch wenn diese Seite es noch zeigt; steht es schon da,
+        // bleibt die Flotte, wie sie ist. Der Fokus geht an seine Karte (paint).
+        focusShip = s!.id;
+        void fleet!.add(s!.id, s!.label);
+      }
+      dropUndo();
+      if (same) { if (focusShip && last) paint(last); return; }
+      // Eintrag verfallen (andere Flotte): der Fokus bleibt nie am
+      // ausgeblendeten Knopf.
+      if (!(s && focusCard(s.id))) focusFallback();
+    });
+
+    const shipsNow = (): Ship[] => {
+      if (!fleet) return [];
+      if (typeof fleet.ships === 'function') return fleet.ships();
+      return fleet.ids().map((id) => ({ id, label: id }));
+    };
+
+    const paint = (snap: Snap) => {
+      // Verfällt „Rückgängig“, während es den Fokus hat (An- oder Abmeldung in
+      // einem anderen Tab), geht der Fokus nach dem Neuzeichnen weiter.
+      let lostUndo = false;
+      if (undoShip && whose(snap) !== undoFrom) {
+        lostUndo = document.activeElement === $('fltUndoBtn');
+        dropUndo();
+      }
+      last = snap;
+      const list = shipsNow().slice().sort((a, b) => coll.compare(a.label, b.label));
+      // Neu zeichnen ohne Positionsverlust: lag der Fokus auf einer Karte (Link
+      // oder ×), liegt er danach auf derselben Stelle der neuen Karte.
+      const act = document.activeElement as HTMLElement | null;
+      const was = act?.closest<HTMLElement>('#fltList .flt-card');
+      const keep = was ? { id: was.dataset.ship || '', x: act!.classList.contains('flt-card__x') } : null;
+      $('fltList').replaceChildren(...list.map(card));
+      if (focusShip) {
+        // Nach Rückgängig: an die wiederhergestellte Karte, sonst an die
+        // erste Karte oder den Weg zu den Schiffen.
+        if (focusCard(focusShip)) focusShip = '';
+        else if (!fleet || !fleet.ids().includes(focusShip)) {
+          focusShip = '';
+          focusFallback();
+        }
+      } else if (keep ? !focusCard(keep.id, keep.x, true) : lostUndo) {
+        // Die Karte mit dem Fokus ist weg, oder „Rückgängig“ verfiel.
+        focusFallback();
+      }
+      $('fltEmpty').hidden = list.length > 0;
+      $('fltCount').textContent = list.length ? (list.length === 1 ? C.count1 : fill(C.countN, { n: list.length })) : '';
+      const guest = snap.mode === 'guest';
+      $('fltState').textContent = guest ? C.guest
+        : snap.sync === 'error' ? C.error
+        : snap.sync === 'synced' ? C.synced : C.syncing;
+      $('fltGuest').hidden = !guest;
+      $('fltErr').hidden = guest || snap.sync !== 'error';
+      $('fltAccount').hidden = guest;
+      const n = guest ? 0 : Number(snap.merged) || 0;
+      $('fltMerged').hidden = !n;
+      if (n) $('fltMergedTxt').textContent = n === 1 ? C.merged1 : fill(C.mergedN, { n });
+    };
+
+    $('fltRetry').addEventListener('click', () => { void fleet?.retry(); });
+    $('fltMergedOk').addEventListener('click', () => fleet?.dismissMerged());
+
+    const start = () => {
+      const f = (window as unknown as { VBFleet?: Fleet }).VBFleet;
+      if (!f || fleet) return;
+      fleet = f;
+      fleet.subscribe(paint);
+    };
+    // Bilder zuerst holen, dann zeichnen; ohne Bilder zeichnet die Seite trotzdem.
+    fetch('/assets/ship-thumbs.json')
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+      .then((t) => {
+        thumbs = t && typeof t === 'object' ? (t as Record<string, string>) : {};
+        if (last) paint(last);
+        else start();
+      });
+    // fleet.js steht als defer-Skript nach diesem Modul; es meldet sich mit vb-fleet-ready.
+    window.addEventListener('vb-fleet-ready', start);
+    start();
+  }
+</script>
