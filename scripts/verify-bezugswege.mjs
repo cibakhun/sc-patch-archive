@@ -28,8 +28,8 @@
 //   Zweite Stufe (P2, gleicher Tag):
 //   7  D4 Pool statt „100 %": jede Zeile der Missionstabelle eines Bauplans
 //      nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %". Klinke.
-//      Zieht die Mission aus mehreren Pools (src/data/missions.json), nennt
-//      keine Zeile mehr Bauplaene als ihr groesster Pool.
+//      Jede Zahl (auch jedes Ende einer Spanne) ist die Groesse eines Pools
+//      genau dieser Mission (verschiedene Bauplaene, src/data/missions.json).
 //   8  D10 Der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite
 //      hoechstens einmal.
 //   9  D7 Kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer
@@ -143,14 +143,19 @@ const PLANER_KNOPF = /Im Fabricator-Planer öffnen|Open in the fabricator planne
 const titel = new Map(); // Sprache|Titel -> Pfade
 let poolTabellen = 0;
 const poolOhne = [];
-// Missionsfamilien mit mehreren Pools: Slug -> groesster Pool (src/data/missions.json)
-const groessterPool = new Map(
+// Missionsfamilie -> Groessen ihrer Pools (verschiedene Bauplaene je Pool,
+// src/data/missions.json). Jede Zahl der Tabelle muss die Groesse eines
+// dieser Pools sein: die Summe der Familie (vorher „1 von 25“ bei Pools
+// 7 + 5 + 5 + 8) ist es nicht, und die Zahl der Bauplan-Seiten auch nicht,
+// wo sie vom Pool abweicht (Review #434).
+const poolGroessen = new Map(
   JSON.parse(readFileSync(resolve(ROOT, 'src/data/missions.json'), 'utf8')).missions
-    .filter((m) => (m.blueprints ?? []).length > 1)
-    .map((m) => [m.slug, Math.max(...m.blueprints.map((p) => p.blueprints.length))]),
+    .filter((m) => (m.blueprints ?? []).length > 0)
+    .map((m) => [m.slug, { mehrere: m.blueprints.length > 1, groessen: new Set(m.blueprints.map((p) => new Set(p.blueprints.map((b) => String(b.name).toLowerCase())).size)) }]),
 );
 let poolGeprueft = 0;
-const poolZuGross = [];
+let poolGeprueftMehrere = 0;
+const poolFremd = [];
 const planerDoppelt = [];
 let materialSeiten = 0;
 let materialMitItem = 0;
@@ -206,26 +211,33 @@ function pruefeBauplanP2(pfad, html) {
     const zeilen = (tabelle.match(/<tr\b/g) ?? []).length - 1; // ohne Kopfzeile
     const mitPool = zellen.filter((z) => /data-pool="\d+"/.test(z[1])).length;
     if (!zeilen || mitPool !== zeilen || zellen.some((z) => /^\s*100\s?%\s*$/.test(z[2]))) poolOhne.push(pfad);
-    // Zieht die Mission aus mehreren Pools, nennt keine Zeile mehr Bauplaene
-    // als ihr groesster Pool (vorher „1 von 25“ bei Pools 7 + 5 + 5 + 8).
-    for (const [, slug, pool] of tabelle.matchAll(/href="(?:\/de)?\/missionen\/([a-z0-9-]+)\.html"[\s\S]*?data-pool="(\d+)"/g)) {
-      const groesster = groessterPool.get(slug);
-      if (groesster == null) continue;
+    // Jede Zahl (und jedes Ende einer Spanne) ist die Groesse eines Pools
+    // genau dieser Mission.
+    for (const [, slug, pool, poolMin] of tabelle.matchAll(/href="(?:\/de)?\/missionen\/([a-z0-9-]+)\.html"[\s\S]*?data-pool="(\d+)"(?:\s+data-pool-min="(\d+)")?/g)) {
+      const m = poolGroessen.get(slug);
+      if (!m) continue;
       poolGeprueft++;
-      if (Number(pool) > groesster) poolZuGross.push(`${pfad} (${slug}: ${pool} > ${groesster})`);
+      if (m.mehrere) poolGeprueftMehrere++;
+      for (const n of [pool, poolMin].filter(Boolean)) {
+        if (!m.groessen.has(Number(n))) poolFremd.push(`${pfad} (${slug}: ${n}, Pools ${[...m.groessen].join('/')})`);
+      }
     }
   }
   // [12] Materialwege
   if (/<h2[^>]*>(?:Zutaten|Ingredients)<\/h2>/.test(html)) {
     materialSeiten++;
     const mat = html.match(/<ul class="bp-mat"[\s\S]*?<\/ul>/)?.[0];
-    // Jedes Material einzeln: Abbau und Kauf stehen immer da (als Weg oder als
-    // ausdrueckliches „nein“/„unbekannt“), Zerlegen, wo es etwas zu sagen gibt.
-    // Ein einziges data-material reicht nicht (Review #434).
+    // Jedes Material einzeln: Abbau UND Kauf stehen immer da, jeder fuer sich
+    // als Weg (data-mat-weg) oder als ausdrueckliches „nein“/„unbekannt“
+    // (data-mat-ohne); Zerlegen, wo es etwas zu sagen gibt. Ein einziges
+    // data-material reicht nicht, und Kauf + Zerlegen ersetzen den Abbau
+    // nicht (Review #434, zweimal).
     const eintraege = mat ? [...mat.matchAll(/<li data-material="([^"]*)"[^>]*>([\s\S]*?)<\/li>/g)] : [];
+    const aussage = (li, art) => new RegExp(`data-mat-(?:weg|ohne)="${art}"`).test(li);
     const ohneWege = eintraege
-      .filter(([, , li]) => (li.match(/<(?:a|span)\b[^>]*(?:data-mat-weg="|class="dp-muted)/g) ?? []).length < 2)
-      .map(([, name]) => name);
+      .map(([, name, li]) => [name, ['abbauen', 'kaufen'].filter((art) => !aussage(li, art))])
+      .filter(([, fehlt]) => fehlt.length)
+      .map(([name, fehlt]) => `${name}: ${fehlt.join(' + ')}`);
     if (!eintraege.length) materialFehlt.push(pfad);
     else if (ohneWege.length) materialFehlt.push(`${pfad} (${ohneWege.join(', ')})`);
     else {
@@ -429,9 +441,9 @@ console.log('\n[7] D4 Missionstabelle eines Bauplans nennt den Pool statt „100
 console.log(`    Tabellen: ${poolTabellen} (Klinke ${KLINKEN.poolTabellen})   ohne Pool oder mit nacktem „100 %" — Soll: 0   Ist: ${poolOhne.length}`);
 need(poolTabellen >= KLINKEN.poolTabellen, `nur ${poolTabellen} Missionstabellen, Klinke ${KLINKEN.poolTabellen} — Ursache klaeren, nicht die Klinke senken`);
 need(!poolOhne.length, `${poolOhne.length} Missionstabelle(n) ohne Pool je Zeile oder mit nacktem „100 %" — ${liste(poolOhne)}`);
-console.log(`    Zeilen zu Missionen mit mehreren Pools: ${poolGeprueft} (Missionen: ${groessterPool.size})   groesser als der groesste Pool — Soll: 0   Ist: ${poolZuGross.length}`);
-need(groessterPool.size > 0 && poolGeprueft > 0, 'keine Mission mit mehreren Pools geprueft — Daten oder Muster veraltet?');
-need(!poolZuGross.length, `${poolZuGross.length} Zeile(n) nennen mehr Bauplaene als der groesste Pool ihrer Mission — ${liste(poolZuGross)}`);
+console.log(`    Zeilen mit Pool-Daten: ${poolGeprueft} (davon zu Missionen mit mehreren Pools: ${poolGeprueftMehrere}; Missionen: ${poolGroessen.size})   Zahl ist keine Poolgroesse der Mission — Soll: 0   Ist: ${poolFremd.length}`);
+need(poolGeprueft > 0 && poolGeprueftMehrere > 0, 'keine Zeile mit Pool-Daten (oder keine zu einer Mission mit mehreren Pools) geprueft — Daten oder Muster veraltet?');
+need(!poolFremd.length, `${poolFremd.length} Zeile(n) nennen eine Zahl, die keine Poolgroesse ihrer Mission ist — ${liste(poolFremd)}`);
 
 // Die Crafting-Kategorieseiten liegen eine Ebene tiefer.
 let kategorieSeiten = 0;

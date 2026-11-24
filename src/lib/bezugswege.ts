@@ -148,20 +148,32 @@ const missionenJePool = (() => {
  *  2. sonst erschlossen: ein Pool kommt in Frage, wenn der Bauplan jede
  *     Mission nennt, die aus diesem Pool zieht. Bleibt eine Groesse, gilt
  *     sie; bleiben mehrere, die Spanne von der kleinsten zur groessten.
- * Familien mit einem Pool behalten poolGroesse() — dieselbe Zahl wie die
- * Missionsseite.
+ *
+ * Gezaehlt werden VERSCHIEDENE Bauplaene des Pools, wie Hinweis und
+ * Missionsseite es sagen: drei Pools fuehren einen Bauplan doppelt
+ * (VaughnGenerator 11 Eintraege, 10 Bauplaene; alle Gewichte 1), und die
+ * Zahl der Eintraege hiesse dort „11 verschiedene“, wo die Mission 10 kennt.
+ * Auch bei einem einzigen Pool zaehlt der Pool selbst, nicht die Bauplan-
+ * Seiten der Familie (Review #434); ohne Pool-Daten bleibt poolGroesse().
  */
+const verschiedene = (p: { blueprints: { name: string }[] }): number =>
+  new Set(p.blueprints.map((b) => b.name.toLowerCase())).size;
+
 export function poolSpanne(bp: BlueprintEntry, mission: { id: string; pool?: string }): { min: number; max: number } {
   const pools = missionBySlug.get(mission.id)?.blueprints ?? [];
-  if (pools.length <= 1) {
+  if (!pools.length) {
     const n = poolGroesse(mission.id);
     return { min: n, max: n };
   }
+  if (pools.length === 1) {
+    const n = verschiedene(pools[0]);
+    return { min: n, max: n };
+  }
   const genannt = mission.pool ? pools.find((p) => p.poolKey === mission.pool) : undefined;
-  if (genannt) return { min: genannt.blueprints.length, max: genannt.blueprints.length };
+  if (genannt) return { min: verschiedene(genannt), max: verschiedene(genannt) };
   const eigene = new Set((bp.missions ?? []).map((m) => m.id));
   const passend = pools.filter((p) => [...(missionenJePool.get(p.poolKey) ?? [])].every((slug) => eigene.has(slug)));
-  const groessen = (passend.length ? passend : pools).map((p) => p.blueprints.length);
+  const groessen = (passend.length ? passend : pools).map(verschiedene);
   return { min: Math.min(...groessen), max: Math.max(...groessen) };
 }
 
