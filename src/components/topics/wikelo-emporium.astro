@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -297,7 +298,7 @@ a.wk-get-name{display:block;color:var(--text)}
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-1-0.html' : '/patches/sc-4-1-0.html'}>Alpha 4.1 · Orbital Assault</a> &nbsp;·&nbsp; <span class="banu-tag">{de ? 'Banu-Händler' : 'Banu trader'}</span></div>
       <h1><span class="thin">{de ? 'Der erste spielbare Alien-Händler' : 'The first playable alien trader'}</span>Wikelo's Emporium</h1>
       <p class="lead">{de ? 'Items liefern, ' : 'Deliver items, earn '}<b>Favor</b>{de ? ' sammeln, Belohnungen eintauschen — kein aUEC.' : ', trade for rewards — no aUEC.'}</p>
-      <div class="tags"><span class="tag">Banu</span><span class="tag">Barter</span><span class="tag">Wikelo Favor</span><span class="tag">{de ? '3 Stationen' : '3 stations'}</span><span class="tag">{de ? 'seit Alpha 4.1' : 'since Alpha 4.1'}</span></div>
+      <div class="tags"><Schlagwort>Banu</Schlagwort><Schlagwort>Barter</Schlagwort><Schlagwort>Wikelo Favor</Schlagwort><Schlagwort>{de ? '3 Stationen' : '3 stations'}</Schlagwort><Schlagwort>{de ? 'seit Alpha 4.1' : 'since Alpha 4.1'}</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

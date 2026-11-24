@@ -403,6 +403,7 @@ const UI = {
     // -- Dossier / QuickFacts (Patch-Seiten, Stufe 3) --
     'qf.title': 'Auf einen Blick',
     'qf.register': '▚ Datenregister',
+    'qf.jump': 'Auf dieser Seite',
     'common.unverified': 'unbestätigt',
     'do.title': 'Dossier',
     'do.aria': 'Dossier Alpha %v%',
@@ -424,6 +425,8 @@ const UI = {
     'do.evoChip': '%s% über alle Patches (Evolution)',
     'do.toArchive': 'Alle Patches im Archiv',
     'do.toEvo': 'Jedes System über alle Patches: Evolution',
+    'do.more': 'Weiterlesen',
+    'do.less': 'Weniger anzeigen',
     // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
     'tf.topic': 'Thema',
     'tf.source': 'Quelle Alpha',
@@ -828,6 +831,7 @@ const UI = {
     // -- Dossier / QuickFacts (patch pages, Stufe 3) --
     'qf.title': 'At a glance',
     'qf.register': '▚ Data register',
+    'qf.jump': 'On this page',
     'common.unverified': 'unverified',
     'do.title': 'Dossier',
     'do.aria': 'Dossier Alpha %v%',
@@ -849,6 +853,8 @@ const UI = {
     'do.evoChip': '%s% across every patch (Evolution)',
     'do.toArchive': 'All patches in the archive',
     'do.toEvo': 'Every system across every patch: Evolution',
+    'do.more': 'Read more',
+    'do.less': 'Show less',
     // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
     'tf.topic': 'Topic',
     'tf.source': 'Source · Alpha',

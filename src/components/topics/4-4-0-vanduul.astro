@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -45,7 +46,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-4-0.html' : '/patches/sc-4-4-0.html'}>Alpha 4.4.0 · Welcome to Nyx</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Gegner' : ' &nbsp;·&nbsp; Enemy'} /></div>
       <h1><span class="thin">{de ? 'Die erste Alien-Bedrohung im PU' : 'The first alien threat in the PU'}</span>Vanduul</h1>
       <p class="lead">{de ? 'Aggressive Klingen-Aliens, die mit 4.4.0 erstmals als KI-Gegner ins persistente Universum kommen — Stinger, Glaive, Scythe und Blade patrouillieren Nyx und greifen ohne Vorwarnung an.' : 'Aggressive blade aliens that arrive with 4.4.0 as AI enemies in the persistent universe for the first time — Stinger, Glaive, Scythe and Blade patrol Nyx and attack without warning.'}</p>
-      <div class="tags"><span class="tag hot">Alien</span><span class="tag">{de ? 'KI-Gegner' : 'AI enemy'}</span><span class="tag">Nyx</span><span class="tag">Operation Sworn Enemies</span><span class="tag hot">{de ? 'Feindlich' : 'Hostile'}</span></div>
+      <div class="tags"><Schlagwort hot>Alien</Schlagwort><Schlagwort>{de ? 'KI-Gegner' : 'AI enemy'}</Schlagwort><Schlagwort>Nyx</Schlagwort><Schlagwort>Operation Sworn Enemies</Schlagwort><Schlagwort hot>{de ? 'Feindlich' : 'Hostile'}</Schlagwort></div>
       <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

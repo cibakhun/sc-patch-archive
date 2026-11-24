@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -44,7 +45,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-2.html' : '/patches/sc-4-0-2.html'}>Alpha 4.0.2 · Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Einmaliges Event · 28. Februar 2025' : ' &nbsp;·&nbsp; One-time event · February 28, 2025'} /></div>
       <h1><span class="thin">{de ? 'Pyros Nachschubkrieg' : 'Pyro\'s Supply War'}</span>Supply or Die</h1>
       <p class="lead">{de ? 'Ein PvPvE-Versorgungskrieg um Pyro: schlag dich auf eine von zwei Fraktionen, beschaffe Material durch Depot-Kaempfe, Bergbau und Salvage — und entscheide, wer das gesetzlose System kontrolliert.' : 'A PvPvE supply war over Pyro: pick one of two factions, procure material through depot battles, mining and salvage — and decide who controls the lawless system.'}</p>
-      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">Event</span><span class="tag">Pyro</span><span class="tag">{de ? 'Fraktionen' : 'Factions'}</span><span class="tag">Detatrine</span></div>
+      <div class="tags"><Schlagwort hot>PvPvE</Schlagwort><Schlagwort>Event</Schlagwort><Schlagwort>Pyro</Schlagwort><Schlagwort>{de ? 'Fraktionen' : 'Factions'}</Schlagwort><Schlagwort>Detatrine</Schlagwort></div>
       <div class="hero__play" data-lb="yt:R9p2q5fFUJk"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
