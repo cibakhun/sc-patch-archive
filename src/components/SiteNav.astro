@@ -15,7 +15,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
-import { bereiche, bereichVon, dienste, krumen } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, feedbackHref, krumen, lokaleLeiste } from '../lib/bereiche';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
@@ -125,6 +125,14 @@ const backHidden = !backTarget;
 // Sichtbar schon im Server-HTML: dann stellt ein <style> vor <nav> --nav-h,
 // nicht erst das Skript hinter </nav> (das bleibt fuer die Naben).
 const backStatic = renderBack && !backHidden;
+// Lokale Leiste (UX-Audit A6): auf den Seiten eines Bereichs mit mehreren
+// Seiten deren Abfolge, z. B. Mining › Fracturing › Refinery › Precision
+// Jump. Sie sitzt in derselben Zeile unter der Kopfleiste wie die Zurueck-
+// Marke und haelt deshalb denselben Freiraum (--nav-h 104/116). Seiten, die
+// die Marke abschalten, bekommen auch die Leiste nicht; Ausnahmen mit Anlass
+// stehen in der Bereichsliste (ohneLeiste).
+const lokal = backMark && !isAccountArea ? lokaleLeiste(Astro.url.pathname, lang) : null;
+const zeileStatic = backStatic || !!lokal;
 const backLinkSrc = renderBack || crumbs.length
   ? versioned('assets/back-link.js', '/assets/back-link.js')
   : null;
@@ -175,17 +183,21 @@ interface DeckGroup {
 const ZIELE = new Map([...bereiche(lang).flatMap((b) => b.seiten), ...dienste(lang)].map((z) => [z.key, z]));
 const pfadHier = pathNoLocale;
 const hier = bereichVon(current);
+const DIENST_PFADE = new Set(dienste(lang).filter((d) => d.key !== 'konto' && !d.extern).map((d) => d.path));
 const deckItem = (key: string): DeckItem[] => {
   const z = ZIELE.get(key);
   if (!z) return [];
   // Markiert wird die Seite selbst und ihre Unterseiten (Schiff unter
   // Schiffe, Mission unter Missionen, Konto unter /account/). Das Archiv
   // nur auf sich selbst: Patch- und Themenseiten sind keine Archiv-Seite.
+  // Konto nicht auf Pfaden, die ein eigener Dienst sind (Meine Flotte unter
+  // /account/fleet.html), sonst stuenden zwei Eintraege als aktuell da.
   const imBereich = z.key === 'konto'
-    ? pfadHier.startsWith('/account/')
+    ? pfadHier.startsWith('/account/') && !DIENST_PFADE.has(pfadHier)
     : z.key !== 'archiv' && hier?.seite === z.key;
   return [{
-    href: z.href,
+    // Feedback nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“.
+    href: z.key === 'feedback' ? feedbackHref(Astro.url.pathname, lang) : z.href,
     label: z.name,
     sub: z.key === 'themen' ? `${z.sub} · ${topicCount}` : z.sub,
     icon: z.icon ?? '',
@@ -236,7 +248,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     auch Naben zu einer gueltigen Herkunft. */}
 {/* Zurueck-Marke schon im Server-HTML sichtbar -> --nav-h sofort und ohne
     JavaScript auf 104/116 px (Werte wie bei :root.vb-has-back unten). */}
-{backStatic && (
+{zeileStatic && (
   <style is:inline>:root{--nav-h:104px}@media (max-width:860px){:root{--nav-h:116px}}</style>
 )}
 <nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={trail.length ? trail[trail.length - 1]?.label : undefined}>
@@ -274,7 +286,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
-    <FxToggle place="bar" />
   </div>
   <div class="snav__right">
     <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
@@ -314,6 +325,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__badge snav__badge--menu js-nav-badge" aria-hidden="true" hidden></span>
     </button>
   </div>
+  {(renderBack || lokal) && (
+  <div class="snav__sub">
   {renderBack && (
     <a
       class="snav__back"
@@ -326,6 +339,15 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     >
       <span aria-hidden="true">←</span> <span data-back-label>{backTarget ? backTarget.label : ''}</span>
     </a>
+  )}
+  {lokal && (
+    <ul class="snav__local" role="list" aria-label={lokal.bereich.name}>
+      {lokal.bereich.seiten.map((z) => (
+        <li><a href={z.href} aria-current={z.key === lokal.aktiv ? 'page' : undefined}>{z.name}</a></li>
+      ))}
+    </ul>
+  )}
+  </div>
   )}
   <div class="snav__progress-bar" aria-hidden="true">
     <div class="snav__progress-fill"></div>
@@ -379,6 +401,20 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 <div class="snav-deck" id="snavDeck" hidden role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
   <div class="snav-deck__back" data-deck-close></div>
   <div class="snav-deck__frame">
+    {/* Sprache und Effekte stehen im DOM VOR der Liste (UX-Audit A7): am Handy
+        sitzen sie oben im Menue, und die Tab-Folge soll dieselbe sein wie
+        das Bild. Am Desktop schiebt `order` den Fuss wieder nach unten; die
+        Fokus-Falle kreist, also bleibt die Folge auch dort lueckenlos. */}
+    <footer class="snav-deck__foot">
+      <FxToggle place="deck" />
+      <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
+      <div class="snav-deck__hints" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
+        <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>
+        <span><kbd>Esc</kbd> {t('nav.deck.hint.close')}</span>
+      </div>
+    </footer>
+
     <div class="snav-deck__body">
       <!-- Bühne: wird per JS aus der aktiven Zeile gefüllt (aria-hidden, weil
            sie den Inhalt der Liste nur wiederholt — Screenreader lesen die
@@ -465,16 +501,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         ))}
       </nav>
     </div>
-
-    <footer class="snav-deck__foot">
-      <FxToggle place="deck" />
-      <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
-      <div class="snav-deck__hints" aria-hidden="true">
-        <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
-        <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>
-        <span><kbd>Esc</kbd> {t('nav.deck.hint.close')}</span>
-      </div>
-    </footer>
   </div>
 </div>
 {crumbLd && <script type="application/ld+json" set:html={jsonForScript(crumbLd)} />}
@@ -659,20 +685,19 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Sprache, Suche, Discord und Menue rechts. 89 % der Besucher kommen am
      Desktop, und dort stand die ganze Navigation hinter „Menue“ (IA B2).
      Platz: bei 1280 px bleiben nach Wortmarke und Bedienknoepfen rund 540 px,
-     die Bereiche brauchen ~500. Deshalb wandern ab hier der Partikel-Schalter
-     (steht im Menue-Fuss) und die Tastenkappen der Suche (Strg K gilt
-     weiter) aus der Leiste, und der Menueknopf zeigt nur sein Zeichen. */
+     die Bereiche brauchen ~500. Deshalb wandern ab hier die Tastenkappen der
+     Suche (Strg K gilt weiter) aus der Leiste, und der Menueknopf zeigt nur
+     sein Zeichen. Der Partikel-Schalter steht seit UX-Audit A7 bei jeder
+     Breite nur noch im Menue, neben der Sprache. */
   @media (min-width: 1280px) {
     .snav { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 1.1rem; }
     .snav__center { grid-column: 1; justify-self: start; }
     .snav__areas { grid-column: 2; grid-row: 1; justify-self: center; display: flex; align-items: center; gap: 0.1rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
     .snav__left { grid-column: 3; }
     .snav__right { grid-column: 4; }
-    /* Klasse am Huellen-Span (FxToggle place="bar"), nicht am Knopf; und der
-       Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
-       .snav__menu-txt (gleiche Spezifitaet) und beides stuende weiter da. */
-    .snav__left > :global(.fxsw-wrap--bar) { display: none; }
     .snav__search kbd { display: none; }
+    /* Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
+       .snav__menu-txt (gleiche Spezifitaet) und er stuende weiter da. */
     .snav__menu-btn .snav__menu-txt--open { display: none; }
   }
   .snav__areas a {
@@ -1060,14 +1085,38 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     :global(:root.vb-has-back) { --nav-h: 116px; }
   }
 
-  .snav__back[hidden] { display: none; }
-  .snav__back {
+  /* Die Zeile unter der Leiste traegt die Zurueck-Marke und die lokale
+     Leiste des Bereichs (UX-Audit A6) nebeneinander. Sie selbst faengt keine
+     Klicks: nur ihre Kinder, der Rest der Zeile gehoert dem Inhalt darunter. */
+  .snav__sub {
     position: absolute;
     /* linksbuendig mit dem Inhalt der Leiste: der Bezugsrahmen ist deren
        PADDING-Box, das Innenmass muss also hier wiederholt werden. */
     top: calc(100% + 0.45rem);
     left: max(clamp(1rem, 4vw, 2.5rem), calc((100% - var(--vb-leiste, 100%)) / 2));
     max-width: calc(100% - 2 * max(clamp(1rem, 4vw, 2.5rem), calc((100% - var(--vb-leiste, 100%)) / 2)));
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    pointer-events: none;
+    transition: opacity var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
+  }
+  .snav__sub > * { pointer-events: auto; }
+  /* Beim Lesen weicht die Zeile aus (Heuristik P47): sie lag beim Scrollen
+     ueber Fliesstext, am Handy auf fast jedem zweiten Bildschirm. Nach unten
+     gerollt geht sie weg, ein Stueck nach oben holt sie zurueck (Skript
+     unten). Nur Deckkraft und Lage: mit Tastatur bleibt sie erreichbar und
+     zeigt sich, sobald der Fokus darin steht. */
+  .snav--sub-weg .snav__sub:not(:focus-within) {
+    opacity: 0;
+    transform: translateY(-0.4rem);
+  }
+  .snav--sub-weg .snav__sub:not(:focus-within) > * { pointer-events: none; }
+  .snav__back[hidden] { display: none; }
+  .snav__back {
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -1116,9 +1165,61 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      einzelnes Ding im Nichts ueber dem Overlay. Nur opacity/pointer-events:
      ein `hidden` wuerde `:has()` treffen und die klebenden Filterleisten
      waehrend des Menues um 34 px springen lassen. */
-  :global(html.is-deck-open) .snav__back {
+  :global(html.is-deck-open) .snav__sub {
     opacity: 0;
-    pointer-events: none;
+    visibility: hidden;
+  }
+  /* Lokale Leiste: die Seiten des Bereichs als Abfolge, dasselbe Material
+     wie die Marke daneben, aber in normaler Schreibung — sie ist Navigation,
+     kein Rueckweg. Zu breit fuer das Handy? Dann rollt sie seitlich. */
+  .snav__local {
+    display: flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0.25rem;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: color-mix(in srgb, var(--chrome-solid, #05070d) 88%, transparent);
+    border: 1px solid var(--line, var(--line-soft));
+    backdrop-filter: blur(10px);
+  }
+  .snav__local::-webkit-scrollbar { display: none; }
+  .snav__local li {
+    display: flex;
+    align-items: center;
+    flex: none;
+  }
+  .snav__local li + li::before {
+    content: '›';
+    color: var(--muted, #8a99b8);
+    opacity: 0.6;
+  }
+  .snav__local a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.32rem 0.5rem;
+    font-family: var(--font-ui, sans-serif);
+    font-size: var(--fs-6);
+    font-weight: 600;
+    letter-spacing: var(--ls-4);
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--muted, #8a99b8);
+    transition: color var(--dur-fast) var(--ease-ui);
+  }
+  .snav__local a:hover,
+  .snav__local a:focus-visible { color: var(--accent, #2dd4ff); }
+  .snav__local a[aria-current='page'] {
+    color: var(--text, #e8eefc);
+    box-shadow: inset 0 -2px 0 var(--accent, #2dd4ff);
+  }
+  /* Fingerkuppe am Handy: hoeher anfassbar. Die Zeile endet trotzdem vor
+     den 116 px, die --nav-h dort freihaelt (73 + 36 px). */
+  @media (max-width: 860px) {
+    .snav__local a { padding: 0.6rem 0.5rem; }
   }
   /* Fingerkuppe wie ueberall im Kopf: die Flaeche waechst, die Optik nicht
      (vgl. .snav__brand::after weiter unten). Ein `min-height: 44px` haette
@@ -1328,12 +1429,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Regel sind ersatzlos raus; die Rahmenspur sitzt jetzt auf
      `.snav-deck__body` (siehe dort). */
 
+  /* Deckend (UX-Audit A7, HE B17): --chrome-solid ist halbdurchsichtig (0,95,
+     auf Archivseiten 0,86), und am Handy lief der Text der Seite dahinter
+     durch die Menuepunkte. Darunter liegt jetzt die volle Grundfarbe; die
+     Weichzeichnung des Hintergrunds war damit unsichtbar und entfaellt —
+     sie war ohnehin die teuerste Ebene des ganzen Menues. */
   .snav-deck__back {
     position: absolute;
     inset: 0;
     background: radial-gradient(110% 85% at 85% 15%, color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent), transparent 65%),
-      radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid));
-    backdrop-filter: blur(24px) saturate(1.1);
+      radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid)) var(--bg, #05070d);
   }
 
   /* Filmkorn-Textur.
@@ -1877,6 +1982,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
   /* ---- Fuß ---- */
   .snav-deck__foot {
+    order: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1959,8 +2065,25 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__hints {
       display: none;
     }
+    /* Sprache und Effekte stehen am Handy OBEN im Menue, nicht nach allen
+       Gruppen (UX-Audit A7, TF M7): beide sind Einstellungen fuer die ganze
+       Seite, und unten fand sie nur, wer die Liste bis zum Ende rollte. Die
+       Datenblaetter zeigen die Sprache an derselben Stelle ihres Menues. Im
+       DOM steht der Fuss schon vorn; hier faellt nur das Desktop-`order` weg. */
     .snav-deck__foot {
+      order: 0;
       justify-content: center;
+      padding-top: 0;
+      padding-bottom: clamp(0.6rem, 1.4vh, 1rem);
+      margin-bottom: 1.2rem;
+      border-top: 0;
+      border-bottom: 1px solid var(--line, var(--line-soft));
+    }
+    /* Der Hinweis des Effekte-Schalters klappt im Fuss nach oben auf — oben
+       im Menue waere er unter der Kopfleiste verschwunden. */
+    .snav-deck__foot :global(.fxsw-wrap--deck .fxsw__tip) {
+      top: calc(100% + 0.5rem);
+      bottom: auto;
     }
   }
   @media (max-width: 560px) {
@@ -2116,9 +2239,31 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       if (scrollY > 0) queueScroll();
     }).observe(document.documentElement);
     addEventListener('resize', function () { maxScroll = -1; queueScroll(); }, { passive: true });
+    // Zeile unter der Leiste (Zurueck-Marke, lokale Leiste): beim Lesen nach
+    // unten weg, ein Stueck nach oben wieder da (Heuristik P47). Sechs Pixel
+    // Totzone gegen Zittern; nach einem Sprung innerhalb der Seite
+    // (Inhaltsverzeichnis, Refinery-Abschnitte) bleibt sie kurz stehen, damit
+    // der Rueckweg nach dem Sprung sichtbar ist.
+    var sub = nav.querySelector('.snav__sub');
+    var subY = scrollY;
+    var subWeg = false;
+    var subHalten = 0;
+    addEventListener('hashchange', function () {
+      subHalten = Date.now() + 1200;
+      subWeg = false;
+      nav.classList.remove('snav--sub-weg');
+    });
+    function paintSub() {
+      var y = scrollY;
+      if (y < 120 || Date.now() < subHalten) { subWeg = false; subY = y; }
+      else if (y - subY > 6) { subWeg = true; subY = y; }
+      else if (subY - y > 6) { subWeg = false; subY = y; }
+      nav.classList.toggle('snav--sub-weg', subWeg);
+    }
     function onScrollFrame() {
       ticking = false;
       nav.classList.toggle('scrolled', scrollY > 40);
+      if (sub) paintSub();
       if (prog) {
         if (maxScroll < 0 || !window.ResizeObserver) measureScroll();
         var p = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;

@@ -5,6 +5,7 @@
 // so it adapts to each patch palette automatically.
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { DISCORD } from '../consts';
+import { feedbackHref } from '../lib/bereiche';
 interface Props {
   /** data freshness stamp, e.g. "28. Juni 2026" (shown when data is baked in) */
   updated?: string;
@@ -29,7 +30,8 @@ const creditText = credit ?? t('footer.credit');
     <span aria-hidden="true">·</span>
     <a href={L('/datenschutz.html')}>{t('footer.privacy')}</a>
     <span aria-hidden="true">·</span>
-    <a href={L('/feedback.html')}>{t('footer.feedback')}</a>
+    {/* nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“ */}
+    <a href={feedbackHref(Astro.url.pathname, lang)}>{t('footer.feedback')}</a>
     <span aria-hidden="true">·</span>
     {/* Der einzige auswärtige Eintrag dieser Zeile — er trägt deshalb das
         Discord-Glyph, damit man vor dem Klick sieht, dass er die Seite
