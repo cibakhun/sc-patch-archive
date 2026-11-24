@@ -180,11 +180,24 @@ describe('Vergleich: Daten aus dem einen Kennwert-Verzeichnis', async () => {
     console.log(`  Pilotenwaffen mit Namensnotiz: ${gesehen} Schiffe`);
   });
 
+  test('nur ein Wert im Gruppenkopf (keine Einzelzeilen, keine Notiz): der Vergleich nennt ihn', () => {
+    let gesehen = 0;
+    for (const e of entries) {
+      for (const r of M.buildArmament(e.data, 'de')) {
+        if (r.key !== 'cm' || r.lines.length || r.note || !r.value) continue;
+        assert.deepEqual(de.schiffe[e.id].teile.cm, [[0, '', r.value]], `${e.id}: Gegenmassnahmen fehlen im Vergleich`);
+        gesehen++;
+      }
+    }
+    assert.ok(gesehen >= 1, 'kein Schiff mit Werfern ohne Serienbelegung gefunden (Probe leer)');
+    console.log(`  Gegenmassnahmen nur als Wert: ${gesehen} Schiffe`);
+  });
+
   test('kein Turm faellt heraus: jede Turmzeile des Datenblatts landet in einer Gruppe', () => {
     let tuerme = 0;
     for (const e of entries) {
       const zeilen = M.buildArmament(e.data, 'en').filter((r) => r.key === 'turret');
-      const erwartet = zeilen.reduce((n, r) => n + r.lines.length + (r.note ? 1 : 0), 0);
+      const erwartet = zeilen.reduce((n, r) => n + r.lines.length + (r.note ? 1 : 0) + (!r.lines.length && !r.note && r.value ? 1 : 0), 0);
       const s = en.schiffe[e.id];
       const da = ['manned', 'remote', 'pdc'].reduce((n, g) => n + (s.teile[g]?.length ?? 0), 0);
       assert.equal(da, erwartet, `${e.id}: ${da} von ${erwartet} Turmzeilen im Vergleich`);
