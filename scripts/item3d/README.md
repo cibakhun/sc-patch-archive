@@ -105,10 +105,13 @@ eine alte `hochgeladen.txt` ohne Vermerk übernimmt er nur mit
 `--ziel-bestaetigen`. `manifest.mjs` nimmt den Nachweis nur für Bucket und
 Endpunkt der Seite an (Endpunkt aus `--env`, nur `R2_ENDPOINT` wird gelesen).
 Beide Protokolle tragen je Zeile ihre Zeit: scheitert ein Item nach seinem
-letzten Erfolg, bleibt sein altes Modell aus der Liste, bis ein neuer Erfolg
-kommt. Eine Zählung (`--zensus`), der ein Item fehlt, endet rot. Endet ein Arbeiter des Massenlaufs mitten in einer
-Gruppe, wird das laufende Item als Fehler vermerkt, der Rest neu eingeplant,
-und was übrig bleibt, macht den Lauf rot (`UNVOLLSTÄNDIG`, Exit 1).
+letzten Erfolg, bleibt sein altes Modell aus der Liste, und jeder weitere
+Lauf backt es neu, bis wieder ein Erfolg kommt. Eine Zählung (`--zensus`)
+schreibt nie ins Bauprotokoll; fehlt ihr ein Item (auch eines ohne Record),
+endet sie rot, Testeinträge des Spiels lässt sie mit Nennung aus.
+Endet ein Arbeiter des Massenlaufs mitten in einer Gruppe, wird das laufende
+Item als Fehler vermerkt, der Rest neu eingeplant, und was übrig bleibt, macht
+den Lauf rot (`UNVOLLSTÄNDIG`, Exit 1).
 
 Das Tor `verify:item3d-befunde` (Schiene A) prüft die Liste
 gegen die Tabelle dieses Checkouts:

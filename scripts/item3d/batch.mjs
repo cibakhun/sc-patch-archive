@@ -34,16 +34,19 @@ const sha = (b, n = 16) => createHash('sha256').update(b).digest('hex').slice(0,
 const quellenKennung = (prov, liste) => sha(liste.map((k) => `${k}=${prov.kennung(k)}`).join('\n'), 12);
 let p4kMod = null;
 // Protokollzeilen (manifest.jsonl, fehler.jsonl) lesen: dieselbe Regel für
-// Planung und Abschlussbericht; eine kaputte Zeile zählt nicht.
-const zeilen = (f) => {
-  const rows = new Map();
+// Planung und Abschlussbericht; eine kaputte Zeile zählt nicht. zeilenAlle
+// gibt jede Zeile (fehler.jsonl: maßgeblich ist je Item die jüngste Zeit),
+// zeilen je Item die letzte.
+const zeilenAlle = (f) => {
+  const rows = [];
   if (!existsSync(f)) return rows;
   for (const line of readFileSync(f, 'utf8').split('\n')) {
     if (!line.trim()) continue;
-    try { const r = JSON.parse(line); if (r && typeof r.id === 'string') rows.set(r.id, r); } catch {}
+    try { const r = JSON.parse(line); if (r && typeof r.id === 'string') rows.push(r); } catch {}
   }
   return rows;
 };
+const zeilen = (f) => new Map(zeilenAlle(f).map((r) => [r.id, r]));
 // Ein abgebrochener Lauf kann eine halbe letzte Zeile hinterlassen; ohne
 // Kürzung klebte die nächste Zeile daran und ginge mit verloren.
 const fehlerZeile = (OUT, o) => appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ ...o, zeit: Date.now() })}\n`);
@@ -85,10 +88,18 @@ async function main() {
   const t0 = Date.now();
   const log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(5)}s]`, ...a);
 
+  // Eine Zählung schreibt nie ins Bauprotokoll (ein Fehlschlag dort sperrte
+  // ein gebautes Modell). Was sie nicht zählen konnte, auch ein Item ohne
+  // Record, steht in ohneZaehlung und macht sie rot; Testeinträge des Spiels
+  // sind ausdrücklich ausgenommen und werden nur genannt.
+  const ohneZaehlung = [], testeintraege = [];
+  const aufloesFehler = (o) => { if (ZENSUS) ohneZaehlung.push(o.id); else fehlerZeile(OUT, o); };
+
   // ─── Items und Paletten auflösen ──────────────────────────────────────
   let items = [], refs = {};
   if (RAW) {
     const info = JSON.parse(readFileSync(join(RAW, 'info.json'), 'utf8'));
+    if (ZENSUS) for (const it of info.items) if (it.missing && (!ONLY.length || ONLY.includes(it.id))) ohneZaehlung.push(it.id);
     items = info.items.filter((it) => !it.missing).map((it) => ({ id: it.id, guid: it.guid, t: it.t, record: it.record, geo: it.geo }));
     refs = info.refs ?? {};
   } else {
@@ -104,8 +115,8 @@ async function main() {
     for (const it of list) {
       if (ONLY.length && !ONLY.includes(it.id)) continue;
       const rec = db.recordById.get(it.guid);
-      if (!rec) { fehlerZeile(OUT, { id: it.id, fehler: 'kein Record' }); continue; }
-      if (/(^|\.)test_/i.test(rec.name)) { fehlerZeile(OUT, { id: it.id, fehler: `Testeintrag ${rec.name}` }); continue; }
+      if (!rec) { aufloesFehler({ id: it.id, fehler: 'kein Record' }); continue; }
+      if (/(^|\.)test_/i.test(rec.name)) { if (ZENSUS) testeintraege.push(it.id); else fehlerZeile(OUT, { id: it.id, fehler: `Testeintrag ${rec.name}` }); continue; }
       const obj = db.readRecord(rec, { typed: true, maxDepth: 10 });
       const geo = (obj?.Components ?? []).find((c) => c?.__type === 'SGeometryResourceParams') ?? null;
       (function walk(o, d = 0) { if (!o || typeof o !== 'object' || d > 40) return; if (o.__ref && o.name) refIds.add(o.__ref); for (const v of Object.values(o)) walk(v, d + 1); })(geo);
@@ -158,10 +169,15 @@ async function main() {
   // Bilder), mit ihrer Kennung im Archiv. Ein Patch, der nur ein Material oder
   // Bild ändert, backt so neu, statt das alte Modell stehen zu lassen.
   // Einträge ohne Quellenliste (älterer Bäcker) gelten als veraltet.
-  let quellenAlt = 0;
+  // Ebenso ein Item, das nach seinem letzten Erfolg gescheitert ist (dieselbe
+  // Regel wie in manifest.mjs, das sein altes Modell dann sperrt): erst ein
+  // neuer Erfolg gibt es wieder frei.
+  let quellenAlt = 0, nachFehler = 0;
   let todo;
   if (ZENSUS) todo = items.slice();
   else {
+    const gescheitert = new Map();
+    for (const f of zeilenAlle(join(OUT, 'fehler.jsonl'))) gescheitert.set(f.id, Math.max(gescheitert.get(f.id) ?? 0, Number(f.zeit) || 0));
     let prov = null;
     const kennung = (liste) => {
       if (!prov) prov = RAW ? makeDirProvider(RAW) : makeP4kProvider(openP4kFuer(P4K));
@@ -171,6 +187,7 @@ async function main() {
       if (FORCE && ONLY.includes(it.id)) return true;
       const d = done.get(it.id);
       if (!(d?.in === it.in && dateienDa(d))) return true;
+      if ((gescheitert.get(it.id) ?? 0) > (Number(d.zeit) || 0)) { nachFehler++; return true; }
       if (!d.quellen || kennung(d.quellen) !== d.q) { quellenAlt++; return true; }
       return false;
     });
@@ -178,9 +195,10 @@ async function main() {
   if (ZENSUS) writeFileSync(ZENSUS, '');
   if (LIMIT) todo = todo.slice(0, LIMIT);
   let fertig = 0, fehler = 0, abgestuerzt = 0, verloren = 0;
-  const ohneZaehlung = [];
-  log(`${items.length} Items, ${items.length - todo.length} schon fertig, ${todo.length} zu backen${quellenAlt ? ` (davon ${quellenAlt} mit geänderten oder ungeprüften Quellen)` : ''}, ${WORKERS} Arbeiter`);
-  if (!todo.length) return summary();
+  const grund = [quellenAlt && `${quellenAlt} mit geänderten oder ungeprüften Quellen`, nachFehler && `${nachFehler} nach einem Fehlschlag`].filter(Boolean);
+  log(`${items.length} Items, ${items.length - todo.length} schon fertig, ${todo.length} zu ${ZENSUS ? 'zählen' : 'backen'}${grund.length ? ` (davon ${grund.join(', ')})` : ''}, ${WORKERS} Arbeiter`);
+  if (testeintraege.length) log(`${testeintraege.length} Testeinträge ausgelassen: ${testeintraege.slice(0, 10).join(', ')}${testeintraege.length > 10 ? ' …' : ''}`);
+  if (!todo.length) return abschluss();
 
   // Nach Grundmodell gruppieren, damit Bilder im Zwischenspeicher bleiben
   const keyOf = (it) => {
@@ -244,16 +262,20 @@ async function main() {
     };
     for (let i = 0; i < Math.min(WORKERS, queue.length); i++) spawn();
   });
-  const unvollstaendig = () => {
+  abschluss();
+
+  function unvollstaendig() {
     if (!abgestuerzt && !verloren && !ohneZaehlung.length) return false;
-    log(`UNVOLLSTÄNDIG: ${abgestuerzt} Arbeiter mitten in der Arbeit beendet${verloren ? `, ${verloren} Items nie gebacken` : ''}${ohneZaehlung.length ? `, ${ohneZaehlung.length} Items ohne Zählung (${ohneZaehlung.slice(0, 10).join(', ')})` : ''}`);
+    log(`UNVOLLSTÄNDIG: ${[abgestuerzt && `${abgestuerzt} Arbeiter mitten in der Arbeit beendet`, verloren && `${verloren} Items nie gebacken`, ohneZaehlung.length && `${ohneZaehlung.length} Items ohne Zählung (${ohneZaehlung.slice(0, 10).join(', ')}${ohneZaehlung.length > 10 ? ' …' : ''})`].filter(Boolean).join(', ')}`);
     process.exitCode = 1;
     return true;
-  };
-  // „fertig“ nur, wenn nichts fehlt; sonst steht dort UNVOLLSTÄNDIG
-  if (ZENSUS) { if (!unvollstaendig()) log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return; }
-  const offen = unvollstaendig();
-  summary(offen);
+  }
+  // „fertig“ nur, wenn nichts fehlt; sonst steht dort UNVOLLSTÄNDIG. Gilt
+  // auch, wenn nichts zu tun war (etwa jedes Item ohne Record).
+  function abschluss() {
+    if (ZENSUS) { if (!unvollstaendig()) log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return; }
+    summary(unvollstaendig());
+  }
 
   function summary(offen = false) {
     const rows = zeilen(join(OUT, 'manifest.jsonl'));
