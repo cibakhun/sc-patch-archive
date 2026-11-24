@@ -1,0 +1,263 @@
+---
+// Items-Werkbank: Verzeichnis und Item Finder als EIN Werkzeug, gebaut auf
+// dem Werkzeug-Standard (src/lib/werkzeugStandard.ts).
+//
+// Krisz 24.11.2026: „Schon von der Funktion her zusammen bauen zu 1 aber wir
+// können die Möglichkeit nutzen um eine richtig geile neuen Standart
+// einführen auf unsere Seite“. Bis zur Abnahme ein Prototyp nur im
+// Vorschau-Bau (scripts/lib/vorschau-seiten.mjs); /items.html und
+// /item-finder.html bleiben bis dahin, wie sie sind.
+//
+// Was statisch im HTML steht (ohne Skript lesbar und krabbelbar): Reiter,
+// Bedienleiste, die Leiste aller Gruppen und Kategorien als echte Links auf
+// die Kategorielisten, der Ueberblick im Blatt mit den Gruppen und Zahlen.
+// Die Treffer selbst zeichnet assets/items-werkbank.js aus dem Katalog
+// (assets/universal-items.json), wie bisher der Finder.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { WZ_CSS } from '../../lib/werkzeugStandard';
+import { wzZeichenCss } from '../../lib/werkzeugZeichen';
+import { kategorieBaum, ZEICHEN_BLATT, ZEICHEN_GRUPPE, GRUPPEN_FARBE } from '../../lib/itemKategorien';
+import { ITEM_UI } from '../../i18n/itemText';
+import { assertLocale, href } from '../../i18n/ui';
+import { jsonForScript } from '../../lib/safeJson';
+import { db, pageItems, armorSets, ITEM_PATCH, num } from '../../lib/items';
+
+interface Props { lang: 'de' | 'en' }
+const lang = assertLocale(Astro.props.lang, 'ItemsWerkbank');
+const de = lang === 'de';
+const n = (x: number) => num(x, lang);
+
+// Cache-Bust per Inhalt (gleiche Begruendung wie in ItemFinderApp.astro).
+const ver = (f: string) => {
+  try { return createHash('sha1').update(readFileSync(f)).digest('hex').slice(0, 8); } catch { return 'x'; }
+};
+const appJs = `/assets/items-werkbank.js?v=${ver('assets/items-werkbank.js')}`;
+const dbUrl = `/assets/universal-items.json?v=${ver('assets/universal-items.json')}`;
+const craftUrl = `/assets/crafting-db.json?v=${ver('assets/crafting-db.json')}`;
+
+const baum = kategorieBaum(lang);
+const total = db.counts.items;
+const mitQuelle = db.counts.withObtain;
+const groesste = Math.max(...baum.map((g) => g.n));
+
+const W = {
+  de: {
+    tabItems: 'Items', tabSets: 'Rüstungssets',
+    hilfe: 'So funktioniert’s', hilfeKurz: 'Hilfe',
+    hilfeLead: 'Alle Items des Spiels an einem Ort: links die Gruppen, in der Mitte die Treffer, rechts das gewählte Item mit Werten, Preisen und Fundorten.',
+    hilfe1: 'Gruppe oder Kategorie links wählen, oder einfach suchen.',
+    hilfe2: 'Mit „Filter“ nach Fundart, Größe, Panzerungsklasse oder Seltenheit eingrenzen.',
+    hilfe3: 'Ein Item anklicken: rechts stehen Werte, Bezugsquellen, Set und Rezept.',
+    hilfe4: 'Tastatur: / sucht, ↑ ↓ blättert durch die Treffer, Esc schließt.',
+    filter: 'Filter', suche: 'Item, Hersteller, Fundort suchen…', sucheLabel: 'Items durchsuchen', leeren: 'Suche leeren',
+    sortEmpf: 'Empfohlen', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Wert (hoch→niedrig)', sortPreis: 'Preis (aufsteigend)', sortPreisZ: 'Preis (absteigend)',
+    sortLabel: 'Sortierung', kacheln: 'Kacheln', liste: 'Liste', ansicht: 'Ansicht',
+    alle: 'Alle Items', gruppen: 'Gruppen', kategorien: 'Kategorien',
+    nItems: 'Items', nSets: 'Sets', laden: 'Katalog wird geladen…',
+    fArt: 'Fundart', fGroesse: 'Größe', fKlasse: 'Panzerungsklasse', fSel: 'Seltenheit',
+    zuruecksetzen: 'Zurücksetzen', zeigen: '{n} zeigen', keine: 'Keine Treffer', schliessen: 'Schließen',
+    leerT: 'Nichts gefunden', leerX: 'Versuch einen anderen Begriff oder nimm einen Filter heraus.', leerK: 'Alles zurücksetzen',
+    ueTitel: 'Item-Katalog', ueLead: `${n(total)} Items aus Star Citizen ${ITEM_PATCH}: Werte, Preise und Fundorte. Wähle eine Gruppe oder ein Item.`,
+    kItems: 'Items', kQuelle: 'mit Bezugsquelle', kBlatt: 'Datenblätter', kSets: 'Sets',
+    tippSuche: 'Suche', tippBlaettern: 'blättern', tippEsc: 'schließen',
+    datenblatt: 'Datenblatt öffnen', kategorieListe: 'In der Kategorieliste', craftOeffnen: 'Im Crafting öffnen', rezeptSeite: 'Blueprint-Seite',
+    setAnsehen: 'Set ansehen', setSeite: 'Set-Seite öffnen', setTeile: 'Teile in der Liste zeigen',
+    hQuellen: 'Bezugsquellen', hWerte: 'Technische Daten', hText: 'Beschreibung', hVar: 'Varianten', hSet: 'Set', hCraft: 'Crafting-Rezept', hGuide: 'Fundort-Guide', hTeile: 'Teile',
+    zurueck: 'Zurück zu {name}', kAb: 'ab', kSchnitt: 'Ø Preis', kQuellen: 'Quellen', kGroesse: 'Größe', kTeile: 'Teile', kKern: 'Kernslots', kKlasse: 'Klasse',
+    setKomplett: 'komplett', setTeilweise: '{n}/4 Kernslots', setFilter: 'Set: {name}',
+    craftLaden: 'Rezept wird geladen…', imAll: 'im All',
+    kurzSets: 'Sets', kurzItems: 'Items',
+    proto: 'Prototyp', protoHub: 'Verzeichnis',
+  },
+  en: {
+    tabItems: 'Items', tabSets: 'Armor sets',
+    hilfe: 'How it works', hilfeKurz: 'Help',
+    hilfeLead: 'Every item in the game in one place: groups on the left, results in the middle, the chosen item with stats, prices and locations on the right.',
+    hilfe1: 'Pick a group or category on the left, or just search.',
+    hilfe2: 'Use “Filter” to narrow by availability, size, armor class or rarity.',
+    hilfe3: 'Click an item: stats, sources, set and recipe appear on the right.',
+    hilfe4: 'Keyboard: / searches, ↑ ↓ steps through results, Esc closes.',
+    filter: 'Filter', suche: 'Search item, manufacturer, location…', sucheLabel: 'Search items', leeren: 'Clear search',
+    sortEmpf: 'Featured', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Value (high→low)', sortPreis: 'Price (low→high)', sortPreisZ: 'Price (high→low)',
+    sortLabel: 'Sort', kacheln: 'Tiles', liste: 'List', ansicht: 'View',
+    alle: 'All items', gruppen: 'Groups', kategorien: 'Categories',
+    nItems: 'Items', nSets: 'Sets', laden: 'Loading catalog…',
+    fArt: 'Availability', fGroesse: 'Size', fKlasse: 'Armor class', fSel: 'Rarity',
+    zuruecksetzen: 'Reset', zeigen: 'Show {n}', keine: 'No results', schliessen: 'Close',
+    leerT: 'Nothing found', leerX: 'Try another term or remove a filter.', leerK: 'Reset everything',
+    ueTitel: 'Item catalog', ueLead: `${n(total)} items from Star Citizen ${ITEM_PATCH}: stats, prices and locations. Pick a group or an item.`,
+    kItems: 'Items', kQuelle: 'with a source', kBlatt: 'Data sheets', kSets: 'Sets',
+    tippSuche: 'search', tippBlaettern: 'step through', tippEsc: 'close',
+    datenblatt: 'Open data sheet', kategorieListe: 'In the category list', craftOeffnen: 'Open in crafting', rezeptSeite: 'Blueprint page',
+    setAnsehen: 'View set', setSeite: 'Open set page', setTeile: 'Show parts in the list',
+    hQuellen: 'Where to get it', hWerte: 'Specifications', hText: 'Description', hVar: 'Variants', hSet: 'Set', hCraft: 'Crafting recipe', hGuide: 'Location guide', hTeile: 'Parts',
+    zurueck: 'Back to {name}', kAb: 'from', kSchnitt: 'Avg. price', kQuellen: 'Sources', kGroesse: 'Size', kTeile: 'Parts', kKern: 'Core slots', kKlasse: 'Class',
+    setKomplett: 'complete', setTeilweise: '{n}/4 core slots', setFilter: 'Set: {name}',
+    craftLaden: 'Loading recipe…', imAll: 'in space',
+    kurzSets: 'Sets', kurzItems: 'Items',
+    proto: 'Prototype', protoHub: 'Directory',
+  },
+}[lang];
+
+const CFG = {
+  lang,
+  dbUrl,
+  craftUrl,
+  itemBase: de ? '/de/items/' : '/items/',
+  katBase: de ? '/de/items/category/' : '/items/category/',
+  craftBase: de ? '/de/crafting/' : '/crafting/',
+  craftPage: de ? '/de/topics/crafting.html' : '/topics/crafting.html',
+  setBase: de ? '/de/armor-sets.html' : '/armor-sets.html',
+  baum: baum.map((g) => ({ r: g.root, s: g.slug, n: g.name, c: g.n, g: g.g, f: g.farbe, b: g.blaetter.map((b) => ({ k: b.cat, s: b.slug, n: b.name, c: b.n, g: b.g })) })),
+  zb: ZEICHEN_BLATT,
+  zg: ZEICHEN_GRUPPE,
+  farben: GRUPPEN_FARBE,
+  t: ITEM_UI[lang],
+  w: W,
+};
+
+// Ring um das Emblem: gestrichelte Bahn, gezogener Kreis, vier Marken.
+const RING = '<svg viewBox="0 0 120 120" fill="none" aria-hidden="true"><circle class="wzb-ring__a" cx="60" cy="60" r="56"/><circle class="wzb-ring__b" cx="60" cy="60" r="44"/><path class="wzb-ring__c" d="M60 0v10M60 110v10M0 60h10M110 60h10"/></svg>';
+const allePfad = href('/items-werkbank.html', lang);
+---
+<style is:inline set:html={WZ_CSS + '\n' + wzZeichenCss('.wz')}></style>
+<style is:inline>
+/* Items: Farben der Seite (Violett und Bernstein wie bisher der Finder). */
+.wz--items{--akz:#A78BFA;--wert:#FFB84D}
+.wz--items .wz-gr__liste{border-left:0}
+/* Prototyp-Marke im Kopf, bis zur Abnahme. */
+.wz-proto{display:flex;align-items:center;gap:.25rem .75rem;margin:0 0 0 auto;font-size:var(--fs-6);color:var(--mu)}
+.wz-proto b{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-3);color:var(--ink);background:var(--wert);padding:.12rem .45rem;border-radius:3px}
+.wz-proto a{color:var(--mu);text-decoration:none;border-bottom:1px solid var(--hl2);white-space:nowrap;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.wz-proto a:hover{color:var(--tx);border-color:var(--akz)}
+@media (max-width:820px){.wz-proto{order:3;flex:1 1 auto;justify-content:flex-end;gap:.25rem .6rem}}
+</style>
+
+<div class="wz wz--items wz-auftakt" id="wz" data-lang={lang}>
+  <header class="wz-kopf">
+    <div class="wz-reiter" role="tablist" aria-label={W.tabItems}>
+      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-items" data-tab="items" aria-selected="true"><span class="wi wi--grid4" aria-hidden="true"></span>{W.tabItems}<em>{n(total)}</em></button>
+      <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-sets" data-tab="sets" aria-selected="false"><span class="wi wi--layers" aria-hidden="true"></span>{W.tabSets}<em>{n(armorSets.length)}</em></button>
+    </div>
+    {/* Prototyp-Marke (die Seite gibt es nur im Vorschau-Bau): Rueckweg zu
+        den beiden bisherigen Seiten, solange sie nicht abgenommen ist. */}
+    <p class="wz-proto"><b>{W.proto}</b><a href={href('/items.html', lang)}>{W.protoHub}</a><a href={href('/item-finder.html', lang)}>Item Finder</a></p>
+    <details class="wz-hilfe">
+      <summary><span class="wi wi--help" aria-hidden="true"></span><span class="wz-hilfe__lang">{W.hilfe}</span><span class="wz-hilfe__kurz">{W.hilfeKurz}</span></summary>
+      <div class="wz-hilfe__in">
+        <p>{W.hilfeLead}</p>
+        <ol><li>{W.hilfe1}</li><li>{W.hilfe2}</li><li>{W.hilfe3}</li><li>{W.hilfe4}</li></ol>
+      </div>
+    </details>
+  </header>
+
+  <div class="wz-bar">
+    <button class="wz-knopf wz-filterknopf" id="wz-filterknopf" type="button" aria-expanded="false" aria-controls="wz-schublade" data-offcanvas-toggle="wz-schublade"><span class="wi wi--filter" aria-hidden="true"></span>{W.filter}</button>
+    <label class="wz-suche" id="wz-suche">
+      <span class="wz-sr">{W.sucheLabel}</span>
+      <span class="wi wi--search" aria-hidden="true"></span>
+      <input type="search" id="wz-q" placeholder={W.suche} autocomplete="off" spellcheck="false" enterkeyhint="search" />
+      <kbd aria-hidden="true">/</kbd>
+      <button class="wz-leeren" id="wz-leeren" type="button" aria-label={W.leeren}><span class="wi wi--close" aria-hidden="true"></span></button>
+    </label>
+    <label class="wz-sort">
+      <span class="wz-sr">{W.sortLabel}</span>
+      <select id="wz-sort">
+        <option value="relevanz">{W.sortEmpf}</option>
+        <option value="name">{W.sortName}</option>
+        <option value="name-z">{W.sortNameZ}</option>
+        <option value="wert">{W.sortWert}</option>
+        <option value="preis">{W.sortPreis}</option>
+        <option value="preis-z">{W.sortPreisZ}</option>
+      </select>
+    </label>
+    <div class="wz-ansicht" role="group" aria-label={W.ansicht}>
+      <button type="button" data-ansicht="kacheln" aria-pressed="true" title={W.kacheln} aria-label={W.kacheln}><span class="wi wi--grid" aria-hidden="true"></span></button>
+      <button type="button" data-ansicht="liste" aria-pressed="false" title={W.liste} aria-label={W.liste}><span class="wi wi--list" aria-hidden="true"></span></button>
+    </div>
+  </div>
+
+  {/* Leiste: jede Kategorie als echter Link auf ihre Liste. Das Skript
+      faengt den Klick ab und filtert an Ort und Stelle; Strg-Klick,
+      Mittelklick und Crawler folgen dem Link. */}
+  <nav class="wz-rail" id="wz-rail" aria-label={W.kategorien}>
+    <a class="wz-rail__alle is-an" href={allePfad} data-kat="" aria-current="true"><span class="wz-z" data-g="grid4" aria-hidden="true"></span>{W.alle}<em>{n(total)}</em></a>
+    {baum.map((g) => (
+      <div class="wz-gr" data-root={g.root} style={`--kc:${g.farbe}`}>
+        <button class="wz-gr__kopf" type="button" data-gruppe={g.slug} aria-expanded="false"><span class="wz-z" data-g={g.g} aria-hidden="true"></span><span title={g.name}>{g.name}</span><em>{n(g.n)} {W.nItems}</em><span class="wi wi--chev" aria-hidden="true"></span></button>
+        <ul class="wz-gr__liste">
+          {g.blaetter.map((b) => (
+            <li><a href={href(`/items/category/${b.slug}.html`, lang)} data-kat={b.slug}><span>{b.name}</span><em>{n(b.n)}</em></a></li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+
+  <div class="wz-chips" id="wz-chips" aria-label={W.gruppen}></div>
+
+  <section class="wz-liste" aria-label={W.nItems}>
+    <div class="wz-zahl" id="wz-zahl"><b id="wz-n">{n(total)}</b><span id="wz-n-l">{W.nItems}</span><span class="wz-aktiv" id="wz-aktiv"></span></div>
+    <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true">
+      {Array.from({ length: 12 }, () => (
+        <div class="wz-k wz-k--leer" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wz-blatt" id="wz-blatt" aria-label={W.ueTitel}>
+    <div class="wz-blatt__box" id="wz-blatt-box" tabindex="-1">
+      <button class="wz-blatt__x" id="wz-blatt-x" type="button" aria-label={W.schliessen}><span class="wi wi--close" aria-hidden="true"></span></button>
+      <button class="wz-blatt__zur" id="wz-blatt-zur" type="button" hidden><span class="wi wi--back" aria-hidden="true"></span><span></span></button>
+      <div class="wz-blatt__inh" id="wz-blatt-inh">
+        <div class="wzu">
+          <div class="wzb-kopf" style="--kc:#A78BFA">
+            <div class="wzb-emb"><Fragment set:html={RING} /><span class="wg" data-g="grid4" aria-hidden="true"></span></div>
+            <div class="wzb-kopf__t">
+              <p class="wzb-pfad"><span>Star Citizen {ITEM_PATCH}</span></p>
+              <h2 class="wzb-name">{W.ueTitel}</h2>
+              <p class="wzu__lead">{W.ueLead}</p>
+            </div>
+          </div>
+          <div class="wzb-kenn">
+            <div><span>{W.kItems}</span><b>{n(total)}</b></div>
+            <div><span>{W.kQuelle}</span><b class="is-wert">{n(mitQuelle)}</b></div>
+            <div><span>{W.kBlatt}</span><b>{n(pageItems.length)}</b></div>
+            <div><span>{W.kSets}</span><b>{n(armorSets.length)}</b></div>
+          </div>
+          <div class="wzb-inh">
+            <h3 class="wzb-h">{W.gruppen}<em>{baum.length}</em></h3>
+            <div class="wzu__gr">
+              {baum.map((g) => (
+                <button class="wzu__g" type="button" data-gruppe={g.slug} style={`--kc:${g.farbe};--anteil:${Math.max(4, Math.round((g.n / groesste) * 100))}%`}>
+                  <span class="wz-z" data-g={g.g} aria-hidden="true"></span><b>{g.name}</b><small>{n(g.n)} {W.nItems} · {g.blaetter.length} {W.kategorien}</small><i aria-hidden="true"></i>
+                </button>
+              ))}
+            </div>
+            <ul class="wzu__tipp">
+              <li><kbd>/</kbd>{W.tippSuche}</li>
+              <li><kbd>↑</kbd><kbd>↓</kbd>{W.tippBlaettern}</li>
+              <li><kbd>Esc</kbd>{W.tippEsc}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="wz-schublade" id="wz-schublade" aria-label={W.filter} data-offcanvas data-offcanvas-immer>
+    <div class="wz-schublade__kopf">{W.filter}<button type="button" id="wz-schublade-x" aria-label={W.schliessen}><span class="wi wi--close" aria-hidden="true"></span></button></div>
+    <div class="wz-fg"><h3>{W.fArt}</h3><div class="wz-fchips" id="wz-f-art"></div></div>
+    <div class="wz-fg"><h3>{W.fGroesse}</h3><div class="wz-fchips" id="wz-f-gr"></div></div>
+    <div class="wz-fg"><h3>{W.fKlasse}</h3><div class="wz-fchips" id="wz-f-pk"></div></div>
+    <div class="wz-fg"><h3>{W.fSel}</h3><div class="wz-fchips" id="wz-f-sel"></div></div>
+    <div class="wz-schublade__fuss">
+      <button class="wz-knopf" type="button" id="wz-f-reset">{W.zuruecksetzen}</button>
+      <button class="wz-zeigen" type="button" id="wz-f-zeigen">{W.zeigen.replace('{n}', n(total))}</button>
+    </div>
+  </aside>
+</div>
+
+<script is:inline set:html={`window.__WZI=${jsonForScript(CFG)};`} />
+<script is:inline src={appJs}></script>

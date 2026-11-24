@@ -12,6 +12,7 @@ import {
   ITEM_PATCH, categoryPath, db, itemsHubPath, leafCategory, midCategory, num, pageItems, roots,
 } from '../lib/items';
 import { craftHubPath } from '../lib/crafting';
+import ItemsWerkbankHinweis from './items/ItemsWerkbankHinweis.astro';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -40,6 +41,9 @@ const total = db.counts.items;
     <li class="dp-key"><b>{t('sectionCategory')}</b><span>{num(roots.reduce((n, r) => n + r.nodes.length, 0), lang)}</span></li>
     <li class="dp-key"><b>{t('gameVersion')}</b><span>{STAND.items}</span></li>
   </ul>
+
+  {/* Nur im Vorschau-Bau: der Weg zur Items-Werkbank (Prototyp). */}
+  <ItemsWerkbankHinweis lang={lang} />
 
   {roots.map((r) => (
     <section class="dp-sec">

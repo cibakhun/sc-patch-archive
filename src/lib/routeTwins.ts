@@ -21,6 +21,8 @@
 // urspruenglichen Fehler gefunden hat.
 
 import { LOCALES, type Locale } from '../i18n/ui';
+import { IS_STAGING } from './seo';
+import { VORSCHAU_ROUTES } from '../../scripts/lib/vorschau-seiten.mjs';
 
 /** Alle Seiten-Dateien, absolut ab Projektwurzel ("/src/pages/de/archiv.astro"). */
 const PAGE_FILES = Object.keys(
@@ -51,7 +53,13 @@ function toMatcher(file: string): RegExp {
   return body === '' ? /^\/(index\.html)?$/ : new RegExp(`^${body}\\.html$`);
 }
 
-const MATCHERS = PAGE_FILES.map(toMatcher);
+// Prototypen nur im Vorschau-Bau (scripts/lib/vorschau-seiten.mjs) liegen
+// nicht unter src/pages/; ihre Muster sind feste Pfade ohne Platzhalter.
+const VORSCHAU_MATCHERS = IS_STAGING
+  ? VORSCHAU_ROUTES.map((r) => new RegExp(`^${r.pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.html$`))
+  : [];
+
+const MATCHERS = [...PAGE_FILES.map(toMatcher), ...VORSCHAU_MATCHERS];
 
 /** Wird dieser URL-Pfad von irgendeiner Seiten-Route bedient? */
 export function routeExists(pathname: string): boolean {
