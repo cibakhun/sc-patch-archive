@@ -410,8 +410,15 @@ body {
   padding: 0;
   list-style: none;
 }
+/* Etiketten brechen um, statt mit Ellipse zu enden (UX-Audit P75, 24.11.2026:
+   „MATERIALBEDARF GESAM…“ und „MISSIONEN, DIE DIESE…“ schon bei 1280 px).
+   Der Kasten ist eine Spalte, die Zahl steht mit margin-top: auto unten:
+   bricht ein Etikett zweizeilig, streckt das Raster die Nachbarn mit, und
+   die Zahlen einer Reihe bleiben trotzdem auf einer Linie. */
 .dp-key {
   position: relative;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--line-soft);
   border-top: 2px solid var(--dp-rail);
   background: linear-gradient(180deg, var(--dp-fill-2), transparent);
@@ -425,12 +432,11 @@ body {
   letter-spacing: var(--ls-13);
   text-transform: uppercase;
   color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
 }
 .dp-key span {
   display: block;
+  margin-top: auto;
   font-family: var(--font-num);
   font-weight: 600;
   font-size: var(--fs-16);
@@ -980,21 +986,9 @@ a.dp-chip:hover {
   }
   .dp-crumbs a:last-of-type::before { content: '‹'; padding-right: .35em; }
   .dp-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
-  /* ⚠ GEMESSEN 31.08.2026: die Etiketten der Kennzahlen stehen auf nowrap
-     mit Ellipse. Am Schreibtisch hält das die Kästen auf gleicher Höhe;
-     auf einem Telefon kostet es die Beschriftung:
-       „Missions that drop this bl…"   163 px gekappt (13.872 Seiten)
-       „Complete (4 core slots)"        77 px
-       „Total material need"            43 px
-     Platz nach UNTEN ist da, Platz nach rechts nicht — also umbrechen.
-     Der Kasten wird dadurch zweizeilig, das Raster streckt die Nachbarn
-     mit; das ist der ganze Preis. */
-  .dp-key b {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    overflow-wrap: break-word;
-  }
+  /* GEMESSEN 31.08.2026 am Telefon: „Missions that drop this bl…“ 163 px
+     gekappt (13.872 Seiten). Seit 24.11.2026 brechen die Etiketten auf
+     jeder Breite um (oben bei .dp-key b), nicht nur hier. */
   .dp-key span { font-size: var(--fs-14); }
   /* Der Hero-Rahmen frisst auf 375 px zu viel Rinne: er behaelt die Schiene
      und die Klammern, verliert aber Kasten und Innenabstand. */
