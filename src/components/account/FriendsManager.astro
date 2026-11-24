@@ -843,8 +843,14 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         hint.hidden = !hint.childNodes.length;
       };
       showHint();
+      // Die Karte meldet sich bei jedem Zeichnen, auch ohne Wechsel. Waehrend
+      // des Speicherns nur merken: Haken und Sperre setzt der Speichernde.
+      let busy = false;
       document.addEventListener('vb:discord', (e) => {
-        linked = !!(e as CustomEvent<{ linked?: boolean }>).detail?.linked;
+        const now = !!(e as CustomEvent<{ linked?: boolean }>).detail?.linked;
+        if (now === linked) return;
+        linked = now;
+        if (busy) return;
         dc.checked = saved && linked;
         dc.disabled = !linked;
         status.hidden = true;
@@ -855,6 +861,7 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       dc.addEventListener('change', async () => {
         status.hidden = true;
         const row = { chat_discord: dc.checked, lang };
+        busy = true;
         dc.disabled = true;
         let error: unknown = null;
         if (exists) {
@@ -867,9 +874,9 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
           error = r.error;
           if (!error) exists = true;
         }
-        if (error) dc.checked = !dc.checked;
-        else saved = row.chat_discord;
-        if (!linked) dc.checked = false;
+        if (!error) saved = row.chat_discord;
+        busy = false;
+        dc.checked = saved && linked;
         dc.disabled = !linked;
         status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
         status.textContent = error ? C.errNet : C.nSaved;
