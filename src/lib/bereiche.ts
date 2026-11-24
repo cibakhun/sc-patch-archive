@@ -333,6 +333,14 @@ export const DIENSTE: ZielQuelle[] = [
     icon: ICON.konto,
   },
   {
+    key: 'flotte',
+    path: '/account/fleet.html',
+    name: { de: 'Meine Flotte', en: 'My fleet' },
+    sub: { de: 'Schiffe aus „Zur Flotte“, auch ohne Konto', en: 'Ships from “Add to fleet”, even without an account' },
+    pre: ['/account/fleet.html'],
+    icon: ICON.konto,
+  },
+  {
     key: 'feedback',
     path: '/feedback.html',
     name: { de: 'Feedback', en: 'Feedback' },
