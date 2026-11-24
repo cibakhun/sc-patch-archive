@@ -1201,7 +1201,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       if (gast) {
         data = { ...zeile, id: naechsteGastId(jobs), sold_value: null, collected_at: null, created_at: started.toISOString() };
         jobs.unshift(data);
-        if (!sichern()) { jobs.shift(); formStatus.textContent = C.gastFehler; formStatus.hidden = false; return; }
+        // Beim Anlegen steht der Hinweis am Formular, nicht zusaetzlich oben
+        // (sichern() meldet nur fuer Abholen, Loeschen und Erloes).
+        if (!speichereGast(ablage, jobs)) { jobs.shift(); formStatus.textContent = C.gastFehler; formStatus.hidden = false; return; }
       } else {
         submitBtn.disabled = true; submitTxt.textContent = C.submitBusy;
         const r = await supabase.from('refinery_jobs').insert(zeile).select().single();
