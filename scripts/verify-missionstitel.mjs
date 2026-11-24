@@ -49,9 +49,10 @@ const SPRACHEN = [
 
 const ent = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp: ' ', thinsp: ' ' };
 // Sichtbarer Text eines Markup-Stuecks, nur zum Vergleichen und Melden (die
-// Ausgabe geht in die Konsole, nie zurueck in eine Seite). Uebrige spitze
-// Klammern fallen weg, damit kein halbes Tag als Text durchgeht.
-const text = (h) => h.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/\s+/g, ' ').trim();
+// Ausgabe geht in die Konsole, nie zurueck in eine Seite). Spitze Klammern
+// fallen ganz am Ende weg, also auch die aus &lt; und &gt; — so geht weder
+// ein halbes Tag noch ein entschluesseltes als Text durch.
+const text = (h) => h.replace(/<[^>]*>/g, '').replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
 // Marke oder interner Bezeichner im sichtbaren Namen
 const MARKE = /[{}~[\]]|\b[A-Za-z0-9]+_[A-Za-z0-9_]+\b/;
 
