@@ -33,7 +33,8 @@ import { patchSeiteHref } from '../lib/patchPages';
 import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { beiWikelo } from '../lib/wikeloShips';
-import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
+import { vRole, vSize, vStatus, vDesc, vDescLang } from '../i18n/vehicleText';
+import { fremdLang } from '../i18n/spieltext';
 // Hersteller-Logos (game-sourced aus Data.p4k, self-hosted unter /assets/manufacturers/).
 // Manifest: exakter Herstellername -> { file, w, h }. Kein Treffer -> Text-Fallback.
 import manufacturerLogos from '../data/manufacturer-logos.json';
@@ -132,6 +133,10 @@ const armStats = buildArmStats(d, lang);
 // Zelle waere die Doppelung, die D-03 verbietet.
 const turretDpsTotal =
   d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
+// Die Punktverteidigung steht mit eigener DPS in ihrer Zeile, zaehlt aber
+// nicht in turretDps (scripts/datamine-vehicles.mjs). Traegt sie DPS, sagt
+// die Summe das, sonst stuende darunter eine Zahl, die nicht aufgeht.
+const pdcMitDps = d.turrets.some((g) => g.label === 'Punktverteidigung (PDC)' && g.dps);
 const desc = vDesc(d, lang);
 const slots: [string, { name: string; size: number | null; count: number }[]][] = (
   [
@@ -2168,7 +2173,7 @@ span.sd__ref{color:var(--muted)}
                 {turretDpsTotal && (
                   <div class="arm__scell">
                     <b>{turretDpsTotal} DPS</b>
-                    <span>{t('arm.stat.totalDps')}</span>
+                    <span>{t(pdcMitDps ? 'arm.stat.totalDpsNoPdc' : 'arm.stat.totalDps')}</span>
                   </div>
                 )}
               </div>
@@ -2673,7 +2678,7 @@ span.sd__ref{color:var(--muted)}
   <div class="sd">
 
 
-    {desc && <p class="sd__desc">{desc}</p>}
+    {desc && <p class="sd__desc" lang={fremdLang(lang, vDescLang(d, lang))}>{desc}</p>}
 
 
     {similar.length > 0 && (

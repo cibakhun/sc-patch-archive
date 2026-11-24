@@ -396,3 +396,252 @@ for (const lang of ['de', 'en']) {
     });
   });
 }
+
+/* ---------- Fehlertolerant, Grundmodell vorn, zweiter Weg (24.11.2026) ----------
+   UX-Audit, Umsetzungsplan Paket B: „Kutlass", „Gladis", „quantanium" fanden
+   nichts, „P4-AR" zeigte das Grundmodell erst hinter „+7 weitere", und
+   „Quantainium" zeigte zuerst eine Wasserflasche. Gemessen wird wieder das
+   echte Skript, mit einem Register, das die Lage im Katalog nachstellt. */
+const WELT = [
+  { k: 'werkzeug', b: '', t: 'Mining', s: 'Werkzeug', u: '/topics/mining.html', x: 'mining bergbau erz erze' },
+  { k: 'werkzeug', b: '', t: 'Crafting', s: 'Werkbank & Planer', u: '/topics/crafting.html', x: 'crafting werkbank workbench' },
+  // „Werkbank" als ganzes Wort mitten im Namen (36) darf das Werkzeug nicht ueberholen.
+  { k: 'feature', b: 'Alpha 4.10.2', t: 'Monolith aus der Werkbank', s: '', u: '/patches/4-10-2.html#monolith', x: '' },
+  { k: 'erz', b: 'Erz', t: 'Quantainium', s: 'Erz · Stanton', u: '/topics/mining.html?mineral=Quantainium#db', x: 'erz erze ore', w: '/refinery.html?erz=Quantainium#ertrag', wl: 'Refinery' },
+  { k: 'ort', b: 'Ort', t: 'Daymar', s: 'Mond · Stanton', u: '/topics/mining.html?fundort=Daymar#db', x: 'ort place', w: '/missionen.html?loc=stanton2b', wl: 'Missionen' },
+  { k: 'liste', b: 'Liste', t: 'Helmets', s: 'Rüstung · 659 Items', u: '/items/category/armour-helmets.html', x: 'Armour / Helmets helm' },
+  { k: 'schiff', b: 'Drake', t: 'Cutlass Black', s: 'Drake', u: '/schiffe/cutlass-black.html', x: '' },
+  { k: 'schiff', b: 'Aegis', t: 'Gladius', s: 'Aegis', u: '/schiffe/gladius.html', x: '' },
+  { k: 'mission', b: 'Delivery', t: 'RSI Disc. Month: Procure Refined Quantainium Collection', s: '', u: '/missionen/q.html', x: '' },
+  // „Pen" steht hier mitten im Wort (Heuristik P14): vor den Pens war das
+  // erste Register mit Missionen und Patches dran.
+  { k: 'mission', b: 'Bounty', t: 'Independent Contractor Bounty', s: '', u: '/missionen/i.html', x: '' },
+  // ... und hier am Wortanfang, aber nicht als ganzes Wort.
+  { k: 'mission', b: 'Mercenary', t: 'Stuck Ling Shipment Pending Delivery', s: '', u: '/missionen/p.html', x: '' },
+];
+const WELT_MORE = [
+  { k: 'item', b: 'Countermeasures', t: 'Aegis Gladius: Köderwerfer', s: '', u: '/items/g1.html', x: '' },
+  { k: 'item', b: 'Drinks', t: '"Quantainium" Water Bottle', s: '', u: '/items/qw.html', x: 'getränk' },
+  { k: 'item', b: 'Helmets', t: 'Argus Helmet', s: '', u: '/items/argus.html', x: 'helm' },
+  { k: 'item', b: 'Helmets', t: 'Glade Helmet', s: '', u: '/items/glade.html', x: 'helm' },
+  // Varianten stehen im Katalog alphabetisch VOR dem Grundmodell.
+  { k: 'item', b: 'Weapons', t: 'Karna "Alpine Sunset" Rifle', s: '', u: '/items/k1.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'Karna "Fate" Rifle', s: '', u: '/items/k2.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'Karna Rifle', s: '', u: '/items/karna-rifle.html', x: 'gewehr', c: '/topics/crafting.html?bp=Karna&bpi=1' },
+  { k: 'item', b: 'Magazine', t: 'Karna Rifle Battery (35 cap)', s: '', u: '/items/k3.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR "Blacklist" Rifle', s: '', u: '/items/p1.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR-Gewehr (Knochen)', s: '', u: '/items/p2.html', x: 'P4-AR "Boneyard" Rifle' },
+  { k: 'item', b: 'Magazine', t: 'P4-AR Magazine (40 cap)', s: '', u: '/items/p3.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR Rifle', s: '', u: '/items/p4-ar-rifle.html', x: 'gewehr' },
+  { k: 'item', b: 'Medical', t: 'Serpentine Arms', s: '', u: '/items/serp.html', x: '' },
+  { k: 'item', b: 'Medical', t: 'AdrenaPen Xtra', s: '', u: '/items/adrena.html', x: '' },
+  { k: 'item', b: 'Medical', t: 'Medi-Pen (Hemozal)', s: '', u: '/items/medipen.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P8-SC SMG', s: '', u: '/items/p8-sc.html', x: '' },
+  // Eine Liste traegt +10; das ganze Item mit Tippfehler muss trotzdem vorn stehen.
+  { k: 'liste', b: 'Liste', t: 'Arclight Pistol Parts', s: '', u: '/items/category/arclight.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'Arclight Pistol', s: '', u: '/items/arclight-pistol.html', x: 'pistole' },
+];
+function bootWelt(lang) {
+  ERSTER.splice(0, ERSTER.length, ...WELT);
+  ITEMS.splice(0, ITEMS.length, ...WELT_MORE);
+  const s = boot(lang, {});
+  const ereignisse = [];
+  s.win.vbEreignis = (name, data) => ereignisse.push({ name, ...data });
+  return { ...s, ereignisse };
+}
+// Text eines Knotens wie im Browser, ohne Trenner zwischen Textstuecken
+// (der Titel besteht aus Text, <mark> und Text).
+const roh = (n) => (n ? n.textContent + n.children.map(roh).join('') : '');
+const titel = (z) => roh(z.find('scs__t'));
+const ersteTitel = (s) => s.optionen().filter((c) => c.className.includes('scs__hit')).map(titel);
+async function suche(s, wort) {
+  s.tippe(wort);
+  await flush();
+  return ersteTitel(s);
+}
+
+for (const lang of ['de', 'en']) {
+  describe(`Fehlertolerante Suche (${lang})`, () => {
+    test('ein Tippfehler findet trotzdem: Kutlass, Gladis', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.deepEqual((await suche(s, 'Kutlass')).slice(0, 1), ['Cutlass Black']);
+        // Das Schiff, dessen GANZER Name gemeint ist, vor dem Teil, das ihn traegt.
+        assert.deepEqual((await suche(s, 'Gladis')).slice(0, 2), ['Gladius', 'Aegis Gladius: Köderwerfer']);
+        // Markiert ist das Wort, das passte.
+        const mark = s.optionen()[0].find('scs__t').children.find((c) => c.tagName === 'MARK');
+        assert.equal(mark && mark.textContent, 'Gladius');
+      } finally { zurueck(); }
+    });
+
+    test('ab acht Zeichen zwei Tippfehler: quantanium und quantaneum finden das Erz zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'quantanium'))[0], 'Quantainium');
+        assert.equal((await suche(s, 'quantaneum'))[0], 'Quantainium');
+        // Gruppe „Erze & Orte" vorn.
+        const g = s.list.children.find((c) => c.className.includes('scs__grp'));
+        assert.match(g.className, /scs__grp--world/);
+        assert.ok(g.text.includes(s.rd['data-g-world']), g.text);
+      } finally { zurueck(); }
+    });
+
+    test('woertlich Gefundenes bleibt woertlich: kein Tippfehler-Rauschen', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        // „gladi" steht woertlich in Gladius; „Glade Helmet" waere einen
+        // Buchstaben entfernt und darf NICHT dazukommen.
+        const t = await suche(s, 'gladi');
+        assert.ok(t.includes('Gladius'), t.join(' / '));
+        assert.ok(!t.includes('Glade Helmet'), `Rauschen: ${t.join(' / ')}`);
+        // Unter vier Zeichen kein Tippfehler: „kut" findet nichts.
+        s.tippe('kut');
+        await flush();
+        assert.match(s.list.children[0].className, /scs__status--leer/);
+      } finally { zurueck(); }
+    });
+
+    test('Leertext ohne den Rat „englischen Namen versuchen"', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('zzqxwvv');
+        await flush();
+        const z = s.list.children[0];
+        assert.match(z.className, /scs__status--leer/);
+        assert.ok(!/englisch|english/i.test(z.text), z.text);
+      } finally { zurueck(); }
+    });
+  });
+
+  describe(`Reihenfolge und neue Arten (${lang})`, () => {
+    test('Grundmodell vor Varianten: Karna Rifle, P4-AR Rifle', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'karna'))[0], 'Karna Rifle');
+        assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('ganzes Wort vor Wortanfang vor Wortmitte: „pen" zeigt die Pens vor „Pending" und „Independent" (P14)', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'pen');
+        // Beide Wortanfaenge (nach Bindestrich, im Binnen-Grossbuchstaben) vor
+        // beiden Wortmitten — auch ueber die Gruppen hinweg.
+        const pens = ['Medi-Pen (Hemozal)', 'AdrenaPen Xtra'];
+        assert.deepEqual(t.slice(0, 2).sort(), [...pens].sort(), t.join(' / '));
+        assert.ok(t.indexOf('Serpentine Arms') > 1 && t.indexOf('Independent Contractor Bounty') > 1, t.join(' / '));
+        // Die Gruppe der Pens kommt zuerst, nicht die Missionen mit „Pending".
+        assert.ok(t.indexOf('Stuck Ling Shipment Pending Delivery') > 1, t.join(' / '));
+        assert.match(s.optionen()[0].className, /scs__hit--item/);
+      } finally { zurueck(); }
+    });
+
+    test('ein Tippfehler im Namen mit Bindestrich: „P8-SX" findet die P8-SC', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'P8-SX'))[0], 'P8-SC SMG');
+        const mark = s.optionen()[0].find('scs__t').children.find((c) => c.tagName === 'MARK');
+        assert.equal(mark && mark.textContent, 'P8-SC');
+        // Woertlich bleibt woertlich: „P4-AR" sucht nicht unscharf.
+        assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('ganzer Name gemischt aus woertlich und Tippfehler: „arclight pistl" zeigt die Pistole zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'arclight pistl'))[0], 'Arclight Pistol');
+        assert.equal((await suche(s, 'pistl arclight'))[0], 'Arclight Pistol');
+      } finally { zurueck(); }
+    });
+
+    test('ein Suchwort des Werkzeugs schlaegt ein ganzes Wort mitten im Namen: „werkbank" zeigt Crafting zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'werkbank');
+        assert.equal(t[0], 'Crafting', t.join(' / '));
+        assert.ok(t.includes('Monolith aus der Werkbank'), t.join(' / '));
+      } finally { zurueck(); }
+    });
+
+    test('Gattungswort im Register: „karna gewehr" findet das Gewehr', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'karna gewehr');
+        assert.equal(t[0], 'Karna Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('das Erz steht vor der Mission und der Wasserflasche, die es im Namen tragen', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'Quantainium');
+        assert.equal(t[0], 'Quantainium');
+        assert.ok(t.indexOf('Quantainium') < t.indexOf('"Quantainium" Water Bottle'), t.join(' / '));
+      } finally { zurueck(); }
+    });
+
+    test('eine Liste vor einzelnen Teilen: „helme" zeigt zuerst die Kategorie', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'helme');
+        assert.equal(t[0], 'Helmets');
+        assert.match(s.optionen()[0].className, /scs__hit--liste/);
+      } finally { zurueck(); }
+    });
+
+    test('zweiter Weg: Knopf mit eigener Beschriftung, Pfeil rechts fuehrt dorthin, Ereignis mit freigegebener Art', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('daymar');
+        await flush();
+        const z = s.optionen()[0];
+        assert.match(z.className, /scs__hit--ort/);
+        const knopf = z.find('scs__weg');
+        assert.ok(knopf, 'der Ort braucht den Knopf zum zweiten Weg');
+        assert.equal(roh(knopf), 'Missionen');
+        assert.equal(z.find('scs__craft') && z.find('scs__craft').className.includes('scs__weg'), true, 'ein Knopf, nicht "Herstellen" daneben');
+        const ev = { key: 'ArrowDown', preventDefault() {}, target: s.input };
+        for (const fn of s.win.document.listeners.keydown || []) fn(ev);
+        s.input.selectionStart = s.input.selectionEnd = s.input.value.length;
+        for (const fn of s.win.document.listeners.keydown || []) fn({ ...ev, key: 'ArrowRight' });
+        assert.equal(s.win.location.href, '/missionen.html?loc=stanton2b');
+        // Das Messereignis kennt „ort" nicht: gemeldet wird die Art des Ziels.
+        assert.deepEqual(s.ereignisse.at(-1), { name: 'suche-treffer', art: 'werkzeug', platz: '1-3' });
+        // Enter auf einem Erz: Art „werkzeug", nicht „erz".
+        s.tippe('quantainium');
+        await flush();
+        for (const fn of s.win.document.listeners.keydown || []) fn({ ...ev, key: 'Enter' });
+        assert.equal(s.win.location.href, '/topics/mining.html?mineral=Quantainium#db');
+        assert.equal(s.ereignisse.at(-1).art, 'werkzeug');
+      } finally { zurueck(); }
+    });
+  });
+}

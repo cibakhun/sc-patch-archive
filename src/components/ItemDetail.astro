@@ -7,6 +7,7 @@ import DataShell from './DataShell.astro';
 import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
+import { lootHinweis } from '../i18n/lootText';
 import {
   ITEM_KENNUNG, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
@@ -317,7 +318,7 @@ const crumbs = [
   {item.guide && (
     <section class="dp-sec">
       <h2>{t('sectionGuide')}</h2>
-      <p class="dp-callout">{item.guide}</p>
+      <p class="dp-callout">{lootHinweis(item.guide, lang)}</p>
     </section>
   )}
 
