@@ -152,7 +152,7 @@ export const WERTE = {
 export const TEXMOD = {
   Kachelung: m(J, null, 'feste Kachelung (TileU/TileV) eingerechnet'),
   Versatz: m(J, null, 'fester Versatz (OffsetU/OffsetV) eingerechnet'),
-  KachelungNormale: m(N, null, 'gekachelte Normalenkarte weggelassen'),
+  KachelungNormale: m(N, null, 'gekachelte oder versetzte Normalenkarte weggelassen'),
   Drehung: m(N, null, 'feste Drehung des Bilds fehlt'),
   Bewegung: m(O, null, 'Bildbewegung (Oszillator)'),
 };
@@ -197,6 +197,9 @@ export const BAU = {
   // Spiel nicht (Monolith „Shadowflux“ wäre oliv, ist grau-blau; bei Morozov
   // „Iceflow“ zeigt sie auf einen Record, den es nicht gibt).
   'Palettenplatz ohne Palette': m(N, null, 'Item ohne Palette: die Schicht behält ihre eigene Tönung'),
+  // Anbauteil (Serienmagazin) ohne eigene Palette: es trägt die der Waffe,
+  // wie der Hauptteil. Nicht gegen Spielbilder geprüft, daher Näherung.
+  'Palette vom Träger': m(N, null, 'Anbauteil ohne eigene Palette trägt die Palette der Waffe'),
   // Ausführungen eines Netzes (SubGeometry mit Tag, eigener Farbe oder
   // eigenem Material) werden über das Ende des Record-Namens gewählt.
   'Ausführung nicht gefunden': m(F, null, 'das Netz hat Ausführungen, keine passt zum Record: das Modell zeigte die Grundausführung'),
@@ -227,23 +230,26 @@ export function rolleVon(shader, platz) {
 export function einordnen(schluessel) {
   const unb = { art: 'unbekannt', grund: null };
   const k = String(schluessel);
+  // nur eigene Einträge: Namen aus den Spieldaten wie „constructor“ dürfen
+  // nichts vom Objekt-Prototyp erben (sonst art undefined, und nichts hielte an)
+  const von = (tab, n) => (tab && Object.hasOwn(tab, n) ? tab[n] : undefined);
   if (k.includes(' | ')) {
-    const a = AUSNAHMEN[k];
+    const a = von(AUSNAHMEN, k);
     return a ? { art: a.art, grund: a.grund } : unb;
   }
   let t;
-  if ((t = /^Format (\S+)$/.exec(k))) { const e = BILDFORMATE[t[1]]; return e ? { art: e.art, grund: e.grund } : unb; }
-  if ((t = /^Bau (.+)$/.exec(k))) { const e = BAU[t[1]]; return e ? { art: e.art, grund: e.grund } : unb; }
-  if ((t = /^Shader (\S+)$/.exec(k))) { const S = SHADER[t[1]]; return S ? { art: S.art, grund: S.grund ?? null } : unb; }
+  if ((t = /^Format (\S+)$/.exec(k))) { const e = von(BILDFORMATE, t[1]); return e ? { art: e.art, grund: e.grund } : unb; }
+  if ((t = /^Bau (.+)$/.exec(k))) { const e = von(BAU, t[1]); return e ? { art: e.art, grund: e.grund } : unb; }
+  if ((t = /^Shader (\S+)$/.exec(k))) { const S = von(SHADER, t[1]); return S ? { art: S.art, grund: S.grund ?? null } : unb; }
   if (!(t = /^(\S+) (.+)$/.exec(k))) return unb;
-  const S = SHADER[t[1]];
+  const S = von(SHADER, t[1]);
   if (!S) return unb;
   const rest = t[2];
   let e;
-  if (rest.startsWith('%')) e = S.schalter?.[rest.slice(1)];
-  else if (/^TexSlot\d+$/.test(rest)) e = S.plaetze?.[rest];
-  else if (rest.startsWith('Wert ')) e = WERTE[rest.slice(5)];
-  else if (rest.startsWith('TexMod ')) e = TEXMOD[rest.slice(7)];
+  if (rest.startsWith('%')) e = von(S.schalter, rest.slice(1));
+  else if (/^TexSlot\d+$/.test(rest)) e = von(S.plaetze, rest);
+  else if (rest.startsWith('Wert ')) e = von(WERTE, rest.slice(5));
+  else if (rest.startsWith('TexMod ')) e = von(TEXMOD, rest.slice(7));
   else return unb;
   // Ganz genäherte Shader: was sie nicht einzeln führen, ist mitgenähert
   // (bzw. „ohne“ bei NoDraw); nur bei Shadern, die gebacken werden, ist ein

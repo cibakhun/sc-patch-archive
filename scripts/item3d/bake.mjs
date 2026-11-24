@@ -20,7 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readSkinMesh, readSkinMaterial } from '../lib/ivo-skin.mjs';
 import { parseCryXml } from '../lib/cryxml.mjs';
 import { readSkeleton } from '../lib/ivo-skeleton.mjs';
-import { readDds, decodeLevel } from '../lib/dds-bc.mjs';
+import { readDds, decodeLevel, levelBytes } from '../lib/dds-bc.mjs';
 import { rolleVon, einordnen, aufdruckAufUv1, haelt, SHADER } from '../lib/item3d-merkmale.mjs';
 
 // Pakete (sharp, gltf-transform, draco3d) aus dem Checkout; REPO lenkt um,
@@ -51,9 +51,13 @@ const draco3d = req('draco3d');
 // mit demselben Spiegel-Metall-Wandler wie Illum; Palettenfarbe nach der
 // Färbeart der Schicht (TintMode), Palette mal Tönung; Ausführung nach dem
 // ganzen Tag am Record-Ende; Befunde je Item.
+// 5: Teilnetz an Knoten 0 mitbewegt; Backgruppen nur bei gleichen Eingaben
+// (Normale, Kachelung); versetzte Normalenkarte weggelassen statt verschoben;
+// BC2 gelesen; unlesbare Mischkarte -> Grundschicht; Mipteile nach Breite
+// gewählt; Schillern als geometrischer Median des Verlaufs.
 // Rückt gemeinsam mit der Tabelle (deren sha steht ebenfalls in der
 // Eingabe-Kennung).
-export const BAKE_VERSION = 4;
+export const BAKE_VERSION = 5;
 export const isWeapon = (item) => /^(WeaponPersonal|WeaponAttachment|Grenade|WeaponMining|Gadget)$/.test(item?.t ?? '');
 export const norm = (p) => { let k = String(p).replace(/\\/g, '/').replace(/^\/+/, '').toLowerCase(); if (!k.startsWith('data/')) k = `data/${k}`; return k; };
 
@@ -73,23 +77,28 @@ export function makeP4kProvider(p4k) {
     has: (p) => index.has(norm(p)),
     read: (p) => { const e = index.get(norm(p)); return e ? p4k.extract(e) : null; },
     // Kennung einer Quelle (CRC und Größe aus dem Archivverzeichnis, ohne zu
-    // entpacken); „<x.dds>#teile“ bzw. „#a“: alle Mip-Teile des Bildes
+    // entpacken); „<x.dds>#teile“ bzw. „#a“: alle Mip-Teile des Bildes, je
+    // Teil mit seiner Endung (zwei Teile, die ihren Inhalt tauschen, ändern
+    // die Kennung)
     kennung(k) {
       const t = /^(.*)#(teile|a)$/.exec(k);
-      if (t) return (parts.get(t[1]) ?? []).filter((e) => (t[2] === 'a') === /a$/i.test(e.name)).map((e) => `${e.crc}:${e.usize}`).sort().join(',') || '-';
+      if (t) return (parts.get(t[1]) ?? []).filter((e) => (t[2] === 'a') === /a$/i.test(e.name)).map((e) => `${e.name.slice(e.name.toLowerCase().lastIndexOf('.dds.') + 5)}:${e.crc}:${e.usize}`).sort().join(',') || '-';
       const e = index.get(k);
       return e ? `${e.crc}:${e.usize}` : '-';
     },
     ddsParts(p, { alpha = false, maxW = 1 << 14, headBuf } = {}) {
       const list = (parts.get(norm(p)) ?? []).filter((e) => alpha === /a$/i.test(e.name));
       const num = (e) => parseInt(e.name.slice(e.name.toLowerCase().lastIndexOf('.dds.') + 5), 10);
-      list.sort((a, b) => num(b) - num(a));
-      let w = 0;
-      try { w = headBuf.toString('latin1', 0, 4) === 'DDS ' ? headBuf.readUInt32LE(16) : headBuf.readUInt32LE(12); } catch {}
-      let skip = 0;
-      for (let s = w; s > maxW; s >>= 1) skip++;
+      // Breite jedes Teils nach seiner Größe (wie readDds die Stufen zuordnet),
+      // nicht nach seinem Platz in der Liste: fehlt ein großer Teil, fiele
+      // sonst der gewünschte heraus. Unbekannter Kopf: alle Teile.
+      let breite = () => null;
+      try {
+        const d = readDds(headBuf);
+        breite = (n) => { for (let l = 0; l < 16; l++) { const w = Math.max(1, d.width >> l), h = Math.max(1, d.height >> l); if (levelBytes(d.format, w, h) === n) return w; } return null; };
+      } catch { /* Kopf unlesbar: readDds meldet es beim Laden */ }
       const out = {};
-      for (const e of list.slice(skip)) out[num(e)] = p4k.extract(e);
+      for (const e of list) { const w = breite(e.usize); if (w !== null && w > maxW) continue; out[num(e)] = p4k.extract(e); }
       return out;
     },
   };
@@ -109,7 +118,7 @@ export function makeDirProvider(raw) {
     kennung(k) {
       const t = /^(.*)#(teile|a)$/.exec(k);
       const st = (f) => { const x = statSync(f); return `${x.size}:${Math.round(x.mtimeMs)}`; };
-      if (t) return [...lower].filter(([n]) => n.startsWith(`${t[1]}.`) && /\.\d+a?$/.test(n) && (t[2] === 'a') === n.endsWith('a')).map(([, f]) => st(f)).sort().join(',') || '-';
+      if (t) return [...lower].filter(([n]) => n.startsWith(`${t[1]}.`) && /\.\d+a?$/.test(n) && (t[2] === 'a') === n.endsWith('a')).map(([n, f]) => `${n.slice(t[1].length + 1)}:${st(f)}`).sort().join(',') || '-';
       const f = lower.get(k);
       return f ? st(f) : '-';
     },
@@ -243,6 +252,9 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
   const p0 = provider;
   provider = {
     ...p0,
+    // auch Existenzfragen: kommt eine gesuchte Datei (LOD, Material,
+    // Glanz) mit einem Patch dazu, ändert sich ihre Kennung von „-“
+    has: (p) => { quelle(p); return p0.has(p); },
     read: (p) => { quelle(p); return p0.read(p); },
     ddsParts: (p, o) => { quellen.add(`${norm(p)}#${o?.alpha ? 'a' : 'teile'}`); return p0.ddsParts(p, o); },
   };
@@ -263,10 +275,11 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
   const imgCache = new Lru(cacheMb * 1024 * 1024);
   // Zustand jedes benutzten Bildes im laufenden Item: Format (wie readDds es
   // nennt), „fehlt“ oder „?<Meldung>“ (Format unbekannt); dazu, ob das
-  // Entpacken scheiterte. Daraus werden die Befunde „Format …“.
+  // Entpacken scheiterte. Daraus werden die Befunde „Format …“. Ein Fehler
+  // bleibt stehen, auch wenn dasselbe Bild in anderer Größe gelang.
   let bilder = new Map();
-  const bildZustand = new Map();
-  function merkeBild(base, zustand) { bilder.set(base, zustand); }
+  const schlecht = (z) => !!z && (!!z.kaputt || z.format === 'fehlt' || String(z.format).startsWith('?'));
+  function merkeBild(base, zustand) { if (!schlecht(bilder.get(base))) bilder.set(base, zustand); }
   function lade(base, headName, alpha, maxW) {
     const head = provider.read(headName);
     if (!head) return { im: null, zustand: { format: 'fehlt' } };
@@ -287,27 +300,30 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     const base = norm(p).replace(/\.(tif|png|dds|tga)$/i, '');
     const k = `${base}|${maxW}`;
     const c = imgCache.get(k);
-    if (c !== undefined) { merkeBild(base, bildZustand.get(base)); quelle(`${base}.dds`); quellen.add(`${base}.dds#teile`); return c; }
+    if (c !== undefined) { merkeBild(base, c.zustand); quelle(`${base}.dds`); quellen.add(`${base}.dds#teile`); return c.im; }
     const { im, zustand } = lade(base, `${base}.dds`, false, maxW);
-    bildZustand.set(base, zustand);
     merkeBild(base, zustand);
-    imgCache.set(k, im, im ? im.data.length * (im.data.BYTES_PER_ELEMENT ?? 1) : 64);
+    imgCache.set(k, { im, zustand }, im ? im.data.length * (im.data.BYTES_PER_ELEMENT ?? 1) : 64);
     return im;
   }
-  // Glanz im Alphakanal der Normalenkarte (abgetrennt als .dds.a); ohne ihn null
+  // Glanz im Alphakanal der Normalenkarte (abgetrennt als .dds.a); ohne ihn
+  // null (Ersatzglanz). Ist er da, aber nicht lesbar, steht das im Befund.
   function glossOf(p, maxW = 256) {
     const base = norm(p).replace(/\.(tif|png|dds|tga)$/i, '');
     const k = `${base}|a|${maxW}`;
     const c = imgCache.get(k);
-    if (c !== undefined) { quelle(`${base}.dds.a`); quellen.add(`${base}.dds#a`); return c; }
-    const im = provider.has(`${base}.dds.a`) ? lade(base, `${base}.dds.a`, true, maxW).im : null;
-    imgCache.set(k, im, im ? im.data.length * (im.data.BYTES_PER_ELEMENT ?? 1) : 64);
+    if (c !== undefined) { quelle(`${base}.dds.a`); quellen.add(`${base}.dds#a`); if (c.zustand) merkeBild(`${base}.a`, c.zustand); return c.im; }
+    const { im, zustand } = provider.has(`${base}.dds.a`) ? lade(base, `${base}.dds.a`, true, maxW) : { im: null, zustand: null };
+    if (zustand) merkeBild(`${base}.a`, zustand);
+    imgCache.set(k, { im, zustand }, im ? im.data.length * (im.data.BYTES_PER_ELEMENT ?? 1) : 64);
     return im;
   }
   const layerCache = new Map();
   function layerOf(path) {
     const k = norm(path || '');
-    if (path) quelle(path);
+    // dieselben Kandidaten wie xml() (mit dem Rückfall auf „.mtl“), auch bei
+    // einem Treffer im Zwischenspeicher
+    if (path) { quelle(path); if (!/\.mtl$/i.test(path)) quelle(`${path}.mtl`); }
     if (layerCache.has(k)) return layerCache.get(k);
     let r = { diffuse: [0.5, 0.5, 0.5], spec: [0.04, 0.04, 0.04], shin: 128, missing: true };
     const x = path ? xml(path) : null;
@@ -486,6 +502,9 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
       for (const a of geomOf(kitem)) {
         a.xf = a.xf ? composeXf(base, a.xf) : base;
         a.pal = kpal;
+        // Ohne eigene Palette trägt das Anbauteil die der Waffe (wie der
+        // Hauptteil); als Näherung gemeldet, damit es im Befund sichtbar ist.
+        a.palVomTraeger = !kpal;
         a.kind = k.port;
         atts.push(a);
       }
@@ -585,7 +604,7 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     for (const [k, v] of Object.entries(a)) {
       const x = Number(v);
       if (/^Tile[UV]$/.test(k)) { if (x !== 1) arten.add(/^normale/.test(rolle ?? '') ? 'KachelungNormale' : 'Kachelung'); }
-      else if (/^Offset[UV]$/.test(k)) { if (x) arten.add('Versatz'); }
+      else if (/^Offset[UV]$/.test(k)) { if (x) arten.add(/^normale/.test(rolle ?? '') ? 'KachelungNormale' : 'Versatz'); }
       else if (/^Rotate[UVW]$/.test(k)) { if (x) arten.add('Drehung'); }
       else if (/^TexMod_[UVW]?(Rotate|Oscillator)/.test(k)) { if (x && !/Center$/.test(k)) arten.add('Bewegung'); }
       else arten.add(k);
@@ -746,7 +765,7 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
       if (knotenAn) {
         nmc = readNmc(provider.read(att.skin));
         for (const s of m.subs) {
-          if (!s.node) continue;
+          if (s.node == null) continue; // Knoten 0 ist gültig (Wurzel)
           const kn = nmc?.[s.node];
           if (!kn) { log(`  ! Knoten ${s.node} fehlt im Knotenbaum: ${att.skin}`); bau('Bau Knoten fehlt', s.numIndices / 3); continue; }
           if (isIdent(kn.m)) continue;
@@ -774,6 +793,7 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
         // Schatten- und Stellvertreternetze zeichnet das Spiel nicht
         if (shader === 'NoDraw' || /proxy|_shadow/i.test(name)) { if (shader === 'NoDraw') bau('Shader NoDraw', n3); continue; }
         const mv = merkmaleVon(sx, weapon, att.pal ?? pal);
+        if (att.palVomTraeger && pal && mv.keys.some((k) => /^Bau Palettenplatz \d/.test(k))) bau('Bau Palette vom Träger', n3);
         const flags = mv.flags;
         const T = SHADER[shader];
         const ts = rollen(sx);
@@ -804,13 +824,17 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
         // Weg je Shader (Tabelle): Schichtmaterial nach Mischkarte, ohne sie
         // nur Grundschicht 1; Illum und genäherte Shader mit Farbkarte nach
         // ihr; Aufdrucke durchscheinend obenauf; Glas getönt; sonst Grundfarbe.
+        // Ein Satz teilt sich Bilder (Mischkarte bzw. Farbkarte, Normalenkarte)
+        // und ihre Kachelung: Teilnetze mit anderer Normalenkarte oder
+        // Kachelung bekommen einen eigenen Satz, statt die des ersten zu erben.
+        const tmSig = (r) => { const tm = texModVon(sx, r); return tm ? [tm.tu, tm.tv, tm.ou, tm.ov].join(',') : ''; };
         let art = 'flach', key = null;
         if (shader === 'LayerBlend_V2' && layers.length) {
-          if (ts.mischung) { art = 'schicht'; key = ts.mischung; }
+          if (ts.mischung) { art = 'schicht'; key = [ts.mischung, ts.normale ?? '', ...['mischung', 'abnutzung', 'hal', 'normale'].map(tmSig)].join('|'); }
           else { art = 'ohneMischung'; key = `lb|${ts.normale ?? att.mtl ?? name}`; }
         } else if (istAufdruck) art = 'aufdruck';
         else if (shader === 'GlassPBR') art = 'glas';
-        else if (ts.farbe && (shader === 'Illum' || (T && T.art !== 'ja'))) { art = 'farbe'; key = `f|${ts.farbe}`; }
+        else if (ts.farbe && (shader === 'Illum' || (T && T.art !== 'ja'))) { art = 'farbe'; key = ['f', ts.farbe, ts.normale ?? '', tmSig('farbe'), tmSig('normale')].join('|'); }
         // Aufdruck der 2. UV: nur die Ausnahme der Tabelle (Waffe, decal_uv2)
         // liegt auf der 1. UV; sonst bleibt er weg (Befund %DECALS).
         const aufdruck = mv.uv1 ? kids(kid(sx, 'Textures'), 'Texture').find((t) => t.attr.Map === 'TexSlot9')?.attr.File : null;
@@ -853,11 +877,14 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
       const schicht = B.art === 'schicht', ohne = B.art === 'ohneMischung', farbeSet = B.art === 'farbe';
       const sx0 = B.subs[0].sx;
       const tmM = texModVon(sx0, 'mischung'), tmA = texModVon(sx0, 'abnutzung'), tmH = texModVon(sx0, 'hal'), tmN = texModVon(sx0, 'normale');
+      // Mischkarte nicht lesbar (Befund „Format …“ bzw. „Bau Bild nicht
+      // lesbar“): wie ohne Mischkarte nur die Grundschicht
       const blend = schicht ? texture(B.ts.mischung, groesse(tmM, S)) : null;
+      const schichtAn = schicht && !!blend;
       const wear = !farbeSet && B.ts.abnutzung ? texture(B.ts.abnutzung, groesse(tmA, S)) : null;
       const hal = !farbeSet && B.ts.hal ? texture(B.ts.hal, groesse(tmH, S)) : null;
-      // gekachelte Normalenkarte: weggelassen (Befund KachelungNormale)
-      const ddn = B.ts.normale && !(tmN && (tmN.tu !== 1 || tmN.tv !== 1)) ? texture(B.ts.normale, S) : null;
+      // gekachelte oder versetzte Normalenkarte: weggelassen (Befund KachelungNormale)
+      const ddn = B.ts.normale && !tmN ? texture(B.ts.normale, S) : null;
       const mask = new Uint16Array(S * S);
       const d2 = B.subs.some((p) => p.UV2) ? new Float32Array(S * S * 2).fill(NaN) : null;
       B.subs.forEach((p, i) => rasterUv(mask, S, p.UV, p.I, i + 1, p.UV2, d2));
@@ -998,7 +1025,7 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
             wv = Math.min(1, Math.max(0, (1 - hell - (1 - wearAmt)) / 0.1));
           }
           q.n++;
-          if (ohne) {
+          if (ohne || !schichtAn) {
             // nur Grundschicht 1 (und ihre Abnutzung)
             const a = layerCol(q.base[0], u, w);
             r = wv ? mix(a, layerCol(q.wr[0], u, w), wv) : a;

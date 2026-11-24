@@ -4,8 +4,11 @@
 //
 // r2.env (bleibt auf dem PC, nie ins Repo): R2_KEY_ID=…, R2_SECRET=…, R2_ENDPOINT=https://<konto>.r2.cloudflarestorage.com
 // Alle Dateinamen enthalten ihren Inhalt als Kennung, darum dürfen Browser sie
-// für immer zwischenspeichern. Schon hochgeladene stehen in <out>/hochgeladen.txt.
-import { readFileSync, existsSync, appendFileSync, statSync } from 'node:fs';
+// für immer zwischenspeichern. Schon hochgeladene stehen in <out>/hochgeladen.txt;
+// zu welchem Ziel (Bucket und Endpunkt, dieser nur als Kennung) die Liste
+// gehört, steht in <out>/hochgeladen.ziel. Ein anderes Ziel wird abgelehnt,
+// statt fremde Nachweise zu übernehmen; manifest.mjs prüft den Bucket.
+import { readFileSync, existsSync, appendFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash, createHmac } from 'node:crypto';
 
@@ -46,6 +49,20 @@ async function put(key, body, type) {
 }
 
 const doneFile = join(OUT, 'hochgeladen.txt');
+const zielFile = join(OUT, 'hochgeladen.ziel');
+const ZIEL = { bucket: BUCKET, endpunkt: hex(endpoint.host).slice(0, 12) };
+if (existsSync(zielFile)) {
+  const alt = JSON.parse(readFileSync(zielFile, 'utf8'));
+  if (alt.bucket !== ZIEL.bucket || alt.endpunkt !== ZIEL.endpunkt) {
+    console.error(`hochgeladen.txt in ${OUT} gehört zu einem anderen Ziel (Bucket ${alt.bucket}, Endpunkt ${alt.endpunkt}; jetzt ${ZIEL.bucket}, ${ZIEL.endpunkt}). Für ein neues Ziel einen eigenen Ausgabeordner nehmen.`);
+    process.exit(2);
+  }
+} else if (!DRY) {
+  // Erster Lauf mit Zielvermerk: eine schon vorhandene Liste stammt aus der
+  // Zeit mit nur einem Ziel und wird ihm zugeordnet.
+  if (existsSync(doneFile)) console.log(`hochgeladen.txt ohne Zielvermerk: wird ${ZIEL.bucket} (${ZIEL.endpunkt}) zugeordnet`);
+  writeFileSync(zielFile, `${JSON.stringify(ZIEL)}\n`);
+}
 const done = new Set(existsSync(doneFile) ? readFileSync(doneFile, 'utf8').split(/\r?\n/).filter(Boolean) : []);
 const type = (f) => (f.endsWith('.glb') ? 'model/gltf-binary' : f.endsWith('.webp') ? 'image/webp' : f.endsWith('.png') ? 'image/png' : 'application/octet-stream');
 // Nur was die jüngste Zeile je Item in manifest.jsonl nennt: ein neu gebackenes

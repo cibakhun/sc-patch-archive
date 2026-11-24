@@ -25,7 +25,7 @@ const PIXEL = { r8: 1, rgba8: 4, bgra8: 4, roh8: 1, roh16: 2, roh24: 3, roh32: 4
 // feste Masken der DXGI-Formate (R, G, B, A)
 const MASKEN = { r8: [0xff, 0, 0, 0], rgba8: [0xff, 0xff00, 0xff0000, 0xff000000], bgra8: [0xff0000, 0xff00, 0xff, 0xff000000] };
 
-const levelBytes = (fmt, w, h) => (PIXEL[fmt] ? w * h * PIXEL[fmt] : Math.max(1, Math.ceil(w / 4)) * Math.max(1, Math.ceil(h / 4)) * BLOCK[fmt]);
+export const levelBytes = (fmt, w, h) => (PIXEL[fmt] ? w * h * PIXEL[fmt] : Math.max(1, Math.ceil(w / 4)) * Math.max(1, Math.ceil(h / 4)) * BLOCK[fmt]);
 
 // head: Inhalt der .dds; parts: { N: Inhalt der .dds.N } (fehlende erlaubt)
 // -> { width, height, format, masks?, gray?, levels: [{ level, w, h, data }] } (größte zuerst)
@@ -119,6 +119,10 @@ export function decodeLevel(dds, level = 0) {
       bc1Block(b, o + 8, tmp, w, bx * 4, by * 4, w, h, false);
       const al = bc4Block(b, o, false);
       for (let k = 0; k < 16; k++) { const x = bx * 4 + (k & 3), y = by * 4 + (k >> 2); if (x < w && y < h) tmp[(y * w + x) * 4 + 3] = al[k] * 255; }
+    } else if (f === 'bc2') {
+      // DXT3: 4 Bit Alpha je Pixel (8 Bytes), danach die Farbe wie BC1 ohne Dreifarbenmodus
+      bc1Block(b, o + 8, tmp, w, bx * 4, by * 4, w, h, false);
+      for (let k = 0; k < 16; k++) { const x = bx * 4 + (k & 3), y = by * 4 + (k >> 2); if (x < w && y < h) tmp[(y * w + x) * 4 + 3] = ((b[o + (k >> 1)] >> ((k & 1) * 4)) & 15) * 17; }
     } else if (f === 'bc4' || f === 'bc4s' || f === 'bc5' || f === 'bc5s') {
       const s = f.endsWith('s'), two = f.startsWith('bc5');
       const r = bc4Block(b, o, s), g = two ? bc4Block(b, o + 8, s) : null;
@@ -130,7 +134,7 @@ export function decodeLevel(dds, level = 0) {
       }
     } else throw new Error(`Format ${f} wird nicht entpackt`);
   }
-  if (f === 'bc1' || f === 'bc3') for (let i = 0; i < out.length; i++) out[i] = tmp[i] / 255;
+  if (f === 'bc1' || f === 'bc2' || f === 'bc3') for (let i = 0; i < out.length; i++) out[i] = tmp[i] / 255;
   return { w, h, data: out };
 }
 

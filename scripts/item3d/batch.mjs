@@ -18,7 +18,7 @@
 // (gleiche Eingaben, gleiche Backfassung, gleiche Merkmal-Tabelle) werden
 // übersprungen. REPO lenkt die Pakete (sharp, gltf-transform) um.
 import { isMainThread, Worker, parentPort, workerData } from 'node:worker_threads';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, renameSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, renameSync, statSync, truncateSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { cpus } from 'node:os';
@@ -30,6 +30,25 @@ const sha = (b, n = 16) => createHash('sha256').update(b).digest('hex').slice(0,
 // Quellen-Kennung: jede gelesene Datei mit ihrer Kennung im Archiv
 const quellenKennung = (prov, liste) => sha(liste.map((k) => `${k}=${prov.kennung(k)}`).join('\n'), 12);
 let p4kMod = null;
+// Protokollzeilen (manifest.jsonl, fehler.jsonl) lesen: dieselbe Regel für
+// Planung und Abschlussbericht; eine kaputte Zeile zählt nicht.
+const zeilen = (f) => {
+  const rows = new Map();
+  if (!existsSync(f)) return rows;
+  for (const line of readFileSync(f, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try { const r = JSON.parse(line); if (r && typeof r.id === 'string') rows.set(r.id, r); } catch {}
+  }
+  return rows;
+};
+// Ein abgebrochener Lauf kann eine halbe letzte Zeile hinterlassen; ohne
+// Kürzung klebte die nächste Zeile daran und ginge mit verloren.
+const zeilenendeHeilen = (f) => {
+  if (!existsSync(f)) return;
+  const b = readFileSync(f);
+  if (!b.length || b[b.length - 1] === 0x0a) return;
+  truncateSync(f, b.lastIndexOf(0x0a) + 1);
+};
 const openP4kFuer = (P) => p4kMod.openP4k(P);
 
 if (isMainThread) await main(); else await worker();
@@ -48,6 +67,7 @@ async function main() {
   const ZENSUS = flag('--zensus', null);
   const opts = { tex: Number(flag('--tex', 1024)), lod: Number(flag('--lod', 1)), cacheMb: Number(flag('--cache-mb', 400)) };
   const WORKERS = Number(flag('--workers', Math.max(1, Math.min(6, cpus().length - 2))));
+  if (!Number.isInteger(WORKERS) || WORKERS < 1) { console.error('--workers braucht eine ganze Zahl ab 1'); process.exit(2); }
   if (!OUT || (!P4K && !RAW)) { console.error('Aufruf: --p4k <Data.p4k> --list <json> --out <ordner>  |  --raw <rohOrdner> --out <ordner>'); process.exit(2); }
   const { BAKE_VERSION, makeP4kProvider, makeDirProvider } = await import(pathToFileURL(join(HIER, 'bake.mjs')).href);
   if (!RAW) p4kMod = await import(libUrl('p4k.mjs'));
@@ -56,6 +76,8 @@ async function main() {
   const TABELLE = sha(readFileSync(join(HIER, '..', 'lib', 'item3d-merkmale.mjs')), 8);
   mkdirSync(join(OUT, 'm'), { recursive: true });
   mkdirSync(join(OUT, 't'), { recursive: true });
+  zeilenendeHeilen(join(OUT, 'manifest.jsonl'));
+  zeilenendeHeilen(join(OUT, 'fehler.jsonl'));
   const t0 = Date.now();
   const log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(5)}s]`, ...a);
 
@@ -63,7 +85,7 @@ async function main() {
   let items = [], refs = {};
   if (RAW) {
     const info = JSON.parse(readFileSync(join(RAW, 'info.json'), 'utf8'));
-    items = info.items.filter((it) => !it.missing).map((it) => ({ id: it.id, guid: it.guid, record: it.record, geo: it.geo }));
+    items = info.items.filter((it) => !it.missing).map((it) => ({ id: it.id, guid: it.guid, t: it.t, record: it.record, geo: it.geo }));
     refs = info.refs ?? {};
   } else {
     const { openP4k } = await import(libUrl('p4k.mjs'));
@@ -117,19 +139,16 @@ async function main() {
   }
   if (ONLY.length) items = items.filter((it) => ONLY.includes(it.id));
 
-  // Eingabe-Kennung: ändert sich Geometrie, Palette oder Backfassung, wird neu gebacken
+  // Eingabe-Kennung: ändert sich Geometrie, Palette, Record-Name (wählt die
+  // Ausführung), Item-Art (Waffenpfad) oder Backfassung, wird neu gebacken
   for (const it of items) {
     const used = [];
     (function walk(o, d = 0) { if (!o || typeof o !== 'object' || d > 40) return; if (o.__ref && refs[o.__ref]) used.push(refs[o.__ref]); for (const v of Object.values(o)) walk(v, d + 1); })([it.geo, it.kids ?? []]);
-    it.in = sha(JSON.stringify([BAKE_VERSION, TABELLE, opts.tex, opts.lod, it.geo, it.kids?.length ? it.kids : undefined, used]), 12);
+    it.in = sha(JSON.stringify([BAKE_VERSION, TABELLE, opts.tex, opts.lod, it.record ?? null, it.t ?? null, it.geo, it.kids?.length ? it.kids : undefined, used]), 12);
   }
-  const done = new Map();
-  if (existsSync(join(OUT, 'manifest.jsonl'))) {
-    for (const line of readFileSync(join(OUT, 'manifest.jsonl'), 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      try { const r = JSON.parse(line); done.set(r.id, r); } catch {}
-    }
-  }
+  const done = zeilen(join(OUT, 'manifest.jsonl'));
+  // Vorhanden heißt: Modell UND alle seine Bilder liegen im Ausgabeordner.
+  const dateienDa = (d) => existsSync(join(OUT, d.file)) && (d.tex ?? []).every((h) => existsSync(join(OUT, 't', `${h}.webp`)));
   // Fertig ist ein Item nur, wenn Record-Eingabe UND Quellen unverändert
   // sind: jede Datei, die sein Bau gelesen hat (Netz, Material, Schichten,
   // Bilder), mit ihrer Kennung im Archiv. Ein Patch, der nur ein Material oder
@@ -147,13 +166,14 @@ async function main() {
     todo = items.filter((it) => {
       if (FORCE && ONLY.includes(it.id)) return true;
       const d = done.get(it.id);
-      if (!(d?.in === it.in && existsSync(join(OUT, d.file)))) return true;
+      if (!(d?.in === it.in && dateienDa(d))) return true;
       if (!d.quellen || kennung(d.quellen) !== d.q) { quellenAlt++; return true; }
       return false;
     });
   }
   if (ZENSUS) writeFileSync(ZENSUS, '');
   if (LIMIT) todo = todo.slice(0, LIMIT);
+  let fertig = 0, fehler = 0, abgestuerzt = 0, verloren = 0;
   log(`${items.length} Items, ${items.length - todo.length} schon fertig, ${todo.length} zu backen${quellenAlt ? ` (davon ${quellenAlt} mit geänderten oder ungeprüften Quellen)` : ''}, ${WORKERS} Arbeiter`);
   if (!todo.length) return summary();
 
@@ -168,20 +188,28 @@ async function main() {
   const queue = [...groups.values()].sort((a, b) => b.length - a.length);
   log(`${queue.length} Grundmodelle`);
 
-  let fertig = 0, fehler = 0;
   const startBake = Date.now();
+  // Ein Arbeiter, der mitten in einer Gruppe endet (Absturz, Speicher), darf
+  // ihre unbestätigten Items nicht verschlucken: das laufende Item wird als
+  // Fehler vermerkt, der Rest der Gruppe neu eingeplant, ein Ersatz gestartet.
+  // Was danach noch fehlt, macht den Lauf rot (Exit 1), statt „fertig“ zu melden.
+  const ERSATZ_MAX = 20;
+  let ersatz = 0;
   await new Promise((resolveAll) => {
     let alive = 0;
     const spawn = () => {
       const w = new Worker(fileURLToPath(import.meta.url), { workerData: { P4K, RAW, OUT, refs, opts, ZENSUS } });
       alive++;
-      const next = () => { const job = queue.shift(); if (job) w.postMessage(job); else w.postMessage(null); };
+      let job = null; const bestaetigt = new Set();
+      const next = () => { job = queue.shift() ?? null; bestaetigt.clear(); w.postMessage(job); };
       w.on('message', (m) => {
         if (m.ready) return next();
         if (m.groupDone) return next();
+        const id = m.zensus?.id ?? m.ok?.id ?? m.fail?.id;
+        if (id) bestaetigt.add(id);
         if (m.zensus) { appendFileSync(ZENSUS, `${JSON.stringify(m.zensus)}\n`); fertig++; if (fertig % 200 === 0) log(`Zählung ${fertig}/${todo.length}`); return; }
         if (m.ok) {
-          appendFileSync(join(OUT, 'manifest.jsonl'), `${JSON.stringify(m.ok)}\n`);
+          appendFileSync(join(OUT, 'manifest.jsonl'), `${JSON.stringify({ ...m.ok, tab: TABELLE })}\n`);
           fertig++;
         } else {
           appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify(m.fail)}\n`);
@@ -192,18 +220,36 @@ async function main() {
         log(`[${n}/${todo.length}] ${m.ok ? `${m.ok.id}  ${m.ok.kb} KB  ${m.ok.tris} Dr.  ${(m.ok.ms / 1000).toFixed(1)} s${m.ok.halt ? '  ANGEHALTEN' : ''}` : `FEHLT ${m.fail.id}: ${m.fail.fehler}`}  (noch ~${eta} min)`);
       });
       w.on('error', (e) => { log('Arbeiter-Fehler:', e.stack ?? e.message); });
-      w.on('exit', () => { alive--; if (!alive) resolveAll(); });
+      w.on('exit', (code) => {
+        alive--;
+        const offen = job ? job.filter((it) => !bestaetigt.has(it.id)) : [];
+        if (offen.length) {
+          const [lief, ...rest] = offen;
+          abgestuerzt++;
+          log(`Arbeiter endete (Code ${code}) während ${lief.id}; ${rest.length} weitere Items der Gruppe neu eingeplant`);
+          if (!ZENSUS) appendFileSync(join(OUT, 'fehler.jsonl'), `${JSON.stringify({ id: lief.id, fehler: `Arbeiter endete beim Backen (Code ${code})` })}\n`);
+          fehler++;
+          if (rest.length) queue.unshift(rest);
+          if (ersatz < ERSATZ_MAX) { ersatz++; spawn(); }
+        }
+        if (!alive) { for (const g of queue) verloren += g.length; queue.length = 0; resolveAll(); }
+      });
     };
     for (let i = 0; i < Math.min(WORKERS, queue.length); i++) spawn();
   });
-  if (ZENSUS) { log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return; }
+  const unvollstaendig = () => {
+    if (!abgestuerzt && !verloren) return;
+    log(`UNVOLLSTÄNDIG: ${abgestuerzt} Arbeiter mitten in der Arbeit beendet${verloren ? `, ${verloren} Items nie gebacken` : ''}`);
+    process.exitCode = 1;
+  };
+  if (ZENSUS) { log(`Zählung fertig: ${fertig} Items -> ${ZENSUS}`); return unvollstaendig(); }
   summary();
+  unvollstaendig();
 
   function summary() {
-    const rows = new Map();
-    for (const line of readFileSync(join(OUT, 'manifest.jsonl'), 'utf8').split('\n')) { if (line.trim()) { const r = JSON.parse(line); rows.set(r.id, r); } }
+    const rows = zeilen(join(OUT, 'manifest.jsonl'));
     const tex = new Set(); let glb = 0;
-    for (const r of rows.values()) { glb += r.glbKb; for (const h of r.tex) tex.add(h); }
+    for (const r of rows.values()) { glb += r.glbKb; for (const h of r.tex ?? []) tex.add(h); }
     let texBytes = 0;
     for (const h of tex) { const f = join(OUT, 't', `${h}.webp`); if (existsSync(f)) texBytes += statSync(f).size; }
     const halt = [...rows.values()].filter((r) => r.halt);
@@ -220,7 +266,18 @@ async function worker() {
   if (RAW) provider = bakeMod.makeDirProvider(RAW);
   else { const { openP4k } = await import(libUrl('p4k.mjs')); provider = bakeMod.makeP4kProvider(openP4k(P4K)); }
   const baker = await bakeMod.createBaker({ provider, refs, tex: opts.tex, lod: opts.lod, cacheMb: opts.cacheMb });
-  const writeOnce = (file, data) => { if (existsSync(file)) return; const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`; writeFileSync(tmp, data); try { renameSync(tmp, file); } catch { /* gleichzeitig geschrieben: gleicher Inhalt */ } };
+  // Inhaltsbenannte Dateien: liegt das Ziel nach einem gescheiterten
+  // Umbenennen da, hat ein anderer Arbeiter denselben Inhalt geschrieben;
+  // fehlt es, ist das ein echter Fehler und geht an das Item.
+  const writeOnce = (file, data) => {
+    if (existsSync(file)) return;
+    const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
+    writeFileSync(tmp, data);
+    try { renameSync(tmp, file); } catch (e) {
+      try { unlinkSync(tmp); } catch {}
+      if (!existsSync(file)) throw e;
+    }
+  };
   parentPort.on('message', async (job) => {
     if (!job) { process.exit(0); }
     for (const it of job) {

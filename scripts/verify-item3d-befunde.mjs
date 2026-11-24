@@ -11,9 +11,10 @@
    bis Krisz das Bild sah (23.11.2026). Dieses Tor prüft Liste und Bericht
    gegen die Tabelle DIESES Checkouts:
 
-     [1] Liste und Bericht decken sich: jedes Item der Liste hat Befunde,
-         keins steht zugleich unter „angehalten“, der Bericht nennt kein
-         Item, das die Liste nicht hat
+     [1] Liste und Bericht decken sich: der Bericht trägt den Fingerabdruck
+         genau dieser Liste (Item und Modelldatei), jedes Item der Liste hat
+         eine Befundliste, keins steht zugleich unter „angehalten“, der
+         Bericht nennt kein Item, das die Liste nicht hat
      [2] kein Item der Liste trägt ein Merkmal, das die Tabelle anhält
          (unbekannt oder Fehler)
      [3] jedes Merkmal ist heute so eingeordnet wie beim Lauf; sonst sind
@@ -28,6 +29,7 @@
      node scripts/verify-item3d-befunde.mjs [--liste <json>] [--bericht <json>]
    ============================================================ */
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { einordnen, HALT, AUSNAHMEN, ARTEN } from './lib/item3d-merkmale.mjs';
@@ -59,8 +61,14 @@ const schluessel = (id, i) => {
 };
 
 /* [1] Liste und Bericht decken sich */
+// Gleiche IDs reichen nicht: ein Bericht aus einem älteren Lauf nennt
+// dieselben Items mit anderen Modellen. Der Fingerabdruck deckt Item UND
+// Modelldatei (manifest.mjs rechnet ihn genauso).
+const abdruck = createHash('sha256').update(JSON.stringify([...ids].sort().map((id) => [id, liste.items[id]?.[0] ?? null]))).digest('hex').slice(0, 16);
+if (bericht.liste !== abdruck) fail(`[1] Bericht passt nicht zu dieser Liste: Fingerabdruck der Liste ${abdruck}, der Bericht nennt ${bericht.liste ?? 'keinen'} (Liste und Bericht aus verschiedenen Läufen? scripts/item3d/manifest.mjs neu laufen lassen)`);
 let ohne = 0, doppelt = 0, fremd = 0;
 for (const id of ids) {
+  if (items[id] && !Array.isArray(items[id])) fail(`[1] ${id}: Befunde sind keine Liste (${JSON.stringify(items[id]).slice(0, 40)})`);
   if (!items[id]) { ohne++; if (ohne <= 10) fail(`[1] ${id}: steht in der Liste, hat aber keine Befunde im Bericht (Liste und Bericht aus verschiedenen Läufen? scripts/item3d/manifest.mjs neu laufen lassen)`); }
   if (angehalten[id]) { doppelt++; fail(`[1] ${id}: steht in der Liste UND unter „angehalten“`); }
 }
@@ -68,7 +76,7 @@ const inListe = new Set(ids);
 for (const id of Object.keys(items)) if (!inListe.has(id)) { fremd++; if (fremd <= 10) fail(`[1] ${id}: hat Befunde, steht aber nicht in der Liste`); }
 if (ohne > 10) fail(`[1] … und ${ohne - 10} weitere Items ohne Befunde`);
 if (fremd > 10) fail(`[1] … und ${fremd - 10} weitere Befunde ohne Listeneintrag`);
-console.log(`\n[1] Liste und Bericht: ${ids.length - ohne} von ${ids.length} Modellen mit Befunden, ${doppelt} zugleich angehalten, ${fremd} Befunde ohne Listeneintrag`);
+console.log(`\n[1] Liste und Bericht: Fingerabdruck ${bericht.liste === abdruck ? 'passt' : 'passt NICHT'}, ${ids.length - ohne} von ${ids.length} Modellen mit Befunden, ${doppelt} zugleich angehalten, ${fremd} Befunde ohne Listeneintrag`);
 
 /* [2] nichts Anhaltendes in der Liste */
 const zahl = Object.fromEntries(ARTEN.map((a) => [a, 0]));
@@ -110,6 +118,7 @@ console.log(`\nGenähert oder weggelassen (häufigste von ${naeh.length}):`);
 for (const [k, n] of naeh.slice(0, 8)) console.log(`    ${String(n).padStart(5)} Items  ${k} — ${einordnen(k).grund ?? ''}`);
 if (Object.keys(angehalten).length) console.log(`Angehalten (nicht in der Liste): ${Object.entries(angehalten).slice(0, 12).map(([id, idx]) => `${id} (${idx.map((i) => merkmale[i]?.[0]).join(', ')})`).join('; ')}`);
 
+if (geprueft !== ids.length) fail(`[2] nur ${geprueft} von ${ids.length} Modellen der Liste geprüft: die übrigen haben keine gültige Befundliste`);
 if (geprueft < MIN_ITEMS) fail(`Klinke: nur ${geprueft} Items geprüft, erwartet mindestens ${MIN_ITEMS} — leere oder gekürzte Liste?`);
 
 if (fehler.length) {

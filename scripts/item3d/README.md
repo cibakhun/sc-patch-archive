@@ -25,6 +25,17 @@ Bildplatz `TexSlotN`, Wert, Kachelung, Bildformat, Bauvorgang) wird in
 - **fehler**: Bau kaputt, Item hält an
 - **unbekannt**: nicht in der Tabelle, Item hält an
 
+Unbekannt heißt: kein eigener Eintrag in der Tabelle. Das gilt für Schalter,
+Bildplätze, Werte und Kachelungen der Shader, die der Bäcker wirklich backt
+(Einordnung `ja`: `LayerBlend_V2`, `Illum`, `MeshDecal`). Shader, die er als
+Ganzes nur nähert oder weglässt (`GlassPBR`, `DisplayScreen`, `Monitor`,
+`UIMesh`, `UIPlane`, `ScopePBR`, `HumanSkin_V2`, `HairPBR`, `Eye`: `naeh`;
+`NoDraw`: `ohne`), geben ihre Einordnung an alles weiter, was sie nicht
+einzeln führen: ein neuer Schalter an einem Bildschirm ändert an der
+Näherung nichts und hält darum nicht an. Ein neuer Shader ist dagegen
+immer unbekannt. Genannt werden alle Merkmale trotzdem, im Befundbericht
+und in der Zählung (`--zensus`).
+
 Ein Item mit einem anhaltenden Merkmal kommt nicht in die Liste, auch wenn
 sein Modell gebacken ist. Ein neuer Patch mit einem neuen Schalter erzeugt so
 kein falsches Modell, sondern eine Lücke mit Namen. Anlass war die Prism
@@ -78,10 +89,20 @@ npm run verify:item3d-befunde
 ```
 
 Eine geänderte Tabelle ändert den Eingabe-Hash jedes Items, und der nächste
-Lauf backt neu. Das Tor `verify:item3d-befunde` (Schiene A) prüft die Liste
+Lauf backt neu. Jede Zeile des Bauprotokolls trägt die Kennung der Tabelle,
+mit der sie gebacken ist (`tab`); `manifest.mjs` listet nur Zeilen mit der
+Tabelle des eigenen Checkouts, damit die Einordnung im Bericht dieselbe ist
+wie beim Backen. Der Upload vermerkt sein Ziel in `<out>/hochgeladen.ziel`
+(Bucket, Endpunkt nur als Kennung); `manifest.mjs` nimmt den Nachweis nur für
+den Bucket der Seite an. Endet ein Arbeiter des Massenlaufs mitten in einer
+Gruppe, wird das laufende Item als Fehler vermerkt, der Rest neu eingeplant,
+und was übrig bleibt, macht den Lauf rot (`UNVOLLSTÄNDIG`, Exit 1).
+
+Das Tor `verify:item3d-befunde` (Schiene A) prüft die Liste
 gegen die Tabelle dieses Checkouts:
 
-1. Liste und Bericht stammen aus demselben Lauf.
+1. Liste und Bericht stammen aus demselben Lauf (Fingerabdruck über Item
+   und Modelldatei, jedes Item mit gültiger Befundliste).
 2. Kein gelistetes Item trägt ein anhaltendes Merkmal.
 3. Kein Merkmal wurde seit dem Lauf umgeordnet.
 4. Jede benannte Ausnahme ist noch in Gebrauch.
