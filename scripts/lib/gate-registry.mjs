@@ -729,7 +729,7 @@ export const CHECKS = [
     script: 'scripts/verify-namen-aliase.mjs',
     rail: 'A',
     checks:
-      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; jede beim Zusammenlegen verschwundene Item-Id (ALTE_ADRESSEN, auch die „-2“-Ids der Zwillinge) leitet in EN und DE auf die Seite des Spielnamens; Klinken fuer Paare, verschwundene Adressen und gelesene Quellennamen',
+      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten, und jedes Ziel einer verschwundenen Adresse (ALTE_ADRESSEN) steht im Katalog; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; jede beim Zusammenlegen verschwundene Item-Id (ALTE_ADRESSEN, auch die „-2“-Ids der Zwillinge) leitet in EN und DE auf die Seite des Spielnamens; Klinken fuer Paare, verschwundene Adressen und gelesene Quellennamen',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau dieser Lieferung, vier
     // Eingriffe, je Datei zurueckgespielt und per sha256 geprueft:
     // „Xanthule Helmet“ als eigenes Item in dist/assets/universal-items.json
@@ -748,6 +748,14 @@ export const CHECKS = [
     // (Ist: 0, der alte Name „Oracle“ fuehrt weiter hin), die neue 1 Befund,
     // exit 1; zurueckgespielt, sha256 0d710655… wie vorher, gruen: 112
     // verschwundene Adressen x Sprachen.
+    // Review-Runde 2 (PR #471): das Ziel einer verschwundenen Adresse prueft
+    // [2] gegen den Katalog, nicht mehr gegen die Paare, sonst blockte [1]
+    // das Streichen eines Paars, das [3] verlangt. Gegenprobe: Paar
+    // „Xanthule Helmet“ gestrichen, Paar-Klinke 55 -> vorige Fassung [1]
+    // „ist kein Ziel der Tabelle“, exit 1; neue gruen. Dazu das Ziel von
+    // xanthule-helmet auf „Gibt Es Nicht Helmet“ -> neue [2] je 1 FEHLER in
+    // assets/ und dist/assets/, exit 1. Id „Oracle Helm“ statt oracle ->
+    // [1] „keine Item-Id“. Zurueckgespielt, gruen.
   },
   {
     // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->

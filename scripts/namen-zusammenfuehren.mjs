@@ -20,11 +20,13 @@
 // (3D-Modelle, 3D-Befunde, Hangar-Waffenmodelle), und traegt jede
 // verschwundene Adresse als 301 in nginx/umzuege.conf ein (EN und DE).
 //
-// Idempotent: ein zweiter Lauf findet nichts mehr und schreibt nichts.
+// Idempotent: ein zweiter Lauf findet nichts mehr und schreibt nichts. Bricht
+// ein Lauf mitten im Schreiben ab, bringt ein neuer Lauf alles auf denselben
+// Stand wie ein ununterbrochener (Review #471, Gegenprobe im PR).
 // verify:namen-aliase prueft das Ergebnis im Tor.
 //
 // Aufruf: node scripts/namen-zusammenfuehren.mjs [--dry]
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -152,7 +154,9 @@ if (!zusammen.length) { console.log('Nichts zu tun.'); process.exit(0); }
 // zuletzt (Review #471): scheitert eine Pruefung, ist nichts geschrieben.
 // Bricht das Schreiben mittendrin ab, steht das Doppel noch im Katalog; ein
 // neuer Lauf legt es wieder zusammen und erkennt die schon umgeschluesselten
-// Verweise und vorhandenen Weiterleitungen als erledigt.
+// Verweise, den schon neuen Fingerabdruck und vorhandene Weiterleitungen als
+// erledigt. Jede Datei wird ganz ersetzt (neben ihr schreiben, dann
+// umbenennen), nie halb.
 for (const it of bleiben) if (umbenannt.has(it.id)) it.id = umbenannt.get(it.id);
 db.items = bleiben;
 if (db.counts) {
@@ -209,17 +213,20 @@ for (const [art, pfad] of Object.entries(ID_DATEIEN)) {
 // Umgeschluesselt sind beide gleich: dieselben Modelle, dieselben Befunde, nur
 // die Id ist neu. Das gilt aber nur, wenn der Bericht schon vorher zur Liste
 // passte (Review #471): sonst machte das Umschluesseln einen fremden Bericht
-// passend. Derselbe Abdruck wie in scripts/item3d/manifest.mjs bzw. im Tor.
+// passend. Passt er schon zur neuen Liste, hat ein abgebrochener Lauf ihn
+// geschrieben (der Bericht geht vor der Liste auf die Platte). Derselbe
+// Abdruck wie in scripts/item3d/manifest.mjs bzw. im Tor.
 const abdruckVon = (text) => {
   const liste = JSON.parse(text).items ?? {};
   return createHash('sha256').update(JSON.stringify(Object.keys(liste).sort().map((id) => [id, liste[id]?.[0] ?? null]))).digest('hex').slice(0, 16);
 };
 const LISTE_RE = /^( "liste": )"([0-9a-f]{16})",$/m;
-if (nachherText.item3d !== vorherText.item3d) {
+if (nachherText.item3d !== vorherText.item3d || nachherText.befunde !== vorherText.befunde) {
   const bisher = vorherText.befunde.match(LISTE_RE)?.[2];
   const passend = abdruckVon(vorherText.item3d);
-  if (bisher !== passend) fehler.push(`${ID_DATEIEN.befunde}: Fingerabdruck ${bisher ?? '(fehlt)'} passt schon vor dem Umschluesseln nicht zur Liste (${passend}) — der Bericht stammt aus einem anderen Lauf; erst node scripts/item3d/manifest.mjs, dann dieses Skript erneut`);
-  else nachherText.befunde = nachherText.befunde.replace(LISTE_RE, `$1"${abdruckVon(nachherText.item3d)}",`);
+  const neuAbdruck = abdruckVon(nachherText.item3d);
+  if (bisher !== passend && bisher !== neuAbdruck) fehler.push(`${ID_DATEIEN.befunde}: Fingerabdruck ${bisher ?? '(fehlt)'} passt weder zur Liste vor (${passend}) noch nach dem Umschluesseln (${neuAbdruck}) — der Bericht stammt aus einem anderen Lauf; erst node scripts/item3d/manifest.mjs, dann dieses Skript erneut`);
+  else nachherText.befunde = nachherText.befunde.replace(LISTE_RE, `$1"${neuAbdruck}",`);
 }
 
 // 301 je verschwundene Adresse, EN und DE, alphabetisch eingereiht.
@@ -245,11 +252,24 @@ if (fehler.length) {
 }
 if (DRY) { console.log('--dry: alles geprueft, nichts geschrieben.'); process.exit(0); }
 
-for (const art of Object.keys(ID_DATEIEN)) {
-  if (nachherText[art] !== vorherText[art]) writeFileSync(ID_DATEIEN[art], nachherText[art]);
+// Ganz oder gar nicht je Datei: daneben schreiben, dann umbenennen.
+function ersetze(pfad, text) {
+  const neben = `${pfad}.${process.pid}.neu`;
+  try {
+    writeFileSync(neben, text);
+    renameSync(neben, pfad);
+  } catch (e) {
+    rmSync(neben, { force: true });
+    throw e;
+  }
+}
+// Der Bericht vor der Liste: sein Fingerabdruck passt dann zur alten oder zur
+// neuen Liste, und beides erkennt ein neuer Lauf.
+for (const art of ['befunde', 'item3d', 'hangar']) {
+  if (nachherText[art] !== vorherText[art]) ersetze(ID_DATEIEN[art], nachherText[art]);
   console.log(`${art}: ${nachgezogen[art]} Id(s) nachgezogen${art === 'befunde' && nachherText.befunde !== vorherText.befunde ? `, Fingerabdruck der Liste -> ${nachherText.befunde.match(LISTE_RE)[2]}` : ''}`);
 }
-if (confNachher !== confVorher) writeFileSync(UMZUEGE, confNachher);
+if (confNachher !== confVorher) ersetze(UMZUEGE, confNachher);
 console.log(`nginx/umzuege.conf: ${neu} Weiterleitung(en) neu`);
-writeFileSync(DB, katalogText);
+ersetze(DB, katalogText);
 console.log(`OK: ${DB} (Fundorte ${fz.items} Items, withObtain ${db.counts?.withObtain})`);

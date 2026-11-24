@@ -18,7 +18,10 @@
      [1] Tabelle in sich stimmig: kein alter Name doppelt, kein Ziel ist
          selbst ein alter Name, alt und Ziel verschieden
      [2] Katalog (assets/ und das Artefakt dist/assets/): kein alter Name
-         steht als eigenes Item, jedes Ziel ist ein Item mit Spieldaten
+         steht als eigenes Item, jedes Ziel ist ein Item mit Spieldaten,
+         und jedes Ziel einer verschwundenen Adresse (ALTE_ADRESSEN) steht
+         im Katalog. Diese Ziele prueft der Katalog, nicht die Paare: wird
+         ein Paar nach [3] gestrichen, bleibt seine Adresse festgehalten.
      [3] Zombie-Waechter: jeder alte Name kommt noch in einer Quelle vor
          (src/data/loot-items.json, src/data/item-prices.json,
          assets/dismantling-items.json) — sonst Paar streichen
@@ -69,13 +72,15 @@ for (const [von, nach, art] of NAMEN_ALIASE) {
   if (!['schreibweise', 'umbenannt'].includes(art)) tabelle.push(`"${von}": Art "${art}" unbekannt`);
 }
 for (const [, nach] of NAMEN_ALIASE) if (alte.has(k(nach))) tabelle.push(`Ziel "${nach}" ist selbst ein alter Name (Kette)`);
-// Verschwundene Adressen: jede Id einmal, jedes Ziel ein Spielname der Tabelle.
-const ziele = new Set(NAMEN_ALIASE.map(([, nach]) => k(nach)));
+// Verschwundene Adressen: jede Id einmal und als Item-Id geformt. Ihr Ziel
+// prueft [2] gegen den Katalog, nicht gegen die Paare (Review #471): ein
+// gestrichenes Paar nimmt seine festgehaltene Adresse nicht mit.
 const alteIds = new Set();
 for (const [id, nach] of ALTE_ADRESSEN) {
   if (alteIds.has(id)) tabelle.push(`alte Adresse ${id} doppelt`);
   alteIds.add(id);
-  if (!ziele.has(k(nach))) tabelle.push(`alte Adresse ${id}: "${nach}" ist kein Ziel der Tabelle`);
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) tabelle.push(`alte Adresse "${id}" ist keine Item-Id`);
+  if (!String(nach ?? '').trim()) tabelle.push(`alte Adresse ${id}: kein Ziel`);
 }
 if (ALTE_ADRESSEN.length < MIN_ALTE_ADRESSEN) tabelle.push(`nur ${ALTE_ADRESSEN.length} verschwundene Adressen (Klinke ${MIN_ALTE_ADRESSEN})`);
 console.log('\n[1] Tabelle in sich stimmig');
@@ -83,7 +88,7 @@ console.log(`    Paare: ${NAMEN_ALIASE.length}   verschwundene Adressen: ${ALTE_
 if (tabelle.length) fehler.push(`[1] ${liste(tabelle)}`);
 
 // [2]
-console.log('\n[2] Katalog: kein alter Name als eigenes Item, jedes Ziel mit Spieldaten');
+console.log('\n[2] Katalog: kein alter Name als eigenes Item, jedes Ziel mit Spieldaten, jedes Ziel einer verschwundenen Adresse vorhanden');
 const kataloge = [['assets/universal-items.json', resolve(ROOT, 'assets/universal-items.json')]];
 const distKatalog = resolve(DIST, 'assets/universal-items.json');
 if (existsSync(distKatalog)) kataloge.push(['dist/assets/universal-items.json', distKatalog]);
@@ -95,9 +100,11 @@ for (const [name, pfad] of kataloge) {
   const nachName = new Map(items.map((i) => [k(i.name), i]));
   const nochDa = NAMEN_ALIASE.filter(([von]) => nachName.has(k(von))).map(([von]) => `"${von}" (${nachName.get(k(von)).id})`);
   const zielOhne = NAMEN_ALIASE.filter(([, nach]) => !nachName.get(k(nach))?.game).map(([, nach]) => `"${nach}"`);
-  console.log(`    ${name}: ${items.length} Items   alter Name als eigenes Item — Soll: 0   Ist: ${nochDa.length}   Ziel fehlt oder ohne Spieldaten — Soll: 0   Ist: ${zielOhne.length}`);
+  const adresseOhne = ALTE_ADRESSEN.filter(([, nach]) => !nachName.has(k(nach))).map(([id, nach]) => `${id} -> "${nach}"`);
+  console.log(`    ${name}: ${items.length} Items   alter Name als eigenes Item — Soll: 0   Ist: ${nochDa.length}   Ziel fehlt oder ohne Spieldaten — Soll: 0   Ist: ${zielOhne.length}   Ziel einer verschwundenen Adresse fehlt — Soll: 0   Ist: ${adresseOhne.length}`);
   if (nochDa.length) fehler.push(`[2] ${name}: ${nochDa.length} alte(r) Name(n) wieder als eigenes Item — node scripts/namen-zusammenfuehren.mjs laufen lassen: ${liste(nochDa)}`);
   if (zielOhne.length) fehler.push(`[2] ${name}: ${zielOhne.length} Ziel(e) fehlen oder tragen keine Spieldaten — Spielname geaendert? Paar anpassen: ${liste(zielOhne)}`);
+  if (adresseOhne.length) fehler.push(`[2] ${name}: ${adresseOhne.length} verschwundene Adresse(n) ohne Ziel im Katalog — Spielname geaendert? Ziel in ALTE_ADRESSEN (scripts/lib/item-namen-aliase.mjs) und die Weiterleitung nachziehen: ${liste(adresseOhne)}`);
   if (!zielIds) zielIds = new Map(NAMEN_ALIASE.map(([von, nach]) => [von, nachName.get(k(nach))?.id ?? null]));
   if (!idNachName) idNachName = (n) => nachName.get(k(n))?.id ?? null;
 }
