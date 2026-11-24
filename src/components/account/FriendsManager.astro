@@ -1015,6 +1015,7 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         // Absagen wie Entfernen: erster Klick fragt im Knopf nach, zweiter sagt ab.
         const b = el('button', 'fm-btn fm-crew__drop', C.crewDrop) as HTMLButtonElement;
         b.type = 'button';
+        b.dataset.act = 'drop';
         let armed = 0;
         b.addEventListener('click', async () => {
           if (!armed) {
@@ -1033,10 +1034,15 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         });
         acts.appendChild(b);
       } else {
-        if (c.members.includes(me)) acts.appendChild(textBtn(C.crewLeave, '', () => crewLeave(c)));
+        // Zusagen und Zurückziehen sind derselbe Platz (data-act): der Fokus
+        // bleibt nach dem Umschalten auf dem Knopf.
+        let toggle: HTMLElement | null = null;
+        if (c.members.includes(me)) toggle = textBtn(C.crewLeave, '', () => crewLeave(c));
         // Voll: kein Knopf, die Zeile der Plätze sagt es schon.
-        else if (free) acts.appendChild(textBtn(C.crewJoin, 'fm-btn--primary', () => crewJoin(c)));
+        else if (free) toggle = textBtn(C.crewJoin, 'fm-btn--primary', () => crewJoin(c));
+        if (toggle) { toggle.dataset.act = 'toggle'; acts.appendChild(toggle); }
         const chat = iconBtn('ic-chat', `${C.chat}: ${nameOf(host)}`, 'fm-ib--chat');
+        chat.dataset.act = 'chat';
         chat.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: c.owner_id })));
         chat.hidden = !friends.some((f) => f.p.id === c.owner_id);
         acts.appendChild(chat);
@@ -1054,16 +1060,19 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       $('fmCrewN').textContent = crew.length ? String(crew.length) : '';
       crewNew.hidden = !crewForm.hidden || mine >= 3 || !friends.length;
       // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
-      // Karte zurücksetzen (Tastaturbedienung), wie bei den Freundeskarten.
+      // Karte zurücksetzen (Tastaturbedienung). Die Knöpfe tragen eine feste
+      // Kennung (data-act), weil sich ihre Zahl ändert (voll: kein „Bin dabei“).
       const list = $('fmCrewList');
       const f = document.activeElement as HTMLElement | null;
       const cardEl = f && list.contains(f) ? f.closest<HTMLElement>('.fm-crew__card') : null;
       const key = cardEl?.dataset.id;
-      const idx = cardEl ? [...cardEl.querySelectorAll('a,button')].indexOf(f!) : -1;
+      const act = f?.closest<HTMLElement>('[data-act]')?.dataset.act;
       list.replaceChildren(...crew.map(crewCard));
-      if (key && idx >= 0) {
+      if (key && act) {
         const again = list.querySelector<HTMLElement>(`.fm-crew__card[data-id="${CSS.escape(key)}"]`);
-        (again?.querySelectorAll<HTMLElement>('a,button')[idx])?.focus({ preventScroll: true });
+        const target = again?.querySelector<HTMLElement>(`[data-act="${CSS.escape(act)}"]:not([hidden])`)
+          || again?.querySelector<HTMLElement>('[data-act]:not([hidden])');
+        target?.focus({ preventScroll: true });
       }
       $('fmCrewEmpty').hidden = crew.length > 0 || !crewForm.hidden;
     };
