@@ -74,8 +74,8 @@ const rackName = (k) => {
 // Lackierungen heissen im Spiel "<Schiff> <Name> Livery". Sie stehen hier schon
 // unter "Lackierung" beim Schiff: Schiffsname und "Livery" wiederholten sich
 // nur (13-mal "Gladius … Livery"). Bleibt nichts uebrig, der volle Name.
-const paintLabel = (name) => {
-  const first = shipName(draft.ship).split(/\s+/)[0] ?? '';
+const paintLabel = (name, ship = draft.ship) => {
+  const first = shipName(ship).split(/\s+/)[0] ?? '';
   let s = String(name ?? '').replace(/ Livery(?= \(|$)/, '');
   if (first && s.toLowerCase().startsWith(`${first.toLowerCase()} `)) s = s.slice(first.length + 1);
   return s.trim() || String(name ?? '');
@@ -762,7 +762,10 @@ function savedFacts(e) {
   const used = new Map();
   for (const k of Object.values(e.slots ?? {})) used.set(k, (used.get(k) ?? 0) + 1);
   const named = [...used].map(([k, c]) => `${c > 1 ? `${nf.format(c)}×\u00a0` : ''}${itemName(k)}`);
-  const parts = named.length ? `${named.slice(0, 3).join(', ')}${named.length > 3 ? ', …' : ''}` : '';
+  // Die Lackierung zaehlt in "n Slots geaendert" mit; sie steht darum hier auch,
+  // hinter den Teilen und ausserhalb der Kappung auf drei.
+  const paint = e.paint ? data.paints?.[e.ship]?.list.find((r) => r[0] === e.paint)?.[1] : null;
+  const parts = [named.length ? `${named.slice(0, 3).join(', ')}${named.length > 3 ? ', …' : ''}` : '', paint ? `${m('cat.paint')} ${paintLabel(paint, e.ship)}`.replace(/ /g, '\u00a0') : ''].filter(Boolean).join(' · ');
   return nums || parts ? { nums, parts } : null;
 }
 function paintSaved() {
