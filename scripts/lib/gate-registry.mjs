@@ -844,6 +844,13 @@ export const CHECKS = [
     // /de/items/135c.html den Hinweis samt Link entfernt -> 1 Befund; je exit
     // 1, zurueckgespielt, sha256 0545dda3… und a75be5f2… wie vorher, gruen:
     // 356 von 356.
+    // Nach dem Review (CodeRabbit, PR #465) liest [6] das Ziel aus einem
+    // echten <a> (attribute() wie [15]) und prueft den Hinweis im Wortlaut
+    // von src/i18n/itemText.ts. Gegenprobe im Vorschau-Bau: auf
+    // /items/100i.html den Link zu <span href=… data-specs-schiff> gemacht,
+    // auf /de/items/135c.html nur den Satz entfernt -> die vorige Fassung
+    // blieb gruen (Ist: 0), die neue 2 Befunde, exit 1; zurueckgespielt,
+    // sha256 e0dde24c… und 9b96f8bd… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der

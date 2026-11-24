@@ -388,6 +388,12 @@ const doppelt = [];
 const fahrzeugOhneSchiff = [];
 const fahrzeugFalschesSchiff = [];
 const fahrzeugOhneDaten = [];
+// Wortlaut des Hinweises je Sprache, aus derselben Quelle wie die Seite.
+const SPECS_ON_SHIP = (() => {
+  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(/^\s*specsOnShip: '((?:[^'\\]|\\.)*)',$/gm)].map((m) => m[1]);
+  if (t.length !== 2) { console.error(`verify:bezugswege: specsOnShip steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
+  return { de: t[0], en: t[1] };
+})();
 let ohneWeg = 0;
 let schiffsteile = 0;
 const schiffsteilOhneLink = [];
@@ -503,8 +509,14 @@ for (const rel of ['items', 'de/items']) {
       // die Werte auf dem Schiffsblatt stehen, und verlinkt dasselbe Ziel.
       const sek = [...html.matchAll(/<section\b[^>]*>([\s\S]*?)<\/section>/g)].map((m) => m[1]).find((x) => x.includes('data-specs-schiff'));
       const sekH2 = sichtbar(sek?.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/)?.[1] ?? '').trim();
-      const datenZiel = sek?.match(/href="((?:\/de)?\/schiffe\/[a-z0-9-]+\.html)"[^>]*data-specs-schiff/)?.[1];
-      if (!sek || !/^(Technische Daten|Technical data)$/.test(sekH2) || !datenZiel || datenZiel !== ziel) fahrzeugOhneDaten.push(`${pfad}${datenZiel && datenZiel !== ziel ? ` -> ${datenZiel} statt ${ziel}` : ''}`);
+      // Das Ziel ist das href eines echten <a> mit data-specs-schiff, gelesen
+      // wie in [15]; ein span mit denselben Attributen ist kein Link (Review #465).
+      const datenAnker = sek ? [...sek.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g)].map((m) => attribute(m[1])).find((a) => a.has('data-specs-schiff')) : null;
+      const datenZiel = datenAnker?.get('href')?.match(/^((?:\/de)?\/schiffe\/[a-z0-9-]+\.html)$/)?.[1];
+      // Und der Hinweis davor sagt es im Wortlaut von src/i18n/itemText.ts (Review #465).
+      const hinweis = falte(sichtbar(sek?.match(/<p\b[^>]*\bclass="[^"]*\bdp-note\b[^"]*"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? ''));
+      const hinweisFehlt = !hinweis.startsWith(SPECS_ON_SHIP[pfad.startsWith('/de/') ? 'de' : 'en']);
+      if (!sek || !/^(Technische Daten|Technical data)$/.test(sekH2) || !datenZiel || datenZiel !== ziel || hinweisFehlt) fahrzeugOhneDaten.push(`${pfad}${datenZiel && datenZiel !== ziel ? ` -> ${datenZiel} statt ${ziel}` : ''}${sek && hinweisFehlt ? ' (Hinweis fehlt oder anders)' : ''}`);
     }
   }
 }
