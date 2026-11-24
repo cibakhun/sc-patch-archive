@@ -272,10 +272,15 @@ const crumbs = [
     )}
   </section>
 
-  {/* -- Spielwerte -- */}
-  {(chips.length > 0 || stats.length > 0 || desc) && (
+  {/* -- Spielwerte. Fahrzeug-Items tragen keine eigenen Werte, die stehen
+         auf dem Schiffsblatt (IA C8, 24.11.2026): der Abschnitt sagt das und
+         verlinkt es, statt zu fehlen. verify:bezugswege [6] prueft den Link. -- */}
+  {(chips.length > 0 || stats.length > 0 || desc || shipId) && (
     <section class="dp-sec">
       <h2>{t('sectionSpecs')}</h2>
+      {shipId && (
+        <p class="dp-note">{t('specsOnShip')} <a href={href(`/schiffe/${shipId}.html`, lang)} data-specs-schiff>{t('headShip')} →</a></p>
+      )}
       {chips.length > 0 && (
         <ul class="dp-chips">
           {chips.map(([l, v]) => <li class="dp-chip"><b>{l}</b>{v}</li>)}
