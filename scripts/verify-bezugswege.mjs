@@ -219,7 +219,10 @@ function pruefeBauplanP2(pfad, html) {
     // wie data-pool/data-pool-min („1 von 8“, „1 von 5–8“, „nur dieser“ = 1),
     // und jede Zahl (auch jedes Ende einer Spanne) ist die Groesse eines
     // Pools genau dieser Mission (Review #434).
-    const reihen = [...tabelle.matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)].filter(([, , inhalt]) => !/<th\b/.test(inhalt));
+    // Alle Zeilen des Tabellenkoerpers, ohne Ausnahme nach Inhalt.
+    const koerper = tabelle.match(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/)?.[1] ?? '';
+    const reihen = [...koerper.matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)];
+    if (!reihen.length) poolTextFalsch.push(`${pfad} (Missionstabelle ohne Zeilen im Tabellenkoerper)`);
     for (const [, trAttr, inhalt] of reihen) {
       const slug = trAttr.match(/data-mission="([a-z0-9-]+)"/)?.[1];
       const zelle = inhalt.match(/<td class="dp-num"([^>]*)>([^<]*)<\/td>/);
@@ -228,8 +231,15 @@ function pruefeBauplanP2(pfad, html) {
         poolTextFalsch.push(`${pfad} (Zeile ohne ${!slug ? 'data-mission' : 'Pool-Zelle'})`);
         continue;
       }
+      // Eine Mission ohne Pool-Daten haette nur die Zahl der Bauplan-Seiten
+      // (poolGroesse) — dann laufen Crafting- und Missionsdaten auseinander.
+      if (!poolGroessen.has(slug)) {
+        poolTextFalsch.push(`${pfad} (${slug}: Mission ohne Pool-Daten in src/data/missions.json)`);
+        continue;
+      }
       poolTexte++;
       const poolMin = zelle[1].match(/data-pool-min="(\d+)"/)?.[1];
+      if (poolMin != null && Number(poolMin) >= Number(pool)) poolTextFalsch.push(`${pfad} (${slug}: Spanne ${poolMin}–${pool} nicht aufsteigend)`);
       const text = zelle[2];
       const soll = { min: Number(poolMin ?? pool), max: Number(pool) };
       const zahl = (x) => Number(x.replace(/[.,\u00a0\u202f]/g, ''));
@@ -237,7 +247,6 @@ function pruefeBauplanP2(pfad, html) {
       const ist = /(?:nur dieser|only this one)\s*$/.test(text) ? { min: 1, max: 1 } : r ? { min: zahl(r[1]), max: zahl(r[2] ?? r[1]) } : null;
       if (!ist || ist.min !== soll.min || ist.max !== soll.max) poolTextFalsch.push(`${pfad} (${slug}: „${text.trim()}“, Attribute ${soll.min === soll.max ? soll.max : `${soll.min}–${soll.max}`})`);
       const m = poolGroessen.get(slug);
-      if (!m) continue;
       poolGeprueft++;
       if (m.mehrere) poolGeprueftMehrere++;
       for (const n of [pool, poolMin].filter(Boolean)) {
@@ -467,9 +476,9 @@ need(!poolOhne.length, `${poolOhne.length} Missionstabelle(n) ohne Pool je Zeile
 console.log(`    Zeilen mit Pool-Daten: ${poolGeprueft} (davon zu Missionen mit mehreren Pools: ${poolGeprueftMehrere}; Missionen: ${poolGroessen.size})   Zahl ist keine Poolgroesse der Mission — Soll: 0   Ist: ${poolFremd.length}`);
 need(poolGeprueft > 0 && poolGeprueftMehrere > 0, 'keine Zeile mit Pool-Daten (oder keine zu einer Mission mit mehreren Pools) geprueft — Daten oder Muster veraltet?');
 need(!poolFremd.length, `${poolFremd.length} Zeile(n) nennen eine Zahl, die keine Poolgroesse ihrer Mission ist — ${liste(poolFremd)}`);
-console.log(`    sichtbarer Text gegen data-pool/data-pool-min: ${poolTexte} von ${poolZeilen} Tabellenzeilen   abweichend oder ohne data-mission/Pool-Zelle — Soll: 0   Ist: ${poolTextFalsch.length}`);
+console.log(`    sichtbarer Text gegen data-pool/data-pool-min: ${poolTexte} von ${poolZeilen} Tabellenzeilen   Befunde (Text, data-mission, Pool-Daten, Spanne) — Soll: 0   Ist: ${poolTextFalsch.length}`);
 need(poolZeilen > 0 && poolTexte === poolZeilen, `${poolTexte} Pool-Zellen geprueft, aber ${poolZeilen} Zeilen in den Missionstabellen — Muster veraltet?`);
-need(!poolTextFalsch.length, `${poolTextFalsch.length} Zeile(n) ohne data-mission oder Pool-Zelle, oder Pool-Zelle(n) mit anderer Zahl als ihre Attribute — ${liste(poolTextFalsch)}`);
+need(!poolTextFalsch.length, `${poolTextFalsch.length} Befund(e) in Missionszeilen (ohne data-mission oder Pool-Zelle, Mission ohne Pool-Daten, Spanne nicht aufsteigend oder Text anders als die Attribute) — ${liste(poolTextFalsch)}`);
 
 // Die Crafting-Kategorieseiten liegen eine Ebene tiefer.
 let kategorieSeiten = 0;
