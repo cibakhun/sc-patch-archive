@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, mainWeapon, loadoutName,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -119,6 +119,38 @@ describe('Werkstatt: Link-Code', () => {
     assert.equal(serializeState(s, ctx), '?station=uebersicht&tafel=1');
     assert.equal(serializeState(s, ctx, 'share'), '?ship=aegs-gladius');
     assert.equal(parseState('?tafel=ja', '', ctx).flat, false);
+  });
+});
+
+describe('Werkstatt: Standardname (Schiff · Hauptwaffe · Tag)', () => {
+  const cur = (s) => s.stock;
+  test('Hauptwaffe: groesste Pilotenwaffe, bei Gleichstand die erste; ohne sie die Tuerme', () => {
+    assert.equal(mainWeapon(slots, cur), 'mantis', 'zwei Pilotenwaffen der Groesse 3: die erste');
+    const mehr = shipSlots([['a', 'gun', 2, 'small', 'pilot', 1], ['b', 'gun', 3, 'panther', 'pilot', 1], ['t', 'gun', 5, 'revenant', 'manned', 1]]);
+    assert.equal(mainWeapon(mehr, cur), 'panther', 'die groessere Pilotenwaffe, nicht der groessere Turm');
+    const turm = shipSlots([['t', 'gun', 3, 'revenant', 'manned', 1], ['s', 'shield', 1, 'allstop', 'shield', 1]]);
+    assert.equal(mainWeapon(turm, cur), 'revenant', 'ohne Pilotenwaffe der bemannte Turm');
+    assert.equal(mainWeapon(shipSlots([['s', 'shield', 1, 'allstop', 'shield', 1]]), cur), null, 'ohne Waffe keine');
+    assert.equal(mainWeapon(shipSlots([['a', 'gun', 3, null, 'pilot', 1]]), cur), null, 'ein leerer Slot zaehlt nicht');
+    assert.equal(mainWeapon(null, cur), null);
+  });
+  test('Name: Tag deutsch und englisch, ohne Waffe nur Schiff und Tag', () => {
+    assert.equal(loadoutName('Gladius', 'CF-337 Panther Repeater', new Date(2026, 10, 13), true), 'Gladius · CF-337 Panther Repeater · 13.11.');
+    assert.equal(loadoutName('Gladius', 'CF-337 Panther Repeater', new Date(2026, 10, 13), false), 'Gladius · CF-337 Panther Repeater · Nov 13');
+    assert.equal(loadoutName('Gladius', null, new Date(2026, 0, 3), true), 'Gladius · 03.01.');
+    assert.equal(loadoutName('Gladius', '', new Date(2026, 0, 3), false), 'Gladius · Jan 3');
+  });
+  test('Name: zu lang? Die Waffe faellt weg, nie der Tag; nie laenger als MAX_NAME', () => {
+    const n = loadoutName('Anvil F7C-M Super Hornet Heartseeker Mk II', 'Omnisky VI Laser Cannon', new Date(2026, 10, 3), true);
+    assert.equal(n, 'Anvil F7C-M Super Hornet Heartseeker Mk II · 03.11.');
+    assert.ok(loadoutName('x'.repeat(80), 'w', new Date(2026, 10, 3), true).length <= MAX_NAME);
+  });
+  test('Name: ein gespeicherter Standardname bleibt gespeichert (sameLayout), auch am naechsten Tag', () => {
+    const heute = { ship: 'gladius', name: loadoutName('Gladius', 'Mantis GT-220 Gatling', new Date(2026, 10, 13), true), slots: {} };
+    const gespeichert = { ...heute };
+    assert.ok(sameLayout(gespeichert, heute), 'der vergebene Name steht im Entwurf und in der Ablage gleich');
+    const morgen = { ...heute, name: loadoutName('Gladius', 'Mantis GT-220 Gatling', new Date(2026, 10, 14), true) };
+    assert.ok(!sameLayout(gespeichert, morgen), 'deshalb vergeben beide Seiten ihn nur beim Speichern, nie beim Zeichnen');
   });
 });
 

@@ -288,6 +288,49 @@ export function sameLayout(a, b) {
     && cleanPaint(a.paint) === cleanPaint(b.paint);
 }
 
+/** Waffengruppen in der Reihenfolge, in der sie die Hauptwaffe stellen. */
+export const MAIN_WEAPON_GROUPS = ['pilot', 'manned', 'remote'];
+
+/**
+ * Die Hauptwaffe eines Loadouts: die groesste der Pilotenwaffen, ohne sie
+ * die groesste der bemannten, dann der ferngesteuerten Tuerme; bei
+ * Gleichstand die erste. current(slot) liefert das Bauteil im Slot.
+ *   mainWeapon([{ group: 'pilot', size: 2, stock: 'a' }, { group: 'pilot', size: 3, stock: 'b' }], (s) => s.stock) === 'b'
+ * @returns {string | null}
+ */
+export function mainWeapon(slots, current) {
+  for (const g of MAIN_WEAPON_GROUPS) {
+    let best = null;
+    for (const s of slots ?? []) {
+      if (!s || s.group !== g || !current(s)) continue;
+      if (!best || (Number(s.size) || 0) > (Number(best.size) || 0)) best = s;
+    }
+    if (best) return current(best);
+  }
+  return null;
+}
+
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * Standardname eines Loadouts ohne eigenen Namen: Schiff · Hauptwaffe · Tag,
+ * etwa „Gladius · CF-337 Panther Repeater · 13.11.“ (EN „… · Nov 13“). Er
+ * steht vorher als Platzhalter im Feld und wird genau einmal beim Speichern
+ * vergeben, nie beim Zeichnen: sameLayout vergleicht den Namen, und am
+ * naechsten Tag hiesse ein gespeichertes Loadout sonst „ungespeichert“.
+ * Waere er laenger als MAX_NAME, faellt die Waffe weg, nie der Tag.
+ *   loadoutName('Gladius', 'Panther', new Date(2026, 10, 13), true) === 'Gladius · Panther · 13.11.'
+ *   loadoutName('Gladius', null, new Date(2026, 10, 3), false) === 'Gladius · Nov 3'
+ */
+export function loadoutName(ship, weapon, when, de) {
+  const d = when instanceof Date && !Number.isNaN(when.getTime()) ? when : new Date();
+  const tag = de
+    ? `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`
+    : `${MONTHS_EN[d.getMonth()]} ${d.getDate()}`;
+  const voll = [ship, weapon, tag].filter(Boolean).join(' · ');
+  return cleanName(voll.length <= MAX_NAME ? voll : [ship, tag].filter(Boolean).join(' · '));
+}
+
 /** Wie viele Slots vom Serienstand abweichen; eine Halterung samt Rakete zaehlt einmal, die Lackierung als eigener Slot. */
 export function changeCount(lo) {
   return new Set([...Object.keys(lo.slots ?? {}), ...Object.keys(lo.racks ?? {})]).size + (lo.paint ? 1 : 0);
@@ -728,7 +771,12 @@ export function initWorkshop(doc, bridge) {
     const r = data.racks?.[k];
     return r ? (de && r[1]) || r[0] : m('slot.unknown');
   };
-  const placeholder = () => fill(m('name.placeholder'), { ship: bridge.shipName(draft.ship) });
+  // Ohne eigenen Namen: Schiff · Hauptwaffe · Tag (loadoutName), als
+  // Platzhalter gezeigt und beim Speichern einmal vergeben.
+  const placeholder = () => {
+    const w = mainWeapon(slots, current);
+    return loadoutName(bridge.shipName(draft.ship), w && data?.items[w] ? itemName(w) : null, new Date(), de);
+  };
 
   /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
   function el(tag, attrs, ...kids) {
