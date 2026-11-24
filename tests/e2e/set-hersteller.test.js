@@ -27,3 +27,17 @@ test('Im Datenstand traegt nach der Regel kein Hersteller zwei Namen', () => {
     schluessel.set(k, n);
   }
 });
+
+test('„Unknown“ am Item versperrt den Hersteller aus dem Set-Tag nicht', async () => {
+  const { resolveArmorSets } = await import('../../scripts/lib/armor-sets.mjs');
+  const teil = (name, gameType, manufacturer) => ({
+    key: name, name, gameType, file: 'ohne_stamm', manufacturer,
+    tagPaths: ['Armor.FPS.Set.RSI.Beispiel'],
+  });
+  const nurUnknown = resolveArmorSets([teil('Beispiel Helmet', 'Char_Armor_Helmet', 'Unknown'), teil('Beispiel Arms', 'Char_Armor_Arms', 'Unknown')], new Map());
+  assert.strictEqual(nurUnknown.sets.length, 1);
+  assert.strictEqual(nurUnknown.sets[0].manufacturer, 'Roberts Space Industries');
+  // Ein echter Hersteller am Item behaelt den Vorrang vor dem Tag.
+  const gemischt = resolveArmorSets([teil('Beispiel Helmet', 'Char_Armor_Helmet', 'Clark Defense Systems'), teil('Beispiel Arms', 'Char_Armor_Arms', 'Unknown'), teil('Beispiel Legs', 'Char_Armor_Legs', 'Unknown')], new Map());
+  assert.strictEqual(gemischt.sets[0].manufacturer, 'Clark Defense Systems');
+});

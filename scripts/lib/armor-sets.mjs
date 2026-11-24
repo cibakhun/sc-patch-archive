@@ -171,12 +171,14 @@ export function resolveArmorSets(parts, shortByStem) {
       // Hersteller: der Wert AM ITEM ist der lokalisierte Anzeigename („Clark Defense
       // Systems"); der Tag traegt nur die zusammengezogene Kurzform („ClarkeDefense").
       // Fuer die Anzeige gewinnt daher das Item, der Tag ist Rueckfallebene.
+      // Gezaehlt wird erst nach setHersteller(): ein „Unknown" am Item ist kein
+      // Hersteller und darf den Rueckfall auf den Tag nicht versperren.
       let mfr = null;
       const c = new Map();
-      for (const p of cparts) if (p.manufacturer) { const m = p.manufacturer.trim(); c.set(m, (c.get(m) || 0) + 1); }
+      for (const p of cparts) { const m = setHersteller(p.manufacturer); if (m) c.set(m, (c.get(m) || 0) + 1); }
       let best = 0;
       for (const [m, n] of c) if (n > best) { mfr = m; best = n; }
-      if (!mfr) mfr = tagMfr;
+      if (!mfr) mfr = setHersteller(tagMfr);
       clusters.push({ name, source, mfr: mfr || null, stem: g.stem || null, parts: cparts, tag: cTop });
     }
   }
