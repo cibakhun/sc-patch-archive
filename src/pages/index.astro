@@ -109,7 +109,7 @@ const leiste = bereiche('en');
      position:fixed, damit der Schriftzug die Kopfleiste (z-index 9600)
      überhaupt erreichen kann — ein Element im Fluss läge hinter deren
      Hintergrund und würde auf dem letzten Stück verschluckt.
-     Bewegt wird ausschliesslich per transform/opacity. Die Zielwerte
+     Bewegt wird per transform/opacity; nur die Laufweite (an der h1) folgt per Layout. Die Zielwerte
      --dx/--dy/--s misst SiteNav.astro zur Laufzeit gegen den Schriftzug in
      der Leiste; --p ist der Fortschritt 0..1. Ohne JS bleibt --p bei 0: die
      Überschrift steht dann schlicht oben mittig — nichts ist kaputt, nur
@@ -118,11 +118,16 @@ const leiste = bereiche('en');
      Leistengroesse geschrumpft, bevor sie die Kopfleiste erreicht. Sonst
      stuende sie in voller Groesse quer ueber deren Kante — halb auf dem
      dunklen Motiv, halb auf der Fuellung, und keine Schriftfarbe waere fuer
-     beide Haelften richtig. */
+     beide Haelften richtig.
+     Die Fahrt endet bei p = 0,8, nicht erst bei 1: das letzte Fuenftel ist
+     die Uebergabe, und die gelingt nur an Ort und Stelle. Bis 24.11.2026
+     lief die Fahrt bis 1, und waehrend der Schriftzug der Leiste schon
+     aufblendete, war die Ueberschrift noch ein Viertel ihres Wegs entfernt:
+     zwei Woerter zugleich (UX-Audit A, WINDOWS #193 Frage 4). */
   .hero__mark{position:fixed;top:clamp(5.25rem,11vh,7.5rem);left:0;right:0;z-index:9601;
     display:flex;justify-content:center;pointer-events:none;
     --ps:clamp(0,(var(--p,0) / .55),1);
-    --pt:clamp(0,((var(--p,0) - .2) / .8),1);
+    --pt:clamp(0,((var(--p,0) - .2) / .6),1);
     transform:translate3d(calc(var(--dx,0px)*var(--pt)),calc(var(--dy,0px)*var(--pt)),0)
               scale(calc(1 + (var(--s,1) - 1)*var(--ps)))}
   /* Overlays (Suche 9600, Menü 9500) müssen die wandernde Überschrift
@@ -130,7 +135,14 @@ const leiste = bereiche('en');
      jedes Overlay durchläuft — siehe assets/scroll-lock.js. */
   :root.is-locked .hero__mark{visibility:hidden}
   .hero__mark h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:0;
-    font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:-.02em;
+    font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:calc(-.02em + (var(--le,-.02em) + .02em)*var(--ps,0));
+    /* Laufweite: im Hero eng (-.02em), auf dem Weg in die Leiste waechst sie
+       mit dem Massstab auf die Laufweite des Schriftzugs dort (--le, misst
+       SiteNav.astro). Sonst kaeme die Ueberschrift 13 % schmaler an als der
+       Schriftzug, und die Uebergabe an Ort und Stelle zeigte zwei
+       versetzte Woerter. Kostet ein Layout dieser einen Zeile je Bild,
+       nur waehrend des Schrumpfens (p bis 0,55): gemessen 59 Layouts mit
+       zusammen 13 ms auf dem ganzen Weg, also gut 0,2 ms je Bild. */
     /* Die Schrift wechselt unterwegs die Unterlage: erst das dunkle
        Hero-Motiv (dort ist Weiss richtig — der Schleier bleibt dunkel), am
        Ende die Fuellung der Kopfleiste. Die Farbe folgt deshalb der Unterlage.

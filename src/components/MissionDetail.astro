@@ -12,7 +12,8 @@ import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missio
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { lesbarerRufBereich } from '../lib/lesbar';
-import { blueprintPath, blueprintsByMission, blueprintListLabels } from '../lib/crafting';
+import { blueprintPath, blueprintsByMission, blueprintListLabels, itemForBlueprint } from '../lib/crafting';
+import { itemPath, pageItemIds, displayName } from '../lib/items';
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
@@ -83,6 +84,7 @@ const S = {
     guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
     bpH: 'Blueprints', bpChance: 'Chance',
     bpP: 'Diese Mission kann Blueprints abwerfen. Welcher davon fällt, entscheidet der Zufall — du bekommst nicht die ganze Liste.',
+    bpItem: 'Item', bpItemT: 'Item-Datenblatt: %s',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
     srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
     rec: 'Datensatz',
@@ -116,6 +118,7 @@ const S = {
     guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
     bpH: 'Blueprints', bpChance: 'Chance',
     bpP: 'This mission can drop blueprints. Which one drops is chance-based — you do not get the whole list.',
+    bpItem: 'Item', bpItemT: 'Item data sheet: %s',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
     srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
     rec: 'Record',
@@ -149,6 +152,12 @@ const mentions = patchesMentioning(`/missionen/${m.slug}.html`);
 // sonst stehen zwei identische Chips da, die auf verschiedene Seiten fuehren
 // (Register id 49). Details in blueprintListLabels().
 const craftedLabels = blueprintListLabels(craftedHere, lang);
+// Gegenrichtung der Bauplanseite (UX-Audit F7): was der Bauplan herstellt,
+// als eigener Link neben dem Rezept — nur, wo das Item ein Datenblatt hat.
+const craftedItems = craftedHere.map((b) => {
+  const it = itemForBlueprint(b);
+  return it && pageItemIds.has(it.id) ? it : null;
+});
 const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
 const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
 const v0 = m.variants[0];
@@ -257,7 +266,10 @@ const t = useTranslations(lang);
         {/* Lesbarer Titel (UX-Audit F1): Platzhalter als kursives
             allgemeines Wort; darunter, was gleichnamige Missionen
             unterscheidet. Die Vorlage mit Marken steht im Hinweis unten. */}
-        <h1 class="md__h1">
+        {/* Missionstitel stehen in der Sprache der Auftragstexte (englisch).
+            Das lang-Attribut laesst den Browser englisch trennen — mit der
+            Seitensprache wurde „Ship Mined Ore" zu „Ship Mi- / ned Ore". */}
+        <h1 class="md__h1" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
           {name.teile.map((p) => (p.gen ? <i class="md__gen">{p.t}</i> : <span>{p.t}</span>))}
         </h1>
         {zusatz && <p class="md__sub">{zusatz}</p>}
@@ -409,7 +421,12 @@ const t = useTranslations(lang);
           <p class="md__p">{S.bpP}</p>
           <ul class="md__tags">
             {craftedHere.map((b, i) => (
-              <li class="md__tag md__tag--bp"><a href={L(blueprintPath(b))}>{craftedLabels[i]}</a></li>
+              <li class="md__tag md__tag--bp">
+                <a href={L(blueprintPath(b))}>{craftedLabels[i]}</a>
+                {craftedItems[i] && (
+                  <a class="md__itemLink" href={L(itemPath(craftedItems[i]!))} aria-label={S.bpItemT.replace('%s', displayName(craftedItems[i]!, lang))} title={S.bpItemT.replace('%s', displayName(craftedItems[i]!, lang))}>{S.bpItem}<span aria-hidden="true"> ↗</span></a>
+                )}
+              </li>
             ))}
           </ul>
         </section>
@@ -773,6 +790,14 @@ const t = useTranslations(lang);
   /* Blueprint-Namen verlinken auf ihre Rezeptseite, bleiben aber Tag-optik. */
   .md__tag--bp a { color: inherit; text-decoration: none; }
   .md__tag--bp a:hover { text-decoration: underline; }
+  .md__tag--bp { display: inline-flex; align-items: center; gap: .45rem; }
+  /* Item-Link im Bauplan-Chip: eigene kleine Flaeche, damit sie am Telefon
+     nicht mit dem Rezept-Link zusammenfaellt. */
+  .md__tag--bp .md__itemLink {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-10); font-size: var(--fs-1);
+    padding: .15rem .45rem; margin-right: -.3rem; border-radius: 50px; color: var(--ink); background: var(--accent-2);
+  }
+  .md__tag--bp .md__itemLink:hover { text-decoration: none; background: var(--accent); }
 
   .md__steps { display: grid; gap: .3rem; padding-left: 1.2rem; }
   .md__steps li { font-size: var(--fs-7); }

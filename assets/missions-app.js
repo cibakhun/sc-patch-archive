@@ -5,6 +5,9 @@
   'use strict';
   var CFG = window.__MX || {};
   var T = CFG.t || {};
+  // Zahlen im Format der Seite: „1366 Treffer" stand neben „3.852" im Kopf.
+  var NF = CFG.lang === 'de' ? 'de-DE' : 'en-US';
+  var fmt = function (n) { return n.toLocaleString(NF); };
 
   var grid = document.getElementById('mx-grid');
   var bar = document.getElementById('mx-bar');
@@ -16,10 +19,9 @@
 
   var q = document.getElementById('mx-q');
   var selType = document.getElementById('mx-type');
-  var selGiver = document.getElementById('mx-giver');
-  var selFaction = document.getElementById('mx-faction');
+  // Eine Auswahl „Für wen" mit Wert „giver:…", „faction:…" oder „guild:…".
+  var selFor = document.getElementById('mx-for');
   var selLoc = document.getElementById('mx-loc');
-  var selGuild = document.getElementById('mx-guild');
   var selBp = document.getElementById('mx-bp');
   var selLegal = document.getElementById('mx-legal');
   var selSort = document.getElementById('mx-sort');
@@ -30,6 +32,7 @@
   // verschwaende die Trefferzahl. Die Leiste daneben zeigt sie dort.
   var outM = document.getElementById('mx-count-m');
   var none = document.getElementById('mx-none');
+  var more = document.getElementById('mx-more');
 
   // Karten einmal einlesen; ab dann nur noch Zahlen/Strings vergleichen.
   // name kommt aus dem sichtbaren <h3> (data-name entfiel als HTML-Diät);
@@ -68,12 +71,28 @@
     return true;
   }
 
-  function apply() {
+  // halten: nur der Suchindex kam nach, der Treffer nie wegnimmt (er
+  // ergaenzt Suchtext). Dann bleiben freigegebene Karten und Rollposition;
+  // jede echte Filter- oder Sortieraenderung beginnt wieder bei GRP Karten.
+  // Gibt zurueck, ob es eine solche Aenderung war (Stand wie zuletzt, etwa
+  // dieselbe Suche noch einmal, zaehlt nicht). zuletzt ist der zuletzt
+  // angewandte Nutzerstand, gerendert der Stand, den die Liste zeigt.
+  var zuletzt = null, gerendert = null;
+  function apply(halten) {
+    halten = halten === true;
     var toks = (q.value || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
-    var vType = selType.value, vGiver = selGiver.value, vFaction = selFaction.value;
-    var vLoc = selLoc.value, vLegal = selLegal.value;
-    var vGuild = selGuild ? selGuild.value : '';
+    var vFor = selFor ? selFor.value : '';
+    var kFor = vFor.slice(0, vFor.indexOf(':')), idFor = vFor.slice(vFor.indexOf(':') + 1);
+    var vType = selType.value, vLoc = selLoc.value, vLegal = selLegal.value;
+    var vGiver = kFor === 'giver' ? idFor : '', vFaction = kFor === 'faction' ? idFor : '';
+    var vGuild = kFor === 'guild' ? idFor : '';
     var vBp = selBp ? selBp.value : '';
+    var stand = [toks.join(' '), vFor, vType, vLoc, vLegal, vBp, selSort.value].join('\u0001');
+    var neu = !halten && stand !== zuletzt;
+    // Nur echte Durchgaenge merken: kommt der Index waehrend der Verzoegerung
+    // einer neuen Eingabe, filtert apply(true) schon mit ihr, der folgende
+    // Durchgang aus debounced() muss sie aber noch als Aenderung erkennen.
+    if (!halten) zuletzt = stand;
     var n = 0;
     for (var i = 0; i < cards.length; i++) {
       var c = cards[i];
@@ -84,11 +103,64 @@
       c.el.hidden = !ok;
       if (ok) n++;
     }
-    var txt = n + ' ' + (T.results || 'results');
+    var txt = fmt(n) + ' ' + (T.results || 'results');
     if (out) out.textContent = txt;
     if (outM) outM.textContent = txt;
     if (none) none.hidden = n !== 0;
-    sort();
+    if (neu) {
+      limit = GRP;
+      sort();
+      zumAnfang();
+    } else if (halten || stand !== gerendert) {
+      // Neu platzieren ohne Zuruecksetzen: der Index kam nach, oder die
+      // Darstellung zeigt noch einen anderen Stand (der Index filterte mit
+      // einer Eingabe, die danach zurueckgenommen wurde). Grenze und Stelle
+      // bleiben; die Seite steht dabei still (gemessen, Desktop, Index
+      // ordnet 120 freigegebene Karten neu: 0 px).
+      sort();
+    }
+    // Sonst gleicher Stand wie dargestellt: nichts umzustellen.
+    gerendert = stand;
+    toUrl();
+    return neu;
+  }
+
+  // Wer tief in der Liste filtert, sah danach Leere oder die Mitte der neuen
+  // Treffer: die Liste schrumpft unter ihm weg. Steht die Seite schon unter
+  // dem Rasteranfang, rollt sie zurueck dorthin, die Leiste darueber.
+  var nachZu = false;
+  function zumAnfang() {
+    var cs = getComputedStyle(bar);
+    // Schublade (schmal/flach): die Seite ist gesperrt, gerollt wird erst
+    // nach dem Schliessen (siehe drawer()).
+    if (bar.classList.contains('is-open') && cs.position === 'fixed') { nachZu = true; return; }
+    if (cs.position !== 'sticky') return;
+    var unten = (parseFloat(cs.top) || 0) + bar.offsetHeight + (parseFloat(cs.marginBottom) || 0);
+    var ziel = grid.getBoundingClientRect().top + window.scrollY - unten;
+    if (window.scrollY > ziel + 1) window.scrollTo(0, Math.max(0, ziel));
+  }
+
+  // Filter und Sortierung in die Adresse (UX-Audit F4): die Seite las
+  // ?type= & Co. schon immer, schrieb aber nichts — Neuladen oder Teilen
+  // verlor die Auswahl. replaceState, damit jede Taste keinen Verlaufseintrag
+  // erzeugt. Die Schluessel sind dieselben, die die Missionsblaetter verlinken.
+  function toUrl() {
+    if (!window.history || !history.replaceState) return;
+    // Fremde Parameter (etwa aus einem geteilten Link) bleiben stehen;
+    // ersetzt werden nur die eigenen Schluessel.
+    var p = new URLSearchParams(location.search);
+    ['q', 'type', 'giver', 'faction', 'guild', 'loc', 'bp', 'legal', 'sort'].forEach(function (k) { p.delete(k); });
+    var v = (q.value || '').trim();
+    if (v) p.set('q', v);
+    if (selType.value) p.set('type', selType.value);
+    if (selFor && selFor.value) { var i = selFor.value.indexOf(':'); p.set(selFor.value.slice(0, i), selFor.value.slice(i + 1)); }
+    if (selLoc.value) p.set('loc', selLoc.value);
+    if (selBp && selBp.value) p.set('bp', selBp.value);
+    if (selLegal.value) p.set('legal', selLegal.value);
+    if (selSort.value && selSort.value !== 'count') p.set('sort', selSort.value);
+    var qs = p.toString();
+    var url = location.pathname + (qs ? '?' + qs : '') + location.hash;
+    if (url !== location.pathname + location.search + location.hash) history.replaceState(history.state, '', url);
   }
 
   function sort() {
@@ -116,7 +188,30 @@
     return true;
   }
 
+  // Eine Bildlaufebene (UX-Audit F6, Heuristik P11): die Liste laeuft im
+  // Seitenfluss, auch am Schreibtisch — der fruehere eigene Kasten (607 px
+  // fuer 139.552 px Karten) liess das Mausrad zwischen Kasten und Seite
+  // springen. Sie zeigt je einen Block zu GRP Karten; „Weitere anzeigen"
+  // gibt den naechsten frei. Filter und Sortierung setzen die Grenze zurueck.
+  var limit = GRP;
   function place(vis) {
+    var all = vis.length;
+    // Karten hinter der Grenze: gefiltert sind sie nicht (hidden bleibt der
+    // Filterzustand), sie warten nur — data-spaeter blendet sie aus.
+    var later = [];
+    if (more && all > limit) { later = vis.slice(limit); vis = vis.slice(0, limit); }
+    for (var a = 0; a < vis.length; a++) if (vis[a].el.hasAttribute('data-spaeter')) vis[a].el.removeAttribute('data-spaeter');
+    for (var b = 0; b < later.length; b++) later[b].el.setAttribute('data-spaeter', '');
+    if (more) {
+      var rest = all - vis.length;
+      more.hidden = rest <= 0;
+      if (rest > 0) {
+        more.textContent = (T.more || 'Show %n% more').replace('%n%', fmt(Math.min(GRP, rest)));
+        var sm = document.createElement('small');
+        sm.textContent = (T.shown || '%a% of %b%').replace('%a%', fmt(vis.length)).replace('%b%', fmt(all));
+        more.appendChild(sm);
+      }
+    }
     if (!groups.length) {
       // Reihenfolge in einem Rutsch setzen; DocumentFragment vermeidet 432 Reflows.
       var frag0 = document.createDocumentFragment();
@@ -131,6 +226,7 @@
     // Platzhalter (contain-intrinsic-size) als leere Flaeche.
     var hidden = [];
     for (var h = 0; h < cards.length; h++) if (cards[h].el.hidden) hidden.push(cards[h].el);
+    for (var l = 0; l < later.length; l++) hidden.push(later[l].el);
     for (var g = 0; g < groups.length; g++) {
       var want = [];
       for (var k = g * GRP; k < Math.min(vis.length, (g + 1) * GRP); k++) want.push(vis[k].el);
@@ -201,21 +297,21 @@
 
   // Voller Suchindex (Blueprint-Namen, Orte, Titel-Varianten — nichts davon
   // steht sichtbar auf der Karte): einmal laden, 1 Tag Browser-Cache, per
-  // ?v=<DB-Stand> versioniert. Bis dahin trägt der Kartentext die Suche.
+  // ?v=<Inhaltshash> versioniert. Bis dahin trägt der Kartentext die Suche.
   if (CFG.searchUrl) {
     fetch(CFG.searchUrl).then(function (r) { return r.json(); }).then(function (idx) {
       for (var i = 0; i < cards.length; i++) {
         var full = idx[cards[i].slug];
         if (full) cards[i].search = cards[i].search + ' ' + full;
       }
-      if ((q.value || '').trim()) apply();
+      if ((q.value || '').trim()) apply(true);
     }).catch(function () {});
   }
 
   var timer = null;
-  function debounced() { clearTimeout(timer); timer = setTimeout(apply, 110); }
+  function debounced() { clearTimeout(timer); timer = setTimeout(function () { timer = null; apply(); }, 110); }
 
-  var SELECTS = [selType, selGiver, selFaction, selLoc, selGuild, selBp, selLegal, selSort].filter(Boolean);
+  var SELECTS = [selType, selFor, selLoc, selBp, selLegal, selSort].filter(Boolean);
   q.addEventListener('input', debounced);
   SELECTS.forEach(function (s) { s.addEventListener('change', apply); });
   if (reset) {
@@ -226,13 +322,24 @@
       apply();
     });
   }
+  if (more) more.addEventListener('click', function () { limit += GRP; sort(); });
 
   // Deeplink: /missionen.html?type=bounty&q=hurston
   (function fromUrl() {
     var p = new URLSearchParams(location.search);
-    var map = { q: q, type: selType, giver: selGiver, faction: selFaction, loc: selLoc,
-      guild: selGuild, bp: selBp, legal: selLegal, sort: selSort };
+    var map = { q: q, type: selType, loc: selLoc, bp: selBp, legal: selLegal, sort: selSort };
     var any = false;
+    // ?giver= / ?faction= / ?guild= landen in der einen Auswahl „Für wen".
+    // Erzeugt wird immer nur einer (Missionsblaetter, toUrl); steht von Hand
+    // mehr als einer da, gilt der letzte gueltige in dieser Reihenfolge.
+    ['giver', 'faction', 'guild'].forEach(function (kind) {
+      var v = p.get(kind);
+      if (v == null || !selFor) return;
+      var val = kind + ':' + v;
+      if (!selFor.querySelector('option[value="' + CSS.escape(val) + '"]')) return;
+      selFor.value = val;
+      any = true;
+    });
     for (var k in map) {
       var v = p.get(k);
       if (v == null || !map[k]) continue;
@@ -245,6 +352,32 @@
     if (any && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
   })();
 
+  // Klebende Leiste weicht aus (UX-Audit F6): am Schreibtisch ist sie zwei
+  // Zeilen hoch und laege im Seitenfluss mit der Kopfleiste auf rund einem
+  // Viertel der Karten. Beim Rollen nach unten faehrt sie hoch, beim Rollen
+  // nach oben kommt sie zurueck; ueber dem Raster bleibt sie stehen. Nur
+  // solange sie klebt — schmal oder flach ist sie Schublade.
+  (function leisteWeicht() {
+    var lastY = window.scrollY, tick = false;
+    var pruefe = function () {
+      tick = false;
+      var y = window.scrollY, d = y - lastY;
+      if (Math.abs(d) < 8) return;
+      lastY = y;
+      var cs = getComputedStyle(bar);
+      if (cs.position !== 'sticky') { bar.classList.remove('is-weg'); return; }
+      // Liegt die Leiste schon ueber Karten? Gemessen am Raster, das sich
+      // nicht mitverschiebt (die Leiste selbst traegt beim Ausweichen ein
+      // transform, ihr Rechteck taugt dann nicht).
+      var unten = (parseFloat(cs.top) || 0) + bar.offsetHeight + (parseFloat(cs.marginBottom) || 0);
+      var ueber = grid.getBoundingClientRect().top < unten - 1;
+      bar.classList.toggle('is-weg', ueber && d > 0);
+    };
+    window.addEventListener('scroll', function () {
+      if (!tick) { tick = true; requestAnimationFrame(pruefe); }
+    }, { passive: true });
+  })();
+
   // ---- Filter-Schublade (nur schmal/flach; siehe MissionsApp.astro) ----
   // assets/offcanvas.js bringt Esc, Klick auf den Verdunkler und das
   // Wisch-Schliessen mit; das Auf- und Zuklappen selbst macht die App —
@@ -253,7 +386,9 @@
     var panel = document.getElementById('mx-bar');
     var toggle = document.getElementById('mx-filter-toggle');
     if (!panel || !toggle) return;
+    var yOffen = 0;
     toggle.addEventListener('click', function () {
+      if (!panel.classList.contains('is-open')) yOffen = window.scrollY;
       var open = panel.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
@@ -262,6 +397,47 @@
       panel.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
     });
+    // Wer tief in der Liste die Filter aendert, stand nach dem Schliessen
+    // an derselben Stelle, die neuen Treffer begannen weit oben. Jeder Weg
+    // zu (✕, Esc, Verdunkler, Wischen) nimmt is-open weg; gerollt wird
+    // danach, wenn offcanvas.js die Seite entsperrt und die alte Stelle
+    // angefordert hat. Verglichen wird mit der Stelle beim Oeffnen (yOffen):
+    // scrollY liest am Telefon direkt nach dem Entsperren noch 0. Ziel ist
+    // die Zeile mit Filterknopf und Trefferzahl, auf der dann der Fokus steht.
+    // Eine Suche, die beim Schliessen noch in der Verzoegerung von
+    // debounced() steckt, laeuft hier mit: sonst kaeme apply() erst nach dem
+    // Schliessen, und zumAnfang() saehe keine offene Schublade mehr. Sie
+    // laeuft nach der Standardaktion der Taste (Esc leert ein Suchfeld), also
+    // mit dem Wert, der danach im Feld steht. Nur der Wechsel offen -> zu
+    // zaehlt; am Schreibtisch wechselt auf demselben Element is-weg.
+    if (!window.MutationObserver) return;
+    var kopf = document.querySelector('.mx__mbar') || grid;
+    var oben = function (el) { var y = 0; for (; el; el = el.offsetParent) y += el.offsetTop; return y; };
+    var warOffen = false;
+    new MutationObserver(function () {
+      var offen = panel.classList.contains('is-open');
+      if (offen === warOffen) return;
+      warOffen = offen;
+      if (offen) return;
+      var offeneSuche = !!timer;
+      if (timer) { clearTimeout(timer); timer = null; }
+      setTimeout(function () {
+        var vorher = gerendert;
+        if (offeneSuche && apply()) nachZu = true;
+        if (!nachZu) {
+          // Stand wie beim Oeffnen, die Liste zeigte aber einen anderen (der
+          // Index filterte eine Suche, die Esc wieder leerte): die Sperre
+          // stellte die Stelle an der kurzen Liste her, der Browser kappte
+          // sie (gemessen 5.000 -> 1.808 px). Zurueck an die Stelle vom Oeffnen.
+          if (gerendert !== vorher) window.scrollTo(0, yOffen);
+          return;
+        }
+        nachZu = false;
+        var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+        var ziel = Math.max(0, oben(kopf) - Math.round(nav));
+        if (yOffen > ziel + 1) window.scrollTo(0, ziel);
+      }, 0);
+    }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   })();
 
   apply();
