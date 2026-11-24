@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -71,6 +71,15 @@ const rackName = (k) => {
   const r = data.racks?.[k];
   return r ? (de && r[1]) || r[0] : m('slot.unknown');
 };
+// Lackierungen heissen im Spiel "<Schiff> <Name> Livery". Sie stehen hier schon
+// unter "Lackierung" beim Schiff: Schiffsname und "Livery" wiederholten sich
+// nur (13-mal "Gladius … Livery"). Bleibt nichts uebrig, der volle Name.
+const paintLabel = (name) => {
+  const first = shipName(draft.ship).split(/\s+/)[0] ?? '';
+  let s = String(name ?? '').replace(/ Livery(?= \(|$)/, '');
+  if (first && s.toLowerCase().startsWith(`${first.toLowerCase()} `)) s = s.slice(first.length + 1);
+  return s.trim() || String(name ?? '');
+};
 const dmg = () => m('unit.damage');
 const UNIT = { gun: () => 'DPS', missile: dmg, torpedo: dmg, gmissile: dmg, bomb: dmg, power: () => m('unit.power'), cooler: () => m('unit.cooling'), shield: () => 'HP', quantum: () => 'Mm/s', radar: () => m('unit.sensitivity') };
 const mainEx = (type) => m(`ex.main.${type === 'gun' ? 'gun' : WEAPON_TYPES.has(type) ? 'ord' : type}`);
@@ -118,6 +127,11 @@ const exOf = (id) => {
   if (/^sp\.a[PED]$/.test(id)) return m('ex.sp.abs');
   return m(`ex.${id}`);
 };
+
+// Hitze je Schuss steht in zwei Skalen: Waffen mit Ueberhitzungsgrenze (ovh, meist
+// 100) zaehlen 0,3 bis 50 je Schuss, die uebrigen 400 bis 12.000. Ein Vergleich
+// ueber die Grenze hinweg ("▲ 1.799,49") sagte nichts; er steht nur in derselben.
+const sameHeat = (a, b) => !!data.items[a]?.[8]?.ovh === !!data.items[b]?.[8]?.ovh;
 
 /** Jede Zahl eines Teils als [id, Bezeichnung, Text, Einheit, Zahl zum Sortieren und Vergleichen]. */
 function specs(k) {
@@ -187,9 +201,10 @@ function specs(k) {
 }
 
 // Summen des ganzen Layouts: Feuerkraft, Salve, Raketen, Schild, Strom, Kuehlung, Quantum.
-function tally(pick) {
+// list: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
+function tally(pick, list = slots) {
   const t = { fire: 0, alpha: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
-  for (const s of slots) {
+  for (const s of list) {
     const [k, n] = pick(s);
     const it = data.items[k];
     if (!it) continue;
@@ -250,6 +265,7 @@ function writeUrl(soon = false) {
 }
 
 function adopt(ship, lo) {
+  era += 1;
   const raw = decodeLayout(lo ?? EMPTY_CODE) ?? { name: '', slots: {} };
   slots = shipSlots(data.ships[ship]);
   const { slots: clean, racks: rk, dropped: lost } = cleanSlots(raw.slots, slots, data.items, raw.racks, data.racks);
@@ -322,11 +338,16 @@ function paintEquip() {
         const st = data.items[slot.stock];
         const d = it && st && isChanged(slot) ? deltaPct(it[7] * e.count, st[7] * slot.count) : null;
         // Hersteller und Art nur im Tooltip: links steht pro Platz ein Name und eine Zahl.
-        return el('li', {}, el('button', { type: 'button', class: `lo-slot${slot.key === sel ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === sel), title: subLine(k) },
+        // Die Zahl gilt je Stueck; die Anzahl steht an ihr ("4 × 818"), nicht am Namen:
+        // "4× Name 818" las sich wie der ganze Turm, und der Name bekommt den Platz.
+        const each = e.count > 1 && it ? fill(m('lo.each'), { v: nf.format(it[7]), t: nf.format(it[7] * e.count) }) : null;
+        return el('li', {}, el('button', { type: 'button', class: `lo-slot${slot.key === sel ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === sel), title: [subLine(k), each].filter(Boolean).join(' · ') },
           sock(e.type, e.size),
-          el('span', { class: 'lo-slot__nm' }, el('strong', {}, `${times(e.count)}${itemName(k)}`),
+          el('span', { class: 'lo-slot__nm' }, el('strong', {}, itemName(k)),
             isChanged(slot) ? el('small', {}, el('em', {}, m('lo.changed'))) : null),
-          el('span', { class: 'lo-slot__fig' }, it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()),
+          el('span', { class: 'lo-slot__fig' },
+            el('span', { class: 'lo-slot__v' }, e.count > 1 ? el('i', {}, `${nf.format(e.count)} ×`) : null, it ? nf.format(it[7]) : '–'),
+            el('small', {}, UNIT[e.type]()),
             d ? deltaEl(d, false, nf, ' %') : null),
           el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›')));
       })))];
@@ -346,7 +367,7 @@ function paintEquip() {
     groups.push(big('cat.paint', el('span', { class: 'lo-big__sw' }, cols.map((c) => el('i', { style: `background:${c}` }))), [el('section', { class: 'lo-grp' },
       el('ul', {}, el('li', {}, el('button', { type: 'button', class: `lo-slot${sel === 'paint' ? ' is-sel' : ''}${draft.paint ? ' is-changed' : ''}`, 'data-sel': 'paint', 'aria-pressed': String(sel === 'paint') },
         el('span', { class: 'lo-sock lo-sw' }, cols.map((c) => el('i', { style: `background:${c}` }))),
-        el('span', { class: 'lo-slot__nm' }, el('strong', {}, row ? row[1] : m('paint.stock')), el('small', {}, draft.paint ? el('em', {}, m('lo.changed')) : null, m('lo.paintHint'))),
+        el('span', { class: 'lo-slot__nm' }, el('strong', {}, row ? paintLabel(row[1]) : m('paint.stock')), el('small', {}, draft.paint ? el('em', {}, m('lo.changed')) : null, plural('lo.paints', sp.list.length + 1))),
         el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›')))))]));
   }
   $('lo-equip-list').replaceChildren(...(groups.length ? groups : [el('p', { class: 'lo-msgline' }, m('noslots'))]));
@@ -379,29 +400,29 @@ function compareTable(slot, a, b, headA, headB) {
   const sa = specs(a);
   const sb = b ? specs(b) : [];
   const ids = [...new Set([...sa, ...sb].map((r) => r[0]))].sort((x, y) => COL_ORDER.indexOf(x) - COL_ORDER.indexOf(y));
-  const rows = [[UNIT[type](), '', mainEx(type), ia ? nf.format(ia[7]) : '–', ib ? nf.format(ib[7]) : '–', ia?.[7], ib?.[7], false, nf]];
+  const rows = [[UNIT[type](), '', mainEx(type), ia ? nf.format(ia[7]) : '–', ib ? nf.format(ib[7]) : '–', ia?.[7], ib?.[7], false, nf, false]];
   for (const id of ids) {
     const ra = sa.find((r) => r[0] === id);
     const rb = sb.find((r) => r[0] === id);
     const r = ra ?? rb;
     if (id === 'sp.price' && !(ra?.[4] > 0) && !(rb?.[4] > 0)) continue;
     const fmt = FINE.has(id) ? f2 : f1;
-    rows.push([r[1], r[3], exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4], rb?.[4], LOWER.has(id), fmt]);
+    rows.push([r[1], r[3], exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4], rb?.[4], LOWER.has(id), fmt, id === 'sp.heat' && !!ra && !!rb && !sameHeat(a, b)]);
   }
   // Erst was sich aendert, gleiche Werte hinter einem Klick: weniger Zahlen auf einmal.
-  const built = rows.map(([label, unit, ex, va, vb, na, nb, lower, fmt], i) => {
-    const both = na > 0 && nb > 0;
+  const built = rows.map(([label, unit, ex, va, vb, na, nb, lower, fmt, odd], i) => {
+    const both = na > 0 && nb > 0 && !odd;
     const d = both ? na - nb : 0;
     const good = (d > 0) !== lower;
     const rel = both && d ? Math.min(Math.abs(d) / nb, 1) : 0;
-    const node = el('div', { class: `lo-dv__r${d ? (good ? ' is-up' : ' is-down') : ' is-same'}${i === 0 ? ' is-key' : ''}`, role: 'row', title: ex },
+    const node = el('div', { class: `lo-dv__r${odd ? ' is-odd' : d ? (good ? ' is-up' : ' is-down') : ' is-same'}${i === 0 ? ' is-key' : ''}`, role: 'row', title: odd ? `${ex} ${m('ex.otherScale')}` : ex },
       el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
       el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb),
       el('span', { role: 'cell', class: 'is-mid' },
-        el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
+        odd ? el('span', { class: 'lo-dv__na' }, m('lo.otherScale')) : el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
         d ? deltaEl(d, lower, fmt) : null),
       el('b', { role: 'cell', class: 'is-num' }, va));
-    return { node, d, key: i === 0 };
+    return { node, d, key: i === 0 || odd };
   });
   const top = built.filter((r) => r.key || r.d);
   const rest = built.filter((r) => !r.key && !r.d);
@@ -415,6 +436,25 @@ function compareTable(slot, a, b, headA, headB) {
     fold ? el('button', { type: 'button', class: 'lo-dv__more', 'data-cmpall': '1', 'aria-expanded': String(cmpAll) },
       cmpAll ? m('lo.less') : fill(m('lo.sameN'), { n: nf.format(rest.length) })) : null);
 }
+
+/** Datenblatt eines Teils: jede Zahl einmal und in voller Schrift. Steht, solange
+ *  nichts zu vergleichen ist (eingebaut = Serie, keine Zeile angeklickt); vorher
+ *  stand dort "Eingebaut gegen Serie" mit lauter gleichen grauen Zahlen. */
+function sheetTable(slot, k) {
+  const type = eff(slot).type;
+  const it = data.items[k];
+  const rows = [[UNIT[type](), '', mainEx(type), it ? nf.format(it[7]) : '–', true]];
+  for (const r of specs(k)) if (r[0] !== 'sp.price' || r[4] > 0) rows.push([r[1], r[3], exOf(r[0]), r[2], false]);
+  return el('div', { class: 'lo-dv lo-dv--one', role: 'table', 'aria-label': itemName(k) },
+    el('div', { class: 'lo-dv__r lo-dv__h', role: 'row' }, el('span', { role: 'columnheader' }, m('win.value')), el('span', { role: 'columnheader', class: 'is-num' }, m('slot.fitted'))),
+    ...rows.map(([label, unit, ex, v, key]) => el('div', { class: `lo-dv__r${key ? ' is-key' : ''}`, role: 'row', title: ex },
+      el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
+      el('b', { role: 'cell', class: 'is-num' }, v))));
+}
+
+// Plaetze derselben Gruppe, in die das Teil auch passt (Hammerhead: sechs gleiche
+// Tuerme, Gladius: drei Pilotenwaffen der Groesse 3).
+const siblings = (slot, k) => (data.items[k] ? slots.filter((s) => s.key !== slot.key && s.group === slot.group && fits(data.items[k], eff(s))) : []);
 
 function colsFor(keys, type) {
   const seen = new Map();
@@ -431,17 +471,27 @@ function paintPick() {
   const now = current(slot);
   const keys = candidates(e, data.items);
   if (prev && (!keys.includes(prev) || prev === now)) prev = null;
+  // Gleiche Plaetze auf einmal: steht hier ein anderes Teil als in Serie und passt es
+  // in weitere Plaetze der Gruppe, die es noch nicht tragen, ein Knopf fuer alle.
+  const same = isChanged(slot) ? siblings(slot, now) : [];
+  const todo = same.filter((s) => current(s) !== now);
   const head = el('div', { class: 'lo-pickhead' },
     sock(e.type, e.size),
     el('div', { title: `${m(`grp.${slot.group}`)} · ${fill(m('lo.size'), { s: e.size })}` }, el('h2', {}, `${times(e.count)}${itemName(now)}`), el('small', {}, subLine(now))),
+    todo.length ? el('button', { type: 'button', class: 'lo-btn', 'data-all': '1', title: fill(plural('lo.allEx', todo.length), { item: itemName(now) }) }, fill(m('lo.allN'), { n: nf.format(same.length + 1) })) : null,
     isChanged(slot) && slot.stock ? el('button', { type: 'button', class: 'lo-btn', 'data-revert': slot.key }, m('slot.revert')) : null);
 
-  // Unter der Liste der Vergleich: angeklickte Zeile gegen eingebaut, sonst eingebaut gegen Serie.
-  const cmpHead = prev ? fill(m('lo.vsNow'), { a: itemName(prev) }) : m('lo.vsStock');
-  const cmp = el('section', { class: `lo-box lo-cmpbox${prev ? ' is-prev' : ''}`, id: 'lo-cmp' },
+  // Neben der Liste der Vergleich: angeklickte Zeile gegen eingebaut, sonst eingebaut
+  // gegen Serie. Ist nichts zu vergleichen, das Datenblatt des eingebauten Teils.
+  const quiet = !prev && !isChanged(slot);
+  const cmpHead = prev ? fill(m('lo.vsNow'), { a: itemName(prev) }) : quiet ? fill(m('lo.sheet'), { a: itemName(now) }) : m('lo.vsStock');
+  const cmp = el('section', { class: `lo-box lo-cmpbox${prev ? ' is-prev' : ''}${quiet ? ' is-sheet' : ''}`, id: 'lo-cmp' },
     el('div', { class: 'lo-box__h' }, el('h3', {}, cmpHead),
       prev ? el('button', { type: 'button', class: 'lo-btn is-main', 'data-fit': prev }, m('lo.fit')) : null),
-    prev ? compareTable(slot, prev, now, m('lo.new'), m('slot.fitted')) : compareTable(slot, now, slot.stock, m('slot.fitted'), m('saved.stock')));
+    quiet && keys.length > 1 ? el('p', { class: 'lo-hint lo-cmphint' }, m('lo.sheetHint')) : null,
+    prev ? compareTable(slot, prev, now, m('lo.new'), m('slot.fitted'))
+      : quiet ? sheetTable(slot, now)
+        : compareTable(slot, now, slot.stock, m('slot.fitted'), m('saved.stock')));
 
   // Oben alle passenden Teile.
   const cols = colsFor(keys, e.type);
@@ -467,7 +517,7 @@ function paintPick() {
       el('td', { class: 'is-name' }, el('b', {}, itemName(k)), k === slot.stock ? el('em', {}, m('slot.stock')) : null, el('small', {}, subLine(k))),
       el('td', { class: 'is-num is-main' }, el('span', { class: 'lo-mainv' }, nf.format(it[7]), d ? deltaEl(d, false, nf, ' %') : null),
         el('span', { class: 'lo-mainbar', 'aria-hidden': 'true', style: `--w:${(it[7] / best) * 100}%` })),
-      cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num is-col' }, r ? r[2] : '–'); }),
+      cols.map((c, i) => { const r = row.find(([id]) => id === c.id); return el('td', { class: `is-num is-col${i === 0 ? ' is-c1' : ''}` }, r ? r[2] : '–'); }),
       el('td', { class: 'is-act' }, k === now ? el('span', { class: 'lo-fitted' }, m('slot.fitted')) : el('button', { type: 'button', class: 'lo-btn lo-fit', 'data-fit': k }, m('lo.fit'))));
   });
   const search = el('input', { type: 'search', class: 'lo-q', id: 'lo-q', value: query, placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
@@ -475,7 +525,7 @@ function paintPick() {
     el('div', { class: 'lo-box__h' }, el('h3', {}, m('lo.pickFor')), el('span', { class: 'lo-n' }, plural('pick.count', shown.length))),
     el('div', { class: 'lo-pickbar' }, search),
     el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: 'lo-t lo-opts' },
-      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id), 'is-col')), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
+      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c, i) => th(c, exOf(c.id), i === 0 ? 'is-col is-c1' : 'is-col')), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
       el('tbody', {}, rows))),
     shown.length ? null : el('p', { class: 'lo-msgline' }, m('pick.empty')));
   pick.replaceChildren(...[el('button', { type: 'button', class: 'lo-tolist', 'data-tolist': '1' }, `‹ ${m('lo.toList')}`), head, slot.racks ? rackBar(slot) : null, list, cmp].filter(Boolean));
@@ -486,11 +536,11 @@ function paintPaintPick() {
   if (!sp) { pick.replaceChildren(); return; }
   const rows = [['', m('paint.stock'), ...sp.base, 0], ...sp.list];
   pick.replaceChildren(el('button', { type: 'button', class: 'lo-tolist', 'data-tolist': '1' }, `‹ ${m('lo.toList')}`),
-    el('div', { class: 'lo-pickhead' }, sock('paint'), el('div', {}, el('p', {}, m('cat.paint')), el('h2', {}, rows.find((r) => r[0] === (draft.paint ?? ''))?.[1] ?? m('paint.stock')), el('small', {}, m('lo.paintHint')))),
+    el('div', { class: 'lo-pickhead' }, sock('paint'), el('div', {}, el('p', {}, m('cat.paint')), el('h2', {}, draft.paint && rows.some((r) => r[0] === draft.paint) ? paintLabel(rows.find((r) => r[0] === draft.paint)[1]) : m('paint.stock')), el('small', {}, m('lo.paintHint')))),
     el('ul', { class: 'lo-paints' }, rows.map(([id, name, a, b, c, pattern]) => el('li', {},
-      el('button', { type: 'button', class: 'lo-paint', 'data-paint': id, 'aria-pressed': String(id === (draft.paint ?? '')) },
+      el('button', { type: 'button', class: 'lo-paint', 'data-paint': id, 'aria-pressed': String(id === (draft.paint ?? '')), title: id ? name : null },
         el('span', { class: 'lo-paint__sw', 'aria-hidden': 'true' }, [a, b, c].map((col) => el('i', { style: `background:${col}` }))),
-        el('strong', {}, name), pattern ? el('small', {}, m('paint.pattern')) : null)))));
+        el('strong', {}, id ? paintLabel(name) : name), pattern ? el('small', {}, m('paint.pattern')) : null)))));
 }
 
 function paintAll() {
@@ -519,11 +569,43 @@ function changed() {
   writeUrl();
   paintAll();
 }
+// Rueckgaengig: der Stand vor einer Aenderung als Kopie. Gilt nur im selben Entwurf:
+// adopt (anderes Schiff, gespeichertes Layout geoeffnet) zaehlt era hoch, und ein
+// Rueckgaengig von vorher bringt nichts Fremdes zurueck, auch beim selben Schiff.
+let era = 0;
+const snap = () => ({ era, ship: draft.ship, slots: { ...draft.slots }, racks: draft.racks ? { ...draft.racks } : null, paint: draft.paint ?? null });
+function undoTo(s) {
+  if (s.era !== era || s.ship !== draft.ship) return;
+  draft.slots = { ...s.slots };
+  if (s.racks) draft.racks = { ...s.racks }; else delete draft.racks;
+  if (s.paint) draft.paint = s.paint; else delete draft.paint;
+  // Zurueck auf einen gespeicherten Stand heisst wieder "gespeichert", nicht ein
+  // zweites Speichern desselben Layouts.
+  savedId = store.list().find((e) => sameLayout(e, draft))?.id ?? null;
+  prev = null;
+  changed();
+}
 function fit(slot, k) {
+  const before = snap();
   setItem(slot, k);
   prev = null;
   changed();
-  toast(fill(m('msg.fitted'), { item: itemName(k) }));
+  const same = siblings(slot, k);
+  const todo = same.filter((s) => current(s) !== k);
+  toast(fill(m('msg.fitted'), { item: itemName(k) }), () => undoTo(before),
+    todo.length ? { label: fill(m('lo.allN'), { n: nf.format(same.length + 1) }), run: () => fitAll(slot, k) } : null);
+}
+// Dasselbe Teil in alle passenden Plaetze der Gruppe (Knopf im Kopf oder im Hinweis).
+function fitAll(slot, k) {
+  // Aus dem Hinweis kann der Knopf spaeter kommen: inzwischen eine andere Halterung
+  // am Platz, und das Teil passt dort nicht mehr. Dann nichts aendern.
+  if (!data.items[k] || !slots.includes(slot) || !fits(data.items[k], eff(slot))) return;
+  const before = snap();
+  const all = [slot, ...siblings(slot, k)];
+  for (const s of all) setItem(s, k);
+  prev = null;
+  changed();
+  toast(fill(m('msg.fittedN'), { item: itemName(k), n: nf.format(all.length) }), () => undoTo(before));
 }
 
 $('lo-equip-list').addEventListener('click', (e) => {
@@ -551,6 +633,7 @@ pick.addEventListener('click', (e) => {
   if (!slot) return;
   const fb = t.closest('[data-fit]');
   if (fb) { fit(slot, fb.dataset.fit); return; }
+  if (t.closest('[data-all]')) { fitAll(slot, current(slot)); return; }
   const rv = t.closest('[data-revert]');
   if (rv) {
     if (slot.racks) setRack(slot, slot.racks[0]);
@@ -652,18 +735,36 @@ async function share(lo) {
   }
 }
 $('lo-share').addEventListener('click', () => share(draft));
+// Ein Klick nimmt jede Aenderung zurueck, auch ungespeicherte: deshalb mit Rueckgaengig.
 $('lo-reset').addEventListener('click', () => {
+  const before = snap();
   draft.slots = {};
   delete draft.racks;
   delete draft.paint;
   prev = null;
   changed();
-  toast(m('msg.reset'));
+  toast(m('msg.reset'), () => undoTo(before));
 });
 
 /* ---------------------------------------------------------- Meine Layouts --- */
 
 const dlg = $('lo-saved');
+const dateF = new Intl.DateTimeFormat(loc, { dateStyle: 'medium' });
+// Was ein gespeichertes Layout ausmacht, damit gleich benannte Eintraege
+// unterscheidbar sind: Feuerkraft und Schild des ganzen Layouts, dazu die
+// getauschten Teile (hoechstens drei, gleiche zusammengefasst).
+function savedFacts(e) {
+  const rows = data?.ships?.[e.ship];
+  if (!rows) return null;
+  const list = shipSlots(rows);
+  const t = tally((s) => [e.slots?.[s.key] ?? s.stock, rackSlot(s, e.racks?.[s.key], data.racks).count], list);
+  const nums = [t.fire ? `${m('tot.fire')} ${nf.format(Math.round(t.fire))} DPS` : '', t.shield ? `${m('tot.shield')} ${nf.format(Math.round(t.shield))} HP` : ''].filter(Boolean).join(' · ');
+  const used = new Map();
+  for (const k of Object.values(e.slots ?? {})) used.set(k, (used.get(k) ?? 0) + 1);
+  const named = [...used].map(([k, c]) => `${c > 1 ? `${nf.format(c)}×\u00a0` : ''}${itemName(k)}`);
+  const parts = named.length ? `${named.slice(0, 3).join(', ')}${named.length > 3 ? ', …' : ''}` : '';
+  return nums || parts ? { nums, parts } : null;
+}
 function paintSaved() {
   const all = store.list();
   $('lo-count').textContent = nf.format(all.length);
@@ -676,9 +777,12 @@ function paintSaved() {
   const rest = all.filter((e) => e.ship !== draft.ship);
   $('lo-list').replaceChildren(...[...here, ...rest].map((e) => {
     const n = changeCount(e);
+    const when = e.updated > 0 ? fill(m('saved.when'), { d: dateF.format(new Date(e.updated)) }) : '';
+    const f = savedFacts(e);
     return el('li', { class: `lo-saved${e.ship === draft.ship ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}` },
-      el('div', {}, el('h4', {}, e.name || fill(m('name.placeholder'), { ship: shipName(e.ship) }), e.ship === draft.ship ? el('span', { class: 'lo-tag' }, m('saved.here')) : null),
-        el('p', {}, el('b', {}, shipName(e.ship)), ` · ${n ? plural('state.changed', n) : m('saved.stock')}`)),
+      el('div', { class: 'lo-saved__txt' }, el('h4', {}, e.name || fill(m('name.placeholder'), { ship: shipName(e.ship) }), e.ship === draft.ship ? el('span', { class: 'lo-tag' }, m('saved.here')) : null),
+        el('p', {}, el('b', {}, shipName(e.ship)), ` · ${n ? plural('state.changed', n) : m('saved.stock')}${when ? ` · ${when}` : ''}`),
+        f ? el('p', { class: 'lo-saved__facts' }, f.nums, f.parts ? el('span', {}, f.parts) : null) : null),
       el('span', { class: 'lo-saved__acts' },
         el('button', { type: 'button', class: 'lo-btn is-main', 'data-open': e.id }, m('saved.open')),
         el('button', { type: 'button', class: 'lo-btn', 'data-share': e.id }, m('saved.share')),
@@ -728,23 +832,30 @@ doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'vi
 
 let toastTimer = 0;
 let undo = null;
-function toast(text, onUndo = null) {
+let more = null;
+// extra: { label, run } fuer einen zweiten Knopf ("Auf alle 6 uebernehmen").
+function toast(text, onUndo = null, extra = null) {
   const t = $('lo-toast');
   // Im offenen Dialog steht der Hinweis dort, sonst verdeckt ihn der Rand.
   (dlg.open ? dlg : root).append(t);
   $('lo-toast-txt').textContent = text;
   undo = onUndo;
+  more = extra?.run ?? null;
   $('lo-undo').hidden = !onUndo;
+  $('lo-more').hidden = !extra;
+  $('lo-more').textContent = extra?.label ?? '';
   t.classList.add('is-on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.classList.remove('is-on'); undo = null; }, onUndo ? 6000 : 2600);
+  toastTimer = setTimeout(() => { t.classList.remove('is-on'); undo = null; more = null; }, onUndo || extra ? 6000 : 2600);
 }
-$('lo-undo').addEventListener('click', () => {
-  const f = undo;
+function toastAct(f) {
   undo = null;
+  more = null;
   $('lo-toast').classList.remove('is-on');
   f?.();
-});
+}
+$('lo-undo').addEventListener('click', () => toastAct(undo));
+$('lo-more').addEventListener('click', () => toastAct(more));
 
 /* ---------------------------------------------------------- Start --- */
 
