@@ -190,6 +190,13 @@ const rohtextHits = [];
 const platzhalterwertHits = [];
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
+// Doppelt kodierte Zeichen: ein Text, der schon „&amp;" enthielt, wurde beim
+// Bauen noch einmal kodiert. Im Tab und in Suchergebnissen steht dann
+// woertlich „Align &amp; Mine" (UX-Audit 24.11.2026, vier Seiten). In
+// Attributen schreibt Astro das & als &#38;, deshalb beide Formen. Vor der
+// Einfuehrung ueber alle 18.656 Seiten gemessen: genau diese vier Treffer,
+// kein Fehlalarm.
+const DOPPELT_KODIERT_RE = /(?:&amp;|&#0*38;|&#x0*26;)(?:amp|lt|gt|quot|apos|nbsp|#\d+|#x[0-9a-f]+);/i;
 
 let pagesDe = 0, pagesEn = 0;
 const mediaViolations = [];
@@ -335,6 +342,11 @@ for (const f of htmlFiles) {
   }
   const mj = MOJIBAKE_RE.exec(html);
   if (mj) mojibakeHits.push(`${page}: "${mj[0]}"`);
+  const dk = DOPPELT_KODIERT_RE.exec(html);
+  if (dk) {
+    const at = Math.max(0, dk.index - 30);
+    mojibakeHits.push(`${page}: doppelt kodiert "${dk[0]}" in „…${html.slice(at, dk.index + dk[0].length + 10).replace(/\s+/g, ' ')}…"`);
+  }
 
   // --- Media-Wiederholung (Regel: gleiche Datei max 2× SICHTBAR pro Seite;
   //     og:/twitter:/JSON-LD zählen nicht — via markup bereits ausgenommen,
