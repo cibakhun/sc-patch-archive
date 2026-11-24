@@ -49,10 +49,20 @@ const SPRACHEN = [
 
 const ent = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp: ' ', thinsp: ' ' };
 // Sichtbarer Text eines Markup-Stuecks, nur zum Vergleichen und Melden (die
-// Ausgabe geht in die Konsole, nie zurueck in eine Seite). Spitze Klammern
-// fallen ganz am Ende weg, also auch die aus &lt; und &gt; — so geht weder
-// ein halbes Tag noch ein entschluesseltes als Text durch.
-const text = (h) => h.replace(/<[^>]*>/g, '').replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+// Ausgabe geht in die Konsole, nie zurueck in eine Seite). Tags fallen per
+// Zeichenlauf weg statt per Regex (CodeQL haelt <[^>]*> fuer unvollstaendig
+// bereinigt); spitze Klammern ganz am Ende, also auch die aus &lt; und &gt;.
+const ohneTags = (h) => {
+  let aus = '';
+  let drin = false;
+  for (const c of h) {
+    if (c === '<') drin = true;
+    else if (c === '>') drin = false;
+    else if (!drin) aus += c;
+  }
+  return aus;
+};
+const text = (h) => ohneTags(h).replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
 // Marke oder interner Bezeichner im sichtbaren Namen
 const MARKE = /[{}~[\]]|\b[A-Za-z0-9]+_[A-Za-z0-9_]+\b/;
 
