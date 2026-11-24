@@ -105,10 +105,28 @@ function abschnitt(html, id) {
   return ende < 0 ? null : html.slice(start, ende);
 }
 
-/** Ueberschrift einer Seite als Vergleichsschluessel (wie src/lib/vehicleItems.ts). */
+/**
+ * Ueberschrift einer Seite als Vergleichsschluessel (wie src/lib/vehicleItems.ts):
+ * Text ohne Tags und Entitaeten, klein, nur Buchstaben und Ziffern. Zeichen-
+ * weise statt per Regex-Ersetzung — ein Vergleichsschluessel, kein Bereiniger,
+ * und so meldet die Code-Analyse kein unvollstaendiges Entfernen.
+ */
 const h1Name = (html) => {
   const t = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1];
-  return t == null ? null : t.replace(/<[^>]+>/g, '').replace(/&#?\w+;/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (t == null) return null;
+  let text = '';
+  let imTag = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    if (c === '&') {
+      const ende = t.indexOf(';', i);
+      if (ende > i && ende - i <= 10) { i = ende; continue; }
+    }
+    text += c;
+  }
+  return text.toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
 const MISSION_LINK = /href="(?:\/de)?\/missionen\/[a-z0-9-]+\.html"/;
@@ -467,8 +485,13 @@ for (const rel of ['assets/universal-items.json', 'dist/assets/universal-items.j
 
 if (katalogWerte.length === 2) {
   const [quelle, kopie] = katalogWerte;
-  const abweichend = [...quelle.keys()].filter((id) => quelle.get(id) !== kopie.get(id));
-  console.log(`    Feuerrate und Magazin: Quelle gegen ausgelieferte Kopie, ${quelle.size} Items — abweichend — Soll: 0   Ist: ${abweichend.length}`);
+  // Vereinigung beider Schluesselmengen: ein Item, das nur noch in der Kopie
+  // steht (aus assets/ entfernt, dist/ alt), zaehlt genauso als Abweichung.
+  const ids = new Set([...quelle.keys(), ...kopie.keys()]);
+  const abweichend = [...ids]
+    .filter((id) => !quelle.has(id) || !kopie.has(id) || quelle.get(id) !== kopie.get(id))
+    .map((id) => (!kopie.has(id) ? `${id} (nur in assets/)` : !quelle.has(id) ? `${id} (nur in dist/)` : id));
+  console.log(`    Feuerrate und Magazin: Quelle gegen ausgelieferte Kopie, ${ids.size} Items — abweichend oder nur auf einer Seite — Soll: 0   Ist: ${abweichend.length}`);
   need(!abweichend.length, `${abweichend.length} Item(s) mit anderer Feuerrate oder Magazin in dist/ als in assets/ — Kopie veraltet, neu bauen — ${liste(abweichend)}`);
 }
 
