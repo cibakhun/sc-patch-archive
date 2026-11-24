@@ -10,6 +10,9 @@ interface Fact {
   unverified?: boolean;
 }
 import { useTranslations, assertLocale, type Locale } from '../../i18n/ui';
+import { getCollection } from 'astro:content';
+import Bezuege from './Bezuege.astro';
+import { patchBezuege } from '../../lib/bezuege';
 interface Props {
   facts: Fact[];
   /** Aktencode payload, e.g. "Alpha 4.0.0 · 19. Dez 2024" */
@@ -22,6 +25,11 @@ const { facts, stand, title } = Astro.props;
 const lang = assertLocale(Astro.props.lang, 'QuickFacts');
 const t = useTranslations(lang);
 const heading = title ?? t('qf.title');
+// Schiffe und Items des Patches (UX-Audit H7): der Patch kommt aus der
+// Adresse, damit keine der 22 Patchseiten etwas uebergeben muss.
+const patchId = /\/patches\/sc-(\d+(?:-\d+)+)/.exec(Astro.url.pathname)?.[1];
+const patchEintrag = patchId ? (await getCollection('patches')).find((p) => p.id === patchId) : undefined;
+const bezuege = patchEintrag ? patchBezuege(patchEintrag.data) : [];
 ---
 <div class="reg-divider">
   <div class="reg-divider__in">
@@ -43,6 +51,7 @@ const heading = title ?? t('qf.title');
         </div>
       ))}
     </dl>
+    <Bezuege eintraege={bezuege} mehrHref="#dossier" max={6} />
     <nav class="qf__jump" aria-label={t('qf.jump')} data-qf-jump hidden>
       <span class="qf__jump-l">{t('qf.jump')}</span>
       <ol class="qf__jump-list"></ol>
