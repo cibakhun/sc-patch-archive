@@ -301,7 +301,14 @@
         einem Viertel der Achse tiefer darin) oder an der Unterkante eines
         Stuecks darueber, der Unterkante 0,3 m ueber der Kamera, frei vom
         Spot, Laeufe Stueck an Stueck, mindestens
-        KLINKE_WERK.decke Stuecke; kein Dreieck der Garage ragt vor die
+        KLINKE_WERK.decke Stuecke; die Arbeitsplaetze am Boden (WERK_BODEN,
+        Runde 6 der Politur) kommen im selben Satz (Fingerabdruck), jedes
+        Stueck steht auf dem Boden der Garage (am Modell gemessen) oder auf
+        einem Stueck seiner Zone, keines steckt in Wand, Vorbau oder einem
+        anderen, alle im Innenraum, frei von Grube samt Rand und Einfahrt,
+        mindestens KLINKE_WERK.boden Stuecke in KLINKE_WERK.zonen Zonen,
+        hoechstens OBERGRENZE_WERKBODEN Dreiecke, keepWerk und panAllowed
+        halten Kamera und Blickziel davor; kein Dreieck der Garage ragt vor die
         Nischenwand in die Halle; der Durchgang liegt auf der Rueckwand einer
         Nische aus WORK_DEKO.nischen, der Raum ausserhalb der Halle. Je
         Hallenstufe: in der Scheibe des Schnitts mindestens KLINKE_WERK.wand
@@ -348,7 +355,8 @@ import { FILL_TOL, touches, coverage, withNormals, worldTris } from './lib/hall-
 import { sha8 } from './lib/eol-sha.mjs';
 import sharp from 'sharp';
 import { MUSTER } from './build-hangar-dienst.mjs';
-import { LOSE_LEITUNG } from './lib/hall-deko.mjs';
+import { LOSE_LEITUNG, knotenFlaechen, hallenRaster } from './lib/hall-deko.mjs';
+import { werkBodenStuecke, pruefeWerkBoden } from './lib/werk-boden.mjs';
 
 /** Breite und Höhe einer WebP-Datei aus ihrem Kopf (VP8, VP8L, VP8X), sonst null. */
 function webpSize(b) {
@@ -677,7 +685,9 @@ const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, by
 // damit es wie … bei dumbers depot aussieht“), angehoben.
 // baender: Lampenreihen, die einzeln nacheinander angehen (WERK.reihen),
 // 25.10.2026 9 statt 5 (Krisz: „mehr lampen nacheinander“).
-const KLINKE_WERK = { wand: 740, logo: 8, decke: 225, baender: 9 };
+const KLINKE_WERK = { wand: 740, logo: 8, decke: 225, baender: 9, boden: 60, zonen: 8 };
+// Dreiecke der Arbeitsplaetze am Boden (WERK_BODEN) hoechstens: Die Garage traegt schon gut 780 000
+const OBERGRENZE_WERKBODEN = 170000;
 // Reihen und Spot zusammen hoechstens so lang (ms), vom Einschalten bis der
 // Spot voll brennt (WERK_SPOT_FLICKER mitgezaehlt)
 const STUFEN_MAX = 3500;
@@ -3157,6 +3167,82 @@ if (WK) {
       if (bad.length) fail(`[18] WERK_DECKE: ${bad.length} Stuecke falsch (${bad.slice(0, 3).join('; ')}): Block nachziehen`);
       if (plaetze.length < KLINKE_WERK.decke) fail(`[18] WERK_DECKE stellt ${plaetze.length} Stuecke unter die Decke, die Klinke verlangt ${KLINKE_WERK.decke}: Die Decke wuerde wieder kahl (Krisz 24.10.2026). Senken nur per Commit mit Ursache`);
     }
+    // Arbeitsplaetze am Boden (WERK_BODEN, Runde 6 der Hangar-Politur,
+    // 23.11.2026; Krisz: „alles noch sehr alpha vibey“): Satz der Seite traegt
+    // jeden Knoten, Fingerabdruck des Blocks; am Modell der Garage steht jedes
+    // Stueck auf ihrem Boden (Unterkante auf BODEN_TOL, BODEN_ANTEIL der
+    // Messpunkte) oder auf einem Stueck seiner Zone, keines steckt in Wand
+    // oder Vorbau, keines im anderen, alle im Innenraum, frei von Grube samt
+    // Rand und Einfahrt; Kamera und Blickziel bleiben vor den Zonen
+    const bdm = /\/\* work-werkboden \*\/([\s\S]*?)\/\* \/work-werkboden \*\//.exec(viewer);
+    let BB = null;
+    try { BB = bdm ? JSON.parse(bdm[1]) : null; } catch (e) { fail(`[18] WERK_BODEN im Viewer ist kein JSON mehr (${e.message})`); }
+    if (!BB) {
+      if (KLINKE_WERK.boden > 0) fail(`[18] der Viewer traegt keinen Block /* work-werkboden */ (WERK_BODEN), die Klinke verlangt ${KLINKE_WERK.boden} Stuecke am Boden: Die Werkhalle stuende wieder leer um das Fahrzeug (Runde 6 der Politur). Block zurueck, oder KLINKE_WERK.boden per Commit mit Ursache auf 0`);
+    } else if (!hall.werk.decke?.url || !existsSync(fromUrl(hall.werk.decke.url))) fail('[18] WERK_BODEN steht im Viewer, die Seite gibt den Satz der Werkhalle nicht mit (opts.hall.werk.decke) oder er fehlt in dist/: Die Arbeitsplaetze blieben still leer. HangarApp.astro pruefen');
+    else {
+      const dFile = fromUrl(hall.werk.decke.url), j = glbJson(dFile), st = j?.asset?.extras?.werkdecke;
+      if (st?.boden !== sha8(bdm[1].trim())) fail(`[18] ${hall.werk.decke.url.split('?')[0]} passt nicht zu WERK_BODEN (Satz ${st?.boden ?? 'ohne'}, Viewer ${sha8(bdm[1].trim())}). Neu packen: node scripts/build-werkhalle-decke.mjs`);
+      // Knoten im Satz: Masse, Mitte der Grundflaeche, tragende Flaechen, Dreiecke
+      const satz = new Map();
+      for (const n of (await decode(dFile)).getRoot().listNodes()) {
+        const mesh = n.getMesh();
+        if (!mesh || satz.has(n.getName())) continue;
+        const teile = mesh.listPrimitives().map((pr) => ({ pos: pr.getAttribute('POSITION').getArray(), idx: pr.getIndices()?.getArray() ?? null }));
+        const kf = knotenFlaechen(teile), lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
+        for (const { pos } of teile) for (let i = 0; i < pos.length; i += 3) { lo[0] = Math.min(lo[0], pos[i]); hi[0] = Math.max(hi[0], pos[i]); lo[1] = Math.min(lo[1], pos[i + 2]); hi[1] = Math.max(hi[1], pos[i + 2]); }
+        satz.set(n.getName(), { size: kf.size, mitte: [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2], oben: kf.oben, tris: kf.tris });
+      }
+      const { stuecke, ohne } = werkBodenStuecke(BB, (node) => satz.get(node) ?? null);
+      if (ohne.length) fail(`[18] der Satz der Werkhalle traegt ${ohne.length} Knoten aus WERK_BODEN nicht (${[...new Set(ohne)].slice(0, 3).join(', ')}): Das Stueck fehlte still. Neu packen: node scripts/build-werkhalle-decke.mjs`);
+      // Garage in Hallenmetern wie im Viewer (WERK_YAW): Boden (nach oben) und alles darueber
+      const gFile = fromUrl(hall.werk.url), bereich = [R.x[0] - 2, gi.x[0] - 1, R.x[1] + 2, gi.x[1] + 1];
+      const rBoden = hallenRaster({ zelle: 1, bereich, band: [-0.6, 0.6] }), rAlle = hallenRaster({ zelle: 1, bereich, band: [0, 3.2] });
+      if (existsSync(gFile)) {
+        for (const node of (await decode(gFile)).getRoot().listNodes()) {
+          const mesh = node.getMesh();
+          if (!mesh) continue;
+          const w = node.getWorldMatrix(), fy = GD.floorY ?? 0;
+          for (const p of mesh.listPrimitives()) {
+            const Pp = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
+            if (!Pp || (p.getMode?.() ?? 4) !== 4) continue;
+            const v = (i) => {
+              const a = Pp[i * 3], b = Pp[i * 3 + 1], c = Pp[i * 3 + 2];
+              return [GA.x - (w[2] * a + w[6] * b + w[10] * c + w[14]) * sG, (w[1] * a + w[5] * b + w[9] * c + w[13] - fy) * sG, (w[0] * a + w[4] * b + w[8] * c + w[12]) * sG];
+            };
+            const n = I ? I.length / 3 : Pp.length / 9;
+            for (let t = 0; t < n; t++) {
+              const A = v(I ? I[3 * t] : 3 * t), B2 = v(I ? I[3 * t + 1] : 3 * t + 1), C = v(I ? I[3 * t + 2] : 3 * t + 2);
+              rAlle.dazu(A, B2, C);
+              // nach oben (wie knotenFlaechen): Die Garage ist um y gedreht, nicht gespiegelt, der Umlauf bleibt
+              const ux = B2[0] - A[0], uy = B2[1] - A[1], uz = B2[2] - A[2], wx2 = C[0] - A[0], wy = C[1] - A[1], wz = C[2] - A[2];
+              const ny = uz * wx2 - ux * wz, len = Math.hypot(uy * wz - uz * wy, ny, ux * wy - uy * wx2);
+              if (len > 1e-10 && ny / len >= 0.7) rBoden.dazu(A, B2, C);
+            }
+          }
+        }
+      } else fail(`[18] ${hall.werk.url.split('?')[0]} fehlt in dist/: Die Arbeitsplaetze am Boden sind ungeprueft`);
+      const frei = [
+        { name: 'Grube samt Rand', c: [F.x, F.z], a: 0, hx: F.hx + F.rand + 0.5, hz: F.hz + F.rand + 0.5 },
+        // Einfahrt: vom Durchgang bis zur Grube in seiner Breite
+        { name: 'Einfahrt', c: [(T.x + F.x + F.hx) / 2, 0], a: 0, hx: (T.x - F.x - F.hx) / 2, hz: T.b / 2 + 0.5 },
+      ];
+      const erg = pruefeWerkBoden(stuecke, { boden: rBoden, alle: rAlle, oben: (node) => satz.get(node)?.oben, frei, raum: { x: [GA.x - gi.z[1], GA.x], z: gi.x } });
+      const tris = stuecke.reduce((a, m) => a + (satz.get(m.node)?.tris ?? 0), 0), zonen = new Set(stuecke.map((m) => m.zone)).size; // belegte Zonen: eine leere trägt nichts bei
+      werkRun.boden = { ...erg.zahlen, zonen, tris, fehler: erg.inWand.length + erg.schwebt.length + erg.ineinander.length + erg.imWeg.length + erg.draussen.length };
+      if (erg.inWand.length) fail(`[18] WERK_BODEN: ${erg.inWand.length} Stuecke stecken in Wand, Vorbau oder Boden der Garage (${erg.inWand.slice(0, 3).join('; ')}): Lage im Block nachziehen`);
+      if (erg.schwebt.length) fail(`[18] WERK_BODEN: ${erg.schwebt.length} Stuecke stehen weder auf dem Boden der Garage noch auf einem Stueck ihrer Zone (${erg.schwebt.slice(0, 3).join('; ')}): Sie schwebten oder versaenken. Unterkante nachmessen (Seitenstreifen und Buchten -0,12 m)`);
+      if (erg.ineinander.length) fail(`[18] WERK_BODEN: ${erg.ineinander.length} Paare stecken ineinander (${erg.ineinander.slice(0, 3).join('; ')}): Lage im Block nachziehen`);
+      if (erg.imWeg.length) fail(`[18] WERK_BODEN: ${erg.imWeg.length} Stuecke im Weg (${erg.imWeg.slice(0, 3).join('; ')}): Grube und Einfahrt bleiben frei`);
+      if (erg.draussen.length) fail(`[18] WERK_BODEN: ${erg.draussen.length} Stuecke ragen aus dem Innenraum der Garage (${erg.draussen.slice(0, 3).join(', ')})`);
+      if (stuecke.length < KLINKE_WERK.boden) fail(`[18] WERK_BODEN stellt ${stuecke.length} Stuecke auf den Boden, die Klinke verlangt ${KLINKE_WERK.boden}: Die Werkhalle wuerde wieder leer. Senken nur per Commit mit Ursache`);
+      if (zonen < KLINKE_WERK.zonen) fail(`[18] WERK_BODEN hat ${zonen} Zonen, die Klinke verlangt ${KLINKE_WERK.zonen}. Senken nur per Commit mit Ursache`);
+      if (tris > OBERGRENZE_WERKBODEN) fail(`[18] die Stuecke am Boden tragen ${tris} Dreiecke, hoechstens ${OBERGRENZE_WERKBODEN}: Die Werkhalle hat schon ${werkRun.garageTris ?? 'gut 780 000'} in der Garage. Leichtere Stuecke waehlen oder die Grenze per Commit mit Ursache heben`);
+      // Verkabelung im Viewer: Kamera (keepWerk) und Blickziel (panAllowed) bleiben vor den Zonen, werkBauen baut sie
+      const kw = /function keepWerk\(\) \{([\s\S]*?)\n  \}/.exec(viewer)?.[1] ?? '', pa = /function panAllowed\(t\) \{([\s\S]*?)\n  \}/.exec(viewer)?.[1] ?? '';
+      if (!/werkBodenHuellen/.test(kw) || !/werkImBoden\(/.test(pa)) fail('[18] keepWerk oder panAllowed fragt die Huellen der Arbeitsplaetze (werkBodenHuellen, werkImBoden) nicht mehr: Die Kamera fuehre durch Schrank und Werkbank');
+      if (!/packe\(plaetze, \(bb, unten\) => unten - bb\.min\.y, 'boden'/.test(viewer)) fail('[18] werkBauen packt WERK_BODEN nicht mehr (packe(plaetze, …, \'boden\')): Der Block stuende still ungebaut. Umbenannt? Dann dieses Tor mitnehmen');
+    }
     // Lage in der Halle: Durchgang auf der Rueckwand einer Nische, Raum ausserhalb
     const room = hall.room, rx0 = room.center[0] - room.halfW, rx1 = room.center[0] + room.halfW;
     const DX = T.x + werkSpot[0], dz0 = werkSpot[1] - T.b / 2, dz1 = werkSpot[1] + T.b / 2;
@@ -3278,8 +3364,8 @@ if (WK) {
     }
   }
 }
-sollIst(WK ? `Block fuer die Halle der Seite, Modelle mit Ort werk, Garage der Seite mit Massen in dist/; Masse stimmig (Tunnel bis zur Torebene der Garage, Durchgang mindestens so gross wie ihr Tor, Raum in ihrem Innenraum, Grube samt Rand im flachen Mittelfeld, Buehne in der json und als Knoten in der Buehnendatei der Seite, Startansicht vorn mittig knapp ueber Augenhoehe, mindestens ${KLINKE_WERK.decke} Stuecke unter der Decke aus dem Katalog im Satz der Seite (an der Decke darueber gemessen oder an einem Stueck darueber, ueber der Kamera, frei vom Spot, Laeufe Stueck an Stueck), Logo ueber dem Rahmen, Bahn vor Nische und Feld, Torbahn je Fluegel); Baender lueckenlos von der Rueckwand bis vors Tor, jedes mit Leuchten, mindestens ${KLINKE_WERK.baender}, einzeln nacheinander (jedes voll vor dem uebernaechsten, Spot mindestens 200 ms nach dem letzten, bis der Spot voll brennt hoechstens ${STUFEN_MAX} ms); Durchgang auf einer Nischenrueckwand, Raum ausserhalb der Halle; je Hallenstufe mindestens ${KLINKE_WERK.wand} Dreiecke Wand im Schnitt und ${KLINKE_WERK.logo} Ecken Logo; 0 Dreiecke der Halle in Tunnel, Anflug und Raum; 0 Dreiecke der Garage vor der Nischenwand; frei nimmt mindestens 1 Moebel; 0 Deko in der Flugschneise (k 1 bis 6)` : (werkRun.fahrzeuge ? 'Block fuer die Modelle mit Ort werk' : 'keine Werkhalle'),
-  WK ? `${werkRun.fahrzeuge} Modelle mit Ort werk; Garage ${werkRun.garage ?? '-'}, Buehne ${werkRun.buehne ?? '-'}, Startansicht ${werkRun.ansicht ?? '-'}, Decke ${werkRun.decke ?? '-'} Stuecke (${werkRun.deckeAn ? `${werkRun.deckeAn.decke} an der Decke, auf ${werkRun.deckeAn.punkte} Punkten gemessen, ${werkRun.deckeAn.stueck} an einem Stueck darueber` : '-'}), Leuchten je Band ${werkRun.baender?.join(', ') ?? '-'} (${werkRun.stufen ? `alle ${werkRun.stufen.abstand} ms, voll nach ${werkRun.stufen.voll} ms, bis der Spot voll brennt ${werkRun.stufen.folge} ms` : '-'}), ${werkRun.garageVor ?? '-'} von ${werkRun.garageTris ?? '-'} Dreiecken vor der Wand; Wand ${werkRun.wand.join(', ') || '-'} Dreiecke, Logo ${werkRun.logo.join(', ') || '-'} Ecken; Tunnel ${werkRun.tunnel}, Anflug ${werkRun.davor}, Raum ${werkRun.raum} Dreiecke von ${werkRun.tris} geprueft; frei nimmt ${werkRun.frei} Moebel (${werkRun.freiNamen.join(', ') || '-'}); Flugschneise: ${werkRun.imWeg.size} Stuecke darin, ${werkRun.schneise} Lagen in ${werkRun.schneiseK} Massstaeben geprueft` : `${werkRun.fahrzeuge} Modelle mit Ort werk`);
+sollIst(WK ? `Block fuer die Halle der Seite, Modelle mit Ort werk, Garage der Seite mit Massen in dist/; Masse stimmig (Tunnel bis zur Torebene der Garage, Durchgang mindestens so gross wie ihr Tor, Raum in ihrem Innenraum, Grube samt Rand im flachen Mittelfeld, Buehne in der json und als Knoten in der Buehnendatei der Seite, Startansicht vorn mittig knapp ueber Augenhoehe, mindestens ${KLINKE_WERK.decke} Stuecke unter der Decke aus dem Katalog im Satz der Seite (an der Decke darueber gemessen oder an einem Stueck darueber, ueber der Kamera, frei vom Spot, Laeufe Stueck an Stueck), mindestens ${KLINKE_WERK.boden} Stuecke in ${KLINKE_WERK.zonen} Zonen am Boden im Satz der Seite (auf dem Boden der Garage oder einem Stueck ihrer Zone, keines in Wand, Vorbau oder einem anderen, im Innenraum, frei von Grube und Einfahrt, hoechstens ${OBERGRENZE_WERKBODEN} Dreiecke, Kamera und Blickziel davor), Logo ueber dem Rahmen, Bahn vor Nische und Feld, Torbahn je Fluegel); Baender lueckenlos von der Rueckwand bis vors Tor, jedes mit Leuchten, mindestens ${KLINKE_WERK.baender}, einzeln nacheinander (jedes voll vor dem uebernaechsten, Spot mindestens 200 ms nach dem letzten, bis der Spot voll brennt hoechstens ${STUFEN_MAX} ms); Durchgang auf einer Nischenrueckwand, Raum ausserhalb der Halle; je Hallenstufe mindestens ${KLINKE_WERK.wand} Dreiecke Wand im Schnitt und ${KLINKE_WERK.logo} Ecken Logo; 0 Dreiecke der Halle in Tunnel, Anflug und Raum; 0 Dreiecke der Garage vor der Nischenwand; frei nimmt mindestens 1 Moebel; 0 Deko in der Flugschneise (k 1 bis 6)` : (werkRun.fahrzeuge ? 'Block fuer die Modelle mit Ort werk' : 'keine Werkhalle'),
+  WK ? `${werkRun.fahrzeuge} Modelle mit Ort werk; Garage ${werkRun.garage ?? '-'}, Buehne ${werkRun.buehne ?? '-'}, Startansicht ${werkRun.ansicht ?? '-'}, Decke ${werkRun.decke ?? '-'} Stuecke (${werkRun.deckeAn ? `${werkRun.deckeAn.decke} an der Decke, auf ${werkRun.deckeAn.punkte} Punkten gemessen, ${werkRun.deckeAn.stueck} an einem Stueck darueber` : '-'}), Boden ${werkRun.boden ? `${werkRun.boden.stuecke} Stuecke in ${werkRun.boden.zonen} Zonen (${werkRun.boden.amBoden} am Boden der Garage, ${werkRun.boden.getragen} von ${werkRun.boden.gestapelt} auf einem Stueck getragen, ${werkRun.boden.paare} Paare geprueft, ${werkRun.boden.fehler} falsch), ${werkRun.boden.tris} Dreiecke` : '-'}, Leuchten je Band ${werkRun.baender?.join(', ') ?? '-'} (${werkRun.stufen ? `alle ${werkRun.stufen.abstand} ms, voll nach ${werkRun.stufen.voll} ms, bis der Spot voll brennt ${werkRun.stufen.folge} ms` : '-'}), ${werkRun.garageVor ?? '-'} von ${werkRun.garageTris ?? '-'} Dreiecken vor der Wand; Wand ${werkRun.wand.join(', ') || '-'} Dreiecke, Logo ${werkRun.logo.join(', ') || '-'} Ecken; Tunnel ${werkRun.tunnel}, Anflug ${werkRun.davor}, Raum ${werkRun.raum} Dreiecke von ${werkRun.tris} geprueft; frei nimmt ${werkRun.frei} Moebel (${werkRun.freiNamen.join(', ') || '-'}); Flugschneise: ${werkRun.imWeg.size} Stuecke darin, ${werkRun.schneise} Lagen in ${werkRun.schneiseK} Massstaeben geprueft` : `${werkRun.fahrzeuge} Modelle mit Ort werk`);
 
 say('\n[19] Die Halle waechst um grosse Schiffe: ihre Streifen frei von grossen Teilen, im Feld, die Werkhalle dahinter');
 // Der Block steht im Viewer zwischen /* hall-grow */ und /* /hall-grow */ und ist JSON

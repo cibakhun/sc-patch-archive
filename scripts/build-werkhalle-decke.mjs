@@ -18,8 +18,12 @@
 // deren Farbbild im Spiel nie zu sehen ist). Bilder höchstens 512 px: Die
 // Stücke hängen 7 bis 8 m hoch, meist 10 bis 30 m von der Kamera.
 //
+// Seit Runde 6 der Hangar-Politur (23.11.2026) trägt derselbe Satz auch die
+// Arbeitsplätze am Boden (Block /* work-werkboden */, WERK_BODEN): ein Satz,
+// eine Anfrage. Bilder, die nur sie tragen, höchstens WERKBODEN_TEX.
+//
 // Selbstauskunft: Stücke, Dreiecke, Materialien, Bytes. Die Datei trägt in
-// asset.extras.werkdecke den Fingerabdruck des Blocks und ihrer Quellen;
+// asset.extras.werkdecke den Fingerabdruck beider Blöcke und ihrer Quellen;
 // verify:hangar-hall [18] reißt, wenn sie nicht dazu passt.
 
 import { NodeIO, Document } from '@gltf-transform/core';
@@ -30,12 +34,16 @@ import sharp from 'sharp';
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { readBlock, dienstStamp } from './build-hangar-dienst.mjs';
+import { sha8 } from './lib/eol-sha.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const VIEWER = `${ROOT}assets/hangar-viewer.js`;
 const KATALOG = `${ROOT}public/hangar/props/katalog.json`;
 export const WERKDECKE_OUT = `${ROOT}public/hangar/props/werkdecke.glb`;
 export const WERKDECKE_TEX = 512;
+// Bilder, die nur Stücke am Boden tragen: Die meisten sind kleiner als ein
+// Meter und stehen 5 bis 30 m vor der Kamera; 512 px kosteten den Satz 2,4 MB
+export const WERKBODEN_TEX = 256;
 
 /** Knoten, die der Block nennt (Stücke und Läufe). */
 export function werkdeckeNodes(block) {
@@ -45,13 +53,21 @@ export function werkdeckeNodes(block) {
   return [...n];
 }
 export const readWerkdecke = (viewerText) => readBlock(viewerText, 'werkdecke');
+/** Knoten der Arbeitsplätze am Boden (Glieder der Zonen). */
+export function werkbodenNodes(block) {
+  const n = new Set();
+  for (const z of block?.zonen ?? []) for (const [node] of z.glieder ?? []) n.add(node);
+  return [...n];
+}
+export const readWerkboden = (viewerText) => readBlock(viewerText, 'werkboden');
 const isPom = (m) => m?.getAlphaMode() === 'BLEND' && /(^|_)pom(_|$)|decals?_pom/i.test(m.getName());
 
 async function main() {
   const viewer = readFileSync(VIEWER, 'utf8');
   const D = readWerkdecke(viewer);
   if (!D) throw new Error('assets/hangar-viewer.js trägt keinen Block /* work-werkdecke */');
-  const want = werkdeckeNodes(D.block);
+  const B = readWerkboden(viewer);
+  const want = [...new Set([...werkdeckeNodes(D.block), ...werkbodenNodes(B?.block)])];
   const kat = JSON.parse(readFileSync(KATALOG, 'utf8'));
   const byNode = new Map(kat.props.map((p) => [p.node, p]));
   const files = new Set();
@@ -104,22 +120,31 @@ async function main() {
     else if (firstOf.get(key) !== m) p.setMaterial(firstOf.get(key));
   }
   await doc.transform(prune({ keepAttributes: true }), dedup(), unpartition());
+  // welche Bilder ein Stück der Decke trägt (die übrigen nur Stücke am Boden)
+  const deckeN = new Set(werkdeckeNodes(D.block)), anDecke = new Set();
+  for (const n of scene.listChildren()) {
+    if (!deckeN.has(n.getName())) continue;
+    for (const p of n.getMesh().listPrimitives()) {
+      const m = p.getMaterial();
+      for (const t of [m?.getBaseColorTexture(), m?.getNormalTexture(), m?.getMetallicRoughnessTexture(), m?.getEmissiveTexture(), m?.getOcclusionTexture()]) if (t) anDecke.add(t);
+    }
+  }
   let shrunk = 0;
   for (const t of root.listTextures()) {
     const img = t.getImage();
     if (!img) continue;
-    const meta = await sharp(Buffer.from(img)).metadata();
-    if (Math.max(meta.width, meta.height) <= WERKDECKE_TEX) continue;
-    t.setImage(new Uint8Array(await sharp(Buffer.from(img)).resize(WERKDECKE_TEX, WERKDECKE_TEX, { fit: 'inside' }).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer())).setMimeType('image/webp');
+    const meta = await sharp(Buffer.from(img)).metadata(), max = anDecke.has(t) ? WERKDECKE_TEX : WERKBODEN_TEX;
+    if (Math.max(meta.width, meta.height) <= max) continue;
+    t.setImage(new Uint8Array(await sharp(Buffer.from(img)).resize(max, max, { fit: 'inside' }).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer())).setMimeType('image/webp');
     shrunk++;
   }
   await doc.transform(draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: 12, quantizePosition: 14 }));
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
   doc.createExtension(EXTTextureWebP).setRequired(true);
-  root.getAsset().extras = { werkdecke: dienstStamp(D.text, [KATALOG, ...[...files].sort()]) };
+  root.getAsset().extras = { werkdecke: { ...dienstStamp(D.text, [KATALOG, ...[...files].sort()]), boden: B ? sha8(B.text) : null } };
   await io.write(WERKDECKE_OUT, doc);
   const bytes = statSync(WERKDECKE_OUT).size, T = report.reduce((s, r) => s + r[1], 0);
-  console.log(`Decke der Werkhalle ${WERKDECKE_OUT.replace(ROOT, '')}: ${want.length} Stücke, ${Math.round(T)} Dreiecke, ${root.listMaterials().length} Materialien, ${dropped} POM-Teile weg, ${shrunk} Bilder verkleinert, ${(bytes / 1048576).toFixed(2)} MB`);
+  console.log(`Decke und Boden der Werkhalle ${WERKDECKE_OUT.replace(ROOT, '')}: ${want.length} Knoten (${werkbodenNodes(B?.block).length} für den Boden), ${Math.round(T)} Dreiecke, ${root.listMaterials().length} Materialien, ${dropped} POM-Teile weg, ${shrunk} Bilder verkleinert, ${(bytes / 1048576).toFixed(2)} MB`);
   for (const [n, t, k] of report) console.log(`  ${n.padEnd(52)} ${String(Math.round(t)).padStart(6)} Dreiecke  ${k} Teile`);
   console.log(`  Materialien: ${root.listMaterials().map((m) => m.getName()).join(', ')}`);
 }

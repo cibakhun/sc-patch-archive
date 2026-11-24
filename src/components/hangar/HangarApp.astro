@@ -154,8 +154,9 @@ const werkEntry = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json);
 const werkAsset = werkEntry?.[1];
 const werkJson = werkAsset?.json ? `public${werkAsset.json}` : '';
 const buehneAsset = werkAsset?.buehne ? Object.values(real.werkhalle ?? {}).find((a) => a.url === werkAsset.buehne) : null;
-// Leitungen unter ihrer Decke (scripts/build-werkhalle-decke.mjs packt sie aus
-// dem Gerätekatalog; nicht im Manifest, wie der Gerätesatz)
+// Leitungen unter ihrer Decke und Arbeitsplätze am Boden
+// (scripts/build-werkhalle-decke.mjs packt sie aus dem Gerätekatalog; nicht
+// im Manifest, wie der Gerätesatz)
 const werkDeckeFile = 'public/hangar/props/werkdecke.glb';
 const werkDecke = existsSync(werkDeckeFile) ? { url: `/hangar/props/werkdecke.glb?v=${contentV([werkDeckeFile])}`, bytes: statSync(werkDeckeFile).size } : null;
 const werk = werkEntry && werkAsset && werkJson && existsSync(werkJson)

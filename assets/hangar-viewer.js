@@ -7809,6 +7809,144 @@ const werkDeckePlaetze = (D) => [
   }),
   ...(D.stuecke ?? []),
 ];
+// Arbeitsplätze am Boden der Werkhalle (Krisz 22.11.2026 „alles noch sehr
+// alpha vibey“, Runde 6 der Politur): Bis hier stand das Fahrzeug allein in
+// der leeren Halle. Aus demselben Gerätekatalog wie die Decke, gepackt in
+// denselben Satz (scripts/build-werkhalle-decke.mjs): Werkbankwand und
+// Reifenlager in den Buchten links unter dem Vorbau (2,44 m), Hebebühne
+// und Schweißplatz in den Buchten rechts, Tankecke und Werkzeugecke vorn
+// an den Seiten, Schubladen, Schrank, Fässer und Flaschen neben den Türen
+// der beiden Rücknischen (die Mittelnische bleibt frei, hinter dem Fahrzeug
+// unter dem Logo).
+//   zonen: name, glieder [node, x, unten, z, r] in Hallenmetern (k = 1,
+//     ohne den Versatz wkX): Mitte der Grundfläche, Unterkante, Drehung um
+//     y in Grad. Die Front der Modelle ist -z: r -90 zeigt von der
+//     Rückwand zur Halle, 180 von der linken Wand (z < 0), 0 von der rechten.
+// Was mit der Unterkante über dem Boden steht, liegt auf einem Stück seiner
+// Zone (Regalbrett, Werkbank, Schublade). Seitenstreifen und Buchten liegen
+// 12 cm tiefer als das Mittelfeld. Die Kamera bleibt WERK_BODEN_RAND vor
+// der Hülle jeder Zone (keepWerk), das Blickziel auch (panAllowed).
+// verify:hangar-hall [18] prüft am Modell der Garage: Boden unter jedem
+// Stück am Boden, keine Wand im Stück, jedes Stück auf einem anderen
+// getragen, keines im anderen, alle im Raum, frei von Grube und Spot.
+const WERK_BODEN = /* work-werkboden */ {
+  "zonen": [
+    { "name": "nische-links", "glieder": [
+      ["prop_werkzeug_cabinet_tool_1_a", -95.2, -0.12, -6.96, -90],
+      ["prop_werkzeug_tool_drawer_1_a", -95.4, -0.12, -12.05, -90],
+      ["prop_werkzeug_tool_tester_1_a", -95.42, 1.08, -12.22, -90],
+      ["prop_werkzeug_tool_power_1_drill_a", -95.36, 1.08, -11.86, -60],
+      ["prop_sicherheit_canister_medical_1_oxygen_a", -95.5, -0.12, -12.85, 0],
+      ["prop_sicherheit_canister_medical_1_oxygen_a", -95.46, -0.12, -13.1, 40],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -94.72, -0.12, -12.95, -90]
+    ] },
+    { "name": "nische-rechts", "glieder": [
+      ["prop_werkzeug_tool_drawer_1_a", -95.4, -0.12, 6.45, -90],
+      ["prop_werkzeug_tool_drawer_1_a", -95.4, -0.12, 7.22, -90],
+      ["prop_werkzeug_bag_toolbox_1_a", -95.4, 1.08, 6.45, -90],
+      ["prop_werkzeug_tool_power_1_drill_a", -95.38, 1.08, 7.2, -120],
+      ["prop_lager_drum_dry_1_a", -95.42, -0.12, 11.8, 0],
+      ["prop_treibstoff_cell_fuel_1_a", -95.5, -0.12, 12.35, 0],
+      ["prop_treibstoff_cell_fuel_1_a", -95.5, -0.12, 12.65, 90],
+      ["prop_treibstoff_cell_fuel_1_a", -95.18, -0.12, 12.5, 0]
+    ] },
+    { "name": "werkbankwand", "glieder": [
+      ["prop_werkzeug_workbench_table_1_a", -87.0, -0.12, -18.44, 180],
+      ["prop_lager_box_plastic_4_005x005x005_a", -87.9, 0.4, -18.5, 180],
+      ["prop_werkzeug_bag_toolbox_2_a", -85.8, 0.4, -18.55, 170],
+      ["prop_werkzeug_tool_power_1_drill_a", -85.3, 0.4, -17.95, 150],
+      ["prop_werkzeug_cabinet_tool_1_a", -90.15, -0.12, -18.735, 180],
+      ["prop_werkzeug_tool_drawer_1_a", -84.15, -0.12, -18.935, 180],
+      ["prop_werkzeug_tool_drawer_1_a", -83.35, -0.12, -18.935, 180],
+      ["prop_werkzeug_storage_toolbox_a", -84.15, 1.08, -18.95, 180],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", -83.35, 1.08, -18.95, 180],
+      ["prop_crew_steat_stool_1_a", -87.4, -0.12, -17.2, 30],
+      ["prop_transport_trolley_creeper_a", -85.6, -0.12, -16.2, 75],
+      ["prop_licht_light_work_light_2_a", -89.0, -0.12, -17.25, 200]
+    ] },
+    { "name": "reifenlager", "glieder": [
+      ["prop_regal_shelf_wall_1_a", -80.375, -0.12, -18.85, 180],
+      ["prop_reifen_landing_wheel_1_a", -80.95, 0.88, -18.85, 0],
+      ["prop_reifen_landing_wheel_1_a", -80.3, 0.88, -18.85, 30],
+      ["prop_lager_box_plastic_4_005x005x005_a", -80.85, 1.38, -18.85, 180],
+      ["prop_reifen_ptv_tire", -79.85, 1.38, -18.85, 0],
+      ["prop_reifen_ptv_tire", -81.0, -0.12, -16.35, 0],
+      ["prop_reifen_ptv_tire", -81.0, 0.2, -16.35, 25],
+      ["prop_reifen_ptv_tire", -81.0, 0.52, -16.35, 50],
+      ["prop_reifen_ptv_tire", -81.0, 0.84, -16.35, 15],
+      ["prop_reifen_ptv_tire", -80.2, -0.12, -16.45, 10],
+      ["prop_reifen_ptv_tire", -80.2, 0.2, -16.45, 40],
+      ["prop_reifen_ptv_tire", -80.2, 0.52, -16.45, 70],
+      ["prop_reifen_ptv_tire", -80.6, -0.12, -15.7, 0]
+    ] },
+    { "name": "hebebucht", "glieder": [
+      ["prop_maschine_col_lift_platform_small_a", -79.0, -0.12, 18.12, 0]
+    ] },
+    { "name": "schweissplatz", "glieder": [
+      ["prop_werkzeug_workbench_mobile_1_a", -72.6, -0.12, 18.6, 90],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", -73.6, 0.86, 18.6, 80],
+      ["prop_werkzeug_bag_toolbox_1_a", -71.9, 0.86, 18.55, 100],
+      ["prop_werkzeug_tool_welder_a", -75.6, -0.12, 18.6, 0],
+      ["prop_sicherheit_canister_medical_1_oxygen_a", -76.35, -0.12, 19.0, 0],
+      ["prop_sicherheit_canister_medical_1_oxygen_a", -76.35, -0.12, 18.7, 50],
+      ["prop_kabel_cable_reel_7_a", -70.1, -0.12, 17.55, 30],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -68.6, -0.12, 19.0, 0],
+      ["prop_crew_steat_stool_1_a", -72.9, -0.12, 17.45, -20]
+    ] },
+    { "name": "tankecke", "glieder": [
+      ["prop_treibstoff_tank_gas_2_025x0125x0125_a", -67.8, -0.12, -15.38, 0],
+      ["prop_lager_drum_dry_1_a", -70.7, -0.12, -15.75, 0],
+      ["prop_treibstoff_cell_fuel_1_a", -65.7, -0.12, -15.8, 0],
+      ["prop_treibstoff_cell_fuel_1_a", -65.4, -0.12, -15.85, 90],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -64.9, -0.12, -15.85, 180],
+      ["prop_reinigung_tool_mop_1_bucket_a", -62.8, -0.12, -15.7, 20]
+    ] },
+    { "name": "werkzeugecke", "glieder": [
+      ["prop_werkzeug_tool_drawer_1_a", -60.6, -0.12, 16.05, 0],
+      ["prop_werkzeug_storage_toolbox_a", -60.6, 1.08, 16.05, 0],
+      ["prop_licht_light_portable_tripod_1_base_a", -57.9, -0.12, 15.55, 160],
+      ["prop_reifen_landing_wheel_1_a", -62.7, -0.12, 15.75, 0]
+    ] }
+  ]
+} /* /work-werkboden */;
+// so weit bleiben Kamera und Blickziel vor der Hülle jeder Zone, m
+const WERK_BODEN_RAND = 0.3;
+// Deckkraft der Kontaktschatten unter den Stücken am Boden
+const WERK_BODEN_SCHATTEN = 0.55;
+// Farbe der Stücke am Boden mal diesem Faktor (garMat): Die Geräte des
+// Katalogs sind dunkel lackiert und stehen im Abfall des Lichts zu den
+// Wänden; ohne ihn blieben sie Schatten vor der helleren Wand
+const WERK_BODEN_TON = 2;
+// Geometrien gleicher Attribute (position, normal, uv) zu einer
+function werkVerbinde(gs) {
+  const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
+  const out = new THREE.BufferGeometry();
+  for (const k of keys) {
+    const size = gs[0].attributes[k].itemSize, arr = new Float32Array(gs.reduce((a, g) => a + g.attributes[k].count * size, 0));
+    let off = 0;
+    for (const g of gs) { arr.set(g.attributes[k].array, off); off += g.attributes[k].array.length; }
+    out.setAttribute(k, new THREE.BufferAttribute(arr, size));
+  }
+  for (const g of gs) g.dispose();
+  out.computeBoundingBox(); out.computeBoundingSphere();
+  return out;
+}
+// Karte des Kontaktschattens: weiches Rechteck, innen voll, zum Rand hin aus (alphaMap liest Grün)
+function werkSchattenKarte() {
+  const N = 64, cv = document.createElement('canvas');
+  cv.width = cv.height = N;
+  const g = cv.getContext('2d'), img = g.createImageData(N, N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    // Abstand zum Rand in Anteilen der halben Kante: ab 0,35 innen voll
+    const d = Math.min(i + 0.5, N - i - 0.5, j + 0.5, N - j - 0.5) / (N / 2), v = Math.round(255 * THREE.MathUtils.smoothstep(d, 0, 0.35));
+    const o = (j * N + i) * 4;
+    img.data[o] = img.data[o + 1] = img.data[o + 2] = v; img.data[o + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
 const flicker = (curve, ms) => {
   if (ms <= 0) return 0;
   for (let i = 1; i < curve.length; i++) {
@@ -8301,6 +8439,13 @@ export async function initHangar(container, opts = {}) {
   // laufende Fahrt der Kamera zwischen beiden (tripStart). Startansicht in
   // der Werkhalle von vorn rechts oben (WERK_HOME_DIR).
   let ort = 'halle', trip = null;
+  // Hülle je Zone der Arbeitsplätze am Boden (WERK_BODEN), aus den Maßen
+  // der Stücke im Satz (werkBauen): { name, h: [x0, x1, oben, z0, z1] }.
+  // Je Bühne: Eine neue ohne Boden (Stufe niedrig) erbte sonst die Hüllen
+  // der vorigen, und keepWerk sperrte Zonen, in denen nichts steht.
+  const werkBodenHuellen = [];
+  // liegt p (Hallenmeter) in der Hülle einer Zone, um rand größer
+  const werkImBoden = (x, y, z, rand) => werkBodenHuellen.some(({ h }) => x > h[0] - rand && x < h[1] + rand && y < h[2] + rand && z > h[3] - rand && z < h[4] + rand);
   const homeDir = () => (ort === 'werk' ? WERK_HOME_DIR : HOME_DIR);
   const homePos = () => homeDir().clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -11264,7 +11409,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // Kamera in der Werkhalle ist. Verborgen wird nur das Innere (innen);
   // Rahmen und Torwand der Garage (vorn) und die Torblätter bleiben, sie
   // füllen den Durchgang von der Halle aus.
-  function werkBauen(seen, garage) {
+  function werkBauen(seen, garage, bodenAn) {
     const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims, gs = GC.s ?? 1;
     // Seitenwand für den Abfall des Lichts: Innenraum der Garage (ihr x ist hier z)
     if (D.interior?.x) werkU.vigB.value.x = Math.min(...D.interior.x.map(Math.abs)) * gs;
@@ -11281,14 +11426,19 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     };
     // Garagenmaterial: wie die Halle gedämpft (Lackschichten weiß), Metall
     // begrenzt, Rauheit aus der Karte; Leuchtflächen leuchten mit ihrem Band
-    const garMat = (src, foot, pit) => {
+    // boden: Stück am Boden (WERK_BODEN). Dort heißt „light“ im Namen meist
+    // hell (panels_light_matte, grey_light, light_portable): Rollbrett und
+    // Stativ leuchteten weiß. Nur glow und screen leuchten, und die Farbe
+    // hebt WERK_BODEN_TON (sie stehen im Abfall zu den Wänden, unter dem Vorbau)
+    const garMat = (src, foot, pit, boden = false) => {
       const m = src.clone();
       m.name = `werk:${src.name}`;
       if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic/i.test(m.name) ? 0.62 : 0.85);
       if (m.metalness > 0.4) m.metalness = 0.4;
       if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
       else m.roughness = Math.max(m.roughness, 0.55);
-      const glow = (/light|glow|screen/i.test(src.name) && !/glass/i.test(src.name) && !!(m.emissiveMap || m.map)) || !!src.emissiveMap;
+      const glow = ((boden ? /glow|screen/i : /light|glow|screen/i).test(src.name) && !/glass/i.test(src.name) && !!(m.emissiveMap || m.map)) || !!src.emissiveMap;
+      if (boden && !glow && !m.transparent && m.color) m.color.multiplyScalar(WERK_BODEN_TON);
       if (glow) { m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 4; }
       for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
       return werkMat(m, { werkFoot: foot, werkPit: pit, werkGlow: glow });
@@ -11534,50 +11684,83 @@ void main() {
       raum.add(b);
       return b;
     })();
-    // Leitungen unter der Decke (WERK_DECKE): je Material eine Geometrie
-    // aus allen Plätzen, im Licht der Werkhalle wie die Garage
-    let decke = null;
+    // Leitungen unter der Decke (WERK_DECKE) und Arbeitsplätze am Boden
+    // (WERK_BODEN): je Material eine Geometrie aus allen Plätzen, im Licht
+    // der Werkhalle wie die Garage. Beide aus einem Satz (werkdecke.glb).
+    let decke = null, boden = null;
     if (garage.decke) {
-      const src = new Map(), M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+      const src = new Map(), M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), eins = new THREE.Vector3(1, 1, 1);
       garage.decke.traverse((o) => { if (o.name.startsWith('prop_') && !src.has(o.name)) src.set(o.name, o); });
-      const parts = new Map(), dm = new Map(), fehlt = new Set();
-      let n = 0;
-      for (const [node, x, top, z, r] of werkDeckePlaetze(WERK_DECKE)) {
-        const o = src.get(node);
-        if (!o) { fehlt.add(node); continue; }
-        o.updateMatrixWorld(true);
-        const bb = new THREE.Box3().setFromObject(o);
-        M.compose(new THREE.Vector3(x, top - bb.max.y, z), q.setFromAxisAngle(up, r * DEG), new THREE.Vector3(1, 1, 1));
-        o.traverse((c) => {
-          if (!c.isMesh) return;
-          let mat = dm.get(c.material);
-          if (!mat) {
-            mat = garMat(c.material, null, false);
-            const ton = WERK_DECKE_TON.find(([re]) => re.test(mat.name));
-            if (ton && mat.color) mat.color.multiplyScalar(ton[1]);
-            dm.set(c.material, mat);
-          }
-          const g = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone();
-          for (const k of Object.keys(g.attributes)) if (!/^(position|normal|uv)$/.test(k)) g.deleteAttribute(k);
-          g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(M, c.matrixWorld));
-          (parts.get(mat) ?? parts.set(mat, []).get(mat)).push(g);
-        });
-        n++;
-      }
-      decke = { stuecke: n, fehlt: [...fehlt], netze: 0, tris: 0 };
-      for (const [mat, gs] of parts) {
-        const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
-        const out = new THREE.BufferGeometry();
-        for (const k of keys) {
-          const size = gs[0].attributes[k].itemSize, arr = new Float32Array(gs.reduce((a, g) => a + g.attributes[k].count * size, 0));
-          let off = 0;
-          for (const g of gs) { arr.set(g.attributes[k].array, off); off += g.attributes[k].array.length; g.dispose(); }
-          out.setAttribute(k, new THREE.BufferAttribute(arr, size));
+      const dm = new Map(), dmB = new Map();
+      // plaetze: [node, x, y, z, r]; lage(bb, y) setzt den Knoten auf die Höhe (Ober- oder Unterkante)
+      const packe = (plaetze, lage, name, je) => {
+        const boden = name === 'boden', mm = boden ? dmB : dm;
+        const parts = new Map(), fehlt = new Set();
+        let n = 0;
+        for (const p of plaetze) {
+          const [node, x, y, z, r] = p, o = src.get(node);
+          if (!o) { fehlt.add(node); continue; }
+          o.updateMatrixWorld(true);
+          const bb = new THREE.Box3().setFromObject(o);
+          M.compose(new THREE.Vector3(x, lage(bb, y), z), q.setFromAxisAngle(up, r * DEG), eins);
+          o.traverse((c) => {
+            if (!c.isMesh) return;
+            let mat = mm.get(c.material);
+            if (!mat) {
+              mat = garMat(c.material, null, false, boden);
+              const ton = boden ? null : WERK_DECKE_TON.find(([re]) => re.test(mat.name));
+              if (ton && mat.color) mat.color.multiplyScalar(ton[1]);
+              mm.set(c.material, mat);
+            }
+            const g = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone();
+            for (const k of Object.keys(g.attributes)) if (!/^(position|normal|uv)$/.test(k)) g.deleteAttribute(k);
+            g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(M, c.matrixWorld));
+            (parts.get(mat) ?? parts.set(mat, []).get(mat)).push(g);
+          });
+          je?.(p, bb);
+          n++;
         }
-        out.computeBoundingBox(); out.computeBoundingSphere();
-        const m = mesh(out, mat, raum);
-        m.name = `werk:decke:${mat.name}`;
-        decke.netze++; decke.tris += out.attributes.position.count / 3;
+        const st = { stuecke: n, fehlt: [...fehlt], netze: 0, tris: 0 };
+        for (const [mat, gs] of parts) {
+          const out = werkVerbinde(gs);
+          const m = mesh(out, mat, raum);
+          m.name = `werk:${name}:${mat.name}`;
+          st.netze++; st.tris += out.attributes.position.count / 3;
+        }
+        return st;
+      };
+      decke = packe(werkDeckePlaetze(WERK_DECKE), (bb, top) => top - bb.max.y, 'decke');
+      if (bodenAn) {
+        // Kontaktschatten unter jedem Stück am Boden: Die Werkhalle wirft
+        // keine Schatten, ohne sie schwebten Schrank und Fässer über dem
+        // Boden. Ein weiches Rechteck je Grundfläche, 12 cm darüber hinaus.
+        const sch = { pos: [], uv: [] };
+        werkBodenHuellen.length = 0;
+        let zone = null;
+        const plaetze = WERK_BODEN.zonen.flatMap((zn) => zn.glieder.map((g) => [...g, zn.name]));
+        boden = packe(plaetze, (bb, unten) => unten - bb.min.y, 'boden', ([, x, unten, z, r, zn], bb) => {
+          const hx = (bb.max.x - bb.min.x) / 2, hz = (bb.max.z - bb.min.z) / 2, c = Math.cos(r * DEG), s = Math.sin(r * DEG);
+          // achsparallele Hülle der Zone (für keepWerk und panAllowed)
+          const ex = Math.abs(c) * hx + Math.abs(s) * hz, ez = Math.abs(s) * hx + Math.abs(c) * hz, top = unten + bb.max.y - bb.min.y;
+          if (zone?.name !== zn) werkBodenHuellen.push(zone = { name: zn, h: [Infinity, -Infinity, -Infinity, Infinity, -Infinity] });
+          const H = zone.h;
+          H[0] = Math.min(H[0], x - ex); H[1] = Math.max(H[1], x + ex); H[2] = Math.max(H[2], top); H[3] = Math.min(H[3], z - ez); H[4] = Math.max(H[4], z + ez);
+          if (unten > 0.05) return;
+          const a = hx + 0.12, b = hz + 0.12, y = unten + 0.004;
+          // Ecken im Rahmen des Stücks, gedreht wie makeRotationY(r): (u, v) -> (u c + v s, -u s + v c)
+          const P = [[-a, -b], [a, -b], [a, b], [-a, b]].map(([u, v]) => [x + u * c + v * s, y, z - u * s + v * c]);
+          for (const i of [0, 2, 1, 0, 3, 2]) { sch.pos.push(...P[i]); sch.uv.push(i === 1 || i === 2 ? 1 : 0, i >= 2 ? 1 : 0); }
+        });
+        if (sch.pos.length) {
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(sch.pos, 3));
+          g.setAttribute('uv', new THREE.Float32BufferAttribute(sch.uv, 2));
+          g.computeBoundingBox(); g.computeBoundingSphere();
+          const m = mesh(g, new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: werkSchattenKarte(), transparent: true, opacity: WERK_BODEN_SCHATTEN, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }), raum);
+          m.name = 'werk:boden:schatten';
+          m.renderOrder = 1;
+          boden.schatten = sch.pos.length / 18;
+        }
       }
     }
     // Leuchten: Leuchtkörper aus der json je Band (hinten zuerst), höchstens WK_JE
@@ -11605,7 +11788,7 @@ void main() {
     werkLamp(WK_SPILL, [T.x + 2.2, 2.6, 0], 30, [-1, -0.1, 0], 30, 72);
     hallDoor.value.set(T.x, T.b / 2, T.h, 1);
     return {
-      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke,
+      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke, boden,
       gateSec: D.gate?.motion?.open?.seconds ?? 6.667, gateT: D.gate?.motion?.open?.t ?? [],
       // Tor (v: offen 0..1, dir: +1 auf, -1 zu) und Bühne (v: Höhe in
       // Hallenmetern, 0 oben), beide unten (werkMove); Reihen und Spot
@@ -12281,8 +12464,9 @@ void main() {
       if (werkHier) {
         try {
           // rückt mit der Westwand der Halle, wenn sie wächst (growApply, werkU.off)
-          werk = werkBauen(seen, garage);
-          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht; Decke ${werk.decke ? `${werk.decke.stuecke} Stücke in ${werk.decke.netze} Netzen, ${Math.round(werk.decke.tris)} Dreiecke${werk.decke.fehlt.length ? `, fehlen: ${werk.decke.fehlt.join(', ')}` : ''}` : 'leer'}`);
+          // Arbeitsplätze am Boden nur, wo die Stufe Requisiten trägt (nicht am Telefon)
+          werk = werkBauen(seen, garage, WB.props > 0);
+          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht; Decke ${werk.decke ? `${werk.decke.stuecke} Stücke in ${werk.decke.netze} Netzen, ${Math.round(werk.decke.tris)} Dreiecke${werk.decke.fehlt.length ? `, fehlen: ${werk.decke.fehlt.join(', ')}` : ''}` : 'leer'}; Boden ${werk.boden ? `${werk.boden.stuecke} Stücke in ${werkBodenHuellen.length} Zonen, ${werk.boden.netze} Netzen, ${Math.round(werk.boden.tris)} Dreiecke, ${werk.boden.schatten ?? 0} Schatten${werk.boden.fehlt.length ? `, fehlen: ${werk.boden.fehlt.join(', ')}` : ''}` : 'leer'}`);
         } catch (e) {
           console.warn('[hangar] Werkhalle nicht gebaut', e);
           werk = null;
@@ -14722,6 +14906,19 @@ void main() {
       if (d > 1e-9) L = Math.min(L, ((hi - p) * k) / d);
       else if (d < -1e-9) L = Math.min(L, ((lo - p) * k) / d);
     }
+    // vor den Arbeitsplätzen am Boden (WERK_BODEN): erster Eintritt in die
+    // Hülle einer Zone, von außen; steht das Ziel darin, gilt sie nicht
+    const g = WERK_BODEN_RAND;
+    for (const { h } of werkBodenHuellen) {
+      let a0 = -Infinity, a1 = Infinity;
+      for (const [a, lo, hi] of [['x', h[0] - g + wx, h[1] + g + wx], ['y', -1e3, h[2] + g], ['z', h[3] - g, h[4] + g]]) {
+        const d = keepD[a], p = t[a] / k;
+        if (Math.abs(d) < 1e-9) { if (p <= lo || p >= hi) { a0 = Infinity; break; } continue; }
+        const s0 = ((lo - p) * k) / d, s1 = ((hi - p) * k) / d;
+        a0 = Math.max(a0, Math.min(s0, s1)); a1 = Math.min(a1, Math.max(s0, s1));
+      }
+      if (a0 > 0 && a0 <= a1) L = Math.min(L, a0);
+    }
     c.copy(keepAt(t, Math.max(0, L)));
   }
   // Schieben (rechte Maustaste). OrbitControls schiebt in update(), also
@@ -14739,7 +14936,7 @@ void main() {
   function panAllowed(t) {
     if (ort === 'werk') {
       const k = hallRoot.scale.x, R = WERK.raum, m = 1.5, wx = wkX(), x = t.x / k, z = t.z / k;
-      return x >= R.x[0] + m + wx && x <= R.x[1] - m + wx && z >= R.z[0] + m && z <= R.z[1] - m;
+      return x >= R.x[0] + m + wx && x <= R.x[1] - m + wx && z >= R.z[0] + m && z <= R.z[1] - m && !werkImBoden(x - wx, t.y / k, z, WERK_BODEN_RAND);
     }
     if (!camFree) return false;
     freeV.subVectors(t, camFree.o);
