@@ -1849,15 +1849,18 @@ async function probeMiningHandy(page) {
         const r = (el) => el?.getBoundingClientRect();
         const rs = r(spalte), rl = r(liste), rk = r(kopf), re = r(eintrag);
         // Gezeichnet heisst: eigene Hoehe UND innerhalb der Spalte, die mit
-        // overflow:hidden alles darunter abschneidet.
-        const drin = (x) => !!x && !!rs && x.height > 0 && x.top >= rs.top - 1 && x.bottom <= rs.bottom + 1;
+        // overflow:hidden alles darunter abschneidet. Der Eintrag zusaetzlich
+        // innerhalb der Liste selbst: eine 20 px hohe Liste schnitte ihn ab,
+        // obwohl er noch in der Spalte laege (Review PR #420).
+        const im = (x, r) => !!x && !!r && x.height > 0 && x.top >= r.top - 1 && x.bottom <= r.bottom + 1;
+        const drin = (x) => im(x, rs);
         return {
           erz,
           spalteDa: !!rs && rs.height > 0 && getComputedStyle(spalte).display !== 'none',
           liste: rl ? Math.round(rl.height) : -1,
           inhalt: liste ? liste.scrollHeight : -1,
           kopfDrin: drin(rk),
-          eintragDrin: drin(re),
+          eintragDrin: drin(re) && im(re, rl),
           name: eintrag?.querySelector('.nm')?.textContent || '',
         };
       });

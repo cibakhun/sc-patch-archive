@@ -1506,8 +1506,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      Inhalt kommt, und Kaesten mit Grundhoehe 0 ergeben 0; .wb__pane schneidet
      mit overflow:hidden den Rest ab. Ab 761 px traegt die Spalte wieder eine
      feste Hoehe (min(62vh,560px)), dort war es nie falsch.
-     Hier also Grundhoehe = Inhalt; jede Liste scrollt ab 70vh selbst. */
-  .wb__sec2{flex:0 0 auto}
+     Hier also Grundhoehe = Inhalt; jede Liste scrollt ab 70vh selbst.
+     ⚠ NUR in der Werkbank auf der Seite (.wb__grid), nicht im ausgelagerten
+     Fenster: das ist ebenfalls schmal (360 px), uebernimmt dieses Blatt und
+     traegt dort eine FESTE Hoehe (.wb--pop .wb__pane{height:100%}). Dort
+     muessen beide Listen weiter schrumpfen und innen scrollen, sonst schoebe
+     eine lange Signaturenliste die Fundorte aus dem Fenster (Review PR #420). */
+  .wb__grid .wb__sec2{flex:0 0 auto}
   .wb__grid.has-seg{display:block}
   .wb__grid.has-seg > .wb__pane{display:none}
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
