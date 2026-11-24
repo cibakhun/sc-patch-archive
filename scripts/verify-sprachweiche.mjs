@@ -115,16 +115,18 @@ const ohneGegenstueck = [];
 // Anfuehrungszeichen), Kommentare zaehlen nicht (Review PR #426). Bewusst
 // kein DOM-Parser: 19.000 Seiten je Lauf, und Astro schreibt die Tags
 // selbst; die Tests decken die Schreibweisen ab.
-const A_TAG = /<a\b[^>]*>/gi;
-const LINK_TAG = /<link\b[^>]*>/gi;
+// Ein Durchgang findet Kommentare und Tags zugleich; Treffer, die mit
+// "<!--" beginnen, werden uebersprungen (nichts wird aus dem HTML entfernt).
+const A_TAG = /<!--[\s\S]*?(?:-->|$)|<a\b[^>]*>/gi;
+const LINK_TAG = /<!--[\s\S]*?(?:-->|$)|<link\b[^>]*>/gi;
+const tags = (html, re) => [...html.matchAll(re)].map((m) => m[0]).filter((t) => !t.startsWith('<!--'));
 const attr = (tag, name) => {
   const m = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>\`]+))`, 'i').exec(tag);
   return m ? (m[1] ?? m[2] ?? m[3]).replace(/&amp;/g, '&') : null;
 };
-const ohneKommentare = (html) => html.replace(/<!--[\s\S]*?-->/g, '');
 
 for (const seite of seiten) {
-  const html = ohneKommentare(readFileSync(resolve(DIST, '.' + seite), 'utf8'));
+  const html = readFileSync(resolve(DIST, '.' + seite), 'utf8');
   const zwilling = gegenstueck(seite);
   const zwillingDa = imBau.has(zwilling);
   const zielSprache = istDe(seite) ? 'en' : 'de';
@@ -132,8 +134,7 @@ for (const seite of seiten) {
   // [1] + [2] Umschalter-Optionen
   let hier = 0;
   let langsw = false, dpLang = false;
-  for (const m of html.matchAll(A_TAG)) {
-    const tag = m[0];
+  for (const tag of tags(html, A_TAG)) {
     const klasse = attr(tag, 'class') ?? '';
     const art = /(?:^|\s)langsw__opt(?:\s|$)/.test(klasse) ? 'langsw' : /(?:^|\s)dp-lang(?:\s|$)/.test(klasse) ? 'dp-lang' : null;
     if (!art) continue;
@@ -160,10 +161,10 @@ for (const seite of seiten) {
 
   // [3] hreflang-Paare im Kopf
   const alt = {};
-  for (const m of html.matchAll(LINK_TAG)) {
-    if (!/^alternate$/i.test(attr(m[0], 'rel') ?? '')) continue;
-    const hl = attr(m[0], 'hreflang');
-    const href = attr(m[0], 'href');
+  for (const tag of tags(html, LINK_TAG)) {
+    if (!/^alternate$/i.test(attr(tag, 'rel') ?? '')) continue;
+    const hl = attr(tag, 'hreflang');
+    const href = attr(tag, 'href');
     if (hl === 'de' || hl === 'en') alt[hl] = href;
   }
   if (alt.de || alt.en) {
