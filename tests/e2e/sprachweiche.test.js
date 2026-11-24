@@ -78,6 +78,38 @@ test('[3] rot: hreflang nennt eine Seite, die nicht das Gegenstueck ist', () => 
   assert.match(r.out, /\[3\] \/archiv\.html: hreflang="de" nennt https:\/\/verse-base\.com\/de\/index\.html, erwartet \/de\/archiv\.html/);
 });
 
+test('[1] rot: Option auf fremden Ursprung mit passendem Pfad (Review PR #426)', () => {
+  const r = lauf(bau({ ...GUT, 'archiv.html': seite({ opt: 'https://example.org/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }) }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\[1\] \/archiv\.html \(langsw\): zeigt auf https:\/\/example\.org\/de\/archiv\.html statt aufs Gegenstueck \/de\/archiv\.html — fremder Ursprung/);
+});
+
+test('[1] gruen: eigener Ursprung als volle Adresse zaehlt wie der Pfad', () => {
+  const r = lauf(bau({ ...GUT, 'archiv.html': seite({ opt: 'https://verse-base.com/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }) }));
+  assert.equal(r.code, 0, r.out);
+});
+
+test('[1] rot: einfach angefuehrte Attribute werden gelesen (Review PR #426)', () => {
+  const html = `<!doctype html><html><head><link rel='alternate' hreflang='de' href='https://verse-base.com/de/archiv.html'><link rel=alternate hreflang=en href=https://verse-base.com/archiv.html></head><body><a class='langsw__opt' href='/de.html'>DE</a><a class='langsw__opt' href='/de.html'>DE</a></body></html>`;
+  const r = lauf(bau({ ...GUT, 'archiv.html': html }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\[1\] \/archiv\.html \(langsw\): zeigt auf \/de\.html statt aufs Gegenstueck \/de\/archiv\.html/);
+  assert.doesNotMatch(r.out, /\[3\] \/archiv\.html/, 'hreflang in einfachen und ohne Anfuehrungszeichen gilt');
+});
+
+test('[3] rot: hreflang auf fremden Ursprung', () => {
+  const r = lauf(bau({ ...GUT, 'archiv.html': seite({ opt: '/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }).replace('https://verse-base.com/de/archiv.html', 'https://example.org/de/archiv.html') }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\[3\] \/archiv\.html: hreflang="de" nennt https:\/\/example\.org\/de\/archiv\.html, erwartet \/de\/archiv\.html/);
+});
+
+test('Kommentare zaehlen nicht: ein auskommentierter falscher Umschalter bleibt ohne Befund', () => {
+  const html = seite({ opt: '/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }).replace('<body>', '<body><!-- <a class="langsw__opt" href="/de.html">alt</a> -->');
+  const r = lauf(bau({ ...GUT, 'archiv.html': html }));
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /\[1\] 14 Optionen/);
+});
+
 test('[4] Vorschau-Bau: eingehaengte Seiten zaehlen, Klinke reisst ohne sie', () => {
   const mitHangar = {
     ...GUT,

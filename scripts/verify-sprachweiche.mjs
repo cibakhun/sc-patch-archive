@@ -80,9 +80,18 @@ function gegenstueck(p) {
   if (p === '/de.html') return '/index.html';
   return istDe(p) ? p.slice(3) : '/de' + p;
 }
-/** href -> Pfad im Bau ("/" -> /index.html, Ursprung und Anker weg). */
-function zuPfad(href) {
-  let p = href.replace(/^https?:\/\/[^/]+/, '').split('#')[0].split('?')[0];
+/** Eigener Ursprung (site in astro.config.mjs). Eine Option oder ein
+ *  hreflang auf einen anderen Ursprung ist nie das Gegenstueck, auch wenn
+ *  der Pfad passt (Review PR #426). */
+const HAUS = 'https://verse-base.com';
+/** href -> Pfad im Bau ("/" -> /index.html, Anker und Abfrage weg), relativ
+ *  zur Seite aufgeloest; null bei fremdem Ursprung oder kaputter Adresse. */
+function zuPfad(href, seite) {
+  let u;
+  try { u = new URL(href.trim(), HAUS + seite); } catch { return null; }
+  if (u.origin !== HAUS) return null;
+  let p;
+  try { p = decodeURIComponent(u.pathname); } catch { p = u.pathname; }
   if (p === '' || p === '/') p = '/index.html';
   if (p === '/de' || p === '/de/') p = '/de.html';
   return p;
@@ -102,12 +111,20 @@ let mitUmschalter = 0, mitLangsw = 0, mitDpLang = 0, optionen = 0, aufsGegenstue
 let eingehaengtGeprueft = 0;
 const ohneGegenstueck = [];
 
-const A_TAG = /<a\b[^>]*>/g;
-const LINK_TAG = /<link\b[^>]*rel="alternate"[^>]*>/g;
-const attr = (tag, name) => { const m = new RegExp(`\\s${name}="([^"]*)"`).exec(tag); return m ? m[1] : null; };
+// Attribute in allen drei Schreibweisen des HTML (doppelt, einfach, ohne
+// Anfuehrungszeichen), Kommentare zaehlen nicht (Review PR #426). Bewusst
+// kein DOM-Parser: 19.000 Seiten je Lauf, und Astro schreibt die Tags
+// selbst; die Tests decken die Schreibweisen ab.
+const A_TAG = /<a\b[^>]*>/gi;
+const LINK_TAG = /<link\b[^>]*>/gi;
+const attr = (tag, name) => {
+  const m = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>\`]+))`, 'i').exec(tag);
+  return m ? (m[1] ?? m[2] ?? m[3]).replace(/&amp;/g, '&') : null;
+};
+const ohneKommentare = (html) => html.replace(/<!--[\s\S]*?-->/g, '');
 
 for (const seite of seiten) {
-  const html = readFileSync(resolve(DIST, '.' + seite), 'utf8');
+  const html = ohneKommentare(readFileSync(resolve(DIST, '.' + seite), 'utf8'));
   const zwilling = gegenstueck(seite);
   const zwillingDa = imBau.has(zwilling);
   const zielSprache = istDe(seite) ? 'en' : 'de';
@@ -124,13 +141,13 @@ for (const seite of seiten) {
     hier++;
     optionen++;
     const href = attr(tag, 'href');
-    const ziel = href == null ? null : zuPfad(href);
+    const ziel = href == null ? null : zuPfad(href, seite);
     if (zwillingDa) {
       if (ziel === zwilling) aufsGegenstueck++;
-      else melde(1, `${seite} (${art}): zeigt auf ${href ?? '(kein href)'} statt aufs Gegenstueck ${zwilling}${ziel === START[zielSprache] ? ' — Startseite' : ''}`);
+      else melde(1, `${seite} (${art}): zeigt auf ${href ?? '(kein href)'} statt aufs Gegenstueck ${zwilling}${ziel === START[zielSprache] ? ' — Startseite' : href != null && !ziel ? ' — fremder Ursprung' : ''}`);
     } else {
       if (ziel && imBau.has(ziel) && (istDe(ziel) ? 'de' : 'en') === zielSprache) continue;
-      melde(2, `${seite} (${art}): kein Gegenstueck im Bau, Option zeigt auf ${href ?? '(kein href)'}${ziel && !imBau.has(ziel) ? ' — steht nicht im Bau' : ' — nicht die andere Sprache'}`);
+      melde(2, `${seite} (${art}): kein Gegenstueck im Bau, Option zeigt auf ${href ?? '(kein href)'}${!ziel ? ' — fremder Ursprung' : !imBau.has(ziel) ? ' — steht nicht im Bau' : ' — nicht die andere Sprache'}`);
     }
   }
   if (hier) {
@@ -144,6 +161,7 @@ for (const seite of seiten) {
   // [3] hreflang-Paare im Kopf
   const alt = {};
   for (const m of html.matchAll(LINK_TAG)) {
+    if (!/^alternate$/i.test(attr(m[0], 'rel') ?? '')) continue;
     const hl = attr(m[0], 'hreflang');
     const href = attr(m[0], 'href');
     if (hl === 'de' || hl === 'en') alt[hl] = href;
@@ -153,7 +171,7 @@ for (const seite of seiten) {
     const eigen = istDe(seite) ? 'de' : 'en';
     const erwartet = { [eigen]: seite, [zielSprache]: zwilling };
     for (const l of ['de', 'en']) {
-      const p = alt[l] == null ? null : zuPfad(alt[l]);
+      const p = alt[l] == null ? null : zuPfad(alt[l], seite);
       if (p !== erwartet[l]) melde(3, `${seite}: hreflang="${l}" nennt ${alt[l] ?? '(fehlt)'}, erwartet ${erwartet[l]}`);
       else if (!imBau.has(p)) melde(3, `${seite}: hreflang="${l}" nennt ${p}, das steht nicht im Bau`);
     }
