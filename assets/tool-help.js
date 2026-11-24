@@ -100,10 +100,44 @@
     }
   }
 
+  // Fordert die Adresse einen bestimmten Inhalt an (?bp=…, ?mineral=…,
+  // ?item=…, #abschnitt), kommt der Besucher meist ueber einen Link von einem
+  // Datenblatt und will genau diesen Inhalt sehen. Dann geht die Anleitung
+  // nicht von selbst auf: Sie laege davor oder darueber (auf der Werkbank
+  // ueber dem Rezept, UX-Audit 24.11.2026). Ausdruecklich NICHT als gesehen
+  // vermerkt — beim naechsten Aufruf ohne Angabe geht sie auf. Kampagnen-
+  // Angaben (utm_*) fordern keinen Inhalt an.
+  function adresseFordertInhalt() {
+    var ort = window.location;
+    if (!ort) return false;
+    if (ort.hash && ort.hash.length > 1) return true;
+    var teile = (ort.search || '').replace(/^\?/, '').split('&');
+    for (var i = 0; i < teile.length; i++) {
+      var name = teile[i].split('=')[0];
+      if (name && !/^utm_/i.test(name)) return true;
+    }
+    return false;
+  }
+
+  // Legt eine Seite den Rumpf als schwebende Tafel ueber ihre Bedienung
+  // (position absolute oder fixed, so auf Fracturing, Mining und der
+  // Werkbank), deckt der von selbst geoeffnete Abschnitt beim ersten Besuch
+  // genau die Bedienelemente zu, die er erklaert — gemessen 24.11.2026:
+  // 24 auf Fracturing, 15 auf Mining. Solche Tafeln oeffnet nur der Knopf;
+  // wer ihn drueckt, will sie sehen. Abschnitte im Fluss der Seite schieben
+  // den Inhalt nach unten und gehen weiter von selbst auf.
+  function schwebtUeberDerBedienung(section) {
+    var rumpf = section.querySelector ? section.querySelector('.tool-help__body') : null;
+    if (!rumpf || !window.getComputedStyle) return false;
+    var lage = window.getComputedStyle(rumpf).position;
+    return lage === 'absolute' || lage === 'fixed';
+  }
+
   // ---- Erstbesuch: EIN Lesen, EIN Schreiben, danach nichts mehr. ----
   (function openOnFirstVisit() {
     if (window.innerHeight < MIN_HOEHE_FUER_AUTO) return;
     if (imHangarTerminal()) return;
+    if (adresseFordertInhalt()) return;
     var seen = {};
     try {
       var raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
@@ -126,8 +160,8 @@
         // Aufruf auf, der auf dem Feld beginnt.
         if (section.closest('[data-help-auto="aus"]')) continue;
         section.open = true;
-        if (!bedienungBleibtImBild(section)) {
-          // Zu wenig Platz: wieder zu — und ausdruecklich NICHT als gesehen
+        if (schwebtUeberDerBedienung(section) || !bedienungBleibtImBild(section)) {
+          // Schwebend oder zu wenig Platz: wieder zu — und ausdruecklich NICHT als gesehen
           // vermerkt, damit der Abschnitt beim naechsten Besuch auf einem
           // hoeheren Fenster seine Aufgabe noch erfuellt. Der Knopf ist da,
           // die Erklaerung also einen Fingertipp entfernt.

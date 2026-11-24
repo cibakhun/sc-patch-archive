@@ -109,6 +109,7 @@ for (const id of Object.keys(PFLICHT_AUSNAHMEN)) {
 
 console.log('\n[4] Summen und Reihenfolgen');
 let summen = 0;
+let pdcSchiffe = 0;
 for (const v of vehicles) {
   const pilot = v.fixedWeapons ?? [];
   if (v.pilotDps != null && pilot.length && pilot.every((w) => w.dps != null)) {
@@ -117,10 +118,15 @@ for (const v of vehicles) {
     if (Math.abs(s - v.pilotDps) > 0.5) fail.push(`${v.id}: pilotDps ${v.pilotDps}, Summe der Pilotwaffen ${s} — Zaehlung im Erzeuger pruefen`);
   }
   const turm = v.turretWeapons ?? [];
+  // Die Punktverteidigung (PDC) steht in turretWeapons, zaehlt aber nicht in
+  // turretDps (Krisz 24.11.2026, datamine-vehicles.mjs); ihre DPS traegt die
+  // Gattung PDC in turrets[]. Soll also: Turmwaffen minus PDC.
+  const pdcDps = (v.turrets ?? []).filter((g) => g.label === 'Punktverteidigung (PDC)').reduce((n, g) => n + (g.dps ?? 0), 0);
+  if (pdcDps) pdcSchiffe++;
   if (v.turretDps != null && turm.length && turm.every((w) => w.dps != null)) {
     summen++;
-    const s = rund(summe(turm, 'dps'));
-    if (Math.abs(s - v.turretDps) > 0.5) fail.push(`${v.id}: turretDps ${v.turretDps}, Summe der Turmwaffen ${s} — Zaehlung im Erzeuger pruefen`);
+    const s = rund(summe(turm, 'dps') - pdcDps);
+    if (Math.abs(s - v.turretDps) > 0.5) fail.push(`${v.id}: turretDps ${v.turretDps}, Summe der Turmwaffen ohne PDC ${s} — Zaehlung im Erzeuger pruefen`);
   }
   if (v.missileCount != null && (v.missileRacks ?? []).length) {
     summen++;
@@ -132,7 +138,7 @@ for (const v of vehicles) {
     if (v.scmSpeed > v.maxSpeed) fail.push(`${v.id}: SCM ${v.scmSpeed} m/s liegt ueber der Hoechstgeschwindigkeit ${v.maxSpeed} m/s`);
   }
 }
-console.log(`    geprueft: ${summen} Summen und Reihenfolgen`);
+console.log(`    geprueft: ${summen} Summen und Reihenfolgen   davon Schiffe mit PDC (Turm-Summe ohne PDC): ${pdcSchiffe}`);
 
 console.log('\n[5] Nullen, die Bauteile nicht erklaeren (WARNUNG)');
 for (const v of vehicles) {

@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -43,8 +44,8 @@ const de = lang === 'de';
     <div class="hero__in">
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-2.html' : '/patches/sc-4-0-2.html'}>Alpha 4.0.2 · Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Einmaliges Event · 28. Februar 2025' : ' &nbsp;·&nbsp; One-time event · February 28, 2025'} /></div>
       <h1><span class="thin">{de ? 'Pyros Nachschubkrieg' : 'Pyro\'s Supply War'}</span>Supply or Die</h1>
-      <p class="lead">{de ? 'Ein PvPvE-Versorgungskrieg um Pyro: schlag dich auf eine von zwei Fraktionen, beschaffe Material durch Depot-Kaempfe, Bergbau und Salvage — und entscheide, wer das gesetzlose System kontrolliert.' : 'A PvPvE supply war over Pyro: pick one of two factions, procure material through depot battles, mining and salvage — and decide who controls the lawless system.'}</p>
-      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">Event</span><span class="tag">Pyro</span><span class="tag">{de ? 'Fraktionen' : 'Factions'}</span><span class="tag">Detatrine</span></div>
+      <p class="lead">{de ? 'Ein PvPvE-Versorgungskrieg um Pyro: schlag dich auf eine von zwei Fraktionen, beschaffe Material durch Depot-Kämpfe, Bergbau und Salvage — und entscheide, wer das gesetzlose System kontrolliert.' : 'A PvPvE supply war over Pyro: pick one of two factions, procure material through depot battles, mining and salvage — and decide who controls the lawless system.'}</p>
+      <div class="tags"><Schlagwort hot>PvPvE</Schlagwort><Schlagwort>Event</Schlagwort><Schlagwort>Pyro</Schlagwort><Schlagwort>{de ? 'Fraktionen' : 'Factions'}</Schlagwort><Schlagwort>Detatrine</Schlagwort></div>
       <div class="hero__play" data-lb="yt:R9p2q5fFUJk"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
@@ -81,14 +82,14 @@ const de = lang === 'de';
 
   <!-- VERSUS: zwei Fraktionen (full-bleed) -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Waehle deine Seite' : 'Choose your side'}</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Wähle deine Seite' : 'Choose your side'}</h2><span class="rule"></span></div></div>
   </section>
   <section style="padding:0 0 clamp(2rem,5vw,3.5rem)">
     <div class="versus reveal">
       <div class="side a">
         <h3>☣ Citizens for Prosperity</h3>
         <ul>
-          <li>{de ? 'Sammeln Industriegueter und die seltene Chemikalie Detatrine.' : 'Collect industrial goods and the rare chemical Detatrine.'}</li>
+          <li>{de ? 'Sammeln Industriegüter und die seltene Chemikalie Detatrine.' : 'Collect industrial goods and the rare chemical Detatrine.'}</li>
           <li>{de ? 'Stellen daraus medizinischen Nachschub her.' : 'Turn them into medical supplies.'}</li>
           <li>{de ? 'Ziel: Pyro stabilisieren und das System ordnen.' : 'Goal: stabilize Pyro and bring order to the system.'}</li>
           <li>{de ? 'Wer sie beliefert, macht die Headhunters zu Feinden.' : 'Whoever supplies them makes enemies of the Headhunters.'}</li>
@@ -105,7 +106,7 @@ const de = lang === 'de';
         </ul>
       </div>
     </div>
-    <div class="wrap" style="margin-top:1.4rem"><p class="src reveal" style="margin-top:0">{de ? 'Spieler waehlen eine von zwei Fraktionen und beliefern sie — die Gegenseite wird dadurch automatisch feindlich.' : 'Players choose one of two factions and supply it — the opposing side automatically becomes hostile.'}</p></div>
+    <div class="wrap" style="margin-top:1.4rem"><p class="src reveal" style="margin-top:0">{de ? 'Spieler wählen eine von zwei Fraktionen und beliefern sie — die Gegenseite wird dadurch automatisch feindlich.' : 'Players choose one of two factions and supply it — the opposing side automatically becomes hostile.'}</p></div>
   </section>
 
   <!-- SCROLLYTELLING: Drei Missionstypen, die den Krieg speisen (full-bleed process) -->
@@ -120,10 +121,10 @@ const de = lang === 'de';
       <div class="frame" style="background-image:url('/assets/t-supply-4.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Depot-Kaempfe' : 'Depot battles'}</h3><p>{de ? 'PvPvE-Gefechte um umkaempfte Depots: kaempfe gegen KI und rivalisierende Spieler, sichere die Vorraete und liefere sie an deine Fraktion.' : 'PvPvE fights over contested depots: battle AI and rival players, secure the supplies and deliver them to your faction.'}</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Depot-Kämpfe' : 'Depot battles'}</h3><p>{de ? 'PvPvE-Gefechte um umkämpfte Depots: kämpfe gegen KI und rivalisierende Spieler, sichere die Vorräte und liefere sie an deine Fraktion.' : 'PvPvE fights over contested depots: battle AI and rival players, secure the supplies and deliver them to your faction.'}</p></div>
       <div class="sstep"><div class="sn">02</div><h3>Mining & Refining</h3><p>{de ? 'Brich Rohstoffe in Pyro ab, raffiniere sie und schleuse das Material in den Nachschub — die Grundlage jeder Lieferung.' : 'Mine raw materials in Pyro, refine them and funnel the material into the supply chain — the foundation of every delivery.'}</p></div>
       <div class="sstep"><div class="sn">03</div><h3>Salvage</h3><p>{de ? 'Berge Wracks und Schrott des gesetzlosen Systems. Headhunters leben davon — und beschaffen sich den Rest notfalls mit Gewalt.' : 'Recover wrecks and scrap from the lawless system. The Headhunters live off it — and take the rest by force if they have to.'}</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Kriegsfortschritt' : 'War progress'}</h3><p>{de ? 'Jede der drei Missionsarten speist denselben Balken. Genug Lieferungen, und deine Fraktion verschiebt die Kontrolle ueber Pyro.' : 'Each of the three mission types feeds the same bar. Enough deliveries, and your faction shifts control over Pyro.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Kriegsfortschritt' : 'War progress'}</h3><p>{de ? 'Jede der drei Missionsarten speist denselben Balken. Genug Lieferungen, und deine Fraktion verschiebt die Kontrolle über Pyro.' : 'Each of the three mission types feeds the same bar. Enough deliveries, and your faction shifts control over Pyro.'}</p></div>
     </div>
   </div>
 
@@ -139,7 +140,7 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">{de ? '04 · Der Stoff des Krieges' : '04 · The stuff of war'}</div>
       <div class="big" style="font-size:clamp(2.6rem,9vw,6.5rem)">DETATRINE</div>
-      <p>{de ? 'Die Citizens for Prosperity jagen nach Industriegueter und der seltenen Chemikalie ' : 'The Citizens for Prosperity hunt for industrial goods and the rare chemical '}<b style="color:var(--accent-2)">Detatrine</b>{de ? ' — Rohstoff fuer den medizinischen Nachschub, der Pyro stabilisieren soll. Jede sichergestellte Charge ist ein Schlag gegen die Headhunters.' : ' — raw material for the medical supplies meant to stabilize Pyro. Every secured batch is a blow against the Headhunters.'}</p>
+      <p>{de ? 'Die Citizens for Prosperity jagen nach Industriegüter und der seltenen Chemikalie ' : 'The Citizens for Prosperity hunt for industrial goods and the rare chemical '}<b style="color:var(--accent-2)">Detatrine</b>{de ? ' — Rohstoff für den medizinischen Nachschub, der Pyro stabilisieren soll. Jede sichergestellte Charge ist ein Schlag gegen die Headhunters.' : ' — raw material for the medical supplies meant to stabilize Pyro. Every secured batch is a blow against the Headhunters.'}</p>
     </div>
   </section>
 
@@ -149,9 +150,9 @@ const de = lang === 'de';
       <div class="split__media"><div class="m" style="background-image:url('/assets/t-supply-5.jpg')"></div></div>
       <div class="split__text">
         <div class="kx">{de ? '05 · Beute des Krieges' : '05 · Spoils of war'}</div>
-        <h3>{de ? 'Belohnungen fuer die, die liefern' : 'Rewards for those who deliver'}</h3>
-        <p>{de ? 'Auf ' : 'At '}<b>{de ? 'Stufe 2' : 'tier 2'}</b>{de ? ' winkte die ' : ', the '}<b>Ravager-212 Outcast</b>{de ? ' — eine Twin-Shotgun im Outcast-Stil, gemacht fuer die Nahdistanz des Versorgungskriegs.' : ' was up for grabs — a twin shotgun in Outcast style, built for the close quarters of the supply war.'}</p>
-        <p>{de ? 'Auf ' : 'At '}<b>{de ? 'Stufe 3' : 'tier 3'}</b>{de ? ' kam das ' : ', the '}<b>{de ? 'Outcast-Lackpaket' : 'Outcast paint pack'}</b>{de ? ' obendrauf: passende Lackierungen fuer MISC Fortune, Drake Vulture und MISC Prospector — die Arbeitstiere von Bergbau und Salvage.' : ' was added on top: matching liveries for the MISC Fortune, Drake Vulture and MISC Prospector — the workhorses of mining and salvage.'}</p>
+        <h3>{de ? 'Belohnungen für die, die liefern' : 'Rewards for those who deliver'}</h3>
+        <p>{de ? 'Auf ' : 'At '}<b>{de ? 'Stufe 2' : 'tier 2'}</b>{de ? ' winkte die ' : ', the '}<b>Ravager-212 Outcast</b>{de ? ' — eine Twin-Shotgun im Outcast-Stil, gemacht für die Nahdistanz des Versorgungskriegs.' : ' was up for grabs — a twin shotgun in Outcast style, built for the close quarters of the supply war.'}</p>
+        <p>{de ? 'Auf ' : 'At '}<b>{de ? 'Stufe 3' : 'tier 3'}</b>{de ? ' kam das ' : ', the '}<b>{de ? 'Outcast-Lackpaket' : 'Outcast paint pack'}</b>{de ? ' obendrauf: passende Lackierungen für MISC Fortune, Drake Vulture und MISC Prospector — die Arbeitstiere von Bergbau und Salvage.' : ' was added on top: matching liveries for the MISC Fortune, Drake Vulture and MISC Prospector — the workhorses of mining and salvage.'}</p>
       </div>
     </div>
   </section>

@@ -181,10 +181,11 @@ function parseHTML(html) {
   return root.childNodes.slice();
 }
 
-// Karte wie im SSR von CraftingApp.astro: data-i + data-time, Rest sichtbar.
+// Karte wie im SSR von CraftingApp.astro: data-i + data-time, Rest sichtbar;
+// die Kategorie traegt ihre englischen Schluessel in data-top/data-sub.
 function card(bp, i) {
   return new El('article', { class: 'cbp', 'data-i': String(i), 'data-time': '90' }, [
-    new El('div', { class: 'cbp__top' }, [new El('span', { class: 'cbp__cat' }, [bp.top, new El('em', {}, [bp.sub])])]),
+    new El('div', { class: 'cbp__top' }, [new El('span', { class: 'cbp__cat', 'data-top': bp.top, 'data-sub': bp.sub }, [bp.top, new El('em', {}, [bp.sub])])]),
     new El('h3', { class: 'cbp__name' }, [new El('a', { href: `/crafting/${bp.slug}.html` }, [bp.name])]),
     new El('div', { class: 'cbp__meta' }, [new El('span', { title: 'Craft time' }, ['⏱ 1m 30s']), new El('span', { title: 'Ingredients' }, ['◆ 0'])]),
   ]);

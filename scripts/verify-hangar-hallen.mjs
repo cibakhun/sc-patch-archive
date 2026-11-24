@@ -617,6 +617,29 @@
        (.planning/WINDOWS.md), und dass die Bühne im Browser vier
        Hauptstrahler stellt (check:hangar-shader, Klinke strahler in
        KLINKE_FEST).
+   (xii) 24.11.2026, Hauptstrahler auch in Small und Medium (Krisz auf
+       die Frage, ob das Licht der Large-Halle passt: „Schau doch
+       selber“; beim Urteil an Bildern vom PC gefunden: Dieselben
+       türkisen Fluter färbten dort Lack und Deck von 300i, 400i und
+       Cutlass Black). HALL_FEST.strahler mit den Werten der Large-Halle,
+       Klinke strahler 2 (Small) und 4 (Medium). Am Vorschau-Bau des
+       Commits „Hangar: Licht der Large-Halle auch in Small und Medium“
+       (gebaut als b630d6c0, bevor er auf den neuesten staging-Stand
+       gesetzt wurde; derselbe Viewer) auf dem PC dreimal rot, je 1 FEHLER, danach
+       zurückgestellt (Läufer .cache/licht/rot.ps1, nicht im Repo):
+       util-smltop ohne strahler im ausgelieferten Viewer: „[3]
+       util-smltop: die Halle hat eine Klinke strahler (2), HALL_FEST
+       nennt fuer sie keine Hauptstrahler mehr — ihre Fluter strahlten
+       wieder in der Farbe des Spiels …“; util-medtop ohne strahler:
+       dasselbe für util-medtop mit „(4)“; eine Kopie des Tors ohne die
+       Klinke strahler von util-smltop: „[3] util-smltop:
+       HALL_FEST.strahler stellt 2 Hauptstrahler, die Halle hat keine
+       Klinke strahler (KLINKE) — fiele die Einstellung wieder weg,
+       bliebe das Tor gruen“. Ohne Eingriff grün: „2 Hauptstrahler ab
+       Staerke 300 (1 auf +x mal 1, 1 auf -x mal 0.5, Anteil Weiss 0.65;
+       Klinke 2)“ und „4 Hauptstrahler ab Staerke 300 (2 auf +x mal 1, 2
+       auf -x mal 0.5, …; Klinke 4)“. Dass die Bühne sie im Browser
+       stellt, hält check:hangar-shader (dort unter HAUPTSTRAHLER).
    (y) 21.11.2026, die Arbeitsszenen der Large-Halle ([5]; Krisz auf
        der Karte vom 15.11.2026: „Alle vier einbauen“). Einundzwanzig
        Eingriffe in den ausgelieferten Viewer (Block WORK_DEKO_FEST,
@@ -771,14 +794,18 @@ const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff
 // In util-xltop (20.11.2026) die vier Fluter über den Längsseiten (je 300, 105 m über dem Boden), mit bis 1000
 // ohne die vier Strahler der Stirnwände und mit mal 12 so stark, dass aufs Schiff so viel Licht kommt wie in der
 // Large-Halle; ohne sie stand die Polaris dort fast schwarz (Aufnahme vom PC, 19.11.2026).
+// In util-smltop und util-medtop (24.11.2026) die Fluter über der Landefläche mit denselben Werten wie in
+// Large (Small zwei je 300, Medium vier je 600, je zur Hälfte auf beiden Seiten): Sie färbten dort Lack und Deck
+// türkis (Origin 300i, 400i und Cutlass Black am Bild vom PC). Krisz am 24.11.2026 zum Licht der Large-Halle:
+// „Schau doch selber“.
 // MAL_MAX: höchster Faktor mal; darüber brennt jeder Lack aus, auch im Abstand der XL-Halle.
 const MAL_MAX = 20;
 const KLINKE = {
   'util-lrgtop': { lampen: 870, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86, strahler: 6 },
   // Small, Medium und XL (18.11.2026), gemessen am Vorschau-Bau mit ihren Modellen; dieselben Regeln wie Large.
   // Gedämpft sind auch dort die Lampen der Kabinen ihrer Frachtaufzüge (Small 1 Aufzug, Medium und XL je 2).
-  'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57 },
-  'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75 },
+  'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57, strahler: 2 },
+  'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75, strahler: 4 },
   'util-xltop': { lampen: 1339, tor: 38, schriftTris: 4348, schirmTris: 422, schirme: 13, tafeln: 12, aufkleber: 159, schilder: 5, kinder: 26, grund: 3, gedaempft: 126, flaechen: 107, ruhe: 162, strahler: 4 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).

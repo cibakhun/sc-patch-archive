@@ -2,16 +2,28 @@
 // Onepager-Link: prominenter Button, der einen eigenständigen visuellen
 // Guide (statisches HTML unter /onepager/<slug>/) in einem neuen Tab öffnet.
 // Themt sich über die Palette-Variablen der jeweiligen Themenseite.
+//
+// Darunter steht seit 24.11.2026 ein Weg zu den Downloads (UX-Audit H3): die
+// Seite hatte keinen einzigen Inhaltslink, und die Onepager als Datei gibt es
+// nur dort.
+//
+// Die Onepager sind englisch (public/onepager/*, lang="en"). Bis 24.11.2026
+// stand der Block deshalb irrtuemlich nur auf der DE-Seite, ohne Hinweis auf
+// Sprache und neuen Tab (UX-Audit P70). Jetzt steht er in beiden Fassungen,
+// mit Hinweis; der Guide selbst fuehrt oben zur Themenseite zurueck.
+import { localeFromPath, href as hrefLang } from '../i18n/ui';
 interface Props {
   href: string;        // z.B. "/onepager/contested-zones/index.html"
   title?: string;      // Überschrift des Guides
   note?: string;       // kurze Beschreibung
 }
+const de = localeFromPath(Astro.url.pathname) === 'de';
 const {
   href,
-  title = 'Visueller Guide',
-  note = 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.',
+  title = de ? 'Visueller Guide' : 'Visual guide',
+  note = de ? 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.' : 'Standalone overview guide with maps, loot and flow.',
 } = Astro.props;
+const hinweis = de ? 'Auf Englisch · öffnet in neuem Tab' : 'Opens in a new tab';
 ---
 <section class="opl-wrap reveal">
   <a class="opl" href={href} target="_blank" rel="noopener">
@@ -22,10 +34,16 @@ const {
       <span class="opl__kx">Onepager</span>
       <span class="opl__title">{title}</span>
       <span class="opl__note">{note}</span>
+      <span class="opl__hint">{hinweis}</span>
     </span>
     <span class="opl__arrow" aria-hidden="true">↗</span>
   </a>
 </section>
+<div class="opl-dl">
+  <p class="opl-more">
+    <a href={hrefLang('/downloads.html', de ? 'de' : 'en')}>{de ? 'Onepager als Datei und weitere Bilder: Downloads' : 'One-pager files and more images: Downloads'} →</a>
+  </p>
+</div>
 
 <style>
   .opl-wrap {
@@ -87,8 +105,44 @@ const {
   .opl:hover .opl__arrow {
     transform: translate(3px, -3px);
   }
+  .opl__hint {
+    margin-top: 0.2rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-8);
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
   @media (max-width: 560px) {
     .opl__note {
       display: none;
     }
-  }</style>
+  }
+  .opl-dl {
+    max-width: var(--maxw, 1180px);
+    margin-inline: auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem) 2rem;
+  }
+  .opl-wrap + .opl-dl {
+    margin-top: -1.2rem;
+  }
+  .opl-more {
+    margin: 0;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-8);
+  }
+  .opl-more a {
+    color: var(--accent, #2dd4ff);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
+    padding-bottom: 0.1rem;
+    text-decoration: none;
+  }
+  .opl-more a:hover,
+  .opl-more a:focus-visible {
+    color: var(--text, #f3e9df);
+    border-bottom-color: currentColor;
+  }
+</style>

@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -45,8 +46,8 @@ const de = lang === 'de';
     <div class="hero__in">
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-5-0.html' : '/patches/sc-4-5-0.html'}>Alpha 4.5.0 · Dawn of Engineering</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Das Schiff wird zum Schlachtfeld' : 'The ship becomes the battlefield'}</span>Engineering</h1>
-      <p class="lead">{de ? 'Mit 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay: Energie verteilen, Panzerung managen, Braende loeschen — wer im Gefecht ueberlebt, haelt sein Schiff am Laufen.' : 'With 4.5.0, operating your ship becomes gameplay in itself: distribute power, manage armor, put out fires — whoever survives the fight is the one who keeps their ship running.'}</p>
-      <div class="tags"><span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">{de ? 'Feuer-Hazard' : 'Fire Hazard'}</span><span class="tag">Power Management</span><span class="tag">VR</span></div>
+      <p class="lead">{de ? 'Mit 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay: Energie verteilen, Panzerung managen, Brände löschen — wer im Gefecht überlebt, hält sein Schiff am Laufen.' : 'With 4.5.0, operating your ship becomes gameplay in itself: distribute power, manage armor, put out fires — whoever survives the fight is the one who keeps their ship running.'}</p>
+      <div class="tags"><Schlagwort>Engineering</Schlagwort><Schlagwort>Ship Armor</Schlagwort><Schlagwort hot>{de ? 'Feuer-Hazard' : 'Fire Hazard'}</Schlagwort><Schlagwort>Power Management</Schlagwort><Schlagwort>VR</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>
@@ -68,16 +69,16 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">Dawn of Engineering</div>
       <div class="big outline">{de ? 'HALTE ES AM LAUFEN.' : 'KEEP IT RUNNING.'}</div>
-      <p>{de ? 'Schilde fallen, Komponenten brennen durch, Energie wird knapp. In 4.5.0 entscheidet nicht mehr nur, wie gut du fliegst — sondern wie gut du dein Schiff im Gefecht ' : 'Shields drop, components burn out, power runs low. In 4.5.0 it\'s no longer just about how well you fly — but how well you keep your ship '}<b style="color:var(--accent-2)">{de ? 'am Leben haeltst' : 'alive'}</b>{de ? '.' : ' in the fight.'}</p>
+      <p>{de ? 'Schilde fallen, Komponenten brennen durch, Energie wird knapp. In 4.5.0 entscheidet nicht mehr nur, wie gut du fliegst — sondern wie gut du dein Schiff im Gefecht ' : 'Shields drop, components burn out, power runs low. In 4.5.0 it\'s no longer just about how well you fly — but how well you keep your ship '}<b style="color:var(--accent-2)">{de ? 'am Leben hältst' : 'alive'}</b>{de ? '.' : ' in the fight.'}</p>
     </div>
   </section>
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
     <div class="s"><div class="n count" data-to="4">0</div><div class="c">{de ? 'Neue Systeme · Engineering, Armor, Feuer, Power' : 'New systems · Engineering, Armor, Fire, Power'}</div></div>
-    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Physische Panzerschicht ueber der Huelle' : 'Physical armor layer over the hull'}</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Physische Panzerschicht über der Hülle' : 'Physical armor layer over the hull'}</div></div>
     <div class="s"><div class="n">VULKAN</div><div class="c">{de ? 'Standard-Renderer ab 4.5.0' : 'Default renderer from 4.5.0'}</div></div>
-    <div class="s"><div class="n">VR</div><div class="c">{de ? 'Experimentell · ueber Vulkan' : 'Experimental · via Vulkan'}</div></div>
+    <div class="s"><div class="n">VR</div><div class="c">{de ? 'Experimentell · über Vulkan' : 'Experimental · via Vulkan'}</div></div>
   </div>
 
   <!-- OVERVIEW — single split section (the ONE framed/split allowed) -->
@@ -87,8 +88,8 @@ const de = lang === 'de';
       <div class="split__text">
         <div class="kx">{de ? '01 · Engineering-Gameplay' : '01 · Engineering Gameplay'}</div>
         <h3>{de ? 'Der Maschinenraum wird zum Cockpit' : 'The engine room becomes the cockpit'}</h3>
-        <p>{de ? 'An einem ' : 'At an '}<b>{de ? 'Engineering-Terminal' : 'Engineering terminal'}</b>{de ? ' ueberwachen Spieler den Zustand ihres Schiffs in Echtzeit — und reparieren beschaedigte Komponenten direkt waehrend des Betriebs. Was bisher unsichtbar im Hintergrund lief, wird zur aktiven Aufgabe an Bord.' : ', players monitor the state of their ship in real time — and repair damaged components right in the middle of operation. What used to run invisibly in the background becomes an active task on board.'}</p>
-        <p>{de ? 'Im Mehrspieler-Schiff entsteht so eine eigene Rolle: Waehrend die einen fliegen und feuern, haelt der Ingenieur Reaktor, Schilde und Antrieb am Laufen. Schiffe werden vom Werkzeug zur ' : 'In a multi-crew ship, this creates a role of its own: while some fly and fire, the engineer keeps the reactor, shields, and drive running. Ships turn from a tool into a '}<b>{de ? 'Crew-Erfahrung' : 'crew experience'}</b>.</p>
+        <p>{de ? 'An einem ' : 'At an '}<b>{de ? 'Engineering-Terminal' : 'Engineering terminal'}</b>{de ? ' überwachen Spieler den Zustand ihres Schiffs in Echtzeit — und reparieren beschädigte Komponenten direkt während des Betriebs. Was bisher unsichtbar im Hintergrund lief, wird zur aktiven Aufgabe an Bord.' : ', players monitor the state of their ship in real time — and repair damaged components right in the middle of operation. What used to run invisibly in the background becomes an active task on board.'}</p>
+        <p>{de ? 'Im Mehrspieler-Schiff entsteht so eine eigene Rolle: Während die einen fliegen und feuern, hält der Ingenieur Reaktor, Schilde und Antrieb am Laufen. Schiffe werden vom Werkzeug zur ' : 'In a multi-crew ship, this creates a role of its own: while some fly and fire, the engineer keeps the reactor, shields, and drive running. Ships turn from a tool into a '}<b>{de ? 'Crew-Erfahrung' : 'crew experience'}</b>.</p>
       </div>
     </div>
   </section>
@@ -100,7 +101,7 @@ const de = lang === 'de';
       <div class="side b">
         <h3>★ Ship Armor</h3>
         <ul>
-          <li>{de ? 'Eigene physische Schicht ueber Huelle und Komponenten.' : 'Its own physical layer over the hull and components.'}</li>
+          <li>{de ? 'Eigene physische Schicht über Hülle und Komponenten.' : 'Its own physical layer over the hull and components.'}</li>
           <li>{de ? 'Absorbiert eingehenden Schaden, bevor er die Struktur erreicht.' : 'Absorbs incoming damage before it reaches the structure.'}</li>
           <li>{de ? 'Verschleisst mit der Zeit — Panzerung ist endlich.' : 'Wears down over time — armor is finite.'}</li>
           <li>{de ? 'Macht Schadensmanagement zur strategischen Entscheidung.' : 'Makes damage management a strategic decision.'}</li>
@@ -111,9 +112,9 @@ const de = lang === 'de';
         <h3>{de ? '⚠ Feuer-Hazard' : '⚠ Fire Hazard'}</h3>
         <ul>
           <li>{de ? 'Feuer breitet sich dynamisch durchs Schiff aus.' : 'Fire spreads dynamically through the ship.'}</li>
-          <li>{de ? 'Frisst Sauerstoff — die Atmosphaere an Bord wird zur Gefahr.' : 'Consumes oxygen — the atmosphere on board becomes a hazard.'}</li>
-          <li>{de ? 'Greift auf benachbarte Raeume ueber, wenn man nichts tut.' : 'Spreads to adjacent rooms if you do nothing.'}</li>
-          <li>{de ? 'Muss aktiv geloescht werden — von selbst geht es nicht aus.' : 'Must be actively put out — it won\'t die down on its own.'}</li>
+          <li>{de ? 'Frisst Sauerstoff — die Atmosphäre an Bord wird zur Gefahr.' : 'Consumes oxygen — the atmosphere on board becomes a hazard.'}</li>
+          <li>{de ? 'Greift auf benachbarte Räume über, wenn man nichts tut.' : 'Spreads to adjacent rooms if you do nothing.'}</li>
+          <li>{de ? 'Muss aktiv gelöscht werden — von selbst geht es nicht aus.' : 'Must be actively put out — it won\'t die down on its own.'}</li>
         </ul>
       </div>
     </div>
@@ -132,9 +133,9 @@ const de = lang === 'de';
     </div>
     <div class="scrolly__steps">
       <div class="sstep"><div class="sn">01</div><h3>{de ? 'Treffer einstecken' : 'Take the hit'}</h3><p>{de ? 'Eingehendes Feuer trifft zuerst die Ship Armor. Die Panzerschicht absorbiert den Schaden — doch mit jedem Treffer verschleisst sie weiter.' : 'Incoming fire strikes the Ship Armor first. The armor layer absorbs the damage — but with every hit it wears down further.'}</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Lage ablesen' : 'Read the situation'}</h3><p>{de ? 'Am Engineering-Terminal zeigt sich, welche Komponenten beschaedigt sind, wo Energie fehlt und wo es bereits gefaehrlich heiss wird.' : 'At the Engineering terminal you can see which components are damaged, where power is lacking, and where it\'s already getting dangerously hot.'}</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Brand bekaempfen' : 'Fight the fire'}</h3><p>{de ? 'Bricht ein Feuer aus, frisst es Sauerstoff und greift auf Nachbarraeume ueber. Es muss aktiv geloescht werden, bevor sich der Brand durchs Schiff frisst.' : 'If a fire breaks out, it consumes oxygen and spreads to neighboring rooms. It has to be actively put out before the blaze eats its way through the ship.'}</p></div>
-      <div class="sstep"><div class="sn">04</div><h3><Fragment set:html={de ? 'Reparieren &amp; weiter' : 'Repair &amp; carry on'} /></h3><p>{de ? 'Beschaedigte Komponenten werden in Echtzeit repariert, Energie neu verteilt — und das Schiff bleibt im Kampf. Wer das beherrscht, ueberlebt.' : 'Damaged components are repaired in real time, power is redistributed — and the ship stays in the fight. Master this, and you survive.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Lage ablesen' : 'Read the situation'}</h3><p>{de ? 'Am Engineering-Terminal zeigt sich, welche Komponenten beschädigt sind, wo Energie fehlt und wo es bereits gefährlich heiß wird.' : 'At the Engineering terminal you can see which components are damaged, where power is lacking, and where it\'s already getting dangerously hot.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Brand bekämpfen' : 'Fight the fire'}</h3><p>{de ? 'Bricht ein Feuer aus, frisst es Sauerstoff und greift auf Nachbarräume über. Es muss aktiv gelöscht werden, bevor sich der Brand durchs Schiff frisst.' : 'If a fire breaks out, it consumes oxygen and spreads to neighboring rooms. It has to be actively put out before the blaze eats its way through the ship.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3><Fragment set:html={de ? 'Reparieren &amp; weiter' : 'Repair &amp; carry on'} /></h3><p>{de ? 'Beschädigte Komponenten werden in Echtzeit repariert, Energie neu verteilt — und das Schiff bleibt im Kampf. Wer das beherrscht, überlebt.' : 'Damaged components are repaired in real time, power is redistributed — and the ship stays in the fight. Master this, and you survive.'}</p></div>
     </div>
   </div>
 
@@ -150,7 +151,7 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">04 · Power Management</div>
       <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'JEDES WATT ZAEHLT' : 'EVERY WATT COUNTS'}</div>
-      <p>{de ? 'Energie wird in Echtzeit auf die Komponenten verteilt — mehr Leistung fuer Schilde, Triebwerke oder Waffen, je nach Lage. Doch ' : 'Power is distributed to components in real time — more output for shields, thrusters, or weapons, depending on the situation. But '}<b style="color:var(--hot)">{de ? 'Ueberlastung' : 'overload'}</b>{de ? ' fuehrt zu Hitze, Ausfaellen und Schaeden. Wer alles auf einmal will, riskiert, dass nichts mehr funktioniert.' : ' leads to heat, failures, and damage. Try to have it all at once, and you risk nothing working at all.'}</p>
+      <p>{de ? 'Energie wird in Echtzeit auf die Komponenten verteilt — mehr Leistung für Schilde, Triebwerke oder Waffen, je nach Lage. Doch ' : 'Power is distributed to components in real time — more output for shields, thrusters, or weapons, depending on the situation. But '}<b style="color:var(--hot)">{de ? 'Überlastung' : 'overload'}</b>{de ? ' führt zu Hitze, Ausfällen und Schäden. Wer alles auf einmal will, riskiert, dass nichts mehr funktioniert.' : ' leads to heat, failures, and damage. Try to have it all at once, and you risk nothing working at all.'}</p>
     </div>
   </section>
 
@@ -160,7 +161,7 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">{de ? '05 · Unter der Haube' : '05 · Under the Hood'}</div>
       <div class="big">VULKAN &amp; VR</div>
-      <p>{de ? 'Ab 4.5.0 ist ' : 'From 4.5.0, '}<b style="color:var(--accent-2)">Vulkan</b>{de ? ' der Standard-Renderer und loest DirectX 11 ab — die API gibt es im Spiel bereits seit 3.23. Auf dieser Pipeline baut die neue, ' : ' is the default renderer, replacing DirectX 11 — the API has already been in the game since 3.23. This pipeline is the foundation for the new, '}<b>{de ? 'experimentelle VR-Unterstuetzung' : 'experimental VR support'}</b>{de ? ' auf: ein erster Schritt, das Verse durch die Brille zu erleben.' : ': a first step toward experiencing the Verse through the goggles.'}</p>
+      <p>{de ? 'Ab 4.5.0 ist ' : 'From 4.5.0, '}<b style="color:var(--accent-2)">Vulkan</b>{de ? ' der Standard-Renderer und löst DirectX 11 ab — die API gibt es im Spiel bereits seit 3.23. Auf dieser Pipeline baut die neue, ' : ' is the default renderer, replacing DirectX 11 — the API has already been in the game since 3.23. This pipeline is the foundation for the new, '}<b>{de ? 'experimentelle VR-Unterstützung' : 'experimental VR support'}</b>{de ? ' auf: ein erster Schritt, das Verse durch die Brille zu erleben.' : ': a first step toward experiencing the Verse through the goggles.'}</p>
     </div>
   </section>
 

@@ -813,7 +813,14 @@ import { SUPABASE, DISCORD } from '../consts';
         e.preventDefault();
         var email = form.elements.namedItem('email').value.trim();
         var password = form.elements.namedItem('password').value;
-        if (!email || !password) return;
+        // Leer abgeschickt: sagen, was fehlt, und ins erste leere Feld
+        // springen (UX-Audit P95, 24.11.2026; vorher geschah sichtbar nichts).
+        // Englisch wie der Rest der Seite (D-11).
+        if (!email || !password) {
+          showStatus('Please fill in: ' + (!email && !password ? 'e-mail and password' : !email ? 'e-mail' : 'password') + '.', 'error');
+          try { form.elements.namedItem(!email ? 'email' : 'password').focus(); } catch (err) { /* noop */ }
+          return;
+        }
 
         btn.disabled = true;
         btnTxt.textContent = 'Signing in …';

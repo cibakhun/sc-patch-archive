@@ -687,7 +687,12 @@ function buildVehicle(id) {
     return known.length ? round(known.reduce((s, w) => s + w.dps * w.count, 0), 1) : null;
   };
   const pilotDps = sumDps(pilotWithDps);
-  const turretDps = sumDps(turretWithDps);
+  // Punktverteidigung (PDC) zaehlt nicht in die Turm-DPS: sie wehrt Raketen
+  // und Torpedos ab und steht mit eigener DPS in turrets[] (Gattung pdc).
+  // Seit der Datenlauf die PDC-Kanonen aus den Turm-Records liest
+  // (datamine-ship-loadouts.mjs), haette sie sonst die Turm-Summe von
+  // Polaris, Idris und Perseus um bis zu 1.800 DPS erhoeht.
+  const turretDps = sumDps(Object.entries(turretByKind).filter(([k]) => k !== 'pdc').flatMap(([, m]) => withDps(m)));
   if (pilotDps != null) stats.dpsPilot++;
   if (turretDps != null) stats.dpsTurret++;
   const dpsSkipped = [...pilotWithDps, ...turretWithDps].filter((w) => w.dps == null).length;

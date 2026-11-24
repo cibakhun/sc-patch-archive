@@ -33,7 +33,8 @@ import { patchSeiteHref } from '../lib/patchPages';
 import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { beiWikelo } from '../lib/wikeloShips';
-import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
+import { vRole, vSize, vStatus, vDesc, vDescLang } from '../i18n/vehicleText';
+import { fremdLang } from '../i18n/spieltext';
 // Hersteller-Logos (game-sourced aus Data.p4k, self-hosted unter /assets/manufacturers/).
 // Manifest: exakter Herstellername -> { file, w, h }. Kein Treffer -> Text-Fallback.
 import manufacturerLogos from '../data/manufacturer-logos.json';
@@ -41,6 +42,8 @@ import { HOLO_GRP_ICON } from '../lib/holoIcons';
 import { holoDaten, realName } from '../lib/holoDaten';
 import { versioned } from '../lib/assetVersion';
 import { itemForPart } from '../lib/itemLinks';
+import { fahrzeugItem, wikeloBelohnung, schiffsAuftraege } from '../lib/shipQuerwege';
+import { bereiche, ziel } from '../lib/bereiche';
 import { itemPath } from '../lib/items';
 
 interface Props {
@@ -68,6 +71,18 @@ const partHref = (name: string | null | undefined, size: number | null | undefin
   return it ? L(itemPath(it)) : null;
 };
 const loc = lang === 'en' ? 'en-US' : 'de-DE';
+
+/* Querwege des Datenblatts (UX-Audit Paket E, E5): nur, was die Daten
+   hergeben — Herleitung und Zahlen in src/lib/shipQuerwege.ts. */
+const fahrzeugIt = fahrzeugItem(d.name);
+const wikeloHref = beiWikelo(id)
+  ? ziel('wikelo', lang).href + (wikeloBelohnung(id) ? `?item=${encodeURIComponent(wikeloBelohnung(id)!)}` : '')
+  : null;
+const auftraege = schiffsAuftraege(d.name);
+// Advanced Loadout nur im Vorschau-Bau: bereiche() laesst Vorschau-Ziele im
+// Live-Bau weg, der Link entsteht dann gar nicht (Regel Hangar-Schalter).
+const loadoutZiel = bereiche(lang).flatMap((b) => b.seiten).find((z) => z.key === 'loadout') ?? null;
+const loadoutHref = loadoutZiel ? `${loadoutZiel.href}?ship=${encodeURIComponent(id)}` : null;
 
 const hero = pickHero(d);
 // Echtes Marken-Logo, wenn der Hersteller im Manifest steht; sonst Text-Eyebrow.
@@ -118,7 +133,18 @@ const armStats = buildArmStats(d, lang);
 // Zelle waere die Doppelung, die D-03 verbietet.
 const turretDpsTotal =
   d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
+// Die Punktverteidigung steht mit eigener DPS in ihrer Zeile, zaehlt aber
+// nicht in turretDps (scripts/datamine-vehicles.mjs). Traegt sie DPS, sagt
+// die Summe das, sonst stuende darunter eine Zahl, die nicht aufgeht.
+const pdcMitDps = d.turrets.some((g) => g.label === 'Punktverteidigung (PDC)' && g.dps);
 const desc = vDesc(d, lang);
+// Heuristik P23: 98 Schiffe haben keinen deutschen Text, die deutsche Seite
+// zeigte den englischen ohne ein Wort dazu. Das lang="en" am Absatz setzt
+// die Sprachregel (vDescLang, fremdLang); hier kommt darunter ein Hinweis
+// dazu, nach derselben Quelle. Er steht nach den DATEN auf beiden Seiten und
+// ist auf der englischen nur versteckt — verify:sync vergleicht die
+// Elementfolge beider Sprachen.
+const descNurEn = !!desc && vDescLang(d, 'de') === 'en';
 const slots: [string, { name: string; size: number | null; count: number }[]][] = (
   [
     [t('ship.slot.generators'), (d.components?.powerPlants ?? []).filter(realName)],
@@ -144,7 +170,12 @@ const stageStats: { label: string; value: string }[] = [
   // 0 m ist kein Schiff — siehe Begruendung an `dims` oben.
   { label: t('ship.stage.length'), value: d.lengthM != null && d.lengthM > 0 ? `${d.lengthM.toLocaleString(loc)} m` : '—' },
   { label: t('ship.stage.crew'), value: crewFmt(d) },
-  { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
+  // Bergbauschiffe ohne Frachtraum (Prospector, Golem) zeigten hier "Fracht
+  // 0 SCU", obwohl sie 32 SCU Erz fassen (Heuristik P54). Dann steht das Erz
+  // an dieser Stelle; die 0 SCU Fracht bleibt bei allen anderen echt.
+  !d.cargoSCU && d.oreSCU
+    ? { label: t('ship.stage.ore'), value: `${d.oreSCU.toLocaleString(loc)} SCU` }
+    : { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
   { label: t('ship.stage.scm'), value: d.scmSpeed != null ? `${d.scmSpeed} m/s` : '—' },
   {
     label: buyMin ? t('ship.stage.priceIngame') : t('ship.stage.pledge'),
@@ -216,6 +247,13 @@ const sysPortCount = (gr: string): number => holoData?.ports.filter((p) => p.g =
 // Inhaltsgruppen (CONTENT_GROUPS_SOURCE, weiter unten) ist keine Kosmetik: nur
 // fuer diese hier darf der Client viewer.setFilter() aufrufen.
 const portGroups = holoData?.groups ?? [];
+// Bewaffnung ohne Marker am Rumpf (Heuristik P23): die Cyclone AA, MT und TR
+// tragen Waffen und Raketen, ihr Mesh hat dafuer aber keine Punkte — bis
+// 24.11.2026 fehlte ihnen deshalb der ganze Reiter. Dann steht die
+// Bewaffnung als Textabschnitt in der Leiste, wie Kaufen oder Leistung, und
+// die Buehne zeigt dazu keine Marker (cfg.groups kennt sie nicht).
+const armsOhneMarker = armament.length > 0 && !portGroups.includes('arms');
+const sysGroups: readonly string[] = armsOhneMarker ? [...portGroups, 'arms'] : portGroups;
 
 // Belastbarkeit der gezeigten Positionen — steuert die Herkunfts-Zeile unter dem
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
@@ -316,7 +354,7 @@ const CONTENT_GROUPS_SOURCE: {
     renders: profile.length > 0,
   },
   {
-    id: 'context', label: t('ship.ch.context'), rail: t('ship.ch.context'), icon: IC.versicherung,
+    id: 'context', label: t('ship.ch.context'), rail: t('ship.rail.context'), icon: IC.versicherung,
     code: ctxCode,
     count: [
       viz.insurance.length > 0,
@@ -550,6 +588,12 @@ a{color:inherit;text-decoration:none}
 .holo__hintline{position:absolute;right:clamp(1rem,3vw,2.5rem);bottom:106px;z-index:4;pointer-events:none;white-space:nowrap;text-align:right;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
+/* Scrollt jemand ueber dem Hologramm, ohne es freigegeben zu haben (das
+   Mausrad scrollt dann die Seite, UX-Audit 24.11.2026), leuchtet die
+   Hinweiszeile kurz auf: sie sagt, wie man zoomt. Erste Fassung war ein
+   Kasten mitten auf der Buehne — vorgefuehrt falsch: die Seite scrollt ja
+   gerade, und der Kasten wanderte mit der Buehnenmitte unter die Kopfleiste. */
+.holo__stage.is-3d .holo__hintline.is-hervor{opacity:1;color:var(--accent);text-shadow:0 0 12px color-mix(in srgb,var(--accent) 55%,transparent)}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
 .holo__ship img{opacity:0;transition:opacity 1.2s ease}
 .holo__ship img.is-active{opacity:1}
@@ -1167,6 +1211,13 @@ a{color:inherit;text-decoration:none}
    Maus-Bedienung, die auf einem Geraet dieser Breite oft gar nicht vorliegt —
    also weg, statt sie zu quetschen. */
 @media(max-width:899px){.holo__hintline{display:none}}
+/* Mit Maus leuchtet sie auch hier auf, wenn das Mausrad ueber dem Hologramm
+   die Seite rollt (radHinweis): sonst erfaehrt im schmalen Desktopfenster
+   niemand, dass Strg + Mausrad zoomt. Nur fuer die 1,8 s des Aufleuchtens,
+   umbrechend statt 400px breit, damit sie den Strahl nicht dauerhaft kreuzt. */
+@media(max-width:899px) and (hover:hover) and (pointer:fine){
+  .holo__stage.is-3d .holo__hintline.is-hervor{display:block;white-space:normal;max-width:min(20rem,calc(100% - 2rem))}
+}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
 /* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
@@ -1401,6 +1452,19 @@ a{color:inherit;text-decoration:none}
 .sd__pledgerow a{color:var(--accent);text-decoration:underline}
 .sd__pledgerow a:hover{color:var(--text)}
 .sd__hint{margin-top:.9rem;font-size:var(--fs-7);color:var(--muted)}
+/* Querwege unter dem Kaufen-Abschnitt (UX-Audit E5): Wikelo, Auftrag,
+   Fahrzeug-Itemblatt. Gleiche Linkfarbe wie die Pledge-Zeile darueber. */
+.sd__wege{list-style:none;margin:.9rem 0 0;padding:.8rem 0 0;border-top:1px solid var(--line);display:grid;gap:.35rem;
+  font-size:var(--fs-8);color:var(--muted)}
+.sd__wege a{color:var(--accent);text-decoration:underline}
+.sd__wege a:hover{color:var(--text)}
+/* Weg ins Advanced Loadout am Ende der Abschnitte Bewaffnung und Komponenten
+   (nur Vorschau-Bau). */
+.sd__loadout{display:inline-flex;align-items:center;gap:.5rem;margin-top:1rem;padding:.5rem .9rem;border:1px solid var(--line);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--text);
+  transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.sd__loadout svg{fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round}
+.sd__loadout:hover,.sd__loadout:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
 @media(max-width:640px){.sd__shoprow{grid-template-columns:1fr auto}.sd__shopwhere{grid-column:1 / -1;margin-top:-.2rem}}
 
 /* Leistungsprofil */
@@ -1792,6 +1856,7 @@ span.sd__ref{color:var(--muted)}
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   transition:color var(--dur-fast) var(--ease-ui)}
 .favhangar:hover{color:var(--accent)}
+.sd__desc-note{max-width:78ch;margin:-1.1rem 0 1.6rem;padding-left:1.15rem;font-size:var(--fs-6);color:var(--muted)}
 </style>
 
 <SiteNav
@@ -1854,7 +1919,7 @@ span.sd__ref{color:var(--muted)}
           Vollbild-Bereich bezogen) -- deshalb Kind von .holo__wrap, dessen
           eigene position:relative sie exakt dort haelt. */}
       <div class="holo__frame" aria-hidden="true"></div>
-      <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
+      <div class="holo__hud">{ziel('schiffe', lang).name}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
       {dims && <div class="holo__dims">{dims}</div>}
       <div class="holo__grid" aria-hidden="true"></div>
       <div class="holo__pad" aria-hidden="true"></div>
@@ -1894,6 +1959,12 @@ span.sd__ref{color:var(--muted)}
             <span class="js-fleet-txt">{t('fleet.add')}</span>
           </button>
           <button type="button" class="favretry" data-fleet-retry data-fleet-unsaved={t('fleet.retry')} data-fleet-unsynced={t('fleet.resync')} hidden>{t('fleet.retry')}</button>
+          {/* Vergleich (UX-Audit E7, TF B08): fuehrt zur Schiffsliste mit diesem
+              Schiff markiert; dort waehlt man das zweite. */}
+          <a class="favhangar favcmp" href={`${ziel('schiffe', lang).href}?cmp=${id}`}>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>{t('ship.cmp')}</span>
+          </a>
           {HAS_HANGAR && (
             <a class="favhangar" href={L(`/hangar.html?ship=${id}`)}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 20V11a9 9 0 0 1 18 0v9M2 20h20M8 20v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2006,7 +2077,7 @@ span.sd__ref{color:var(--muted)}
             D-04: wenn das Schiff die Navigation IST, darf es nicht hinter
             einem Knopf liegen. Laden loest jetzt ausschliesslich der
             IntersectionObserver im Skriptblock unten aus. */}
-        <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
+        <div class="holo__hintline" id="holohint" aria-hidden="true">{t('holo.hint')}</div>
         {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
             entfallen (16-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
             Rail (nav.holo__rail), die als eigener Block NACH der Buehne
@@ -2056,7 +2127,7 @@ span.sd__ref{color:var(--muted)}
         Punkt 2, Vorbelegung ohne Klick) -- das Skript unten haelt es beim
         Umschalten synchron; Punkt 6 des Vertrags gewinnt gegen den
         aelteren aria-pressed-Wortlaut (siehe Planungsnotizen). */}
-    {(portGroups.length + contentGroups.length) > 0 && (
+    {(sysGroups.length + contentGroups.length) > 0 && (
       <nav class="holo__rail" id="holorail" aria-label={t('ship.console.rail.aria')}>
         {portGroups.map((gr, i) => (
           <a href={`#sys-${gr}`} data-g={gr} aria-current={i === 0 ? 'true' : undefined}>
@@ -2074,10 +2145,19 @@ span.sd__ref{color:var(--muted)}
             einen Text — sie sahen bis hierher identisch aus, obwohl ein Klick
             voellig Verschiedenes tut. Eine Zaesur vor dem ersten
             Inhaltseintrag sagt das, ohne ein Wort zu kosten. */}
+        {armsOhneMarker && (
+          <a href="#sys-arms" data-g="arms" data-kind="inhalt"
+            class={portGroups.length > 0 ? 'is-schnitt' : undefined}
+            aria-current={portGroups.length === 0 ? 'true' : undefined}>
+            <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON.arms} /></svg>
+            <span class="holo__rail-lb">{t('holo.grp.arms' as any)}</span>
+            <span class="holo__rail-ct">{armament.length}</span>
+          </a>
+        )}
         {contentGroups.map((cg, i) => (
           <a href={`#sys-${cg.id}`} data-g={cg.id} data-kind="inhalt"
-            class={i === 0 && portGroups.length > 0 ? 'is-schnitt' : undefined}
-            aria-current={portGroups.length === 0 && i === 0 ? 'true' : undefined}>
+            class={i === 0 && portGroups.length > 0 && !armsOhneMarker ? 'is-schnitt' : undefined}
+            aria-current={portGroups.length === 0 && !armsOhneMarker && i === 0 ? 'true' : undefined}>
             <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={cg.icon} /></svg>
             <span class="holo__rail-lb">{cg.rail}</span>
             <span class="holo__rail-ct">{cg.count}</span>
@@ -2106,13 +2186,13 @@ span.sd__ref{color:var(--muted)}
         Ausstattungs-Kapitel (SCHRITT 4 -- der Umzug, keine zweite
         Aggregation derselben Aussage); prop/other bekommen die neue, aber
         strukturgleiche Stueckzahl-Liste (sysKindCounts). */}
-    {holoData && holoData.groups.map((gr) => (
-      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} aria-label={t(`holo.grp.${gr}` as any)}>
+    {sysGroups.map((gr) => (
+      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} data-kind={gr === 'arms' && armsOhneMarker ? 'inhalt' : undefined} aria-label={t(`holo.grp.${gr}` as any)}>
         <h2 class="holo__sys-h">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
           {t(`holo.grp.${gr}` as any)}
         </h2>
-        <p class="holo__sys-ct">{t('ship.console.count').replace('%n%', String(sysPortCount(gr)))}</p>
+        <p class="holo__sys-ct">{sysPortCount(gr) > 0 ? t('ship.console.count').replace('%n%', String(sysPortCount(gr))) : t('ship.console.count0')}</p>
 
         {gr === 'arms' && (
           <>
@@ -2128,7 +2208,7 @@ span.sd__ref{color:var(--muted)}
                 {turretDpsTotal && (
                   <div class="arm__scell">
                     <b>{turretDpsTotal} DPS</b>
-                    <span>{t('arm.stat.totalDps')}</span>
+                    <span>{t(pdcMitDps ? 'arm.stat.totalDpsNoPdc' : 'arm.stat.totalDps')}</span>
                   </div>
                 )}
               </div>
@@ -2223,6 +2303,14 @@ span.sd__ref{color:var(--muted)}
               </div>
             ))}
           </div>
+        )}
+        {/* Weg ins Advanced Loadout (UX-Audit TF C11, IA V5): bis dahin nur
+            ueber den 3D-Hangar zu erreichen. Nur im Vorschau-Bau. */}
+        {loadoutHref && (gr === 'arms' || gr === 'core') && (
+          <a class="sd__loadout" href={loadoutHref}>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>
+            <span>{t('ship.loadout.open').replace('%name%', loadoutZiel!.name)}</span>
+          </a>
         )}
       </section>
     ))}
@@ -2416,7 +2504,7 @@ span.sd__ref{color:var(--muted)}
           )}
         </>
       ) : beiWikelo(id) ? (
-        <p class="sd__nobuy">{t('ship.buy.wikelo')} <a href={L('/topics/wikelo-emporium.html')}>Wikelo</a>.</p>
+        <p class="sd__nobuy">{t('ship.buy.wikelo')} <a href={wikeloHref!}>Wikelo</a>.</p>
       ) : (
         <p class="sd__nobuy">{t(d.pledgeUrl ? 'ship.buy.none' : 'ship.buy.noneNoPledge')}</p>
       )}
@@ -2439,6 +2527,19 @@ span.sd__ref{color:var(--muted)}
           <span class="p">{t('ship.pledge')} ${d.msrpUSD.toLocaleString('en-US')}</span>
           {d.pledgeUrl && <a href={d.pledgeUrl} target="_blank" rel="noopener">{t('ship.pledge.store')}</a>}
         </div>
+      )}
+      {(fahrzeugIt || (buyMin && wikeloHref) || auftraege.length > 0) && (
+        <ul class="sd__wege">
+          {buyMin && wikeloHref && (
+            <li>{t('ship.wege.wikelo')} <a href={wikeloHref}>{ziel('wikelo', lang).name}</a></li>
+          )}
+          {auftraege.map((a) => (
+            <li>{t('ship.wege.auftrag')} <a href={L(`/missionen/${a.slug}.html`)}>{a.title}</a></li>
+          ))}
+          {fahrzeugIt && (
+            <li>{t('ship.wege.item')} <a href={L(fahrzeugIt.path)}>{fahrzeugIt.name}</a></li>
+          )}
+        </ul>
       )}
       <p class="sd__hint">{t('ship.buy.hint')}</p>
     </section>
@@ -2565,7 +2666,7 @@ span.sd__ref{color:var(--muted)}
       </section>
     )}
   </section>
-  {(portGroups.length + contentGroups.length) > 0 && (
+  {(sysGroups.length + contentGroups.length) > 0 && (
     /* 16-04-PLAN.md Task 1, SCHRITT 2 (16-UI-SPEC.md Detailvertrag Punkt
        6.3, "kein Flackern"): setzt die Klasse has-console UNMITTELBAR nach
        dem Konsolen-Markup, synchron waehrend der Parser noch hier steht --
@@ -2605,14 +2706,15 @@ span.sd__ref{color:var(--muted)}
       Systemabschnitte stehen gestapelt in .holo, wo D-02 sie verlangt.
       Reihenfolge: erst das Schiff, dann seine Kennwerte, dann die Liste der
       gewaehlten Gruppe — vorher stand die Liste vor den Kennwerten. */}
-  {(portGroups.length + contentGroups.length) > 0 && (
+  {(sysGroups.length + contentGroups.length) > 0 && (
     <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
   )}
 
   <div class="sd">
 
 
-    {desc && <p class="sd__desc">{desc}</p>}
+    {desc && <p class="sd__desc" lang={fremdLang(lang, vDescLang(d, lang))}>{desc}</p>}
+    {descNurEn && <p class="sd__desc-note" hidden={lang !== 'de'}>{t('ship.desc.nurEn')}</p>}
 
 
     {similar.length > 0 && (
@@ -2636,6 +2738,7 @@ span.sd__ref{color:var(--muted)}
 
     <div class="sd__links">
       <a href={L('/schiffe.html')}>{t('ship.links.all')}</a>
+      {fahrzeugIt && <a href={L(fahrzeugIt.path)}>{t('ship.links.item')}</a>}
       {d.pledgeUrl && <a href={d.pledgeUrl} target="_blank" rel="noopener">{t('ship.pledge.store')}</a>}
       {extras?.fySlug && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
     </div>
@@ -3212,12 +3315,41 @@ span.sd__ref{color:var(--muted)}
           viewer.setMasskette(gr === 'spec' ? cfg.masse : null, massSperren());
         }
       };
+      /* Datenreiter (Ausstattung, Kaufen, Leistung, Umfeld) beantworten ihre
+         Frage in der Auslesung UNTER der Buehne. Bis 24.11.2026 blieb die
+         Seite beim Klick stehen: gemessen bei 1440x900 begann die Auslesung
+         unterhalb des Fensters, ein Klick auf "Kaufen" liess nur die Marker
+         am Schiff verschwinden (UX-Audit HE B06, "Klick ohne sichtbare
+         Wirkung"). Jetzt rueckt der Abschnitt ins Bild — so wenig wie noetig:
+         passt er ganz hinein, steht seine Unterkante am Fensterrand und vom
+         Raum bleibt oben so viel wie moeglich; ist er hoeher als das Fenster,
+         steht seine Oberkante unter der Kopfleiste. Steht er schon im Bild,
+         bewegt sich nichts. Portgruppen antworten am Rumpf und scrollen nie. */
+      var zeigeAbschnitt = function (gr) {
+        var sec = null;
+        for (var zi = 0; zi < sysEls.length; zi++) {
+          if (sysEls[zi].getAttribute('data-g') === gr) { sec = sysEls[zi]; break; }
+        }
+        if (!sec || sec.hidden || !window.scrollTo) return;
+        var r = sec.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var kopf = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+        // Sichtbar genug: Oberkante im Bild und mindestens 160 px vom Abschnitt zu sehen.
+        if (r.top >= kopf && r.top <= vh - 160) return;
+        var ziel = r.height + 24 <= vh - kopf
+          ? r.bottom + 24 - vh          // ganz ins Bild, Unterkante an den Rand
+          : r.top - kopf - 12;          // zu hoch: Oberkante unter die Kopfleiste
+        if (Math.abs(ziel) < 4) return;
+        var sanft = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: Math.max(0, window.pageYOffset + ziel), behavior: sanft ? 'smooth' : 'auto' });
+      };
       railEl.addEventListener('click', function (ev) {
         var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
         if (!a) return;
         ev.preventDefault();
         var gr = a.getAttribute('data-g');
         if (gr !== activeGroup) showGroup(gr);
+        if (a.getAttribute('data-kind') === 'inhalt') zeigeAbschnitt(gr);
       });
       // Vorbelegung (Detailvertrag Punkt 2) ist bereits serverseitig
       // sichtbar (erstes System ungefiltert, Rail-Eintrag traegt schon
@@ -3294,6 +3426,18 @@ span.sd__ref{color:var(--muted)}
       }
     };
 
+    /* Rad ohne Freigabe (holo-viewer.js, Mausrad scrollt die Seite): die
+       Hinweiszeile ("Strg + Mausrad: zoomen") leuchtet kurz auf — genau dann,
+       wenn jemand ueber dem Hologramm scrollt und vielleicht zoomen wollte. */
+    var radHinweisEl = document.getElementById('holohint');
+    var radHinweisT = 0;
+    var radHinweis = function () {
+      if (!radHinweisEl) return;
+      radHinweisEl.classList.add('is-hervor');
+      clearTimeout(radHinweisT);
+      radHinweisT = setTimeout(function () { radHinweisEl.classList.remove('is-hervor'); }, 1800);
+    };
+
     var start = function (explicit) {
       if (viewer || loading) return;
       loading = true;
@@ -3306,6 +3450,14 @@ span.sd__ref{color:var(--muted)}
             defaultOn: cfg.defaultOn, debug: debug, kinds: cfg.kinds,
             onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
             onSelect: showPanel,
+            // Die Reiterleiste liegt ueber dem oberen Buehnenrand: Kamera und
+            // Beschriftungen halten sich darunter (holo-viewer.js obenSperrePx).
+            obenSperre: railEl,
+            // Und keine Beschriftung legt sich auf Herstellerzeichen, Namen,
+            // Chips oder Merken-Knopf (dieselbe Tinte wie massSperren()).
+            labelSperren: ['.holo__title h1', '.holo__title .sd__makerlogo', '.holo__title .sd__maker', '.holo__chips', '.holo__fav']
+              .map(function (sel) { return document.querySelector(sel); }),
+            onRadGesperrt: radHinweis,
           });
         })
         .then(function (v) {
@@ -3331,10 +3483,11 @@ span.sd__ref{color:var(--muted)}
           // noch lud (D-04 laedt erst beim Scrollen) — hier den tatsaechlich
           // aktiven Rail-Stand nachholen, damit die Buehne von Anfang an nur
           // GENAU eine Gruppe zeigt, nie die alte Mehrfachauswahl.
-          // Dieselbe Einschraenkung wie in showGroup(): steht gerade eine
-          // Inhaltsgruppe (D-01) offen, waehrend der Viewer fertig laedt,
-          // darf sein Erstfilter die Buehne nicht leeren.
-          if (activeGroup && isPortGroup(activeGroup)) viewer.setFilter([activeGroup]);
+          // Derselbe Vertrag wie in showGroup(): eine offene Portgruppe zeigt
+          // nur ihre Marker, eine offene Inhaltsgruppe (D-01, auch die
+          // Bewaffnung ohne Marker aus P23) gar keine — sonst blieben die
+          // Vorgabe-Marker stehen, wenn die Wahl vor dem Laden fiel.
+          if (activeGroup) viewer.setFilter(isPortGroup(activeGroup) ? [activeGroup] : []);
           // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
           // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
           // sie per setLabels(false) ganz abschalten, mit der Begruendung,

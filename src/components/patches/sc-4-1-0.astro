@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -199,7 +200,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Orbital <span>Assault</span></div>
       <div class="tagline">{de ? 'Orbitale Hathor-Laser, Asteroiden-Mining und neue Kollisionsphysik.' : 'Orbital Hathor lasers, asteroid mining and new collision physics.'}</div>
       <div class="tags">
-        <span class="tag">Align &amp; Mine</span><span class="tag">Hathor</span><span class="tag">Asteroid Mining</span><span class="tag">Idris</span>
+        <Schlagwort>Align &amp; Mine</Schlagwort><Schlagwort>Hathor</Schlagwort><Schlagwort>Asteroid Mining</Schlagwort><Schlagwort>Idris</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
@@ -221,12 +222,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aegis Idris</div><div class="sub">{de ? 'jetzt spielbar' : 'now playable'}</div></div>
-        <a class="tile word hot" href={de ? '/de/topics/4-1-0-align-and-mine.html' : '/topics/4-1-0-align-and-mine.html'}><span class="zoomic">→</span><b>ALIGN &amp;<br>MINE</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
-        <div class="tile word" data-info data-title={de ? 'Hathor-Orbitallaser' : 'Hathor Orbital Laser'} data-text={de ? 'Die Hathor-Anlagen bestehen aus bodengestützten Alignment Facilities und einer Orbital Mining Station pro Mond (in Stanton: Aberdeen und Daymar). Richtig ausgerichtet feuert der Laser aus dem Orbit auf die Oberfläche.' : 'The Hathor installations consist of ground-based Alignment Facilities and one Orbital Mining Station per moon (in Stanton: Aberdeen and Daymar). Once properly aligned, the laser fires from orbit onto the surface.'}><span class="zoomic">+</span><b>HATHOR</b><small>{de ? 'Orbital-Laser' : 'Orbital Laser'}</small></div>
-        <div class="tile word" data-info data-title={de ? 'Neue Kollisionsphysik' : 'New Collision Physics'} data-text={de ? 'Überarbeitetes Kollisionssystem: Schäden und Aufprallverhalten berücksichtigen stärker Masse und Geschwindigkeit der beteiligten Objekte für glaubwürdigere Crashs.' : 'Reworked collision system: damage and impact behaviour now factor in the mass and velocity of the objects involved for more believable crashes.'}><span class="zoomic">+</span><b>{de ? 'KOLLISIONS-' : 'COLLISION'}<br>{de ? 'PHYSIK' : 'PHYSICS'}</b><small><Fragment set:html={de ? 'Masse &amp; Speed' : 'Mass &amp; Speed'} /></small></div>
-        <div class="tile stat" data-info data-title="~130 Bugfixes" data-text={de ? 'Neben den großen Features brachte „Orbital Assault“ zahlreiche Stabilitäts- und Quality-of-Life-Korrekturen — rund 130 dokumentierte Bugfixes.' : 'Alongside the big features, “Orbital Assault” brought numerous stability and quality-of-life fixes — around 130 documented bugfixes.'}><span class="zoomic">+</span><div class="num">~130</div><div class="cap">Bugfixes</div></div>
-        <div class="tile word" data-info data-title="Juvenile Valakkar" data-text={de ? 'Erste neue Fauna dieses Zyklus: junge Valakkar sind grabende Wurm-Kreaturen auf einigen Monden. Sie halten Abstand, bewegen sich durch den Boden und bewerfen Spieler mit Gestein.' : 'The first new fauna of this cycle: juvenile Valakkar are burrowing worm creatures found on some moons. They keep their distance, move through the ground and pelt players with rocks.'}><span class="zoomic">+</span><b>VALAKKAR</b><small>{de ? 'neue Fauna' : 'new fauna'}</small></div>
+        <div class="tile img b2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><div class="lbl">Aegis Idris</div><div class="sub">{de ? 'jetzt spielbar' : 'now playable'}</div></div>
+        <a class="tile word hot" href={de ? '/de/topics/4-1-0-align-and-mine.html' : '/topics/4-1-0-align-and-mine.html'}><span class="zoomic"><span aria-hidden="true">→</span><span class="zoomic__t">{de ? 'Öffnen' : 'Open'}</span></span><b>ALIGN &amp;<br>MINE</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
+        <div class="tile word" data-info data-title={de ? 'Hathor-Orbitallaser' : 'Hathor Orbital Laser'} data-text={de ? 'Die Hathor-Anlagen bestehen aus bodengestützten Alignment Facilities und einer Orbital Mining Station pro Mond (in Stanton: Aberdeen und Daymar). Richtig ausgerichtet feuert der Laser aus dem Orbit auf die Oberfläche.' : 'The Hathor installations consist of ground-based Alignment Facilities and one Orbital Mining Station per moon (in Stanton: Aberdeen and Daymar). Once properly aligned, the laser fires from orbit onto the surface.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>HATHOR</b><small>{de ? 'Orbital-Laser' : 'Orbital Laser'}</small></div>
+        <div class="tile word" data-info data-title={de ? 'Neue Kollisionsphysik' : 'New Collision Physics'} data-text={de ? 'Überarbeitetes Kollisionssystem: Schäden und Aufprallverhalten berücksichtigen stärker Masse und Geschwindigkeit der beteiligten Objekte für glaubwürdigere Crashs.' : 'Reworked collision system: damage and impact behaviour now factor in the mass and velocity of the objects involved for more believable crashes.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>{de ? 'KOLLISIONS-' : 'COLLISION'}<br>{de ? 'PHYSIK' : 'PHYSICS'}</b><small><Fragment set:html={de ? 'Masse &amp; Speed' : 'Mass &amp; Speed'} /></small></div>
+        <div class="tile stat" data-info data-title="~130 Bugfixes" data-text={de ? 'Neben den großen Features brachte „Orbital Assault“ zahlreiche Stabilitäts- und Quality-of-Life-Korrekturen — rund 130 dokumentierte Bugfixes.' : 'Alongside the big features, “Orbital Assault” brought numerous stability and quality-of-life fixes — around 130 documented bugfixes.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><div class="num">~130</div><div class="cap">Bugfixes</div></div>
+        <div class="tile word" data-info data-title="Juvenile Valakkar" data-text={de ? 'Erste neue Fauna dieses Zyklus: junge Valakkar sind grabende Wurm-Kreaturen auf einigen Monden. Sie halten Abstand, bewegen sich durch den Boden und bewerfen Spieler mit Gestein.' : 'The first new fauna of this cycle: juvenile Valakkar are burrowing worm creatures found on some moons. They keep their distance, move through the ground and pelt players with rocks.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>VALAKKAR</b><small>{de ? 'neue Fauna' : 'new fauna'}</small></div>
       </div>
     </div>
   </section>
@@ -246,7 +247,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Schiffe' : 'Ships'}</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:X2OFObiypT4"><div class="sbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Aegis · Frigate</span><h3>Aegis Idris</h3></div></article>
+        <article class="ship reveal" data-lb="yt:X2OFObiypT4"><div class="sbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic"><span aria-hidden="true">▶</span><span class="zoomic__t">Video</span></span><div class="ship__in"><span class="role">Aegis · Frigate</span><h3>Aegis Idris</h3></div></article>
       </div>
     </div>
   </section>
@@ -268,9 +269,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Galerie' : 'Gallery'}</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt={de ? 'Mining-Fahrzeug beim Abbau in einer Höhle' : 'Mining vehicle extracting ore in a cave'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Höhlen-Mining' : 'Cave Mining'}</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-align-7.jpg"><img src="/assets/t-align-7.jpg" alt={de ? 'Hathor-Orbitallaser feuert' : 'Hathor orbital laser firing'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Hathor-Orbitallaser' : 'Hathor Orbital Laser'}</figcaption></figure>
-        <figure data-lb="img:/assets/t-align-3.jpg"><img src="/assets/t-align-3.jpg" alt={de ? 'Hathor-Anlage' : 'Hathor facility'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Hathor-Anlage' : 'Hathor Facility'}</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt={de ? 'Mining-Fahrzeug beim Abbau in einer Höhle' : 'Mining vehicle extracting ore in a cave'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Höhlen-Mining' : 'Cave Mining'}</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-align-7.jpg"><img src="/assets/t-align-7.jpg" alt={de ? 'Hathor-Orbitallaser feuert' : 'Hathor orbital laser firing'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Hathor-Orbitallaser' : 'Hathor Orbital Laser'}</figcaption></figure>
+        <figure data-lb="img:/assets/t-align-3.jpg"><img src="/assets/t-align-3.jpg" alt={de ? 'Hathor-Anlage' : 'Hathor facility'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Hathor-Anlage' : 'Hathor Facility'}</figcaption></figure>
       </div>
     </div>
   </section>

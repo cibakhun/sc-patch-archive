@@ -7,6 +7,7 @@ import DataShell from './DataShell.astro';
 import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
+import { lootHinweis } from '../i18n/lootText';
 import {
   ITEM_KENNUNG, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
@@ -14,13 +15,17 @@ import {
   armorSetById, setItemsBySlot, woText,
 } from '../lib/items';
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
-import { itemSeo } from '../lib/itemSeo';
+import { itemSeo, itemZusatz, itemZwillinge } from '../lib/itemSeo';
+import { bwT } from '../i18n/bezugswegeText';
+import { tabellenGruppen, type GruppenSchluessel } from '../lib/bezugswege';
+import { SYSTEME } from '../lib/itemLinks';
 import { blueprintPath, craftEntryPath, craftTime, recipeForItem, resourceNames } from '../lib/crafting';
 import { shipIdForVehicleItem } from '../lib/vehicleItems';
 import { patchLinkFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
 import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
 import Item3d from './Item3d.astro';
+import Bezugswege from './Bezugswege.astro';
 import { item3dFor } from '../lib/item3d';
 
 interface Props { item: Item; lang: Locale }
@@ -31,6 +36,10 @@ const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
 const patchHref = patchLink.href;
 const mentions = patchesMentioning(itemPath(item));
 const seo = itemSeo(item, lang);
+// D7: gleichnamige Datenblaetter unterscheiden und gegenseitig verlinken.
+const zusatz = itemZusatz(item, lang);
+const zwillinge = itemZwillinge(item, lang);
+const bwt = bwT(lang);
 const name = displayName(item, lang);
 const alt = altName(item, lang);
 const desc = description(item, lang);
@@ -45,6 +54,16 @@ const rows = sortedObtain(item);
 const lo = minPrice(item);
 const hi = maxPrice(item);
 const avg = avgPrice(item);
+const gruppen = tabellenGruppen(rows);
+const mitGruppen = gruppen.length > 1;
+// Filterknoepfe: die Systeme, die eine Zeile nennt, dann „Ohne Systemangabe".
+const filterSysteme = [...SYSTEME.filter((s) => gruppen.some((g) => g.rows.some((z) => z.systeme.includes(s)))), ...(gruppen.some((g) => g.system === null) ? [null] : [])];
+// Der Filter richtet sich nach seinen Knoepfen, nicht nach den Gruppen: nennen
+// alle Zeilen mehrere Systeme, gibt es nur die Gruppe „mehrere“, aber sehr
+// wohl etwas zu waehlen (Review #434).
+const mitFilter = filterSysteme.length > 1;
+const gruppenName = (k: GruppenSchluessel) => (k === 'mehrere' ? bwt('sysMulti') : k ?? bwt('buyNoSystem'));
+const mitPreis = rows.some((o) => o.price != null);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
 // Datenstand: Verkaufsstellen von UEX und aus dem eigenen Shop-Schnappschuss
 // (src, nur wo UEX das Item nicht fuehrt) getrennt nennen.
@@ -128,9 +147,21 @@ const crumbs = [
   stand={standItems(lang, { preise: uexVendors > 0, schnappschuss: snapVendors > 0, fundorte: lootRecherche > 0, fundorteSpiel: lootBestaetigt > 0 })}
   melden
 >
-  <h1 slot="hero">{name}</h1>
+  {/* data-fahrzeug-item: Fahrzeug-Itemblatt — verify:bezugswege [6] prueft,
+      dass es sichtbar auf sein Schiffsblatt zeigt (Krisz 24.11.2026: beide
+      Blaetter gleichrangig, kein Canonical, gegenseitige Links). */}
+  <h1 slot="hero" data-fahrzeug-item={item.category === 'Vehicle' || undefined}>{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
+  {zwillinge.length > 0 && (
+    <p class="dp-note dp-zwilling" slot="hero" data-zwilling={zusatz}>
+      {zusatz && <>{bwt('twinThis')}{' '}<b>{zusatz}</b>.{' '}</>}
+      {bwt(zwillinge.length === 1 ? 'twinItem' : 'twinItems')}{' '}
+      {zwillinge.map((z, i) => (
+        <>{i > 0 && ', '}<a href={href(itemPath(z.item), lang)}>{z.label}</a></>
+      ))}
+    </p>
+  )}
   {/* Direkte Wege (Skizze 016, 09.11.2026): vom Item ins Crafting-Werkzeug
       mit diesem Rezept, und vom Fahrzeug-Item auf sein Schiffsdatenblatt.
       Davor das Modell in 3D, wo es eines gibt (nur Vorschau-Bau). */}
@@ -158,40 +189,69 @@ const crumbs = [
     {key && <li class="dp-key"><b>{key[0]}</b><span>{key[1]}</span></li>}
   </ul>
 
+  {/* -- So bekommst du es: alle Wege an einer Stelle, je mit naechstem
+         Schritt (UX-Audit Paket D1, src/components/Bezugswege.astro). -- */}
+  <Bezugswege item={item} lang={lang} />
+
   {/* -- Bezugsquellen: die eigentliche Antwort auf "where to buy" -- */}
-  <section class="dp-sec">
+  <section class="dp-sec" id="bezugsquellen">
     <h2>{t('sectionObtain')}</h2>
     {rows.length > 0 ? (
       <>
+        {/* D5: Ø-Preis einmal ueber der Tabelle statt in jeder Zeile; Preis-
+            spalte nur, wo eine Zeile einen Preis hat; Zeilen nach System
+            gebuendelt, mit Filter, der sich das gewaehlte System merkt. */}
+        {avg != null && <p class="dp-avg">{bwt('avgLine')} <b>{auec(avg, lang)}</b></p>}
+        {mitFilter && (
+          <div class="dp-sysfilter" role="group" aria-label={bwt('sysFilter')} data-sysfilter hidden>
+            <button type="button" class="dp-sysbtn" aria-pressed="true" data-sys="">{bwt('sysAll')}</button>
+            {filterSysteme.map((sys) => (
+              <button type="button" class="dp-sysbtn" aria-pressed="false" data-sys={sys ? sys.toLowerCase() : 'ohne'}>{sys ?? bwt('buyNoSystem')}</button>
+            ))}
+          </div>
+        )}
         <div class="dp-tablewrap">
-          <table class="dp-table">
-            <thead>
-              <tr>
-                <th>{t('thLocation')}</th>
-                <th>{t('thKind')}</th>
-                <th class="dp-num">{t('thPrice')}</th>
-                <th class="dp-num">{t('thAvg')}</th>
+          {/* Rollen ausdruecklich: am Handy werden die Zeilen zum Raster
+              (Style unten), und manche Browser vergessen dann, dass es eine
+              Tabelle ist. */}
+          <table class="dp-table dp-bezug" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader">{t('thLocation')}</th>
+                <th role="columnheader">{t('thKind')}</th>
+                {mitPreis && <th class="dp-num" role="columnheader">{t('thPrice')}</th>}
               </tr>
             </thead>
-            <tbody>
-              {rows.map((o, idx) => (
-                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined} data-stand-q={standQ(o)}>
-                  <td>{locLabel(o)}{o.wo && <span class="dp-wo">{woText(o.wo, t('inSpace'))}</span>}</td>
-                  <td>
-                    {kindLabel(o.kind)}
-                    {o.kind === 'loot' && (o.ort
-                      ? <span class="dp-fund dp-fund--ok" title={t('lootConfirmedTitle')}>{t('lootConfirmed')}</span>
-                      : <span class="dp-fund" title={t('lootUnconfirmedTitle')}>{t('lootUnconfirmed')}</span>)}
-                  </td>
-                  <td class="dp-num">
-                    {o.price != null ? <span class="dp-price" data-stand-q={standQ(o)}>{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
-                  </td>
-                  <td class="dp-num">
-                    <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            {gruppen.map((g) => (
+              <tbody role="rowgroup" data-system={g.system ? g.system.toLowerCase() : 'ohne'}>
+                {mitGruppen && (
+                  <tr class="dp-gruppe" role="row">
+                    <th scope="rowgroup" role="rowheader" colspan={mitPreis ? 3 : 2}>
+                      {g.rows.length === 1
+                        ? fill(bwt('sysGroupOne'), { sys: gruppenName(g.system) })
+                        : fill(bwt('sysGroup'), { sys: gruppenName(g.system), n: num(g.rows.length, lang) })}
+                    </th>
+                  </tr>
+                )}
+                {g.rows.map(({ o, systeme }) => (
+                  <tr class={o === rows[0] && o.price != null ? 'dp-best' : undefined} role="row" data-stand-q={standQ(o)} data-sys={systeme.length ? systeme.join(' ').toLowerCase() : 'ohne'}>
+                    <td role="cell">{locLabel(o)}{o.wo && <span class="dp-wo">{woText(o.wo, t('inSpace'))}</span>}</td>
+                    <td role="cell">
+                      {kindLabel(o.kind)}
+                      {o.kind === 'loot' && (o.ort
+                        ? <span class="dp-fund dp-fund--ok" title={t('lootConfirmedTitle')}>{t('lootConfirmed')}</span>
+                        : <span class="dp-fund" title={t('lootUnconfirmedTitle')}>{t('lootUnconfirmed')}</span>)}
+                    </td>
+                    {mitPreis && (
+                      <td class="dp-num" role="cell">
+                        {/* Leerwert bleibt leer statt „—" (D5): eine Loot-Zeile hat keinen Preis. */}
+                        {o.price != null && <span class="dp-price" data-stand-q={standQ(o)}>{auec(o.price, lang)}</span>}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            ))}
           </table>
         </div>
         {/* Preisdatum nur, wo ein Preis steht: ein Item nur mit Exklusiv-Zeilen
@@ -199,7 +259,7 @@ const crumbs = [
             keine Kaufpreise. Der Hinweis auf schwankende Preise und Orte nur,
             wo es Shop- oder Loot-Zeilen gibt. */}
         {schwankend && (
-          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}{lootBestaetigt > 0 && <> · {t('lootStatusNote')}</>}</p>
+          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')}{' '}{datumLang(db.pricesAsOf, lang)}</>}{lootBestaetigt > 0 && <> · {t('lootStatusNote')}</>}</p>
         )}
       </>
     ) : (
@@ -309,7 +369,7 @@ const crumbs = [
   {item.guide && (
     <section class="dp-sec">
       <h2>{t('sectionGuide')}</h2>
-      <p class="dp-callout">{item.guide}</p>
+      <p class="dp-callout">{lootHinweis(item.guide, lang)}</p>
     </section>
   )}
 
@@ -348,12 +408,12 @@ const crumbs = [
   {related.length > 0 && (
     <section class="dp-sec">
       <h2>{t('sectionRelated')}</h2>
-      <ul class="dp-cards">
+      <ul class="dp-cards" data-aehnlich>
         {related.map((r) => {
           const p = minPrice(r);
           const linked = pageItemIds.has(r.id);
           return (
-            <li>
+            <li data-item={r.id}>
               {linked ? (
                 <a class="dp-card" href={href(itemPath(r), lang)}>
                   <strong>{displayName(r, lang)}</strong>
@@ -386,3 +446,77 @@ const crumbs = [
     {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>
+
+<script>
+  // D5: System-Filter der Bezugsquellen. Ohne Skript stehen alle Gruppen da
+  // (der Filter bleibt verborgen); mit Skript merkt er sich die Wahl
+  // seitenuebergreifend — wer in Pyro spielt, sieht beim naechsten Item zuerst Pyro.
+  const SCHLUESSEL = 'vb-system';
+  for (const leiste of document.querySelectorAll<HTMLElement>('[data-sysfilter]')) {
+    const tabelle = leiste.parentElement?.querySelector('table.dp-bezug');
+    if (!tabelle) continue;
+    const knoepfe = [...leiste.querySelectorAll<HTMLButtonElement>('button[data-sys]')];
+    // Zeilen tragen ihre Systeme (data-sys, Fundorte oft mehrere); eine
+    // Gruppe ohne sichtbare Zeile verschwindet samt Kopf.
+    const zeige = (sys: string) => {
+      for (const k of knoepfe) k.setAttribute('aria-pressed', String(k.dataset.sys === sys));
+      for (const tb of tabelle.querySelectorAll<HTMLElement>('tbody[data-system]')) {
+        let sichtbar = 0;
+        for (const tr of tb.querySelectorAll<HTMLElement>('tr[data-sys]')) {
+          tr.hidden = sys !== '' && !(tr.dataset.sys ?? '').split(' ').includes(sys);
+          if (!tr.hidden) sichtbar++;
+        }
+        tb.hidden = sichtbar === 0;
+      }
+    };
+    leiste.addEventListener('click', (e) => {
+      const k = (e.target as Element | null)?.closest<HTMLButtonElement>('button[data-sys]');
+      if (!k) return;
+      const sys = k.dataset.sys ?? '';
+      zeige(sys);
+      try { if (sys) localStorage.setItem(SCHLUESSEL, sys); else localStorage.removeItem(SCHLUESSEL); } catch { /* privat: nur ohne Merken */ }
+    });
+    let gemerkt = '';
+    try { gemerkt = localStorage.getItem(SCHLUESSEL) ?? ''; } catch { /* privat */ }
+    if (gemerkt && knoepfe.some((k) => k.dataset.sys === gemerkt)) zeige(gemerkt);
+    leiste.hidden = false;
+  }
+</script>
+
+<style>
+  .dp-zwilling { margin: 0.2rem 0 0.9rem; }
+  .dp-avg { margin: 0 0 0.6rem; color: var(--muted); }
+  .dp-avg b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .dp-sysfilter { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.7rem; }
+  .dp-sysbtn {
+    font: inherit; font-size: var(--fs-7); padding: 0.3rem 0.75rem; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--line-soft); border-radius: 999px;
+  }
+  .dp-sysbtn[aria-pressed='true'] { color: var(--text); border-color: var(--tone-1); background: var(--dp-fill); }
+  .dp-sysbtn:focus-visible { outline: 2px solid var(--tone-1); outline-offset: 2px; }
+  .dp-bezug .dp-gruppe th {
+    text-align: left; font-weight: 600; font-size: var(--fs-7); letter-spacing: var(--ls-7);
+    color: var(--tone-1); background: var(--dp-fill);
+  }
+  /* Am Handy nicht abschneiden: der Preis bricht nie um, der Ort darf. */
+  .dp-bezug .dp-num { white-space: nowrap; }
+  /* Schmal reicht die Breite nicht fuer drei Spalten (390 px: Tabelle 411,
+     Kasten 356, der Preis lag hinter der Kante). Dann wird jede Zeile ein
+     Raster: oben der Ort ueber die volle Breite, darunter Art und Preis. */
+  @media (max-width: 600px) {
+    .dp-bezug, .dp-bezug tbody { display: block; }
+    /* Nichts mehr zum Seitwaertsschieben: dann auch keine Scroll-Kante. */
+    .dp-tablewrap:has(> .dp-bezug) { background-image: none; }
+    .dp-bezug thead {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip-path: inset(50%); white-space: nowrap;
+    }
+    .dp-bezug tr { display: grid; grid-template-columns: 1fr auto; }
+    .dp-bezug tbody tr:not(.dp-gruppe) { border-bottom: 1px solid var(--line-soft); }
+    .dp-bezug tbody tr:last-child { border-bottom: none; }
+    .dp-bezug .dp-gruppe th { grid-column: 1 / -1; }
+    .dp-bezug td { border-bottom: none; }
+    .dp-bezug tbody td:first-child { grid-column: 1 / -1; border-left: none; padding-bottom: 0.15rem; }
+    .dp-bezug tbody td + td { padding-top: 0.15rem; }
+  }
+</style>

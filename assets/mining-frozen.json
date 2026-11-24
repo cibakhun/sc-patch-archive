@@ -1,7 +1,7 @@
 {
  "source_note": "EIN Feld ist als Konstante eingefroren: Refinery-Yield-Profile (serverseitige CIG-Economy — kein Client-Wert). Alles Übrige hier ist nur Fallback (density, scanSignature, qualityBands, rarity). Hinweis: Edelsteine haben im Spiel GAR KEINE Seltenheit — sie bleiben bewusst ohne Stufe. Manuell pflegen, wenn CIG die Refinery-Economy ändert (selten).",
- "frozen_from": "4.10.3-live.13165946",
- "snapshot_date": "2026-11-20",
+ "frozen_from": "4.10.3-live.13220821",
+ "snapshot_date": "2026-11-24",
  "counts": {
   "elementMeta": 37,
   "refineries": 20,

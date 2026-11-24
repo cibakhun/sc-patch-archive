@@ -7,6 +7,7 @@ import DataShell from './DataShell.astro';
 import { standCrafting } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
+import { pfadname, wertname } from '../i18n/craftingWerte';
 import {
   type BlueprintEntry, blueprintPath, craftCategoryPath, craftDb, craftLeaf,
   craftPatch, craftTime, itemForBlueprint, plannerPath, relatedBlueprints,
@@ -15,12 +16,16 @@ import {
 import { displayName, itemPath, num, pageItemIds } from '../lib/items';
 import { mineralFor, miningLink } from '../lib/miningLinks';
 import { formatResist } from '../lib/itemStats';
-import { blueprintSeo } from '../lib/itemSeo';
-import { missionBySlug, seoTitle } from '../lib/missions';
+import { bauplanZusatz, bauplanZwillinge, blueprintSeo } from '../lib/itemSeo';
 import { patchesMentioning } from '../lib/patchMentions';
 import Item3d from './Item3d.astro';
 import { item3dFor } from '../lib/item3d';
 import { HAS_HANGAR } from '../lib/seo';
+import { bwT } from '../i18n/bezugswegeText';
+import { fill } from '../i18n/itemText';
+import { auec } from '../lib/items';
+import { bezugswege, materialWege, missionsZeilen } from '../lib/bezugswege';
+import { wikeloBlueprintTrades } from '../lib/itemLinks';
 
 interface Props { bp: BlueprintEntry; lang: Locale }
 const { bp, lang } = Astro.props;
@@ -28,6 +33,9 @@ const mentions = patchesMentioning(`/crafting/${bp.slug}.html`);
 
 const t = itemT(lang);
 const seo = blueprintSeo(bp, lang, craftPatch, craftDb.snapshot_date);
+// D7: gleichnamige Bauplaene unterscheiden und gegenseitig verlinken.
+const zusatz = bauplanZusatz(bp, lang);
+const zwillinge = bauplanZwillinge(bp, lang);
 const item = itemForBlueprint(bp);
 const linkedItem = item && pageItemIds.has(item.id) ? item : null;
 // Drehbares Modell des Ergebnisses (nur Vorschau-Bau, src/lib/item3d.ts).
@@ -67,13 +75,50 @@ const dmgRes = stats.damage_resistance;
 // formatResist ist dieselbe Funktion, die das Item-Datenblatt benutzt — gleiche
 // Rechnung, gleiche Kanal-Labels in beiden Sprachen.
 const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
+
+// Ohne Missionsquelle (UX-Audit Paket D2, 940 von 1.634 Bauplaenen): ehrlich
+// „Quelle unbekannt" statt der Vermutung „evtl. über Shop oder Reputation",
+// dazu was man stattdessen tun kann. Wikelo-Tausch ist ein bekannter Weg.
+const bt = bwT(lang);
+const wikeloBp = wikeloBlueprintTrades(bp.name);
+const wikeloBpHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(`${bp.name} Blueprint`)}`;
+const itemWege = (() => {
+  if (missions.length > 0 || !linkedItem) return [];
+  const w = bezugswege(linkedItem);
+  const out: string[] = [];
+  if (w.kaufen) out.push(fill(bt('bpNextItemBuy'), { p: auec(w.kaufen.ab, lang) }));
+  if (w.finden && (w.finden.bestaetigt.length || w.finden.recherche.length)) out.push(bt('bpNextItemFind'));
+  if (w.abWerk.length) out.push(bt('bpNextItemStock'));
+  if (w.wikelo > 0) out.push(bt('bpNextItemWikelo'));
+  return out;
+})();
+// D4: Pool statt „100 %" — die Chance gilt dem Pool, nicht diesem Bauplan.
+const zeilen = missionsZeilen(bp);
+const prozent = (c: number) => (lang === 'de' ? `${Math.round(c * 100)} %` : `${Math.round(c * 100)}%`);
+// Steht nicht fest, aus welchem von mehreren Pools der Bauplan kommt, steht
+// die Spanne da („1 von 5–8“, poolSpanne in src/lib/bezugswege.ts).
+const spanne = (z: { pool: number; poolMin: number }) => (z.poolMin < z.pool ? `${num(z.poolMin, lang)}–${num(z.pool, lang)}` : num(z.pool, lang));
+const poolText = (z: { chance: number; pool: number; poolMin: number }) => {
+  const n = spanne(z);
+  if (z.chance < 1) return fill(bt(z.pool > 1 ? 'bpPoolCellChance' : 'bpPoolOnlyChance'), { p: prozent(z.chance), n });
+  return z.pool > 1 ? fill(bt('bpPoolCell'), { n }) : bt('bpPoolOnly');
+};
+// Beispiel unter der Tabelle: der erste feste Pool mit mehr als einem Bauplan;
+// steht eine Spanne in der Tabelle, erklaert ein zweiter Satz sie.
+const beispielPool = zeilen.find((z) => z.pool > 1 && z.poolMin === z.pool)?.pool ?? 1;
+const beispielSpanne = zeilen.find((z) => z.poolMin < z.pool);
+const nurSpannen = zeilen.length > 0 && zeilen.every((z) => z.poolMin < z.pool);
+// D8: jedes Material einmal, mit seinen Wegen (abbauen, kaufen, zerlegen).
+const materialien = [...new Set(bp.ingredients.flatMap((ing) => (ing.options ?? []).map((o) => o.name)))]
+  .map((name) => ({ name, wege: materialWege(name, item?.id) }));
+const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(Astro.url.pathname).replace(/%2F/g, '/')}`;
 ---
 <DataShell
   lang={lang}
   title={seo.title}
   description={seo.description}
   crumbs={crumbs}
-  eyebrow={`${bp.category} · ${t('bpEyebrow')}`}
+  eyebrow={`${pfadname(bp.category, lang)} · ${t('bpEyebrow')}`}
   tone="craft"
   ogImage="/assets/t-craft-1.jpg"
   modified={craftDb.snapshot_date}
@@ -83,6 +128,15 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
 >
   <h1 slot="hero">{bp.name}</h1>
   <p class="dp-lead" slot="hero">{seo.lead}</p>
+  {zwillinge.length > 0 && (
+    <p class="dp-note dp-zwilling" slot="hero" data-zwilling={zusatz}>
+      {zusatz && <>{bwT(lang)('twinThis')}{' '}<b>{zusatz}</b>.{' '}</>}
+      {bwT(lang)(zwillinge.length === 1 ? 'twinBp' : 'twinBps')}{' '}
+      {zwillinge.map((z, i) => (
+        <>{i > 0 && ', '}<a href={href(blueprintPath(z.bp), lang)}>{z.bp.name}{z.zusatz && ` (${z.zusatz})`}</a></>
+      ))}
+    </p>
+  )}
 
   {/* Suchtreffer landen hier und wollen meist ins Werkzeug. Der Planer-Knopf
       stand nur am Seitenende; ?bp= oeffnet den Planer mit diesem Blueprint.
@@ -143,6 +197,33 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
       <p class="dp-note">{t('bpMaterialsNote')}</p>
     )}
 
+    {/* D8: je Material alle Wege — abbauen, kaufen, zerlegen. */}
+    {materialien.length > 0 && (
+      <>
+        <h3 id="materialwege">{bt('matTitle')}</h3>
+        <ul class="bp-mat">
+          {materialien.map(({ name, wege }) => (
+            <li data-material={name}>
+              <b>{name}</b>
+              <span class="bp-mat-wege">
+                {miningLink(name, lang)
+                  ? <a href={miningLink(name, lang)} data-mat-weg="abbauen">{bt('matMine')}</a>
+                  : <span class="dp-muted" data-mat-ohne="abbauen">{bt('matMineNone')}</span>}
+                {wege.kaufen === true && <span data-mat-weg="kaufen">{bt('matBuy')}</span>}
+                {wege.kaufen === false && <span class="dp-muted" data-mat-ohne="kaufen">{bt('matBuyNone')}</span>}
+                {wege.kaufen === null && <span class="dp-muted" data-mat-ohne="kaufen">{bt('matBuyUnknown')}</span>}
+                {wege.zerlegen === 'gesperrt'
+                  ? <span class="dp-muted" data-mat-ohne="zerlegen">{bt('matSalvageNone')}</span>
+                  : wege.zerlegen && (
+                    <span data-mat-weg="zerlegen">{bt('matSalvage')}{' '}<a href={href(itemPath(wege.zerlegen.item), lang)}>{displayName(wege.zerlegen.item, lang)}</a>{wege.zerlegen.anzahl > 1 && <>{' '}{fill(bt('matSalvageMore'), { n: num(wege.zerlegen.anzahl - 1, lang) })}</>}</span>
+                  )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+
     {bp.ingredients.some((i) => i.quality_effects?.length) && (
       <>
         <h3>{t('bpQualityEffects')}</h3>
@@ -161,7 +242,7 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
                 (ing.quality_effects ?? []).map((q, qi) => (
                   <tr>
                     <td>{qi === 0 ? ing.slot : ''}</td>
-                    <td>{q.stat}</td>
+                    <td>{wertname(q.stat, lang)}</td>
                     <td class="dp-num">{effect(q.modifier_at_min, q.multiplicative)}</td>
                     <td class="dp-num">{effect(q.modifier_at_max, q.multiplicative)}</td>
                   </tr>
@@ -208,40 +289,55 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   )}
 
   {/* -- Missions-Quellen: verlinkt auf die vorhandenen Missions-Datenblaetter -- */}
-  <section class="dp-sec">
-    <h2>{t('bpMissions')}</h2>
+  <section class="dp-sec" id="missionen">
+    <h2>{missions.length > 0 ? t('bpMissions') : bt('bpSourceTitle')}</h2>
     {missions.length > 0 ? (
       <>
         <div class="dp-tablewrap">
           <table class="dp-table">
             <thead>
               <tr>
-                <th>{t('sectionObtain')}</th>
-                <th class="dp-num">{t('bpDropChance')}</th>
+                <th>{bt('bpPoolMission')}</th>
+                <th class="dp-num">{bt('bpPoolHead')}</th>
               </tr>
             </thead>
             <tbody>
-              {missions.map((m) => {
-                const known = missionBySlug.get(m.id);
-                const label = seoTitle(m.name);
-                return (
-                  <tr>
-                    <td>
-                      {known
-                        ? <a href={href(`/missionen/${m.id}.html`, lang)}>{label}</a>
-                        : label}
-                    </td>
-                    <td class="dp-num">{Math.round(m.drop_chance * 100)}%</td>
-                  </tr>
-                );
-              })}
+              {zeilen.map((z) => (
+                <tr data-mission={z.slug}>
+                  <td>
+                    {z.seite
+                      ? <a href={href(`/missionen/${z.slug}.html`, lang)}>{z.label}</a>
+                      : z.label}
+                  </td>
+                  <td class="dp-num" data-pool={z.pool} data-pool-min={z.poolMin < z.pool ? z.poolMin : undefined}>{poolText(z)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        <p class="dp-note">{t('bpMissionsNote')}</p>
+        {/* Das Beispiel ist ein Pool dieser Tabelle, keine feste Zahl. */}
+        {!nurSpannen && <p class="dp-note">{beispielPool > 1 ? fill(bt('bpPoolNote'), { n: num(beispielPool, lang) }) : bt('bpPoolNoteOne')}</p>}
+        {beispielSpanne && <p class="dp-note" data-pool-spanne>{fill(bt('bpPoolRange'), { min: num(beispielSpanne.poolMin, lang), max: num(beispielSpanne.pool, lang) })}</p>}
+        {wikeloBp > 0 && <div class="dp-actions bp-wikelo"><a class="dp-btn" href={wikeloBpHref}>{bt('bpSourceWikelo')} →</a></div>}
       </>
     ) : (
-      <p class="dp-callout">{t('bpNoMissions')}</p>
+      <>
+        {wikeloBp > 0 ? (
+          <>
+            <p class="dp-callout" data-quelle="wikelo">{fill(bt('bpSourceWikeloText'), { patch: craftPatch })}</p>
+            <div class="dp-actions bp-wikelo"><a class="dp-btn" href={wikeloBpHref}>{bt('bpSourceWikelo')} →</a></div>
+          </>
+        ) : (
+          <p class="dp-callout" data-quelle="unbekannt"><b>{bt('bpSourceUnknown')}</b> {fill(bt('bpSourceUnknownText'), { patch: craftPatch })}</p>
+        )}
+        <h3>{bt('bpNextTitle')}</h3>
+        <ul class="dp-next">
+          {itemWege.length > 0 && linkedItem && (
+            <li>{fill(bt('bpNextItem'), { wege: itemWege.join(', ') })} <a href={`${href(itemPath(linkedItem), lang)}#so-bekommst-du-es`}>{bt('bpNextItemOpen')} →</a></li>
+          )}
+          <li>{bt('bpNextReport')} <a href={meldenHref} rel="nofollow" data-hinweis>{bt('report')} →</a></li>
+        </ul>
+      </>
     )}
   </section>
 
@@ -263,8 +359,45 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
 
   <div class="dp-actions">
     {linkedItem && <a class="dp-btn" href={href(itemPath(linkedItem), lang)}>{t('bpOpenItem')} →</a>}
-    <a class="dp-btn dp-btn--ghost" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')}</a>
+    {/* Der Planer-Knopf steht einmal, im Kopf (UX-Audit D10). */}
     <a class="dp-btn dp-btn--ghost" href={href(craftCategoryPath(slugify(bp.category)), lang)}>{craftLeaf(bp.category)}</a>
     {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>
+
+<style>
+  /* „Was du stattdessen tun kannst" (Paket D2): schlichte Liste im Ton der
+     Huelle, je Zeile ein naechster Schritt mit Link. */
+  .dp-next {
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+    max-width: 72ch;
+  }
+  .dp-next li {
+    position: relative;
+    padding: 0.35rem 0 0.35rem 1.1rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .dp-next li::before {
+    content: '›';
+    position: absolute;
+    left: 0.2rem;
+    color: var(--tone-1);
+  }
+  .dp-next a { white-space: nowrap; }
+  .bp-wikelo { margin-top: 0.8rem; }
+  .dp-zwilling { margin: 0.2rem 0 0.9rem; }
+  .bp-mat { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.45rem; }
+  .bp-mat li { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; align-items: baseline; padding: 0.45rem 0.7rem; border: 1px solid var(--line-soft); background: var(--dp-fill); }
+  .bp-mat b { min-width: 9rem; }
+  .bp-mat-wege { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
+  .bp-mat-wege > * + *::before { content: '·'; margin-right: 0.6rem; color: var(--muted); }
+  /* Schmal bricht die Zeile ohnehin: dann je Weg eine Zeile statt eines
+     Trennpunkts am Zeilenanfang. */
+  @media (max-width: 600px) {
+    .bp-mat-wege { flex-direction: column; gap: 0.15rem; }
+    .bp-mat-wege > * + *::before { content: none; }
+  }
+</style>

@@ -10,8 +10,8 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
-  sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER,
+  sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount, activeShields,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, figure,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -146,6 +146,32 @@ describe('Werkstatt: passende Teile', () => {
     assert.deepEqual(t.get('pilot'), { now: 1054 + 546, stock: 853 + 546 });
     assert.deepEqual(t.get('manned'), { now: 853 * 2, stock: 546 * 2 });
     assert.deepEqual(t.get('shield'), { now: 3168, stock: 3168 });
+  });
+
+  test('Gruppensummen rechnen mit der genauen DPS, nicht mit dem gerundeten Kennwert', () => {
+    const rhino = { rhino: ['CF-447 Rhino Repeater', 0, 'gun', 4, 'Klaus & Werner', 0, 'A', 818, { dt: 'e', dps: 817.88 }, 0] };
+    const turrets = shipSlots([['turret', 'gun', 4, 'rhino', 'manned', 24]]);
+    assert.equal(groupTotals(turrets, {}, rhino).get('manned').stock.toFixed(2), '19629.12');
+    assert.equal(figure(rhino.rhino), 817.88);
+    assert.equal(figure(items.allstop), 3168);
+    assert.equal(figure(undefined), 0);
+  });
+
+  test('Schild zaehlt nur die Generatoren, die zugleich arbeiten: die zwei staerksten, ohne Kappung alle', () => {
+    // Prospector: drei Bulwark zu 2.160, ein Raumschiff nutzt zwei (Schiffsblatt 4.320).
+    const bw = { bulwark: ['Bulwark', 0, 'shield', 1, 'Basilisk', 'Civilian', 'C', 2160, { regen: 216 }, 0], ...items };
+    const three = shipSlots([
+      ['shield_generator', 'shield', 1, 'bulwark', 'shield', 1],
+      ['shield_generator_b', 'shield', 1, 'bulwark', 'shield', 1],
+      ['shield_generator_c', 'shield', 1, 'bulwark', 'shield', 1],
+    ]);
+    assert.deepEqual(groupTotals(three, {}, bw, null, null, 2).get('shield'), { now: 4320, stock: 4320 });
+    assert.deepEqual(groupTotals(three, {}, bw).get('shield'), { now: 6480, stock: 6480 });
+    // Ein staerkerer Generator an dritter Stelle verdraengt einen schwaecheren.
+    assert.deepEqual(groupTotals(three, { shield_generator_c: 'palisade' }, bw, null, null, 2).get('shield'), { now: 3900 + 2160, stock: 4320 });
+    assert.deepEqual(activeShields([[2160, 216], [3900, 300], [2160, 216]], 2), [6060, 516]);
+    assert.deepEqual(activeShields([[2160, 216], [3900, 300]], 0), [6060, 516]);
+    assert.deepEqual(activeShields([], 2), [0, 0]);
   });
 
   test('Raketen: je Halterung derselbe Untertyp und dieselbe Groesse, Schaden mal Stueckzahl', () => {

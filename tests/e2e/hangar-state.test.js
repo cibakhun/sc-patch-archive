@@ -133,8 +133,10 @@ describe('Hangar: Orte der Halle', () => {
 // der ihn meint (Protokoll bei den Bildern des PR); dazu 8 Eingriffe fuer die
 // beiden Tests aus dem Review von PR #388 (rot-review.txt).
 describe('Hangar: Einstieg am Bildschirm', () => {
-  const seite = fs.readFileSync(new URL('../../assets/hangar-overview.js', import.meta.url), 'utf8');
-  const buehne = fs.readFileSync(new URL('../../assets/hangar-viewer.js', import.meta.url), 'utf8');
+  // Quellen auf LF: unter Windows (core.autocrlf) kommen sie mit CRLF, die
+  // Muster unten erwarten \n.
+  const seite = fs.readFileSync(new URL('../../assets/hangar-overview.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+  const buehne = fs.readFileSync(new URL('../../assets/hangar-viewer.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
   test('der erste Besuch einer Sitzung beginnt am Bildschirm, jeder weitere dort, wo die Adresse hinzeigt', () => {
     assert.equal(startAmSchirm('', '', true), true);
@@ -184,7 +186,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
   // ("Unexpected token 'S', "START_NENN"... is not valid JSON"). Geprueft wird das Muster des Geruests
   // selbst, an der Quelle des Controllers mit beiden Zeilenenden.
   test('das Geruest findet die Liste im Controller mit LF und mit CRLF', () => {
-    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
+    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
     const stellen = [...geruest.matchAll(/CONTROLLER_SRC\.match\(\/(.+?)\/\)\?\.\[1\]/g)];
     assert.equal(stellen.length, 1, 'das Geruest liest START_NENNT nicht mehr an genau einer Stelle aus der Quelle des Controllers');
     const muster = new RegExp(stellen[0][1]);
@@ -253,7 +255,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
 
   test('am Schreibtisch bleibt die lange Erklaerung der Schiffsauswahl zu und ungesehen (Hinweise statt Textwand); am Telefon geht sie beim ersten Besuch auf wie bisher', () => {
     // assets/tool-help.js laeuft hier wie beim Laden der Seite, mit einem Abschnitt und nachgestellter Ablage
-    const hilfe = fs.readFileSync(new URL('../../assets/tool-help.js', import.meta.url), 'utf8');
+    const hilfe = fs.readFileSync(new URL('../../assets/tool-help.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
     const lauf = (aus, gesehen) => {
       const sec = { open: false, getAttribute: (n) => (n === 'data-tool-id' ? 'hangar' : null), closest: (sel) => (aus && sel === '[data-help-auto="aus"]' ? {} : null), contains: () => false, compareDocumentPosition: () => 0 };
       let ablage = gesehen ? '{"hangar":1}' : null, schrieb = 0;
@@ -273,7 +275,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     assert.deepEqual(lauf(false, true), { offen: false, gesehen: true, schrieb: 0 });
     assert.deepEqual(lauf(true, true), { offen: false, gesehen: true, schrieb: 0 });
     // das Geruest sagt es fuer jeden Aufruf am Schreibtisch, vor jedem Zugriff auf den Speicher (Hangar-Politur 22.11.2026)
-    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
+    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
     assert.match(geruest, /try\{var t=matchMedia\('\(max-width: 760px\), \(pointer: coarse\)'\)\.matches;if\(!t\)m\.dataset\.helpAuto='aus';/);
     assert.equal((geruest.match(/helpAuto/g) ?? []).length, 1, 'data-help-auto wird an einer zweiten Stelle gesetzt');
     // der Controller liest den alten Ort nicht aus dem Dokument: Dort steht der Leitstand schon vor seinem ersten
@@ -289,7 +291,7 @@ describe('Hangar: Einstieg am Bildschirm', () => {
   // den Leitstand und schob die Erklaerung auf, der Controller begann auf dem Feld, und die Erklaerung blieb
   // dort bei jedem Aufruf zu.
   test('laesst sich die Sitzung lesen, aber nicht beschreiben, bleibt es im Geruest wie im Controller beim Feld', () => {
-    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
+    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
     const roh = /<script is:inline set:html=\{`(\(function\(m\)\{[^`]*)`\}><\/script>/.exec(geruest)?.[1] ?? '';
     assert.ok(roh.includes("m.dataset.ort='leit'"), 'das Inline-Skript in <main> nicht gefunden');
     assert.equal(roh.split('${jsonForScript(START_NENNT)}').length, 2, 'die Liste steht nicht mehr genau einmal im Inline-Skript');

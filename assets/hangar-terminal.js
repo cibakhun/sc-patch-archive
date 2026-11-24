@@ -1261,7 +1261,8 @@ export function initTerminal(box, hooks = {}) {
         get(`crafting_entries?select=owned,plan_qty&user_id=eq.${q}&limit=5000`),
         get(`friend_requests?select=id&receiver_id=eq.${q}&status=eq.pending&limit=100`),
         get(`direct_messages?select=sender_id&receiver_id=eq.${q}&read_at=is.null&limit=500`),
-        get(`favorites?select=id&user_id=eq.${q}&limit=1000`),
+        // nur die Flotte (kind=ship): die Kachel sagt „in der Flotte“
+        get(`favorites?select=id&kind=eq.ship&user_id=eq.${q}&limit=1000`),
         get(`hangar_layouts?select=id,deleted&deleted=is.false&user_id=eq.${q}&limit=1000`),
       ]);
       // die Freunde nur, wenn es Ungelesenes gibt: Sie entscheiden, welche Nachrichten zaehlen

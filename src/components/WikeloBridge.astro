@@ -20,6 +20,9 @@ const JS_T = {
     more: '+{n} weitere Quellen im Item Finder',
     catalogNote: 'Keine verifizierten Shop- oder Loot-Daten für dieses Item.',
     openFinder: 'Im Item Finder öffnen',
+    openSheet: 'Zum Datenblatt',
+    mineNote: 'Kein Shop: Dieses Material wird abgebaut. Fundorte und Werte stehen in der Mining-Datenbank.',
+    openMining: 'Fundorte in Mining',
   },
   en: {
     linkTitle: 'Show where to get it',
@@ -29,6 +32,9 @@ const JS_T = {
     more: '+{n} more sources in the item finder',
     catalogNote: 'No verified shop or loot data for this item.',
     openFinder: 'Open in item finder',
+    openSheet: 'Data sheet',
+    mineNote: 'No shop: this material is mined. Locations and values are in the mining database.',
+    openMining: 'Mining locations',
   },
 }[lang];
 
@@ -50,7 +56,7 @@ const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
   /* Deep-Link-Hervorhebung (?item=…) */
   .wk-tc.wk-hit{border-color:var(--accent-2,#E8A33D);border-top-color:var(--accent-2,#E8A33D);box-shadow:0 0 22px color-mix(in srgb,var(--accent-2,#E8A33D) 30%,transparent)}
   /* Bezugsquellen-Popup — über der fixen Site-Nav (z 9100), unter der Suche (9600) */
-  .wkb{position:fixed;inset:0;z-index:9300;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
+  .wkb{position:fixed;inset:0;z-index:9300;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:calc(var(--nav-h,68px) + clamp(.5rem,2vw,1.5rem)) 1rem clamp(.5rem,4vw,3rem);overflow:auto}
   .wkb[hidden]{display:none}
   .wkb__box{position:relative;max-width:560px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#1FB8A6);border-radius:8px;padding:clamp(1.2rem,4vw,1.8rem)}
   .wkb__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(31,184,166,.3));color:var(--text,#eef4f2);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:var(--fs-10)}
@@ -63,7 +69,9 @@ const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
   .wkb__row b{color:var(--text);white-space:nowrap}
   .wkb__note{font-size:var(--fs-5);color:var(--muted,#93a7a1);line-height:1.5;margin:.5rem 0 0}
   .wkb__flink{display:inline-block;margin-top:.8rem;color:var(--accent-2,#E8A33D);font-weight:700;font-size:var(--fs-7);text-decoration:none;border-bottom:1px solid currentColor}
-  .wkb__flink:hover{color:var(--text)}</style>
+  .wkb__flink:hover{color:var(--text)}
+  .wkb__links{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;margin:0}
+</style>
 
 <script is:inline set:html={`window.__WKB=${jsonForScript({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/de/item-finder.html' : '/item-finder.html', t: JS_T })};`} />
 <script is:inline src={versioned('assets/wikelo-bridge.js', '/assets/wikelo-bridge.js')}></script>

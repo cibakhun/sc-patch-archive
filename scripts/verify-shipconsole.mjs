@@ -52,7 +52,11 @@
         hat genau einen Rail-Anker.
      4  Kein Eintrag ohne Marker (P-3). Der Zaehl-Chip (.holo__rail-ct)
         jedes Rail-Eintrags == Zahl der Ports dieser Gruppe im
-        #holodata-Block derselben Seite, und > 0.
+        #holodata-Block derselben Seite, und > 0. Einzige Ausnahme
+        (Heuristik P23, 24.11.2026): Bewaffnung ohne einen einzigen Marker
+        steht als Inhalt (data-kind="inhalt" an Anker UND Abschnitt), mit
+        Zaehl-Chip > 0 und #holodata 0 — sonst fehlten die Waffen dieser
+        Schiffe ganz auf der Seite.
      5  Ohne JavaScript sichtbar (D-02). Kein .holo__sys traegt `hidden`;
         kein .holo__sys liegt in einem <template>; Rail-Eintraege sind
         echte <a href="#sys-...">-Anker; der sichtbare Text INNERHALB
@@ -309,7 +313,8 @@ function extractAllRegionsByClass(cleanHtml, className) {
     const attrs = m[0];
     const idMatch = /\bid\s*=\s*"([^"]*)"/i.exec(attrs);
     const hidden = /(^|\s)hidden(\s|=|\/|>|$)/i.test(attrs);
-    out.push({ tagName, start, end, html: cleanHtml.slice(start, end), id: idMatch ? idMatch[1] : null, hidden });
+    const inhalt = /\bdata-kind\s*=\s*"inhalt"/i.test(attrs);
+    out.push({ tagName, start, end, html: cleanHtml.slice(start, end), id: idMatch ? idMatch[1] : null, hidden, inhalt });
     openRe.lastIndex = end; // nicht in verschachtelte Fundstellen derselben Klasse hineinsuchen
   }
   return out;
@@ -359,7 +364,8 @@ function railEntriesAus(railHtml) {
     const inner = m[2];
     const ctMatch = /class="[^"]*\bholo__rail-ct\b[^"]*"[^>]*>([^<]*)</.exec(inner);
     const count = ctMatch ? parseInt(ctMatch[1].replace(/[^\d]/g, ''), 10) : null;
-    out.push({ target, count, html: m[0] });
+    const open = /^<a\b[^>]*>/.exec(m[0])[0];
+    out.push({ target, count, html: m[0], inhalt: /\bdata-kind="inhalt"/.test(open) });
   }
   return out;
 }
@@ -419,7 +425,11 @@ async function main() {
          flachdruecken — gemessen: alle 454 Seiten fielen in den Eimer 4, die
          Klinke riss achtfach. Die Klinke selbst bleibt damit unveraendert
          gueltig, sie wird nur wieder auf das gerichtet, was sie misst. */
-      const nPort = d.sysSections.filter((s) => PORT_SYS_IDS.includes(s.id)).length;
+      /* Heuristik P23 (24.11.2026): Bewaffnung OHNE verortete Marker steht als
+         Inhaltsabschnitt (data-kind="inhalt") in der Konsole, damit die Waffen
+         ueberhaupt auf der Seite stehen. Er ist keine Markergruppe und zaehlt
+         hier nicht mit — die Verteilung bleibt eine Aussage ueber Marker. */
+      const nPort = d.sysSections.filter((s) => PORT_SYS_IDS.includes(s.id) && !s.inhalt).length;
       const bucket = Math.min(nPort, 4);
       (f.startsWith('dist/de/') ? distDe : distEn)[bucket]++;
       if (n < 1) pagesWithoutSys.push(f);
@@ -484,13 +494,30 @@ async function main() {
   {
     let groupsChecked = 0;
     let minMarker = Infinity;
+    let ohneMarker = 0;
     const mismatches = [];
+    const ohneMarkerFehler = [];
     for (const [f, d] of fileData) {
       if (!d.holodata) continue;
       for (const entry of d.railEntries) {
         const grp = GROUP_FOR_SYS_ID[entry.target];
         if (!grp) continue;
         const portCount = (d.holodata.ports ?? []).filter((p) => p.g === grp).length;
+        /* Heuristik P23: ein Eintrag als Inhalt (data-kind="inhalt") ist nur
+           erlaubt, wo die Gruppe wirklich KEINEN Marker hat, sein Abschnitt
+           ebenso als Inhalt markiert ist und der Zaehl-Chip etwas zaehlt
+           (die Zeilen der Bewaffnung). Mit Markern gilt P-3 wie bisher. */
+        const sec = d.sysSections.find((s) => s.id === entry.target);
+        if (entry.inhalt || sec?.inhalt) {
+          ohneMarker++;
+          if (!entry.inhalt || !sec?.inhalt || grp !== 'arms' || portCount !== 0 || !(entry.count > 0)) {
+            ohneMarkerFehler.push(
+              `${f}: Gruppe "${grp}" als Inhalt — Rail ${entry.inhalt ? 'inhalt' : 'port'}, Abschnitt ${sec?.inhalt ? 'inhalt' : 'port'}, ` +
+                `Zaehl-Chip ${entry.count ?? '(fehlt)'}, #holodata ${portCount}`
+            );
+          }
+          continue;
+        }
         groupsChecked++;
         if (portCount < minMarker) minMarker = portCount;
         if (entry.count !== portCount || portCount === 0) {
@@ -500,7 +527,9 @@ async function main() {
     }
     console.log(`    Geprueft: ${groupsChecked} Gruppe(n)   kleinste gefundene Markerzahl: ${minMarker === Infinity ? '(keine Rail-Eintraege gefunden)' : minMarker}`);
     console.log(`    Soll: 0 Abweichungen   Ist: ${mismatches.length}`);
+    console.log(`    Bewaffnung ohne Marker als Inhalt (Heuristik P23): ${ohneMarker} Eintrag/Eintraege   Soll: 0 Abweichungen   Ist: ${ohneMarkerFehler.length}`);
     if (mismatches.length) fail(`Zaehl-Chip stimmt nicht mit #holodata ueberein: ${mismatches.slice(0, 10).join(', ')}`);
+    if (ohneMarkerFehler.length) fail(`Inhaltseintrag einer Markergruppe ungueltig: ${ohneMarkerFehler.slice(0, 10).join(', ')}`);
   }
 
   /* ---- Zusicherung 5: Ohne JavaScript sichtbar (D-02) ---- */

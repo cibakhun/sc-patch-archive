@@ -65,6 +65,12 @@ export const WERKBANK_DESIGN_CSS = `
   --o:var(--accent,#FF5E1A);--b:var(--accent-2,#1FA2FF);
   --tx:var(--text,#eef1f5);--mu:var(--muted,#9ba2ae);--mu2:#878e9b;
   --ctl:2.45rem;--kc:var(--o);
+  /* Zahlenschrift fuer Zaehler, Kennzahlen, Planer-Zeit und Ausbeute. Bis
+     24.11.2026 Orbitron: dort ist die 7 ein Haken wie „⌉“ und die 1 ein
+     Strich, „17“ las sich wie Klammern (UX-Audit P88). Teko ist die
+     Zahlenschrift der Datenblaetter (--font-num in data-page.css), auf dieser
+     Seite aber nicht gesetzt, daher der Rueckfall. */
+  --wb-zahl:var(--font-num,'Teko','Rajdhani',sans-serif);
   --out:cubic-bezier(.16,1,.3,1);--feder:cubic-bezier(.34,1.5,.5,1);
   /* Tempo (R8, Krisz 15.11.2026 zu den verlangsamten Filmen der siebten
      Runde: „war gar nicht so schlecht, also du kannst gerne bisscehn
@@ -159,7 +165,7 @@ export const WERKBANK_DESIGN_CSS = `
 
 /* ===== 3 Liste ===== */
 .cdb--wb .cdb-count-row{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.6rem;font-size:var(--fs-3);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--mu)}
-.cdb--wb .cdb-count-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-11);letter-spacing:var(--ls-3);color:var(--o)}
+.cdb--wb .cdb-count-row b{display:inline-block;font-family:var(--wb-zahl);font-size:var(--fs-11);letter-spacing:var(--ls-3);color:var(--o)}
 .cdb--wb .cdb-count-row b.is-tick{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out)}
 .cdb--wb .cdb-count-row::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hl2),transparent)}
 .cdb--wb .cdb-grid{gap:.7rem}
@@ -316,7 +322,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wbr-kenn > div{display:flex;flex-direction:column;gap:.25rem;min-width:0;padding:.7rem .6rem .75rem 1.1rem;border-left:1px solid var(--hl)}
 .cdb--wb .wbr-kenn > div:first-child{border-left:0}
 .cdb--wb .wbr-kenn span{display:inline-flex;align-items:center;gap:.35rem;overflow:hidden;font-size:var(--fs-1);font-weight:700;letter-spacing:var(--ls-8);text-transform:uppercase;white-space:nowrap;color:var(--mu)}
-.cdb--wb .wbr-kenn b{font-family:var(--font-display,inherit);font-size:var(--fs-11);font-weight:800;line-height:1.1;color:var(--tx)}
+.cdb--wb .wbr-kenn b{font-family:var(--wb-zahl);font-size:var(--fs-11);font-weight:800;line-height:1.1;color:var(--tx)}
 .cdb--wb .wbr-inh{padding:1.1rem 1.4rem 1.6rem}
 .cdb--wb .cbm__meta{gap:.5rem;margin:0}
 .cdb--wb .cbm__plan{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;order:-1;flex:1 1 100%;height:2.7rem;margin:0;padding:0 1.1rem;border-radius:8px;background:var(--b);color:#041019;font-size:var(--fs-7);letter-spacing:var(--ls-4);box-shadow:0 10px 24px -12px color-mix(in srgb,var(--b) 80%,transparent);transition:background-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
@@ -529,7 +535,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-sum{border-top:0;background:none}
 .cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-sync--drawer{margin:0}
 .cdb--wb .cdb-plan-time-row{align-items:baseline;margin-bottom:.9rem;font-size:var(--fs-1);letter-spacing:var(--ls-11)}
-.cdb--wb .cdb-plan-time-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-13);letter-spacing:var(--ls-3);text-transform:none;color:var(--tx)}
+.cdb--wb .cdb-plan-time-row b{display:inline-block;font-family:var(--wb-zahl);font-size:var(--fs-13);letter-spacing:var(--ls-3);text-transform:none;color:var(--tx)}
 .cdb--wb .cdb-plan-time-row b.is-tick{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out)}
 .cdb--wb .cdb-plan-sum h4{display:flex;align-items:center;gap:.6rem;margin:0 0 .45rem;font-size:var(--fs-1);letter-spacing:var(--ls-11);color:var(--b)}
 .cdb--wb .cdb-plan-sum h4::after{content:"";flex:1;height:1px;background:var(--hl)}
@@ -608,7 +614,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .calc-fgroup label,.cdb--wb .calc-fgroup > div:not([class]){font-size:var(--fs-5)!important}
 .cdb--wb .calc-mat-list{margin-top:.5rem;padding:.3rem;border-color:var(--hl);border-radius:8px;background:rgba(0,0,0,.2)}
 .cdb--wb .calc-mat-list .calc-check:has(input:checked){background:color-mix(in srgb,var(--o) 12%,transparent);color:var(--tx)}
-.cdb--wb #calc-yield-val{font-family:var(--font-display,inherit);font-size:var(--fs-9);font-weight:800;color:var(--o)}
+.cdb--wb #calc-yield-val{font-family:var(--wb-zahl);font-size:var(--fs-9);font-weight:800;color:var(--o)}
 /* Derselbe Regler wie im Rezept (--v setzt crafting-app.js). */
 .cdb--wb #calc-yield-rate{--v:.5;--p:calc(9px + (100% - 18px) * var(--v));-webkit-appearance:none;appearance:none;height:24px;margin:0;background:none;cursor:pointer}
 .cdb--wb #calc-yield-rate::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--o) var(--p),rgba(255,255,255,.1) var(--p))}

@@ -22,7 +22,12 @@
         Base64-Bilddaten vor und waere ein falscher Alarm) in allen
         .html-Dateien unter dist/.
      4  Jede gebaute Seite, die die Umschalter-Klasse (js-fx-toggle)
-        traegt, traegt sie mindestens zweimal (Leiste + Menuefuss).
+        traegt, montiert den Schalter genau einmal im Menuefuss
+        (fxsw-wrap--deck) und keinmal in der Leiste (fxsw-wrap--bar),
+        seit UX-Audit A7 (24.11.2026, „Partikel-Schalter ins Menue").
+        Vorher hiess sie „mindestens zweimal (Leiste + Menuefuss)" —
+        das zaehlte auch die zwei Fundstellen im Skript von Layout.astro
+        mit und waere ohne jede Montage gruen geblieben.
      5  Der Kopf-Schnipsel, der data-fx setzt, steht in jeder
         gebauten Seite VOR dem ersten <script src=...>-Verweis auf
         ein Seiten-Asset (Zeichenposition vergleichen) — die
@@ -113,16 +118,48 @@ console.log('\n[3] Not-Ausgang (?nofx-Abfragezeichenkette) in dist/**/*.html');
   if (hits.length) fail(`Not-Ausgang noch vorhanden in: ${hits.slice(0, 10).join(', ')}`);
 }
 
-/* ---- Zusicherung 4: Umschalter-Klasse mindestens zweimal ---- */
-console.log('\n[4] js-fx-toggle: jede Seite, die ihn traegt, traegt ihn >= 2x');
+/* ---- Zusicherung 4: Schalter genau einmal, und zwar im Menuefuss ---- */
+console.log('\n[4] js-fx-toggle: genau ein Schalter je Seite, im Menuefuss, keiner in der Leiste');
 {
+  // Untergrenze der Seiten mit voller Navigation (gemessen 24.11.2026:
+  // 3 330 live, 3 338 im Vorschau-Bau). Darunter liefe die Pruefung leer.
+  const KLINKE = 3000;
   const bad = [];
+  let mit = 0;
+  // Gezaehlt werden KNOEPFE (class="fxsw js-fx-toggle"), nicht die blosse
+  // Klasse: die steht auch im Schalt-Skript von Layout.astro und damit auf
+  // jeder Seite, auch auf den Datenblaettern ohne Schalter.
+  const KNOPF = `fxsw ${TOGGLE}`;
+  // Pruefpflichtig ist jede Seite mit voller Navigation (SiteNav, id="topbar"),
+  // ob sie einen Schalter traegt oder nicht: fehlt er dort, ist das ein Fehler
+  // und kein uebersprungener Fall. Ein Schalter ausserhalb der vollen
+  // Navigation ist ebenso falsch montiert. Datenblaetter (DataShell) haben
+  // beides nicht und bleiben aussen vor.
+  const VOLLE_NAV = 'id="topbar"';
+  // Zaehlen allein beweist die Lage nicht: der Knopf muss im Menuefuss
+  // stehen, und zwar als erstes Kind seines Deck-Rahmens (so rendert ihn
+  // FxToggle.astro mit place="deck"). Ein Deck-Rahmen an anderer Stelle oder
+  // ein Knopf neben einem leeren Rahmen faellt hier durch.
+  const FUSS_RE = /<footer class="snav-deck__foot"[^>]*>([\s\S]*?)<\/footer>/;
+  const IM_RAHMEN_RE = /<span class="fxsw-wrap fxsw-wrap--deck"[^>]*>\s*<button class="fxsw js-fx-toggle"/;
   for (const f of htmlFiles) {
-    const n = count(htmlCache.get(f), TOGGLE);
-    if (n > 0 && n < 2) bad.push(`${f} (${n}x)`);
+    const html = htmlCache.get(f);
+    const knoepfe = count(html, KNOPF);
+    const nav = html.includes(VOLLE_NAV);
+    if (!nav && !knoepfe) continue;
+    mit++;
+    const deck = count(html, 'fxsw-wrap--deck');
+    const bar = count(html, 'fxsw-wrap--bar');
+    const fuss = (html.match(FUSS_RE) || [])[1] || '';
+    const imFuss = count(fuss, KNOPF) === 1 && IM_RAHMEN_RE.test(fuss);
+    if (!nav || !imFuss || knoepfe !== 1 || deck !== 1 || bar !== 0) {
+      bad.push(`${f} (${nav ? 'volle Navigation' : 'OHNE volle Navigation'}, ${knoepfe} Knoepfe, Menue ${deck}x, Leiste ${bar}x, im Menuefuss ${imFuss ? 'ja' : 'NEIN'})`);
+    }
   }
-  console.log(`    Seiten mit dem Umschalter, aber < 2 Fundstellen — Soll: 0   Ist: ${bad.length}`);
-  if (bad.length) fail(`Umschalter fehlt an einer Montagestelle: ${bad.slice(0, 10).join(', ')}`);
+  console.log(`    Seiten mit voller Navigation oder Schalter: ${mit} (Klinke ${KLINKE})`);
+  console.log(`    davon nicht genau einmal im Menuefuss oder noch in der Leiste — Soll: 0   Ist: ${bad.length}`);
+  if (mit < KLINKE) fail(`nur ${mit} Seiten mit voller Navigation oder Effekte-Schalter, erwartet mindestens ${KLINKE}`);
+  if (bad.length) fail(`Effekte-Schalter falsch montiert: ${bad.slice(0, 10).join(', ')}`);
 }
 
 /* ---- Zusicherung 5: Kopf-Flagge vor dem ersten Asset-Skript (D-11) ---- */

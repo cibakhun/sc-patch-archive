@@ -1,5 +1,5 @@
 {
-  "meta": {"patch":"sc-alpha-4.10.3@13165946","generated":"2026-11-12","generator":"scripts/datamine-loot.mjs","aussage":"Ein Item steht unter einer Belegung, wenn einer ihrer Slots es per Tags waehlen kann. Gewichte sind bewusst nicht mitgefuehrt: die Aussage ist „kann dort entstehen\", nicht „faellt oft\".","counts":{"items":4463,"itemsOhneWelt":6,"belegungen":54,"profile":60,"belegungenOhneWelt":200,"slotsOhnePlatzierung":1067,"socpaks":9718,"socpakDateien":173009,"scanFehler":0}},
+  "meta": {"patch":"sc-alpha-4.10.3@13220821","generated":"2026-11-24","generator":"scripts/datamine-loot.mjs","aussage":"Ein Item steht unter einer Belegung, wenn einer ihrer Slots es per Tags waehlen kann. Gewichte sind bewusst nicht mitgefuehrt: die Aussage ist „kann dort entstehen\", nicht „faellt oft\".","counts":{"items":4463,"itemsOhneWelt":6,"belegungen":54,"profile":60,"belegungenOhneWelt":200,"slotsOhnePlatzierung":1067,"socpaks":9718,"socpakDateien":173009,"scanFehler":0}},
   "belegungen": {
     "AsteroidBase_Dungeon_001": {"wurzeln":{"pyro/pyrosystem":1},"socpaks":2},
     "AsteroidBase_Encounter_001": {"wurzeln":{"pyro/pyrosystem":3},"socpaks":4},

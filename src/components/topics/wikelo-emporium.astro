@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -20,6 +21,8 @@ import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
 import Datenstand from '../../components/Datenstand.astro';
 import { standWikelo } from '../../lib/datenstand';
+import { pageItems } from '../../lib/items';
+import { miningLink } from '../../lib/miningLinks';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -40,6 +43,39 @@ const linkAttrs = (raw: string) => {
   return it ? { 'data-item': it, role: 'button' as const, tabindex: '0', title: (de ? 'Bezugsquellen anzeigen' : 'Show where to get it') } : {};
 };
 const schiffHref = (n: string, cls?: string) => { const id = schiffZurBelohnung(n, cls); return id ? href(`/schiffe/${id}.html`, lang) : null; };
+// Item-Datenblaetter (UX-Audit H2, 24.11.2026): bis hierher verlinkte die
+// Seite kein einziges Item, nur 31 Schiffe, obwohl 93 Item-Blaetter auf sie
+// zeigen. Ein Name mit eigener Item-Seite wird ein echter Link dorthin (der
+// einfache Klick oeffnet weiter das Bezugsquellen-Fenster, Strg/Mittelklick
+// und Suchmaschinen folgen der Adresse). Nur Items mit Seite (pageItems) —
+// sonst waere es ein toter Link. Der Katalog fuehrt je Name genau einen
+// Eintrag (Pruefung in wikeloItemMatch.ts), der Name ist also eindeutig.
+const itemSeite = new Map(pageItems.map((i) => [i.name, i.id]));
+const itemHref = (canon: string | null) => {
+  const id = canon ? itemSeite.get(canon) : undefined;
+  return id ? href(`/items/${id}.html`, lang) : null;
+};
+const quellenTitel = de ? 'Bezugsquellen anzeigen' : 'Show where to get it';
+// Erze ohne Shop (UX-Audit P41): "30× Carinite", "20× Jaclium (Ore)" fuehren im
+// Fenster zusaetzlich zur Mining-Datenbank. Der Zusatz (Ore)/(Pure)/(Raw)
+// faellt fuer den Vergleich weg; ohne passendes Mineral bleibt es bei null.
+const mineFor = (raw: string) => {
+  const n = raw.replace(/^\d+\s*[×x]\s*/, '');
+  return miningLink(n, lang) ?? miningLink(n.replace(/\s*\((ore|pure|raw)\)$/i, ''), lang);
+};
+// Je Karte vorab: Material- und Belohnungs-Ziele. Belohnungen, die ein Schiff
+// sind, fuehren zum Schiffsblatt und nicht zum Fahrzeug-Itemblatt (das
+// Schiffsblatt fuehrt, siehe UX-Audit D9).
+const KARTEN = TRADES.map((t) => {
+  const g = t.get ?? t.name;
+  const schiff = schiffHref(g, t.cls);
+  const gCanon = matchItemName(g);
+  return {
+    mats: t.mats.map((m) => { const c = matchItemName(m); return { text: m, canon: c, href: itemHref(c), mine: mineFor(m) }; }),
+    get: { text: g, canon: gCanon, href: schiff ? null : itemHref(gCanon) },
+    schiff,
+  };
+});
 // On-brand inline SVG icons (instead of emojis) — line style, currentColor.
 const svg = (b: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
 const ICON = {
@@ -66,7 +102,7 @@ const TCATS = [
 const CAT_LABEL = de ? { conv: 'Favor-Umtausch', ship: 'Schiff', weapon: 'Waffe', armor: 'Rüstung', misc: 'Sonstiges' } : { conv: 'Favor exchange', ship: 'Ship', weapon: 'Weapon', armor: 'Armor', misc: 'Misc' };
 const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor', misc: 'component' } as const;
 // Component types (ship loadout)
-const COMP_LABEL = de ? { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'Kühler', weapon: 'Waffen' } : { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
+const COMP_LABEL = de ? { pwr: 'Generator', shield: 'Schild', qd: 'Quantum', cooler: 'Kühler', weapon: 'Waffen' } : { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
 // Kategorie und Komponentenart kommen aus den Daten (build-wikelo-trades.mjs).
 // Ein Wert ohne Label bricht den Bau ab, statt "undefined" auf die Karte zu
 // schreiben; zugleich kennt tsc danach den Schluesseltyp (TS7053). Eigene
@@ -109,6 +145,12 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
 /* page-local accents */
 .hero h1{font-size:clamp(2.1rem,12vw,9rem)}
+/* Kurzer Kopf (UX-Audit H1, 24.11.2026): die Tauschliste begann am Desktop
+   rund 3.850 px tief, am Handy nach gut sieben Bildschirmen. Sie steht jetzt
+   direkt unter einem Kopf, der nicht mehr fast den ganzen Bildschirm fuellt;
+   die Geschichte folgt darunter. */
+.hero{min-height:clamp(360px,58svh,620px);padding-bottom:2.4rem}
+.hero h1{font-size:clamp(2.1rem,8.5vw,6.4rem)}
 /* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT: die Formel oben rechnet nur in vw.
    Bei 932x430 ergab das 121 px Schrift auf 430 px Bildschirm, und die
    letzte Titelzeile lag unter der Kante („Tactical Strike Gro…").
@@ -143,6 +185,30 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);border:1px solid var(--line);background:var(--veil);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui),background-color var(--dur-base) var(--ease-ui)}
 .wk-pill:hover{color:var(--text);border-color:var(--accent)}
 .wk-pill[aria-pressed="true"]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+/* Suchfeld ueber den Reitern (UX-Audit H1): rund 70 Karten ohne Suche hiess,
+   einen bestimmten Trade per Auge zu suchen. */
+.wk-tools{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;flex-direction:column;gap:.75rem}
+.wk-tools .wk-filters{margin:0}
+.wk-search{position:relative;display:flex;align-items:center;max-width:34rem}
+.wk-search svg{position:absolute;left:.85rem;width:18px;height:18px;color:var(--muted);pointer-events:none}
+.wk-search input{width:100%;font:inherit;font-size:var(--fs-9);color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.7rem 2.6rem .7rem 2.6rem;min-height:44px}
+.wk-search input::placeholder{color:var(--muted);opacity:1}
+.wk-search input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.wk-search input::-webkit-search-cancel-button{display:none}
+.wk-search__x{position:absolute;right:.35rem;width:36px;height:36px;border:0;border-radius:4px;background:transparent;color:var(--muted);font-size:var(--fs-11);line-height:1;cursor:pointer}
+.wk-search__x:hover,.wk-search__x:focus-visible{color:var(--text);background:var(--veil)}
+.wk-search__x[hidden]{display:none}
+.wk-count{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-9);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted)}
+.sr-wk{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Item-Namen mit eigener Seite sind Links (UX-Audit H2) */
+.wk-mats a.wk-linkable{color:inherit}
+a.wk-get-name{display:block;color:var(--text)}
+/* Am Handy macht mobile-ux.css jeden Namen zur 44-px-Zeile (Tippziel); die
+   Namen ohne Seite (role="button") rueckten dabei in die Mitte, die Links
+   nicht. Beide stehen links wie der Rest der Liste. */
+.wk-mats .wk-linkable{justify-content:flex-start;text-align:left}
+/* Die Liste steht direkt unter dem Kopf: weniger Luft darueber. */
+#trades{padding-top:clamp(1.6rem,4vw,3rem)}
 .wk-tc-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:1rem}
 .wk-tc{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:.85rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .wk-tc[data-cat="conv"]{border-top-color:var(--accent-2)}
@@ -159,6 +225,15 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-mats li{position:relative;padding-left:.85rem;font-size:var(--fs-7);line-height:1.35;color:var(--text)}
 .wk-mats li::before{content:"";position:absolute;left:0;top:.5em;width:5px;height:5px;background:var(--accent);transform:rotate(45deg)}
 .wk-tc[data-cat="conv"] .wk-mats li::before{background:var(--accent-2)}
+/* Dazu ein Takt fuer die ganze Liste: jede Zeile 44 px hoch, auch Namen ohne
+   Fenster, und der Punkt sitzt auf der ersten Textzeile statt darueber. */
+@media (max-width:820px){
+  .wk-mats{gap:0}
+  .wk-mats li{--wk-pad:calc((44px - 1.35em) / 2);padding-block:var(--wk-pad)}
+  .wk-mats li:has(> .wk-linkable){padding-block:0}
+  .wk-mats li > .wk-linkable{box-sizing:border-box;min-height:44px;align-items:flex-start;padding-block:var(--wk-pad)}
+  .wk-mats li::before{top:calc(var(--wk-pad) + .5em)}
+}
 .wk-favor{display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-7);font-size:var(--fs-6);color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent-2) 40%,transparent);background:color-mix(in srgb,var(--accent-2) 9%,transparent);padding:.22rem .55rem;border-radius:3px;width:max-content}
 .wk-favor svg{width:14px;height:14px;flex:none}
 .wk-tc__note{margin-top:.5rem;font-size:var(--fs-5);line-height:1.4;color:var(--muted)}
@@ -182,6 +257,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-ship{display:inline-block;margin-top:.3rem;font-size:var(--fs-6);color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .wk-ship:hover,.wk-ship:focus-visible{color:var(--text)}
 .wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:var(--fs-8)}
+.wk-tc-empty[hidden]{display:none}
+.wk-tc-empty button{margin-left:.6rem;font:inherit;color:var(--accent-2);background:none;border:0;border-bottom:1px solid currentColor;padding:0;cursor:pointer}
 
 /* ---- Ship loadout (components) ---- */
 .wk-comps{margin-top:.2rem;padding-top:.75rem;border-top:1px solid var(--line-soft)}
@@ -229,10 +306,157 @@ const showImg = TRADES.map((t: { img?: string }) => {
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-1-0.html' : '/patches/sc-4-1-0.html'}>Alpha 4.1 · Orbital Assault</a> &nbsp;·&nbsp; <span class="banu-tag">{de ? 'Banu-Händler' : 'Banu trader'}</span></div>
       <h1><span class="thin">{de ? 'Der erste spielbare Alien-Händler' : 'The first playable alien trader'}</span>Wikelo's Emporium</h1>
       <p class="lead">{de ? 'Items liefern, ' : 'Deliver items, earn '}<b>Favor</b>{de ? ' sammeln, Belohnungen eintauschen — kein aUEC.' : ', trade for rewards — no aUEC.'}</p>
-      <div class="tags"><span class="tag">Banu</span><span class="tag">Barter</span><span class="tag">Wikelo Favor</span><span class="tag">{de ? '3 Stationen' : '3 stations'}</span><span class="tag">{de ? 'seit Alpha 4.1' : 'since Alpha 4.1'}</span></div>
+      <div class="tags"><Schlagwort>Banu</Schlagwort><Schlagwort>Barter</Schlagwort><Schlagwort>Wikelo Favor</Schlagwort><Schlagwort>{de ? '3 Stationen' : '3 stations'}</Schlagwort><Schlagwort>{de ? 'seit Alpha 4.1' : 'since Alpha 4.1'}</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>
+
+  <!-- TRADE OVERVIEW — the core: GIVE → GET. Steht seit 24.11.2026 direkt
+       unter dem Kopf (UX-Audit H1), Erklaerung und Geschichte folgen darunter. -->
+  <section id="trades">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>{de ? 'Liefern → Bekommen' : 'Deliver → Receive'}</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">{de ? 'Links, was du ' : 'On the left what you '}<b>{de ? 'gibst' : 'give'}</b>{de ? ' — rechts, was du ' : ' — on the right what you '}<b>{de ? 'bekommst' : 'get'}</b>{de ? '. Unterstrichene Items zeigen per Klick ihre Bezugsquellen.' : '. Click an underlined item to see where to get it.'}</p></div>
+
+    <ToolHelp tool="wikelo" lang={lang} steps={4} />
+
+    <div class="wk-tools">
+      <div class="wk-search" data-help={h('wikelo.ctl.search')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <label class="sr-wk" for="wk-q">{de ? 'Trades durchsuchen' : 'Search trades'}</label>
+        <input id="wk-q" type="search" data-ev-filter="suche" autocomplete="off" spellcheck="false" placeholder={de ? 'Item, Material oder Schiff suchen …' : 'Search item, material or ship …'} />
+        <button id="wk-qx" class="wk-search__x" type="button" hidden aria-label={de ? 'Suche leeren' : 'Clear search'}>×</button>
+      </div>
+      <div class="wk-filters" data-ev-filter="kategorie" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
+        {TCATS.map((f, i) => (
+          <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
+        ))}
+      </div>
+      <output class="wk-count" id="wk-count" aria-live="polite" data-tpl={de ? '%n% von %t% Trades' : '%n% of %t% trades'}>{TRADES.length} Trades</output>
+    </div>
+
+    <div class="wk-tc-grid reveal" id="wk-tc-grid" data-help={h('wikelo.ctl.grid')}>
+      {TRADES.map((t, ti) => (
+        <article class="wk-tc" data-cat={t.cat}>
+          <header class="wk-tc__hd">
+            <span class="wk-tc__cat">{CAT_LABEL[catOf(t.cat)]}</span>
+            {t.rep && (<span class="wk-conf chk">{t.rep}</span>)}
+          </header>
+          <div class="wk-tc__body">
+            <div class="wk-give">
+              <div class="wk-side-h">{de ? 'Gib' : 'Give'}</div>
+              <ul class="wk-mats">{KARTEN[ti].mats.map((m) => (
+                <li>{m.href
+                  ? (<a class="wk-linkable" href={m.href} data-item={m.canon} data-mine={m.mine} aria-haspopup="dialog" title={quellenTitel}>{m.text}</a>)
+                  : m.canon
+                    ? (<span class="wk-linkable" {...linkAttrs(m.text)} data-mine={m.mine}>{m.text}</span>)
+                    : m.text}</li>
+              ))}</ul>
+              {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}
+            </div>
+            <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
+            <div class="wk-get">
+              <div class="wk-side-h">{de ? 'Bekomm' : 'Get'}</div>
+              {/* Karte lädt das 480-px-WebP-Thumb (build-thumbs.mjs, ~20–50 KB);
+                  die wk-*.png-Originale (1,5–2,7 MB) holt erst die Lightbox
+                  (data-lb) beim bewussten Zoom-Klick — vorher lud die Seite
+                  beim Durchscrollen ~45 MB PNGs. */}
+              {t.img && showImg[ti]
+                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/thumb/${(t.img ?? '').replace(/\.[^.]+$/, '')}.webp`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
+                : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[catOf(t.cat)]]}></div>)}
+              {KARTEN[ti].get.href
+                ? (<a class="wk-get-name wk-linkable" href={KARTEN[ti].get.href} data-item={KARTEN[ti].get.canon} aria-haspopup="dialog" title={quellenTitel}>{KARTEN[ti].get.text}</a>)
+                : (<div class:list={['wk-get-name', KARTEN[ti].get.canon && 'wk-linkable']} {...linkAttrs(KARTEN[ti].get.text)}>{KARTEN[ti].get.text}</div>)}
+              {(KARTEN[ti].schiff ?? KARTEN[ti].get.href) && (<a class="wk-ship" href={KARTEN[ti].schiff ?? KARTEN[ti].get.href}>{de ? 'Zum Datenblatt' : 'Data sheet'} →</a>)}
+            </div>
+          </div>
+          {t.comps && (
+            <div class="wk-comps">
+              <div class="wk-comps__h">{de ? 'Kommt mit · Loadout' : 'Comes with · loadout'}</div>
+              <ul>{t.comps.map((c) => (
+                <li><span class="ct">{COMP_LABEL[compOf(c.k)]}</span><span class="cn">{c.q ? c.q + ' ' : ''}{c.n}</span>{c.s && (<span class="cb">S{c.s}{c.g ? ' · ' + c.g : ''}</span>)}</li>
+              ))}</ul>
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+    <p class="wk-tc-empty" id="wk-tc-empty" hidden>{de ? 'Kein Trade passt zu Suche und Kategorie.' : 'No trade matches the search and category.'}<button type="button" id="wk-reset">{de ? 'Zurücksetzen' : 'Reset'}</button></p>
+
+    <p class="src reveal">{de ? 'Vollständige Liste aller ' : 'Full list of all '}{TRADES.length}{de ? ' Trades — ' : ' trades — '}{de ? 'Spielversion: Alpha ' : 'Game version: Alpha '}{TRADES_META.patch}{de ? '. Wikelos Bestand rotiert mit jedem Patch — im Zweifel im Spiel nachsehen.' : '. Wikelo\'s stock rotates with every patch — check in-game if in doubt.'}</p>
+  </section>
+
+  <script is:inline>
+    // Suche und Kategorie zusammen (UX-Audit H1). Die Suche steht in ?q=,
+    // damit Zurueck und ein geteilter Link denselben Ausschnitt zeigen; ?item=
+    // (Hervorhebung, assets/wikelo-bridge.js) bleibt davon unberuehrt.
+    (function () {
+      var pills = document.querySelectorAll('.wk-pill');
+      var cards = Array.prototype.slice.call(document.querySelectorAll('#wk-tc-grid .wk-tc'));
+      var empty = document.getElementById('wk-tc-empty');
+      var q = document.getElementById('wk-q');
+      var qx = document.getElementById('wk-qx');
+      var count = document.getElementById('wk-count');
+      var reset = document.getElementById('wk-reset');
+      var cat = 'all';
+      var norm = function (s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, ''); };
+      // Durchsucht werden Kategorie, Materialien, Belohnung und Loadout — und
+      // der kanonische Item-Name, falls die Karte ihn anders schreibt. Die
+      // Kategorie steht auf der Karte in der Einzahl („Schiff“), auf dem
+      // Filter in der Mehrzahl („Schiffe“); beide Schreibweisen finden.
+      var pillName = {};
+      pills.forEach(function (p) { pillName[p.getAttribute('data-filter')] = p.textContent; });
+      var texts = cards.map(function (c) {
+        var parts = [pillName[c.getAttribute('data-cat')] || ''];
+        c.querySelectorAll('.wk-tc__cat, .wk-mats li, .wk-get-name, .wk-comps .cn, .wk-conf').forEach(function (el) { parts.push(el.textContent); });
+        c.querySelectorAll('[data-item]').forEach(function (el) { parts.push(el.getAttribute('data-item')); });
+        return norm(parts.join(' '));
+      });
+      function apply() {
+        var words = norm(q ? q.value : '').split(/\s+/).filter(Boolean);
+        var shown = 0;
+        cards.forEach(function (c, i) {
+          var vis = (cat === 'all' || c.getAttribute('data-cat') === cat) &&
+            words.every(function (w) { return texts[i].indexOf(w) !== -1; });
+          c.hidden = !vis;
+          if (vis) shown++;
+        });
+        if (empty) empty.hidden = shown !== 0;
+        if (qx) qx.hidden = !(q && q.value);
+        if (count) {
+          var tpl = count.getAttribute('data-tpl') || '%n% / %t%';
+          count.textContent = tpl.replace('%n%', String(shown)).replace('%t%', String(cards.length));
+        }
+      }
+      function urlSync() {
+        try {
+          var u = new URL(location.href);
+          if (q && q.value.trim()) u.searchParams.set('q', q.value.trim()); else u.searchParams.delete('q');
+          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+        } catch (e) { /* ohne URL-API bleibt nur die Adresse alt */ }
+      }
+      pills.forEach(function (p) {
+        p.addEventListener('click', function () {
+          cat = p.getAttribute('data-filter') || 'all';
+          pills.forEach(function (o) { o.setAttribute('aria-pressed', o === p ? 'true' : 'false'); });
+          apply();
+        });
+      });
+      if (q) {
+        q.addEventListener('input', function () { apply(); urlSync(); });
+        q.addEventListener('keydown', function (e) { if (e.key === 'Escape' && q.value) { q.value = ''; apply(); urlSync(); } });
+      }
+      if (qx) qx.addEventListener('click', function () { q.value = ''; apply(); urlSync(); q.focus(); });
+      if (reset) reset.addEventListener('click', function () {
+        if (q) q.value = '';
+        cat = 'all';
+        pills.forEach(function (o) { o.setAttribute('aria-pressed', o.getAttribute('data-filter') === 'all' ? 'true' : 'false'); });
+        apply(); urlSync();
+        if (q) q.focus();
+      });
+      try { var start = new URLSearchParams(location.search).get('q'); if (start && q) q.value = start; } catch (e) { /* alte Browser: ohne Vorbelegung */ }
+      apply();
+    })();
+  </script>
 
   <!-- MARQUEE -->
   <div class="dmarquee" aria-hidden="true">
@@ -253,11 +477,11 @@ const showImg = TRADES.map((t: { img?: string }) => {
     <div class="s"><div class="n">0<span class="u">aUEC</span></div><div class="c">{de ? 'Reines Barter — kein Geld' : 'Pure barter — no money'}</div></div>
   </div>
 
-  <!-- BAND 01 — barter principle -->
+  <!-- BAND 02 — barter principle -->
   <section class="band band--center">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/wk-kinga.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">{de ? '01 · Das Barter-Prinzip' : '01 · The barter principle'}</div>
+      <div class="kx">{de ? '02 · Das Barter-Prinzip' : '02 · The barter principle'}</div>
       <div class="big outline" style="font-size:clamp(2rem,8vw,6rem)">{de ? 'LIEFERN · BEKOMMEN' : 'DELIVER · RECEIVE'}</div>
       <p>{de ? 'Contracts erfüllen bringt ' : 'Fulfilling contracts earns '}<b style="color:var(--accent-2)">Wikelo Favor</b>{de ? ' — die Token, mit denen du Ausrüstung, Komponenten und Schiffe bezahlst.' : ' — the tokens you spend on equipment, components and ships.'}</p>
     </div>
@@ -265,7 +489,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
   <!-- TWO INTERACTION TYPES -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Zwei Interaktionstypen' : 'Two interaction types'}</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Zwei Interaktionstypen' : 'Two interaction types'}</h2><span class="rule"></span></div></div>
     <div class="wk-duo reveal">
       <div class="wk-cell">
         <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a8 8 0 0 1 13.7-3.3L20 7"/><path d="M20 3v4h-4"/><path d="M20 16a8 8 0 0 1-13.7 3.3L4 17"/><path d="M4 21v-4h4"/></svg></div>
@@ -284,7 +508,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
   <!-- THE THREE STATIONS -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Die drei Emporium-Stationen' : 'The three Emporium stations'}</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Die drei Emporium-Stationen' : 'The three Emporium stations'}</h2><span class="rule"></span></div></div>
     <figure class="wk-figure reveal">
       <img src="/assets/wk-selo.jpg" alt={de ? 'Wikelo Emporium Selo Station — Banu-Handelsstation auf einem Asteroiden nahe Yela' : 'Wikelo Emporium Selo Station — Banu trading station on an asteroid near Yela'} loading="lazy" decoding="async" />
       <figcaption>{de ? 'Wikelo Emporium — die Selo-Station auf einem Asteroiden nahe Yela, mit den Banu-Türmen und Landeplattformen. Jede der drei Stationen (Dasi, Selo, Kinga) teilt denselben Aufbau.' : 'Wikelo Emporium — the Selo station on an asteroid near Yela, with its Banu spires and landing pads. Each of the three stations (Dasi, Selo, Kinga) shares the same layout.'}</figcaption>
@@ -310,83 +534,6 @@ const showImg = TRADES.map((t: { img?: string }) => {
       </div>
     </div>
   </section>
-
-  <!-- TRADE OVERVIEW — the core: GIVE → GET -->
-  <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Liefern → Bekommen' : 'Deliver → Receive'}</h2><span class="rule"></span></div>
-      <p class="lead-p reveal">{de ? 'Links, was du ' : 'On the left what you '}<b>{de ? 'gibst' : 'give'}</b>{de ? ' — rechts, was du ' : ' — on the right what you '}<b>{de ? 'bekommst' : 'get'}</b>{de ? '. Unterstrichene Items zeigen ihre Bezugsquellen.' : '. Underlined items show where to get them.'}</p></div>
-
-    <ToolHelp tool="wikelo" lang={lang} steps={4} />
-
-    <div class="wk-filters reveal" data-ev-filter="kategorie" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
-      {TCATS.map((f, i) => (
-        <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
-      ))}
-    </div>
-
-    <div class="wk-tc-grid reveal" id="wk-tc-grid" data-help={h('wikelo.ctl.grid')}>
-      {TRADES.map((t, ti) => (
-        <article class="wk-tc" data-cat={t.cat}>
-          <header class="wk-tc__hd">
-            <span class="wk-tc__cat">{CAT_LABEL[catOf(t.cat)]}</span>
-            {t.rep && (<span class="wk-conf chk">{t.rep}</span>)}
-          </header>
-          <div class="wk-tc__body">
-            <div class="wk-give">
-              <div class="wk-side-h">{de ? 'Gib' : 'Give'}</div>
-              <ul class="wk-mats">{t.mats.map((m) => (<li class:list={[matchItemName(m) && 'wk-linkable']} {...linkAttrs(m)}>{m}</li>))}</ul>
-              {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}
-            </div>
-            <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
-            <div class="wk-get">
-              <div class="wk-side-h">{de ? 'Bekomm' : 'Get'}</div>
-              {/* Karte lädt das 480-px-WebP-Thumb (build-thumbs.mjs, ~20–50 KB);
-                  die wk-*.png-Originale (1,5–2,7 MB) holt erst die Lightbox
-                  (data-lb) beim bewussten Zoom-Klick — vorher lud die Seite
-                  beim Durchscrollen ~45 MB PNGs. */}
-              {t.img && showImg[ti]
-                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/thumb/${(t.img ?? '').replace(/\.[^.]+$/, '')}.webp`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
-                : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[catOf(t.cat)]]}></div>)}
-              <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
-              {schiffHref(t.get ?? t.name, t.cls) && (<a class="wk-ship" href={schiffHref(t.get ?? t.name, t.cls)}>{de ? 'Zum Datenblatt' : 'Data sheet'} →</a>)}
-            </div>
-          </div>
-          {t.comps && (
-            <div class="wk-comps">
-              <div class="wk-comps__h">{de ? 'Kommt mit · Loadout' : 'Comes with · loadout'}</div>
-              <ul>{t.comps.map((c) => (
-                <li><span class="ct">{COMP_LABEL[compOf(c.k)]}</span><span class="cn">{c.q ? c.q + ' ' : ''}{c.n}</span>{c.s && (<span class="cb">S{c.s}{c.g ? ' · ' + c.g : ''}</span>)}</li>
-              ))}</ul>
-            </div>
-          )}
-        </article>
-      ))}
-    </div>
-    <p class="wk-tc-empty" id="wk-tc-empty" hidden>{de ? 'Keine Trades in dieser Kategorie.' : 'No trades in this category.'}</p>
-
-    <p class="src reveal">{de ? 'Vollständige Liste aller ' : 'Full list of all '}{TRADES.length}{de ? ' Trades — ' : ' trades — '}{de ? 'Spielversion: Alpha ' : 'Game version: Alpha '}{TRADES_META.patch}{de ? '. Wikelos Bestand rotiert mit jedem Patch — im Zweifel im Spiel nachsehen.' : '. Wikelo\'s stock rotates with every patch — check in-game if in doubt.'}</p>
-  </section>
-
-  <script is:inline>
-    (function () {
-      var pills = document.querySelectorAll('.wk-pill');
-      var cards = document.querySelectorAll('#wk-tc-grid .wk-tc');
-      var empty = document.getElementById('wk-tc-empty');
-      pills.forEach(function (p) {
-        p.addEventListener('click', function () {
-          var key = p.getAttribute('data-filter');
-          pills.forEach(function (q) { q.setAttribute('aria-pressed', q === p ? 'true' : 'false'); });
-          var shown = 0;
-          cards.forEach(function (c) {
-            var vis = key === 'all' || c.getAttribute('data-cat') === key;
-            c.hidden = !vis;
-            if (vis) shown++;
-          });
-          if (empty) empty.hidden = shown !== 0;
-        });
-      });
-    })();
-  </script>
 
   <!-- REWARD CATEGORIES -->
   <section>
