@@ -824,7 +824,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), kein englischer Wertname des Craftings auf DE-Seiten (Katalog WERTE aus src/i18n/craftingWerte.ts), kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes lang-Attribut (Spieltext gekennzeichnet, eigener Text uebersetzt, docs/sprachregel.md; offene Stellen als benannte Ausnahmen mit Zombie-Waechter), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten und ein Anteil englischen Spieltexts auf DE-Seiten ueber der Decke als WARNUNG; Klinken fuer Seiten, Textstellen, Katalogtexte, Quelldateien und Absaetze',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -865,6 +865,16 @@ export const CHECKS = [
     // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
     // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
     // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
+    // Regel 12 und der Katalog WERTE kamen am 24.11.2026 mit der Sprachregel
+    // (UX-Audit Paket C, docs/sprachregel.md). VORGEFUEHRT ROT gegen den
+    // Vorschau-Bau von origin/staging 6e984ac8 mit der Sprachweiche (6cb3efc0):
+    // 7.976 Befunde — 4.785 englische Wertnamen auf den DE-Bauplanseiten
+    // ("Max Temp", "Damage Mitigation", "Recoil Smoothness"), 3.191
+    // englische Absaetze ohne lang="en" auf DE-Seiten (1.108 Missionsseiten,
+    // 1.034 Missionskarten, 952 Fundhinweise der Itemblaetter, 97
+    // Schiffsbeschreibungen). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Microid Battle Suit, Beschreibung als Name) ist in
+    // Gebrauch. Auf den EN-Seiten kein deutscher Absatz.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer

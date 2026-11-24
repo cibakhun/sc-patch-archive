@@ -231,7 +231,18 @@ for (const lang of LANGS) {
         withNoData(expected.size, idsWithoutData.size),
         `[${lang.label}] Zaehlertext bei aktivem Bauteilfilter weicht ab`
       );
-      assert.strictEqual(idsWithoutData.size, 4, 'Vorbedingung: erwartet 4 Schiffe ohne Steckplatz-Daten');
+      // Vorbedingung: der Zweig "ohne Steckplatz-Daten" ist nur geprueft, wenn
+      // es solche Schiffe gibt. Das sind genau die ATLS-Anzuege, deren
+      // Implementations-XML keine Steckplaetze traegt (bis CL 13165946 vier,
+      // seit dem Hotfix 4.10.3, CL 13220821, acht: grad02, IKTI, GEO IKTI und
+      // GEO IKTI NTLS kamen dazu). Faellt ein anderes Schiff heraus, reisst es.
+      assert.ok(idsWithoutData.size > 0, 'Vorbedingung: mindestens ein Schiff ohne Steckplatz-Daten');
+      assert.deepStrictEqual(
+        [...idsWithoutData].filter((id) => !id.startsWith('argo-atls')),
+        [],
+        'Vorbedingung: ohne Steckplatz-Daten sind nur ATLS-Anzuege erwartet'
+      );
+      assert.deepStrictEqual([...idsWithoutData].sort(), [...comp.missing].sort(), 'Vorbedingung: Fehlliste in ship-components.json weicht ab');
     });
 
     test(`[${lang.label}] D-12: Bauteilfilter + Herstellerfeld ergeben die Schnittmenge, Zaehler stimmt`, () => {

@@ -18,6 +18,7 @@ import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
 import { patchesMentioning } from '../lib/patchMentions';
+import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 
 interface Props { m: Mission; lang: Locale }
 const { m, lang } = Astro.props;
@@ -320,7 +321,7 @@ const t = useTranslations(lang);
               <span>{S.mgHead}</span>
               <span class="md__mgCode">{S.mgCode}</span>
             </figcaption>
-            <p class="md__desc">
+            <p class="md__desc" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
               {descParts.map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}
             </p>
             <p class="md__mgEnd" aria-hidden="true">{S.mgEnd}</p>

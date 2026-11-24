@@ -374,7 +374,24 @@ export async function setupMockDOM(opts = {}) {
   elements['uif-sort-select'].value = 'name_asc';
 
   const window = {
-    location: { href: 'http://localhost/item-finder.html' },
+    location: {
+      href: 'http://localhost/item-finder.html' + (opts.search || ''),
+      pathname: '/item-finder.html',
+      search: opts.search || '',
+      hash: '',
+    },
+    // Adresse schreiben: replaceState merkt sich die Aufrufe und fuehrt
+    // location nach, wie es der Browser tut.
+    history: {
+      state: null,
+      calls: [],
+      replaceState(state, _t, url) {
+        this.calls.push(url);
+        this.state = state;
+        const i = url.indexOf('?');
+        window.location.search = i < 0 ? '' : url.slice(i).split('#')[0];
+      },
+    },
     addEventListener: () => {},
     // scroll-lock.js merkt sich die Scrollposition und stellt sie beim
     // Entsperren wieder her — ohne diese beiden faellt es beim Sperren um.
@@ -432,6 +449,7 @@ export async function setupMockDOM(opts = {}) {
   const result = {
     elements,
     document,
+    window,
     body,
     dbData,
     craftData: opts.craft || null,
@@ -441,6 +459,7 @@ export async function setupMockDOM(opts = {}) {
       const context = vm.createContext({
         window,
         document,
+        URLSearchParams,
         fetch: (url) => global.fetch(url),
         console,
         setTimeout,
