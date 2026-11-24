@@ -183,11 +183,14 @@ function parseHTML(html) {
 
 // Karte wie im SSR von CraftingApp.astro: data-i + data-time, Rest sichtbar;
 // die Kategorie traegt ihre englischen Schluessel in data-top/data-sub.
+// Zutaten (bp.res) stehen wie im SSR als hoechstens fuenf Chips in der Karte.
 function card(bp, i) {
+  const res = bp.res || [];
   return new El('article', { class: 'cbp', 'data-i': String(i), 'data-time': '90' }, [
     new El('div', { class: 'cbp__top' }, [new El('span', { class: 'cbp__cat', 'data-top': bp.top, 'data-sub': bp.sub }, [bp.top, new El('em', {}, [bp.sub])])]),
     new El('h3', { class: 'cbp__name' }, [new El('a', { href: `/crafting/${bp.slug}.html` }, [bp.name])]),
-    new El('div', { class: 'cbp__meta' }, [new El('span', { title: 'Craft time' }, ['⏱ 1m 30s']), new El('span', { title: 'Ingredients' }, ['◆ 0'])]),
+    new El('div', { class: 'cbp__meta' }, [new El('span', { title: 'Craft time' }, ['⏱ 1m 30s']), new El('span', { title: 'Ingredients' }, [`◆ ${res.length}`])]),
+    ...(res.length ? [new El('ul', { class: 'cbp__res' }, res.slice(0, 5).map((r) => new El('li', {}, [r])))] : []),
   ]);
 }
 
@@ -281,6 +284,9 @@ function makeServer(rows) {
  *   rows        Server-Zeilen [{user_id, slug, owned, plan_qty}]
  *   seed        { schlüssel: rohwert } — Vorbestand im localStorage
  *   locks       false = Browser ohne Web Locks
+ *   blueprints  eigene Karten statt BLUEPRINTS ({slug, name, top, sub,
+ *               res: [Zutaten], category: ganzer Pfad}; fuer die Suche)
+ *   gattung     window.__CRAFT.gattung (Tabelle aus src/lib/searchAliases.ts)
  */
 export function makeBrowser(opts = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 20, 0, 0), timers: [], seq: 0 };
@@ -292,8 +298,12 @@ export function makeBrowser(opts = {}) {
   const sessionFor = (uid) => ({ access_token: `token-${uid}`, refresh_token: `refresh-${uid}`, user: { id: uid } });
   if (opts.session) account.session = account.stored = sessionFor(opts.session);
   if (opts.session && opts.refreshing) account.session = null;
+  const karten = opts.blueprints || BLUEPRINTS;
   const db = {
-    blueprints: BLUEPRINTS.map((bp) => ({ name: bp.name, category: `${bp.top} / ${bp.sub}`, craft_time_seconds: 90, ingredients: [], missions: [] })),
+    blueprints: karten.map((bp) => ({
+      name: bp.name, category: bp.category || `${bp.top} / ${bp.sub}`, craft_time_seconds: 90,
+      ingredients: (bp.res || []).map((r) => ({ options: [{ name: r }] })), missions: [],
+    })),
     dismantle_blacklist: [],
   };
 
@@ -360,7 +370,9 @@ export function makeBrowser(opts = {}) {
       const tab = { closed: false, lagged: null };
       tabs.push(tab);
 
-      const grid = new El('div', { class: 'cdb-grid', id: 'cdb-grid' }, BLUEPRINTS.map(card));
+      const grid = new El('div', { class: 'cdb-grid', id: 'cdb-grid' }, karten.map(card));
+      const search = new El('input', { type: 'search', id: 'cdb-search' });
+      search.value = '';
       const sync = new El('div', { class: 'cdb-sync', 'data-state': 'local' }, [
         new El('span', { class: 'cdb-sync__dot', 'aria-hidden': 'true' }),
         new El('span', { class: 'cdb-sync__txt' }, [STRINGS.syncLocal]),
@@ -370,7 +382,8 @@ export function makeBrowser(opts = {}) {
       const html = new El('html');
       const body = html.appendChild(new El('body', {}, [
         sync,
-        new El('b', { id: 'cdb-count' }, [String(BLUEPRINTS.length)]),
+        search,
+        new El('b', { id: 'cdb-count' }, [String(karten.length)]),
         grid,
         new El('p', { class: 'cdb-empty', id: 'cdb-empty', hidden: '' }),
         new El('button', { type: 'button', id: 'cdb-plan-clear' }, ['Clear']),
@@ -428,7 +441,7 @@ export function makeBrowser(opts = {}) {
         URLSearchParams,
         __CRAFT: {
           lang: 'en', dbUrl: DB_URL, dismantleUrl: DISMANTLE_URL, dismantleEfficiency: 0.5,
-          icons: {}, mine: { url: '/mining.html', names: {} }, t: STRINGS,
+          icons: {}, mine: { url: '/mining.html', names: {} }, t: STRINGS, gattung: opts.gattung,
         },
         fetch: (url) => {
           const body = url === DB_URL ? db : url === DISMANTLE_URL ? [] : undefined;
@@ -485,6 +498,11 @@ export function makeBrowser(opts = {}) {
         /** Das ＋ einer Karte: eins mehr im Planer, die Klasse in-plan zeigt es an. */
         addButton: (slug) => cardOf(slug).querySelector('.cbp__add'),
         clickAdd: (slug) => press(tab.addButton(slug)),
+        /** Tippen ins Suchfeld der Liste. */
+        search(q) { search.value = q; search.emit({ type: 'input' }); },
+        /** Die sichtbaren Karten (slugs, in Listenfolge) und die Zahl darueber. */
+        visible: () => grid.children.filter((c) => !c.hidden).map((c) => /([^/]+)\.html$/.exec(c.querySelector('.cbp__name a').href)[1]),
+        count: () => body.querySelector('#cdb-count').textContent,
         /** „Planer leeren". */
         clickClear: () => press(body.querySelector('#cdb-plan-clear')),
         /** „Erneut versuchen" der Sync-Anzeige. */
