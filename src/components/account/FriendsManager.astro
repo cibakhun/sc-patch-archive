@@ -938,6 +938,7 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
         if (!crewOk) crewEl.hidden = true;
         return;
       }
+      crewGone = false;
       const byId = new Map<number, CrewCall>();
       for (const c of [...(all.data || []), ...(own.data || [])] as CrewCall[]) byId.set(c.id, c);
       const calls = openCrewCalls([...byId.values()].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
