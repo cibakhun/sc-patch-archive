@@ -1,0 +1,215 @@
+---
+// „So bekommst du es" — alle Wege zu einem Item an einer Stelle, direkt unter
+// dem Kopf des Item-Datenblatts (UX-Audit Paket D1, 24.11.2026). Jede Karte
+// ist ein Weg mit seinem naechsten Schritt; die Details (Preistabelle,
+// Serienbelegung, Rezept) stehen weiter unten und werden per Sprungmarke
+// erreicht. Rechnung in src/lib/bezugswege.ts, Texte in bezugswegeText.ts.
+// Kein Skript: alles echtes HTML, wie der Rest der Huelle.
+import { href, type Locale } from '../i18n/ui';
+import { bwT } from '../i18n/bezugswegeText';
+import { fill, obtainLabel } from '../i18n/itemText';
+import { auec, num, type Item } from '../lib/items';
+import { blueprintPath } from '../lib/crafting';
+import { bezugswege } from '../lib/bezugswege';
+
+interface Props { item: Item; lang: Locale }
+const { item, lang } = Astro.props;
+const t = bwT(lang);
+const w = bezugswege(item);
+
+// Wie viele Missionstitel offen stehen; der Rest steht auf der Bauplan-Seite.
+const MISSIONEN_OFFEN = 3;
+const STOCK_NAMEN = 2;
+const ORTE_OFFEN = 3;
+
+const k = w.kaufen;
+const f = w.finden;
+const h = w.herstellen;
+const fundOrte = f ? [...f.bestaetigt, ...f.recherche] : [];
+// Die Namen gehoeren zur Zeile darueber: bestaetigte, wo es welche gibt, sonst
+// die recherchierten. Gibt es beides, steht die Zahl der unbestaetigten
+// eigens darunter — kein recherchierter Ort ohne seinen Belegstatus.
+const namenQuelle = f ? (f.bestaetigt.length ? f.bestaetigt : f.recherche) : [];
+const fundNamen = namenQuelle.slice(0, ORTE_OFFEN).map((o) => obtainLabel(o, lang));
+const missionen = h?.missionen ?? [];
+const wikeloHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(item.name)}`;
+const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(Astro.url.pathname).replace(/%2F/g, '/')}`;
+const stockText = w.abWerk.length === 1
+  ? fill(t('stockOne'), { name: w.abWerk[0].name })
+  : fill(t('stockMany'), { n: num(w.abWerk.length, lang), names: w.abWerk.slice(0, STOCK_NAMEN).map((s) => s.name).join(', ') });
+const einSystem = k && k.gruppen.length === 1 ? k.gruppen[0].system : null;
+const sonderNamen = [...new Set(w.sonderweg.map((o) => obtainLabel(o, lang)))];
+---
+<section class="dp-sec bw" id="so-bekommst-du-es" data-wege={w.anzahl}>
+  <h2>{t('title')}</h2>
+  {w.anzahl > 0 ? (
+    <ul class="bw-liste">
+      {k && (
+        <li class="bw-weg" data-weg="kaufen">
+          <span class="bw-art">{t('buy')}</span>
+          <strong class="bw-haupt">{fill(t('buyFrom'), { p: auec(k.ab, lang) })}</strong>
+          {/* Ein System: ein Satz. Mehrere (oder Orte ohne Angabe): je System
+              eine Zeile mit eigenem Mindestpreis. */}
+          {einSystem ? (
+            <span class="bw-neben" data-system={einSystem}>{fill(t(k.stellen === 1 ? 'buyStelleIn' : 'buyStellenIn'), { n: num(k.stellen, lang), sys: einSystem })}</span>
+          ) : (
+            <>
+              <span class="bw-neben">{k.stellen === 1 ? t('buyStelle') : fill(t('buyStellen'), { n: num(k.stellen, lang) })}</span>
+              <ul class="bw-zeilen">
+                {k.gruppen.map((g) => (
+                  <li data-system={g.system ?? 'ohne'}>{fill(t(g.stellen === 1 ? 'buyGroupOne' : 'buyGroup'), { sys: g.system ?? t('buyNoSystem'), n: num(g.stellen, lang), p: auec(g.ab, lang) })}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          <a class="bw-link" href="#bezugsquellen">{t('buyAll')} ↓</a>
+        </li>
+      )}
+      {f && (
+        <li class="bw-weg" data-weg="finden">
+          <span class="bw-art">{t('find')}</span>
+          {f.bestaetigt.length > 0 && (
+            <strong class="bw-haupt">{f.bestaetigt.length === 1 ? t('findConfirmedOne') : fill(t('findConfirmed'), { n: num(f.bestaetigt.length, lang) })}</strong>
+          )}
+          {f.bestaetigt.length === 0 && f.recherche.length > 0 && (
+            <strong class="bw-haupt">{f.recherche.length === 1 ? t('findResearchOne') : fill(t('findResearch'), { n: num(f.recherche.length, lang) })}</strong>
+          )}
+          {fundNamen.length > 0 && (
+            <span class="bw-neben">{fundNamen.join(', ')}{namenQuelle.length > ORTE_OFFEN && ' …'}</span>
+          )}
+          {f.bestaetigt.length > 0 && f.recherche.length > 0 && (
+            <span class="bw-neben" data-fund="recherche">{f.recherche.length === 1 ? t('findResearchOne') : fill(t('findResearch'), { n: num(f.recherche.length, lang) })}</span>
+          )}
+          {f.unbekannt && <span class="bw-neben">{t('findUnknown')}</span>}
+          {fundOrte.length > 0 && <a class="bw-link" href="#bezugsquellen">{t('findAll')} ↓</a>}
+        </li>
+      )}
+      {h && (
+        <li class="bw-weg bw-weg--craft" data-weg="herstellen">
+          <span class="bw-art">{t('craft')}</span>
+          {missionen.length > 0 ? (
+            <>
+              <span class="bw-neben">{missionen.length === 1 ? t('craftMissionsOne') : t('craftMissions')}</span>
+              <ul class="bw-zeilen bw-zeilen--links">
+                {missionen.slice(0, MISSIONEN_OFFEN).map((m) => (
+                  <li>{m.seite
+                    ? <a href={href(`/missionen/${m.slug}.html`, lang)} data-weg-mission>{m.label}</a>
+                    : <span>{m.label}</span>}</li>
+                ))}
+                {missionen.length > MISSIONEN_OFFEN && (
+                  <li><a href={`${href(blueprintPath(h.bp), lang)}#missionen`}>{fill(t('craftMore'), { n: num(missionen.length - MISSIONEN_OFFEN, lang) })}</a></li>
+                )}
+              </ul>
+            </>
+          ) : h.wikelo === 0 && (
+            <span class="bw-neben" data-quelle="unbekannt">{t('craftUnknown')}</span>
+          )}
+          {h.wikelo > 0 && <span class="bw-neben">{t('craftWikelo')}</span>}
+          <a class="bw-link" href={href(blueprintPath(h.bp), lang)}>{t('craftOpen')} →</a>
+        </li>
+      )}
+      {w.wikelo > 0 && (
+        <li class="bw-weg" data-weg="wikelo">
+          <span class="bw-art">{t('wikelo')}</span>
+          <span class="bw-neben">{w.wikelo === 1 ? t('wikeloOne') : fill(t('wikeloMany'), { n: num(w.wikelo, lang) })}</span>
+          <a class="bw-link" href={wikeloHref}>{t('wikeloOpen')} →</a>
+        </li>
+      )}
+      {w.abWerk.length > 0 && (
+        <li class="bw-weg" data-weg="ab-werk">
+          <span class="bw-art">{t('stock')}</span>
+          <span class="bw-neben">{stockText}</span>
+          <a class="bw-link" href="#serie">{t('stockAll')} ↓</a>
+        </li>
+      )}
+      {sonderNamen.length > 0 && (
+        <li class="bw-weg" data-weg="sonderweg">
+          <span class="bw-art">{t('special')}</span>
+          <span class="bw-neben">{sonderNamen.join(' · ')}</span>
+        </li>
+      )}
+    </ul>
+  ) : (
+    <p class="dp-callout">{t('none')} {t('tip')} <a href={meldenHref} rel="nofollow">{t('report')}</a></p>
+  )}
+</section>
+
+<style>
+  /* Karten im Ton der Huelle (data-page.css: --tone-1, --dp-fill, --dp-rail).
+     Herstellen traegt die Crafting-Farbe (--accent-2), wie der Bauplan. */
+  .bw-liste {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .bw-weg {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    background: linear-gradient(180deg, var(--dp-fill), transparent);
+    border: 1px solid var(--line-soft);
+    border-top: 2px solid var(--dp-rail);
+    padding: 0.7rem 0.9rem 0.75rem;
+  }
+  .bw-weg--craft { border-top-color: color-mix(in srgb, var(--accent-2) 60%, transparent); }
+  .bw-art {
+    font-family: var(--font-ui);
+    font-size: var(--fs-4);
+    font-weight: 600;
+    letter-spacing: var(--ls-13);
+    text-transform: uppercase;
+    color: var(--tone-1);
+  }
+  .bw-weg--craft .bw-art { color: var(--accent-2); }
+  .bw-haupt {
+    font-family: var(--font-num, var(--font-ui));
+    font-size: var(--fs-13);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .bw-neben {
+    font-size: var(--fs-8);
+    line-height: 1.45;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .bw-zeilen {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-8);
+    line-height: 1.5;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .bw-zeilen li { overflow-wrap: anywhere; }
+  .bw-zeilen--links li::before { content: '› '; color: var(--muted); }
+  .bw-link {
+    margin-top: auto;
+    padding-top: 0.35rem;
+    align-self: flex-start;
+    font-family: var(--font-ui);
+    font-size: var(--fs-7);
+    font-weight: 700;
+    color: var(--tone-1);
+    text-decoration: none;
+  }
+  .bw-weg--craft .bw-link { color: var(--accent-2); }
+  /* Handy: die Karten stehen untereinander — dichter, damit alle Wege in
+     gut einem Bildschirm Platz haben. */
+  @media (max-width: 40rem) {
+    .bw-liste { gap: 0.45rem; }
+    .bw-weg { gap: 0.2rem; padding: 0.55rem 0.8rem 0.6rem; }
+    .bw-haupt { font-size: var(--fs-11); }
+    .bw-neben, .bw-zeilen { font-size: var(--fs-7); }
+    .bw-link { padding-top: 0.2rem; }
+  }
+  .bw-link:hover,
+  .bw-zeilen a:hover { text-decoration: underline; }
+</style>
