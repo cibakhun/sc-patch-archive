@@ -7,8 +7,9 @@
 // Themenseiten: von Hand gepflegt, nur was die Seite selbst nennt (Belohnung,
 // Headliner, Gegner, Pflichtausruestung). Patchseiten: aus den Daten (Schiffe
 // des Patches mit eigener Seite, Feature-Links auf Schiffe und Items), dazu
-// wenige gepflegte Ergaenzungen. Jede Kennung wird beim Laden gegen den
-// Bestand geprueft; fehlt eine Seite, bricht der Bau mit ihrem Namen ab.
+// wenige gepflegte Ergaenzungen. Jede gepflegte Kennung wird beim Laden gegen
+// den Bestand geprueft, jeder Feature-Link beim Bau der Seite; fehlt eine
+// Seite, bricht der Bau mit ihrem Namen ab.
 
 import vehiclesSnapshot from '../data/vehicles.json';
 import { pageItems } from './items';
@@ -91,7 +92,12 @@ export function patchBezuege(p: PatchDaten): Bezug[] {
   for (const f of p.features)
     for (const l of f.links ?? []) {
       const m = /^\/(schiffe|items)\/([^/#?]+)\.html$/.exec(l.href);
-      if (m) add({ art: m[1] === 'schiffe' ? 'schiff' : 'item', id: m[2], name: l.label });
+      if (!m) continue;
+      const b: Bezug = { art: m[1] === 'schiffe' ? 'schiff' : 'item', id: m[2], name: l.label };
+      // Schiffsnamen ohne eigene Seite fallen oben still heraus (gewollt); ein
+      // ausdruecklicher Feature-Link ohne Seite ist dagegen ein Datenfehler.
+      if (!daIst(b)) throw new Error(`Feature-Link ohne Seite in Patch ${p.version} (src/lib/bezuege.ts): ${l.label} -> ${l.href}`);
+      add(b);
     }
   for (const b of PATCH_EXTRA[p.version] ?? []) add(b);
   return out;

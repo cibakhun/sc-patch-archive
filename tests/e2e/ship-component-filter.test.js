@@ -73,8 +73,8 @@ const TOTAL = Object.keys(hardpoints.ships).length;
 
 // Fuehrt das echte Inline-Skript gegen einen frischen Mock-DOM-Kontext aus.
 // Ein Kontext pro Aufruf -- kein geteilter Zustand zwischen Testfaellen.
-function run(lang) {
-  const ctx = makeShipsDomContext({ lang });
+function run(lang, search = '') {
+  const ctx = makeShipsDomContext({ lang, search });
   vm.runInContext(bodyScript, vm.createContext(ctx));
   return ctx;
 }
@@ -173,15 +173,31 @@ for (const lang of LANGS) {
       assert.strictEqual(ctx.cardsById['aegs-hammerhead'].style.display, '', `[${lang.label}] aegs-hammerhead sollte bei Turm+S5 sichtbar sein (t=5 >= 5)`);
     });
 
-    test(`[${lang.label}] D-11: Bauteilart ohne Groesse filtert noch nicht -- alle Karten bleiben sichtbar`, () => {
-      selectComponent(ctx, 'w');
-      assert.strictEqual(visibleIds(ctx).size, TOTAL, `[${lang.label}] erwartet ${TOTAL} sichtbare Karten ohne gesetzte Groesse`);
+    // UX-Audit 24.11.2026 (TF B03) loest D-11 ab: "Turm" allein heisst "hat
+    // einen Turm". Vorher blieben alle Karten stehen, bis eine Mindestgroesse
+    // gewaehlt war.
+    test(`[${lang.label}] Bauteilart ohne Groesse filtert ab S1 -- Turm zeigt genau die Schiffe mit Turm`, () => {
+      const expected = idsWithAtLeast('t', 1);
+      selectComponent(ctx, 't');
+      assert.deepStrictEqual(visibleIds(ctx), expected, `[${lang.label}] Turm ohne Groesse weicht von t>=1 ab`);
+      assert.ok(expected.size > 0 && expected.size < TOTAL, `[${lang.label}] Vorbedingung: Turm trennt (${expected.size} von ${TOTAL})`);
+      assert.strictEqual(
+        ctx.elements['sf-count'].textContent,
+        withNoData(expected.size, idsWithoutData.size),
+        `[${lang.label}] Zaehler nennt bei Bauteil ohne Groesse die Schiffe ohne Steckplatz-Daten nicht`
+      );
     });
 
-    test(`[${lang.label}] D-11: sf-compsize ist deaktiviert, bis eine Bauteilart gewaehlt ist`, () => {
-      assert.strictEqual(ctx.elements['sf-compsize'].disabled, true, `[${lang.label}] sf-compsize sollte anfangs deaktiviert sein`);
+    test(`[${lang.label}] sf-compsize ist deaktiviert, bis eine Bauteilart gewaehlt ist, und nennt den Grund`, () => {
+      const sel = ctx.elements['sf-compsize'];
+      assert.strictEqual(sel.disabled, true, `[${lang.label}] sf-compsize sollte anfangs deaktiviert sein`);
+      assert.strictEqual(sel.options[0].textContent, L.off, `[${lang.label}] gesperrt nennt der Leereintrag den Grund nicht`);
       selectComponent(ctx, 'w');
-      assert.strictEqual(ctx.elements['sf-compsize'].disabled, false, `[${lang.label}] sf-compsize sollte nach Wahl der Bauteilart freigeschaltet sein`);
+      assert.strictEqual(sel.disabled, false, `[${lang.label}] sf-compsize sollte nach Wahl der Bauteilart freigeschaltet sein`);
+      assert.strictEqual(sel.options[0].textContent, L.any, `[${lang.label}] freigeschaltet heisst der Leereintrag nicht "beliebig"`);
+      selectComponent(ctx, '');
+      assert.strictEqual(sel.disabled, true, `[${lang.label}] ohne Bauteilart wieder gesperrt`);
+      assert.strictEqual(sel.options[0].textContent, L.off, `[${lang.label}] zurueckgesperrt fehlt der Grund`);
     });
 
     test(`[${lang.label}] D-10: die Groessenliste reicht je Kategorie bis zum groessten gespeicherten Wert`, () => {
@@ -237,7 +253,119 @@ for (const lang of LANGS) {
       selectSize(ctx, 5);
       selectComponent(ctx, 's');
       assert.strictEqual(ctx.elements['sf-compsize'].value, '', `[${lang.label}] die Groessenwahl der vorigen Kategorie steht noch`);
-      assert.strictEqual(visibleIds(ctx).size, TOTAL, `[${lang.label}] nach dem Wechsel darf noch nicht gefiltert sein (D-11)`);
+      assert.deepStrictEqual(visibleIds(ctx), idsWithAtLeast('s', 1), `[${lang.label}] nach dem Wechsel gilt die neue Art ab S1`);
     });
   });
 }
+
+// ---- Sortierung und Zustand in der Adresse (UX-Audit 24.11.2026) ----------
+// Die Karten im Nachbau tragen keine Preise (-1). Fuer die Sortierproben
+// bekommen drei Karten Werte, der Rest bleibt "ohne Preis".
+function preise(ctx) {
+  const [a, b, c] = ctx.ids;
+  ctx.cardsById[a].setAttribute('data-game', '500');
+  ctx.cardsById[b].setAttribute('data-game', '100');
+  ctx.cardsById[c].setAttribute('data-game', '300');
+  return [a, b, c];
+}
+function reihenfolge(ctx) {
+  return ctx.elements['sf-fleet'].children.filter((k) => k.className === 'fcard').map((k) => k.getAttribute('data-q'));
+}
+function waehle(ctx, id, value) {
+  ctx.elements[id].value = value;
+  ctx.elements[id].dispatchEvent({ type: 'change' });
+}
+
+describe('Sortierung: Preise in beide Richtungen (TF B02)', () => {
+  test('Ingame-Preis aufsteigend: guenstigstes zuerst, Karten ohne Preis am Ende', () => {
+    const ctx = run('de');
+    const [a, b, c] = preise(ctx);
+    waehle(ctx, 'sf-sort', 'game-asc');
+    const r = reihenfolge(ctx);
+    assert.deepStrictEqual(r.slice(0, 3), [b, c, a], 'aufsteigend falsch');
+    assert.strictEqual(r.length, ctx.ids.length, 'beim Sortieren ging eine Karte verloren');
+  });
+  test('Ingame-Preis absteigend bleibt wie bisher: teuerstes zuerst, ohne Preis am Ende', () => {
+    const ctx = run('de');
+    const [a, b, c] = preise(ctx);
+    waehle(ctx, 'sf-sort', 'game');
+    assert.deepStrictEqual(reihenfolge(ctx).slice(0, 3), [a, c, b], 'absteigend falsch');
+  });
+  test('zurueck auf Name stellt die Ausgangsreihenfolge her', () => {
+    const ctx = run('de');
+    preise(ctx);
+    waehle(ctx, 'sf-sort', 'game-asc');
+    waehle(ctx, 'sf-sort', 'name');
+    assert.deepStrictEqual(reihenfolge(ctx), ctx.ids, 'Name A-Z stellt die Reihenfolge nicht wieder her');
+  });
+});
+
+describe('Zustand in der Adresse (HE B05, TF T2)', () => {
+  test('ohne Adresszusatz: nichts gefiltert, nichts umgeschrieben', () => {
+    const ctx = run('de');
+    assert.strictEqual(visibleIds(ctx).size, TOTAL);
+    assert.deepStrictEqual(ctx.urls, [], 'das Laden darf die Adresse nicht anfassen');
+    assert.strictEqual(ctx.elements['sf-sort'].value, 'name');
+  });
+
+  test('Laden mit Adresszusatz stellt Felder UND Liste her (auch ohne Zurueck-Cache)', () => {
+    const ctx = run('de', '?maker=orig&comp=w&compsize=3');
+    assert.strictEqual(ctx.elements['sf-maker'].value, 'orig');
+    assert.strictEqual(ctx.elements['sf-comp'].value, 'w');
+    assert.strictEqual(ctx.elements['sf-compsize'].value, '3');
+    assert.strictEqual(ctx.elements['sf-compsize'].disabled, false);
+    const expected = new Set([...idsWithAtLeast('w', 3)].filter((id) => id.startsWith('orig-')));
+    assert.deepStrictEqual(visibleIds(ctx), expected, 'Liste passt nicht zur Auswahl aus der Adresse');
+    assert.deepStrictEqual(ctx.urls, [], 'das Lesen darf die Adresse nicht umschreiben');
+  });
+
+  test('unbekannte Werte fallen auf den Ausgangswert zurueck', () => {
+    const ctx = run('en', '?maker=gibtsnicht&sort=quatsch&compsize=4');
+    assert.strictEqual(ctx.elements['sf-maker'].value, '');
+    assert.strictEqual(ctx.elements['sf-sort'].value, 'name');
+    assert.strictEqual(ctx.elements['sf-compsize'].value, '', 'Groesse ohne Bauteilart darf nicht greifen');
+    assert.strictEqual(visibleIds(ctx).size, TOTAL);
+  });
+
+  test('Sortierung aus der Adresse greift beim Laden', () => {
+    const ctx = makeShipsDomContext({ lang: 'de', search: '?sort=game-asc' });
+    const [a, b, c] = preise(ctx);
+    vm.runInContext(bodyScript, vm.createContext(ctx));
+    assert.deepStrictEqual(reihenfolge(ctx).slice(0, 3), [b, c, a]);
+  });
+
+  test('Felder ueberschreibt die Adresse, auch wenn der Browser etwas anderes hineinschrieb', () => {
+    const ctx = makeShipsDomContext({ lang: 'de', search: '' });
+    // Zuruecknavigieren ohne Cache: der Browser stellt die Auswahl her, die
+    // Adresse sagt "keine Auswahl" — gewinnen muss die Adresse.
+    ctx.elements['sf-maker'].value = 'orig';
+    vm.runInContext(bodyScript, vm.createContext(ctx));
+    assert.strictEqual(ctx.elements['sf-maker'].value, '');
+    assert.strictEqual(visibleIds(ctx).size, TOTAL);
+  });
+
+  test('jede Auswahl schreibt die Adresse, Ausgangswerte fallen heraus, fremde Zusaetze bleiben', () => {
+    const ctx = run('de', '?utm_source=x');
+    selectMaker(ctx, 'orig');
+    assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?utm_source=x&maker=orig');
+    selectComponent(ctx, 't');
+    selectSize(ctx, 2);
+    waehle(ctx, 'sf-sort', 'pledge-asc');
+    assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?utm_source=x&maker=orig&comp=t&compsize=2&sort=pledge-asc');
+    selectComponent(ctx, '');
+    waehle(ctx, 'sf-sort', 'name');
+    selectMaker(ctx, '');
+    assert.strictEqual(ctx.urls.at(-1), '/schiffe.html?utm_source=x', 'Ausgangswerte und gesperrte Felder gehoeren nicht in die Adresse');
+  });
+
+  test('geschriebene Adresse stellt beim naechsten Laden denselben Stand her (Rundreise)', () => {
+    const a = run('de');
+    selectMaker(a, 'orig');
+    selectComponent(a, 'w');
+    selectSize(a, 3);
+    const url = a.urls.at(-1);
+    const b = run('de', url.slice(url.indexOf('?')));
+    assert.deepStrictEqual(visibleIds(b), visibleIds(a));
+    assert.strictEqual(b.elements['sf-count'].textContent, a.elements['sf-count'].textContent);
+  });
+});

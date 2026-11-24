@@ -238,7 +238,11 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
           knopf?.setAttribute('hidden', '');
           continue;
         }
-        if (karte.dataset.offen === '1') continue;
+        if (karte.dataset.offen === '1') {
+          // offen geblieben (etwa nach einem Abstecher in die breite Ansicht): Knopf zum Einklappen zeigen
+          knopf?.removeAttribute('hidden');
+          continue;
+        }
         karte.classList.add('is-kurz');
         if (text.scrollHeight - text.clientHeight <= 2) {
           karte.classList.remove('is-kurz');
@@ -266,6 +270,17 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
     pruefen();
     schmal.addEventListener('change', pruefen);
     document.fonts?.ready.then(pruefen);
+    // Auch innerhalb der schmalen Ansicht aendert sich die Textbreite (Drehen,
+    // Fenster ziehen): dann passt eine Beschreibung ploetzlich nicht mehr in
+    // vier Zeilen oder umgekehrt. Nur Breitenwechsel zaehlen, gebuendelt.
+    let breite = window.innerWidth;
+    let takt = 0;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth === breite) return;
+      breite = window.innerWidth;
+      window.clearTimeout(takt);
+      takt = window.setTimeout(pruefen, 150);
+    });
   }
 </script>
 <style>

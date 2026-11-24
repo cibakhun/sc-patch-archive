@@ -397,7 +397,13 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
     };
     scroller.addEventListener('scroll', syncEdge, { passive: true });
     window.addEventListener('resize', neu);
-    if (window.ResizeObserver) new ResizeObserver(neu).observe(scroller);
+    // Auch die Tabelle: laedt eine Schrift nach, wird sie breiter, der Kasten nicht.
+    if (window.ResizeObserver) {
+      var beobachter = new ResizeObserver(neu);
+      beobachter.observe(scroller);
+      var tabelle = scroller.querySelector('.evo__table');
+      if (tabelle) beobachter.observe(tabelle);
+    }
     // Die Anzeigeschriften laden nach und ändern die Tabellenbreite.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(neu);
     neu();
