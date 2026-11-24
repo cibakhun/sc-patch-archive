@@ -104,3 +104,50 @@ export function latestJobEvent(j: JobEventFields, now: number): { kind: 'collect
   if (j.status === 'active' && ready <= now) return { kind: 'ready', ts: ready };
   return { kind: 'started', ts: Date.parse(j.started_at) || 0 };
 }
+
+/** Dauer, wie sie im Terminal steht oder jemand sie abtippt, in Minuten:
+ *  „5:32", „5:32:10", „5h 32m", „2d 4h", „90 min", „5 Std", „5,5" (Stunden).
+ *  null bei allem anderen, bei 0 und über 30 Tagen (UX-Audit F06). */
+export function parseDauer(eingabe: string): number | null {
+  const s = String(eingabe ?? '').trim().toLowerCase().replace(/,/g, '.');
+  if (!s) return null;
+  let min: number | null = null;
+  const uhr = /^(\d+):([0-5]?\d)(?::([0-5]?\d))?$/.exec(s);
+  if (uhr) {
+    min = Number(uhr[1]) * 60 + Number(uhr[2]) + (uhr[3] ? Number(uhr[3]) / 60 : 0);
+  } else if (/^\d+(?:\.\d+)?$/.test(s)) {
+    min = Number(s) * 60;
+  } else {
+    const teil = /(\d+(?:\.\d+)?)\s*(tage?|d|std|h|min|m|sek|s)/g;
+    const faktor: Record<string, number> = { d: 1440, tag: 1440, tage: 1440, h: 60, std: 60, m: 1, min: 1, s: 1 / 60, sek: 1 / 60 };
+    let summe = 0, treffer = 0, rest = s;
+    for (const t of s.matchAll(teil)) {
+      summe += Number(t[1]) * faktor[t[2]];
+      treffer++;
+      rest = rest.replace(t[0], '');
+    }
+    if (treffer && !rest.trim()) min = summe;
+  }
+  if (min == null || !Number.isFinite(min) || min <= 0 || min > 30 * 1440) return null;
+  return min;
+}
+
+/** Netto (Ausbeute × Preis − Kosten) und Netto je Stunde einer Methode.
+ *  null, solange Ausbeute, Preis oder Dauer fehlen (UX-Audit F06). */
+export function nettoProStunde(yieldScu: number, preis: number, kosten: number, minuten: number | null): { netto: number; proStunde: number } | null {
+  if (!(yieldScu > 0) || !(preis > 0) || minuten == null || !(minuten > 0)) return null;
+  const netto = yieldScu * preis - (kosten > 0 ? kosten : 0);
+  return { netto, proStunde: netto / (minuten / 60) };
+}
+
+/** Index der Zeile mit dem höchsten Netto je Stunde, -1 unter zwei Ergebnissen
+ *  (eine einzelne Zeile ist kein Vergleich). */
+export function besteZeile(werte: ReadonlyArray<{ proStunde: number } | null>): number {
+  let best = -1, n = 0;
+  werte.forEach((w, i) => {
+    if (!w) return;
+    n++;
+    if (best < 0 || w.proStunde > (werte[best] as { proStunde: number }).proStunde) best = i;
+  });
+  return n >= 2 ? best : -1;
+}

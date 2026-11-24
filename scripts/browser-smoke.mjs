@@ -149,12 +149,13 @@ const SEITEN = [
   // Mining zeigt die vier Seiten seines Kreislaufs unter der Kopfleiste.
   // Und die Signaturen-Spalte am Telefon (probeMiningHandy): dort war sie
   // bis 24.11.2026 0 px hoch, obwohl Erze angeheftet waren.
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: async (page) => (await probeLokaleLeiste(page, 'Mining-Thema', 5)) ?? (await probeMiningHandy(page)) },
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: async (page) => (await probeLokaleLeiste(page, 'Mining-Thema', 5)) ?? (await probeMiningHandy(page)) ?? (await probeMiningFundorteVorlagen(page)) },
   // Einstieg „Mining in fuenf Schritten" (UX-Audit 24.11.2026, G12): fuenf
   // Schritte, und die Seite steht selbst in der lokalen Mining-Leiste.
   { id: 'mining-start', en: '/mining-guide.html', de: '/de/mining-guide.html', leit: '.mg-step', minAnzahl: 5, probe: (page) => probeLokaleLeiste(page, 'Mining-Einstieg', 5) },
   // Refinery: der Tracker laeuft seit G11 auch ohne Konto (probeRefineryGast).
-  { id: 'refinery', en: '/refinery.html', de: '/de/refinery.html', leit: '#rf-rank li', minAnzahl: 10, probe: probeRefineryGast },
+  // Seit F06 zusaetzlich der Netto-pro-Stunde-Vergleich (probeRefineryVergleich).
+  { id: 'refinery', en: '/refinery.html', de: '/de/refinery.html', leit: '#rf-rank li', minAnzahl: 10, probe: async (page) => (await probeRefineryGast(page)) ?? (await probeRefineryVergleich(page)) },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
   // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
@@ -229,7 +230,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let refineryGast = 0, miningHandy = 0, aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
+let refineryGast = 0, refineryVergleich = 0, miningFundorte = 0, miningHandy = 0, aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -1989,6 +1990,126 @@ async function probeRefineryGast(page) {
     if (befund) probleme.push(befund);
     refineryGast++;
     return probleme.length ? `Refinery als Gast: ${probleme.join('; ')}` : null;
+  } finally {
+    await ctx.close();
+  }
+}
+
+/* Netto pro Stunde je Methode (UX-Audit Task-Flow F06): drei Zeilen mit
+   Terminal-Werten fuellen; jede Zeile muss ein Ergebnis in aUEC/h zeigen,
+   und genau die mit dem hoechsten Wert traegt die Markierung. Laeuft auf der
+   Seite selbst (kein Speicher, nichts zurueckzusetzen). Selbstauskunft:
+   refineryVergleich zaehlt die durchgerechneten Vergleiche. */
+async function probeRefineryVergleich(page) {
+  if (!(await page.$('#rf-vgl'))) return 'Refinery: der Vergleich „Netto pro Stunde" (#rf-vgl) fehlt';
+  // Ausbeute, Dauer, Kosten je Zeile; welche gewinnt, haengt am Preis und wird unten nachgerechnet.
+  const werte = [['20', '10h', '1000'], ['18', '2:30', '1500'], ['15', '45m', '9000']];
+  const zeilen = await page.$$('#rf-vgl [data-vgl-row]');
+  if (zeilen.length !== 3) return `Refinery-Vergleich: ${zeilen.length} Zeilen statt 3`;
+  if (!(await page.inputValue('#rf-vgl-price'))) await page.fill('#rf-vgl-price', '1000');
+  for (let i = 0; i < 3; i++) {
+    await zeilen[i].$eval('[data-vgl="yield"]', (e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, werte[i][0]);
+    await zeilen[i].$eval('[data-vgl="time"]', (e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, werte[i][1]);
+    await zeilen[i].$eval('[data-vgl="cost"]', (e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, werte[i][2]);
+  }
+  const r = await mitSichtbar(page, (_, da) => {
+    const z = [...document.querySelectorAll('#rf-vgl [data-vgl-row]')];
+    const preis = parseFloat(document.getElementById('rf-vgl-price').value) || 0;
+    return {
+      sichtbar: da(document.getElementById('rf-vgl')),
+      preis,
+      raus: z.map((x) => ({ text: x.querySelector('[data-vgl="out"]').textContent.trim(), best: x.classList.contains('is-best'), da: da(x.querySelector('[data-vgl="out"]')) })),
+    };
+  });
+  const probleme = [];
+  if (!r.sichtbar) probleme.push('der Vergleich ist nicht zu sehen');
+  r.raus.forEach((o, i) => {
+    if (!o.da) probleme.push(`Zeile ${i + 1}: Ergebnis nicht zu sehen`);
+    if (!/aUEC\/h/.test(o.text)) probleme.push(`Zeile ${i + 1}: kein Netto pro Stunde („${o.text}")`);
+  });
+  // Erwartung aus denselben Zahlen, unabhaengig von der Seite gerechnet
+  const std = [10, 2.5, 0.75];
+  const netto = werte.map((w, i) => (Number(w[0]) * r.preis - Number(w[2])) / std[i]);
+  const soll = netto.indexOf(Math.max(...netto));
+  const ist = r.raus.map((o) => o.best);
+  if (ist.filter(Boolean).length !== 1 || !ist[soll]) probleme.push(`markiert ist [${ist.map((b) => (b ? 'x' : '-')).join('')}], erwartet Zeile ${soll + 1}`);
+  refineryVergleich++;
+  return probleme.length ? `Refinery-Vergleich: ${probleme.join('; ')}` : null;
+}
+
+/* Mining-Werkbank (UX-Audit Task-Flows F01 und 9.3), frischer Kontext ohne
+   Konto: (1) bei einem Erz mit verschiedenen Zahlen je Ort steht der
+   Umschalter Ertrag/Chance da, und „Chance" ordnet die Orte nach fallender
+   Chance; bei Quantainium (ueberall gleich) fehlt er, und die Lesehilfe sagt
+   es einmal. (2) Ein Gast speichert eine Vorlage, sie steht in der Liste,
+   in der Ablage und nach dem Neuladen noch da. Selbstauskunft:
+   miningFundorte zaehlt die durchgespielten Wege. */
+async function probeMiningFundorteVorlagen(page) {
+  const ziel = page.url().split('?')[0];
+  const ctx = await page.context().browser().newContext({
+    viewport: { width: 1440, height: 900 }, colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  try {
+    await ctx.route('**/*', (route) => (route.request().url().startsWith(BASE) ? route.continue() : route.abort()));
+    await ctx.addInitScript(() => {
+      try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Speicher bleibt die Hilfe zu */ }
+    });
+    const { p, grund } = await zusatzSeite(ctx);
+    const probleme = [];
+    await p.goto(ziel + '?mineral=Gold', { waitUntil: 'load' });
+    await p.waitForSelector('#wb-locs .wb__row2', { timeout: 15000 });
+    const fundorte = () => mitSichtbar(p, (_, da) => ({
+      umschalter: da(document.getElementById('wb-locsort')),
+      gedrueckt: [...document.querySelectorAll('#wb-locsort button')].filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.getAttribute('data-locsort')),
+      lesehilfe: (document.getElementById('wb-lockey') || {}).textContent || '',
+      zeilen: [...document.querySelectorAll('#wb-locs .wb__row2')].filter((x) => da(x)).length,
+      rechts: [...document.querySelectorAll('#wb-locs .wb__row2 em')].map((x) => parseFloat(x.textContent.replace(',', '.'))),
+    }));
+    const a = await fundorte();
+    if (!a.umschalter) probleme.push('bei Gold fehlt der Umschalter Ertrag/Chance');
+    else {
+      await p.click('#wb-locsort [data-locsort="ch"]');
+      const b = await fundorte();
+      if (b.gedrueckt.join() !== 'ch') probleme.push(`nach „Chance" gedrueckt: [${b.gedrueckt.join()}]`);
+      if (b.lesehilfe === a.lesehilfe) probleme.push('die Lesehilfe folgt der Sortierung nicht');
+      const r = b.rechts.filter((x) => Number.isFinite(x));
+      if (r.length < 2 || r.some((x, i) => i && r[i - 1] < x)) probleme.push(`nach „Chance" rechts nicht fallend: ${r.join(', ')}`);
+      await p.click('#wb-locsort [data-locsort="ef"]');
+    }
+    await p.goto(ziel + '?mineral=Quantainium', { waitUntil: 'load' });
+    await p.waitForSelector('#wb-locs .wb__row2', { timeout: 15000 });
+    const q = await fundorte();
+    if (q.umschalter) probleme.push('bei Quantainium (ueberall dieselben Zahlen) steht der Umschalter da');
+    if (!q.lesehilfe.includes(String(q.zeilen))) probleme.push(`bei Quantainium nennt die Lesehilfe die ${q.zeilen} Orte nicht („${q.lesehilfe}")`);
+
+    // Vorlage als Gast
+    await p.waitForSelector('#wb-pre-pick:not([hidden])', { timeout: 15000 }).catch(() => {});
+    if (!(await p.$('#wb-pre-pick:not([hidden])'))) probleme.push('die Vorlagen-Liste ist fuer Gaeste nicht zu sehen');
+    else {
+      await p.click('#wb-pinsel');
+      await p.click('#wb-pre-new');
+      await p.fill('#wb-pre-name', 'Rauchtest');
+      await p.click('#wb-pre-ok');
+      await p.waitForTimeout(300);
+      const liste = () => p.evaluate(() => {
+        let ablage = null;
+        try { ablage = JSON.parse(localStorage.getItem('vb.mining.presets.v1') || 'null'); } catch { ablage = 'kaputt'; }
+        return {
+          namen: [...document.querySelectorAll('#wb-preset-list .wb__pre-item')].map((x) => x.getAttribute('data-preset')),
+          ablage: ablage && Array.isArray(ablage.presets) ? ablage.presets.map((x) => x.name) : [],
+        };
+      });
+      const v = await liste();
+      if (!v.namen.includes('Rauchtest') || !v.ablage.includes('Rauchtest')) probleme.push(`nach dem Speichern Liste [${v.namen.join(', ')}], Ablage [${v.ablage.join(', ')}]`);
+      await p.reload({ waitUntil: 'load' });
+      await p.waitForSelector('#wb-preset-list .wb__pre-item', { timeout: 15000 }).catch(() => {});
+      const w = await liste();
+      if (!w.namen.includes('Rauchtest')) probleme.push('nach dem Neuladen fehlt die Vorlage in der Liste');
+    }
+    const befund = await grund();
+    if (befund) probleme.push(befund);
+    miningFundorte++;
+    return probleme.length ? `Mining-Werkbank (Fundorte, Vorlagen): ${probleme.join('; ')}` : null;
   } finally {
     await ctx.close();
   }
@@ -3821,6 +3942,17 @@ if (seiten.some((x) => x.id === 'refinery')) {
   console.log(`  Refinery als Gast: ${refineryGast} Wege durchgespielt   Untergrenze: ${REFINERY_GAST_SOLL}`);
   if (refineryGast < REFINERY_GAST_SOLL && !fehler.some((f) => f.includes('Refinery als Gast')))
     fehler.push(`Refinery als Gast: nur ${refineryGast} von ${REFINERY_GAST_SOLL} Wegen durchgespielt — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
+  // Netto pro Stunde (F06): je Sprache ein durchgerechneter Vergleich.
+  console.log(`  Refinery-Vergleich Netto pro Stunde: ${refineryVergleich}-mal durchgerechnet   Untergrenze: ${REFINERY_GAST_SOLL}`);
+  if (refineryVergleich < REFINERY_GAST_SOLL && !fehler.some((f) => f.includes('Refinery-Vergleich') || f.includes('Refinery: der Vergleich') || f.includes('Refinery als Gast')))
+    fehler.push(`Refinery-Vergleich: nur ${refineryVergleich} von ${REFINERY_GAST_SOLL} Vergleichen durchgerechnet — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
+}
+// Fundorte-Umschalter und Gast-Vorlagen (F01, 9.3): je Sprache ein Weg.
+const MINING_FUNDORTE_SOLL = 2;
+if (mitMining) {
+  console.log(`  Mining-Werkbank: Fundorte und Gast-Vorlagen ${miningFundorte}-mal durchgespielt   Untergrenze: ${MINING_FUNDORTE_SOLL}`);
+  if (miningFundorte < MINING_FUNDORTE_SOLL && !fehler.some((f) => f.includes('Mining-Werkbank (Fundorte')))
+    fehler.push(`Mining-Werkbank (Fundorte, Vorlagen): nur ${miningFundorte} von ${MINING_FUNDORTE_SOLL} Wegen durchgespielt — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
 }
 if (mitMining && miningHandy < MINING_HANDY_SOLL && !fehler.some((f) => f.includes('Mining-Werkbank am Telefon')))
   fehler.push(`Mining-Werkbank am Telefon: nur ${miningHandy} von ${MINING_HANDY_SOLL} Messungen der Signaturen-Spalte — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);

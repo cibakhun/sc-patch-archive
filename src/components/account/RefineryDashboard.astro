@@ -72,7 +72,7 @@ const COPY = {
     fDuration: 'Bearbeitungszeit', hLbl: 'Std', mLbl: 'Min',
     fCost: 'Kosten (aUEC)', fCostPh: 'z. B. 4200',
     fNote: 'Notiz', fNotePh: 'optional',
-    pvYield: 'Ausbeute gesamt', pvValue: 'gesch. Verkaufswert', pvReady: 'Fertig um',
+    pvYield: 'Ausbeute gesamt', pvValue: 'gesch. Verkaufswert', pvReady: 'Fertig um', pvRate: 'Netto pro Stunde',
     submit: 'Tracking starten', submitBusy: 'Speichere …',
     errForm: 'Wähle Raffinerie, Methode, mindestens ein Erz mit Roh-SCU und eine Bearbeitungszeit über 0.',
     errNet: 'Das hat nicht geklappt. Bitte erneut versuchen.',
@@ -107,6 +107,11 @@ const COPY = {
     methodsTitle: 'Methoden',
     methodsLead: 'Ausbeute, Tempo und Kosten je Methode als Stufen. Genaue Werte zeigt das Terminal.',
     thMethod: 'Methode',
+    vglTitle: 'Netto pro Stunde vergleichen',
+    vglLead: 'Stell im Terminal nacheinander die Methoden ein und trag ab, was es zeigt: Ausbeute, Dauer und Kosten. Darunter steht, welche Methode netto am meisten pro Stunde bringt.',
+    vglOre: 'Erz', vglOreAny: 'Erz wählen', vglPrice: 'Preis je SCU (aUEC)', vglRow: 'Methode %n',
+    vglMethod: 'Methode', vglYield: 'Ausbeute (SCU)', vglTime: 'Dauer', vglTimePh: 'z. B. 5h 30m', vglCost: 'Kosten (aUEC)',
+    vglNet: 'netto', vglBest: 'am meisten pro Stunde', vglNeed: 'Ausbeute, Preis und Dauer eintragen',
     priceNote: 'Verkaufswerte auf Basis von UEX-Durchschnittspreisen (%d). Nur eine Schätzung, deinen echten Erlös trägst du in der Historie ein.',
   },
   en: {
@@ -146,7 +151,7 @@ const COPY = {
     fDuration: 'Processing time', hLbl: 'h', mLbl: 'min',
     fCost: 'Cost (aUEC)', fCostPh: 'e.g. 4200',
     fNote: 'Note', fNotePh: 'optional',
-    pvYield: 'Total yield', pvValue: 'est. sell value', pvReady: 'Ready at',
+    pvYield: 'Total yield', pvValue: 'est. sell value', pvReady: 'Ready at', pvRate: 'Net per hour',
     submit: 'Start tracking', submitBusy: 'Saving …',
     errForm: 'Pick a refinery, a method, at least one ore with raw SCU, and a processing time above 0.',
     errNet: 'That did not work. Please try again.',
@@ -181,6 +186,11 @@ const COPY = {
     methodsTitle: 'Methods',
     methodsLead: 'Yield, speed and cost per method as levels. The terminal shows the exact numbers.',
     thMethod: 'Method',
+    vglTitle: 'Compare net per hour',
+    vglLead: 'Switch through the methods at the terminal and note what it shows: yield, time and cost. Below you see which method earns the most net per hour.',
+    vglOre: 'Ore', vglOreAny: 'Pick an ore', vglPrice: 'Price per SCU (aUEC)', vglRow: 'Method %n',
+    vglMethod: 'Method', vglYield: 'Yield (SCU)', vglTime: 'Time', vglTimePh: 'e.g. 5h 30m', vglCost: 'Cost (aUEC)',
+    vglNet: 'net', vglBest: 'most per hour', vglNeed: 'Enter yield, price and time',
     priceNote: 'Sell values based on UEX average prices (%d). An estimate only, record your actual proceeds in the history.',
   },
 }[lang];
@@ -211,6 +221,12 @@ const oreRows = ores
 
 // Vorauswahl im Ertragsvergleich: das wertvollste Erz mit einem echten Unterschied zwischen den Stationen.
 const defaultOre = oreRows.find((r) => r.top > 0)?.o.name ?? ores[0]?.name;
+// Netto-pro-Stunde-Vergleich (F06): Erze mit Preis, nach Name; vorgewaehlt
+// die langsamste, eine mittlere und die schnellste Methode.
+const vglOres = ores.filter((o) => o.sell != null && o.sell > 0).sort((a, b) => a.name.localeCompare(b.name));
+const vglStart = vglOres.find((o) => o.name === defaultOre);
+const vglPreis = vglStart ? String(Math.round(vglStart.sell as number)) : '';
+const VGL_VORWAHL = [0, Math.floor((methods.length - 1) / 2), methods.length - 1];
 const SYSTEM_TOPIC: Record<string, string> = { Pyro: '/topics/4-0-0-pyro-system.html', Nyx: '/topics/4-4-0-nyx-system.html' };
 const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang) : null);
 const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
@@ -358,6 +374,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
                 <div><dt>{COPY.pvYield}</dt><dd id="rfd-pv-yield">— {COPY.scu}</dd></div>
                 <div><dt>{COPY.pvValue}</dt><dd class="rf-gold" id="rfd-pv-value">—</dd></div>
                 <div><dt>{COPY.pvReady}</dt><dd id="rfd-pv-ready">—</dd></div>
+                <div><dt>{COPY.pvRate}</dt><dd id="rfd-pv-rate">—</dd></div>
               </dl>
 
               <div class="rf-acts">
@@ -480,6 +497,38 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
             ))}
           </tbody>
         </table>
+      </div>
+      {/* Netto pro Stunde (UX-Audit Task-Flow F06): die Methoden-Tabelle kennt nur
+          Stufen, die genauen Zahlen zeigt erst das Terminal fuer die eigene
+          Ladung. Der Vergleich rechnet mit genau diesen abgelesenen Werten,
+          statt Prozente zu erfinden. Ohne Konto, ohne Speicher. */}
+      <div class="rf-vgl rf-pad" id="rf-vgl" role="group" aria-labelledby="rf-vgl-h">
+        <h3 class="rf-vgl__h" id="rf-vgl-h">{COPY.vglTitle}</h3>
+        <p class="rf-lead">{COPY.vglLead}</p>
+        <div class="rf-vgl__kopf">
+          <label class="rf-vgl__f"><span>{COPY.vglOre}</span>
+            <select class="inp ctrl" id="rf-vgl-ore">
+              <option value="">{COPY.vglOreAny}</option>
+              {vglOres.map((o) => (<option value={o.name} data-sell={String(Math.round(o.sell as number))} selected={o.name === defaultOre}>{o.name}</option>))}
+            </select>
+          </label>
+          <label class="rf-vgl__f"><span>{COPY.vglPrice}</span>
+            <input class="inp rf-num" id="rf-vgl-price" type="number" min="0" step="1" inputmode="numeric" value={vglPreis} />
+          </label>
+        </div>
+        {VGL_VORWAHL.map((vor, i) => (
+          <fieldset class="rf-vgl__row" data-vgl-row aria-label={COPY.vglRow.replace('%n', String(i + 1))}>
+            <label class="rf-vgl__f"><span>{COPY.vglMethod}</span>
+              <select class="inp ctrl" data-vgl="method">
+                {methods.map((m, j) => (<option value={m.name} selected={j === vor}>{m.name}</option>))}
+              </select>
+            </label>
+            <label class="rf-vgl__f"><span>{COPY.vglYield}</span><input class="inp rf-num" data-vgl="yield" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+            <label class="rf-vgl__f"><span>{COPY.vglTime}</span><input class="inp" data-vgl="time" type="text" placeholder={COPY.vglTimePh} autocomplete="off" spellcheck="false" /></label>
+            <label class="rf-vgl__f"><span>{COPY.vglCost}</span><input class="inp rf-num" data-vgl="cost" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <output class="rf-vgl__out" data-vgl="out" aria-live="polite">{COPY.vglNeed}</output>
+          </fieldset>
+        ))}
       </div>
     </section>
     {/* GAST-RIEGEL (UX-Audit 24.11.2026, Heuristik B18, Task-Flow T8/F06):
@@ -707,6 +756,29 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-meter--cost i { background: color-mix(in srgb, var(--gold) 16%, transparent); }
   .rf-meter--cost i.an { background: var(--gold); }
   .rf-table--meth td { color: var(--muted); }
+
+  /* ---- Netto pro Stunde vergleichen (F06) ---- */
+  .rf-vgl { border-top: 1px solid var(--line-soft); }
+  .rf-vgl__h { margin: 0 0 6px; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-9); color: var(--text); }
+  /* Feste Spalten statt auto-fit: die volle Zeile fuer das Ergebnis haelt
+     sonst leere Spuren offen, und die Methoden-Auswahl wird abgeschnitten. */
+  .rf-vgl__kopf, .rf-vgl__row { display: grid; gap: 10px 12px; align-items: end; }
+  .rf-vgl__kopf { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 12px; max-width: 520px; }
+  .rf-vgl__row { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 920px; margin: 0 0 10px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 12px; min-width: 0;
+    background: color-mix(in srgb, var(--bg-2) 60%, transparent); }
+  .rf-vgl__row > .rf-vgl__f:first-of-type { grid-column: 1 / -1; }
+  @media (min-width: 760px) {
+    .rf-vgl__row { grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr)); }
+    .rf-vgl__row > .rf-vgl__f:first-of-type { grid-column: auto; }
+  }
+  .rf-vgl__row.is-best { border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+  .rf-vgl__f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .rf-vgl__f > span { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-5); color: var(--muted); }
+  .rf-vgl__f .inp { width: 100%; min-width: 0; }
+  .rf-vgl__out { grid-column: 1 / -1; font-family: var(--font-num); font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-7); }
+  .rf-vgl__out b { color: var(--text); font-size: var(--fs-11); font-weight: 700; }
+  .rf-vgl__row.is-best .rf-vgl__out b { color: var(--gold); }
+  .rf-vgl__out .rf-vgl__best { margin-left: 8px; font-family: var(--font-ui); font-weight: 700; color: var(--gold); }
 </style>
 
 <script>
@@ -716,7 +788,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     REFINERY, estimateValue, fmtCountdown, fmtDuration, fmtAuec, fmtScu, rankStations, bonusAt, stationByName, oreByName,
     type RefineryJob, type RefineryItem,
   } from '../../lib/refinery';
-  import { refineryValue, refinerySpark, jobValue } from '../../lib/refineryJobs';
+  import { refineryValue, refinerySpark, jobValue, parseDauer, nettoProStunde, besteZeile } from '../../lib/refineryJobs';
   import { GAST_KEY, GAST_MAX, gastAuftrag, ladeGast, speichereGast, naechsteGastId, nimmGast, zurueckLegen, kontoZeile } from '../../lib/refineryGast';
 
   const root = document.getElementById('rf') as HTMLElement | null;
@@ -740,6 +812,44 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       a.href = u;
       return a;
     };
+
+    // ---- Netto pro Stunde vergleichen (öffentlich, F06) --------------------
+    // Rechnet nur mit dem, was der Spieler im Terminal abliest; Preis je SCU
+    // kommt aus der Erzwahl und laesst sich ueberschreiben.
+    const vgl = document.getElementById('rf-vgl');
+    if (vgl) {
+      const vglOre = $('rf-vgl-ore') as HTMLSelectElement;
+      const vglPrice = $('rf-vgl-price') as HTMLInputElement;
+      const zahl = (x: Element | null) => parseFloat(((x as HTMLInputElement | null)?.value || '').replace(',', '.')) || 0;
+      const rechne = () => {
+        const preis = zahl(vglPrice);
+        const zeilen = Array.from(vgl.querySelectorAll<HTMLElement>('[data-vgl-row]'));
+        const werte = zeilen.map((z) => nettoProStunde(
+          zahl(z.querySelector('[data-vgl="yield"]')),
+          preis,
+          zahl(z.querySelector('[data-vgl="cost"]')),
+          parseDauer((z.querySelector('[data-vgl="time"]') as HTMLInputElement).value),
+        ));
+        const best = besteZeile(werte);
+        zeilen.forEach((z, i) => {
+          const out = z.querySelector('[data-vgl="out"]') as HTMLElement;
+          const w = werte[i];
+          z.classList.toggle('is-best', i === best);
+          out.textContent = '';
+          if (!w) { out.textContent = C.vglNeed; return; }
+          out.append(el('b', w.proStunde < 0 ? 'rf-neg' : undefined, `${fmtAuec(Math.round(w.proStunde), lang)} aUEC/h`),
+            ` · ${fmtAuec(Math.round(w.netto), lang)} aUEC ${C.vglNet}`);
+          if (i === best) out.append(el('span', 'rf-vgl__best', C.vglBest));
+        });
+      };
+      vglOre.addEventListener('change', () => {
+        const opt = vglOre.selectedOptions[0];
+        if (opt && opt.dataset.sell) vglPrice.value = opt.dataset.sell;
+        rechne();
+      });
+      vgl.addEventListener('input', rechne);
+      rechne();
+    }
 
     // ---- Ertragsvergleich (öffentlich) ------------------------------------
     const yieldSel = $('rf-yield-ore') as HTMLSelectElement;
@@ -1108,6 +1218,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       $('rfd-pv-ready').textContent = mins > 0
         ? `${fmtReadyAt(new Date(Date.now() + mins * 60000).toISOString())} (${fmtDuration(mins * 60)})`
         : '—';
+      // Netto je Stunde dieses Auftrags (F06): geschaetzter Wert minus Kosten.
+      const rate = val > 0 && mins > 0 ? (val - (parseFloat(costEl.value) || 0)) / (mins / 60) : null;
+      $('rfd-pv-rate').textContent = rate == null ? '—' : `${fmtAuec(Math.round(rate), lang)} aUEC/h`;
     }
 
     // Erz-Hinweis: Preis, Aufschlag der gewählten Station, beste Station(en).

@@ -102,7 +102,7 @@
      bleiben ABSICHTLICH aussen vor bei save()/localStorage -- ein Neuladen
      ohne Adressparameter zeigt wieder das Erz, deckungsgleich mit dem
      heutigen ?mineral=-Verhalten (Claudes Ermessen, CONTEXT.md). */
-  var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null, view: 'ore', selLoc: null };
+  var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null, view: 'ore', selLoc: null, locSort: 'ef' };
   /* Ein alter Speicherstand traegt noch laser/mods/gadget/mass. Die Felder
      werden schlicht nicht mehr gelesen und beim naechsten Schreiben fallen
      sie weg — kein Grund, gespeicherte Auswahl und Signaturen wegzuwerfen.
@@ -115,11 +115,12 @@
       if (Array.isArray(saved.pins)) S.pins = saved.pins.filter(function (n) { return !!byName[n]; });
       if (Array.isArray(saved.locPins)) S.locPins = saved.locPins.filter(locPinValid);
       if (typeof saved.ref === 'number' && D.refineries[saved.ref]) S.ref = saved.ref;
+      if (saved.locSort === 'ch') S.locSort = 'ch';
     }
   } catch (e) { /* kaputter Speicher ist kein Grund, das Werkzeug zu verweigern */ }
   function save() {
     try {
-      localStorage.setItem(LS, JSON.stringify({ sel: S.sel, pins: S.pins, locPins: S.locPins, ref: S.ref }));
+      localStorage.setItem(LS, JSON.stringify({ sel: S.sel, pins: S.pins, locPins: S.locPins, ref: S.ref, locSort: S.locSort }));
     } catch (e) { /* privater Modus */ }
   }
 
@@ -182,6 +183,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (l.ch != null) t.push(T.chance.replace('%p', nPct(l.ch) + ' %'));
     if (l.ms != null) t.push(T.upTo.replace('%p', nPct(l.ms) + ' %'));
     return t.join(' · ');
+  }
+  /* Tragen alle Fundorte eines Erzes dieselben Zahlen (Chance, Hoechst-
+     anteil, Erwartungswert)? Dann sortiert keine Spalte etwas, und die
+     Liste sagt das einmal statt in jeder Zeile (F01). Ab zwei Orten. */
+  function locsGleich(ls) {
+    if (!ls || ls.length < 2) return false;
+    for (var i = 1; i < ls.length; i++) {
+      if (ls[i].ch !== ls[0].ch || ls[i].ms !== ls[0].ms || ls[i].ef !== ls[0].ef) return false;
+    }
+    return true;
   }
   var TYPE_LBL = {
     planet: 'tPlanet', moon: 'tMoon', belt: 'tBelt', lagrange: 'tLagrange',
@@ -432,18 +443,46 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        besten Fundort DIESES Erzes — so stimmen Balkenlaenge und Reihenfolge ueberein.
        Vorher lief die Sortierung ueber ch, der Balken aber ueber den Massenanteil:
        die Liste sah dadurch unsortiert aus. */
-    var locs = m.locs.slice().sort(function (a, b) { return (b.ef || 0) - (a.ef || 0); });
-    var maxEf = 0;
-    for (var li = 0; li < locs.length; li++) if ((locs[li].ef || 0) > maxEf) maxEf = locs[li].ef || 0;
+    /* UX-Audit 24.11.2026 (Task-Flow F01): wahlweise nach Chance (S.locSort
+       'ch'). Rechts steht dann die Chance und der Balken folgt ihr, die
+       Unterzeile behaelt nur den Hoechstanteil — dieselbe Aufteilung, die
+       pctRight()/pctSub() fuer die Fundort-Ansicht schon kennen.
+       Bei 8 von 33 Erzen mit mehreren Fundorten (Quantainium: 17) tragen ALLE
+       Orte dieselben drei Zahlen. Dort hiess die Liste bisher 17-mal dieselbe
+       Zeile und beantwortete „wo lohnt es am meisten" nicht: jetzt steht die
+       Antwort einmal oben (ueberall gleich), die Orte nach System geordnet,
+       und der Umschalter entfaellt, weil er nichts umsortieren koennte. */
+    var gleich = locsGleich(m.locs);
+    var nachCh = !gleich && S.locSort === 'ch';
+    var rang = function (l) { return (nachCh ? l.ch : l.ef) || 0; };
+    var locs = m.locs.slice().sort(gleich
+      ? function (a, b) { return String(a.s || '').localeCompare(String(b.s || '')) || locName(a).localeCompare(locName(b)); }
+      : function (a, b) { return rang(b) - rang(a) || (b.ef || 0) - (a.ef || 0); });
+    var maxRang = 0;
+    for (var li = 0; li < locs.length; li++) if (rang(locs[li]) > maxRang) maxRang = rang(locs[li]);
     $('wb-loch').textContent = T.locations + (locs.length ? ' · ' + locs.length : '');
+    var sortBox = $('wb-locsort');
+    if (sortBox) {
+      sortBox.hidden = gleich || locs.length < 2;
+      var sortBtns = sortBox.querySelectorAll('button');
+      for (var sb = 0; sb < sortBtns.length; sb++) {
+        sortBtns[sb].setAttribute('aria-pressed', String(sortBtns[sb].getAttribute('data-locsort') === (nachCh ? 'ch' : 'ef')));
+      }
+    }
+    var keyEl = $('wb-lockey');
+    if (keyEl) {
+      keyEl.textContent = gleich
+        ? T.locSame.replace('%n', String(locs.length)).replace('%w', pctSub(locs[0]) + ' · ' + T.yieldAvg + ' ' + pctRight(locs[0]))
+        : (nachCh ? T.locKeyCh : T.locKey);
+    }
     $('wb-locs').innerHTML = locs.length
       ? locs.map(function (l) {
-          var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
-          var sub = pctSub(l), ort = locSub(l);
+          var bar = gleich ? null : (maxRang > 0 ? Math.round(rang(l) / maxRang * 100) : 0);
+          var sub = gleich ? '' : pctSub(l, nachCh), ort = locSub(l);
           /* Achter Parameter opts (Phase 12, D-01): NUR der Fundort-Aufruf
              bekommt data-loc -- dieselbe Abgrenzung, die pinKey hier schon
              traegt. Die drei Stations-Aufrufe unten bleiben ohne opts. */
-          return row2(locName(l), sub ? ort + ' · ' + sub : ort, bar, pctRight(l), false, false, m.name + '||' + l.p,
+          return row2(locName(l), sub ? ort + ' · ' + sub : ort, bar, gleich ? '' : pctRight(l, nachCh), false, false, m.name + '||' + l.p,
             { attrs: 'data-loc="' + esc(l.p) + '" role="button" tabindex="0"' });
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
@@ -806,6 +845,138 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   var preAskWhat = null; // 'del' oder 'upd', nur gueltig solange preAsk gesetzt ist
   var preOpen = null; // Name der aufgeklappten Zeile (D-02 Form 3), sonst null
 
+  /* GAST-VORLAGEN (UX-Audit Task-Flow 9.3, 24.11.2026). Ohne Konto liegen
+     die Vorlagen in diesem Browser, so wie der Crafting-Planer seinen Stand.
+     Bis dahin brauchten sie ein Konto, waehrend der Planer keines kannte:
+     dieselbe Frage („meine Zusammenstellung behalten") gegensaetzlich
+     beantwortet. gastRest() beantwortet genau die vier Anfragen, die
+     preLoad/preSave/preRemoveEntry/preDrop/preRename an die Tabelle stellen,
+     mit derselben Antwortform (ok, status, json(); Treffer-Check ueber leere
+     Liste, 409 bei vergebenem Namen) und denselben Grenzen wie die Tabelle
+     (Name 1-60 Zeichen, 64 Erze, 128 Fundort-Paare). So bleibt EIN Pfad fuer
+     beide Faelle statt eines zweiten Werkzeugs im Werkzeug. Beim Anmelden
+     wandern die Vorlagen einmal ins Konto (preMerge unten). */
+  var GAST_PRE = 'vb.mining.presets.v1';
+  var GAST_PRE_MAX = 100;
+  function gastLesen() {
+    try {
+      var d = JSON.parse(localStorage.getItem(GAST_PRE) || 'null');
+      if (!d || !Array.isArray(d.presets)) return [];
+      return d.presets.filter(function (p) { return p && typeof p.name === 'string' && preGueltig(p); }).map(function (p) {
+        return { name: p.name, minerals: Array.isArray(p.minerals) ? p.minerals : [], locations: Array.isArray(p.locations) ? p.locations : [] };
+      });
+    } catch (e) { return []; }
+  }
+  function gastSchreiben(list) {
+    try {
+      if (list.length) localStorage.setItem(GAST_PRE, JSON.stringify({ v: 1, presets: list }));
+      else localStorage.removeItem(GAST_PRE);
+      return true;
+    } catch (e) { return false; }
+  }
+  function preGueltig(p) {
+    var n = String(p.name || '').trim();
+    return n.length >= 1 && n.length <= 60 &&
+      (!p.minerals || (Array.isArray(p.minerals) && p.minerals.length <= 64)) &&
+      (!p.locations || (Array.isArray(p.locations) && p.locations.length <= 128));
+  }
+  function gastAntwort(status, rows) {
+    return Promise.resolve({ ok: status >= 200 && status < 300, status: status, json: function () { return Promise.resolve(rows); } });
+  }
+  function gastRest(method, path, body) {
+    var list = gastLesen();
+    var m = /[?&]name=eq\.([^&]*)/.exec(path);
+    var ziel = m ? decodeURIComponent(m[1]) : null;
+    var at = -1;
+    if (ziel != null) for (var i = 0; i < list.length; i++) if (list[i].name === ziel) { at = i; break; }
+    var kopie = function (p) { return { name: p.name, minerals: p.minerals.slice(), locations: p.locations.slice() }; };
+    if (method === 'GET') {
+      return gastAntwort(200, list.map(kopie).sort(function (a, b) { return a.name.localeCompare(b.name); }));
+    }
+    if (method === 'POST') {
+      var rows = Array.isArray(body) ? body : [];
+      for (var r = 0; r < rows.length; r++) {
+        var e = { name: String(rows[r].name || ''), minerals: (rows[r].minerals || []).slice(), locations: (rows[r].locations || []).slice() };
+        if (!preGueltig(e)) return gastAntwort(400, null);
+        var da = -1;
+        for (var j = 0; j < list.length; j++) if (list[j].name === e.name) { da = j; break; }
+        if (da >= 0) list[da] = e;
+        else if (list.length >= GAST_PRE_MAX) return gastAntwort(400, null);
+        else list.push(e);
+      }
+      return gastAntwort(gastSchreiben(list) ? 201 : 500, null);
+    }
+    if (method === 'PATCH' || method === 'DELETE') {
+      if (at < 0) return gastAntwort(200, []);
+      var alt = list[at];
+      if (method === 'DELETE') {
+        list.splice(at, 1);
+        return gastAntwort(gastSchreiben(list) ? 200 : 500, [kopie(alt)]);
+      }
+      var neu = kopie(alt);
+      if (body && typeof body.name === 'string') {
+        for (var k = 0; k < list.length; k++) if (k !== at && list[k].name === body.name) return gastAntwort(409, null);
+        neu.name = body.name;
+      }
+      if (body && Array.isArray(body.minerals)) neu.minerals = body.minerals.slice();
+      if (body && Array.isArray(body.locations)) neu.locations = body.locations.slice();
+      if (!preGueltig(neu)) return gastAntwort(400, null);
+      list[at] = neu;
+      return gastAntwort(gastSchreiben(list) ? 200 : 500, [kopie(neu)]);
+    }
+    return gastAntwort(400, null);
+  }
+  /* Ein Weg fuer beide: mit Sitzung die Tabelle, ohne den Browser. */
+  function preRest(method, path, body, prefer) {
+    return preSess ? window.VBAccount.rest(preSess, method, path, body, prefer) : gastRest(method, path, body);
+  }
+  /* Einmal beim Anmelden: Gast-Vorlagen ins Konto. Erst aus dem Browser
+     nehmen, dann schreiben (ein zweiter Tab findet nichts mehr vor und
+     schreibt nichts doppelt); scheitert das Schreiben, kommen sie zurueck.
+     Eine gleichnamige Kontovorlage wird nicht ueberschrieben: die Gast-
+     Vorlage heisst dann „Name (2)". */
+  function freierName(name, belegt) {
+    if (!belegt[name]) return name;
+    for (var k = 2; k < 1000; k++) {
+      var zus = ' (' + k + ')';
+      var n = name.slice(0, 60 - zus.length).replace(/\s+$/, '') + zus;
+      if (!belegt[n]) return n;
+    }
+    return name;
+  }
+  function preMerge() {
+    var gast = gastLesen();
+    if (!gast.length || !preSess) return Promise.resolve();
+    /* Erst aus dem Browser nehmen, dann schreiben (ein zweiter Tab findet
+       nichts mehr). Laesst der Browser sich nichts nehmen, bleibt alles, wie
+       es ist: sonst kaeme dieselbe Vorlage beim naechsten Laden noch einmal. */
+    if (!gastSchreiben([])) return Promise.resolve();
+    var zurueck = function () {
+      var jetzt = gastLesen(), da = {};
+      jetzt.forEach(function (p) { da[p.name] = 1; });
+      var ok = gastSchreiben(jetzt.concat(gast.filter(function (p) { return !da[p.name]; })));
+      preSay(ok ? T.presetSyncFail : T.presetSyncLost, ok ? 6000 : 0);
+    };
+    return preRest('GET', TBL + '?select=name,minerals,locations&order=name.asc')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (rows) {
+        if (!rows) { zurueck(); return; }
+        var belegt = Object.create(null);
+        rows.forEach(function (r) { belegt[r.name] = 1; });
+        var body = gast.map(function (p) {
+          var n = freierName(p.name, belegt);
+          belegt[n] = 1;
+          return { name: n, minerals: p.minerals, locations: p.locations };
+        });
+        return preRest('POST', TBL + '?on_conflict=user_id,name', body, 'resolution=merge-duplicates,return=minimal')
+          .then(function (r) {
+            if (!r.ok) { zurueck(); return; }
+            preSay(body.length === 1 ? T.presetSynced1 : T.presetSynced.replace('%n', String(body.length)), 6000);
+          });
+      })
+      .catch(zurueck);
+  }
+
   function preSay(text, ms) {
     if (!preMsg) return;
     preMsg.textContent = text || '';
@@ -887,7 +1058,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }).join('');
   }
   function preLoad() {
-    return window.VBAccount.rest(preSess, 'GET', TBL + '?select=name,minerals,locations&order=name.asc')
+    return preRest('GET', TBL + '?select=name,minerals,locations&order=name.asc')
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
         presets = (rows || []).map(function (r) {
@@ -914,7 +1085,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        ab (Pruefklausel der Migration) — der Nutzer sieht T.presetFail. Der
        geschmeidige Weg (eigene Meldung, Sperre beim Anheften) kommt in 09-02;
        bis dahin scheitert es laut statt still (T-09-03). */
-    return window.VBAccount.rest(preSess, 'POST', TBL + '?on_conflict=user_id,name', body,
+    return preRest('POST', TBL + '?on_conflict=user_id,name', body,
       'resolution=merge-duplicates,return=minimal')
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
@@ -962,7 +1133,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        mit 200/kein Fehler (Cross-Device-Race: ein anderer Tab hat dieses
        Preset bereits geloescht). Ein leeres Array heisst "nichts getroffen"
        und wird als Fehlschlag gemeldet statt als Erfolg. */
-    return window.VBAccount.rest(preSess, 'PATCH', TBL + '?name=eq.' + encodeURIComponent(name), body, 'return=representation')
+    return preRest('PATCH', TBL + '?name=eq.' + encodeURIComponent(name), body, 'return=representation')
       .then(function (r) {
         delete preRmBusy[key];
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
@@ -976,7 +1147,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   }
   function preDrop(name) {
     /* Treffer-Check wie oben bei preRemoveEntry() — siehe dort. */
-    return window.VBAccount.rest(preSess, 'DELETE', TBL + '?name=eq.' + encodeURIComponent(name), null, 'return=representation')
+    return preRest('DELETE', TBL + '?name=eq.' + encodeURIComponent(name), null, 'return=representation')
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
         return r.json().then(function (rows) {
@@ -1001,7 +1172,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        409-Kollisionsbehandlung bleibt ZUERST: ein Namenskonflikt ist kein
        "null Zeilen getroffen", sondern ein expliziter Fehlercode, den
        PostgREST vor jeder Repraesentation meldet. */
-    return window.VBAccount.rest(preSess, 'PATCH',
+    return preRest('PATCH',
       TBL + '?name=eq.' + encodeURIComponent(oldName), { name: newName }, 'return=representation')
       .then(function (r) {
         if (r.status === 409) { preSay(T.presetNameTaken, 4000); return; }
@@ -1046,16 +1217,19 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       preEditFor = null;
     }
   }
+  /* Seit 9.3 sehen auch Gaeste die Vorlagen-Liste; der Hinweis darunter
+     sagt nur noch, wo sie liegen, und fuehrt zur Anmeldung. Mit Sitzung
+     wandern Gast-Vorlagen zuerst ins Konto, dann laedt die Liste. */
   function preBoot() {
     if (!prePick || !window.VBAccount) return;
     if (preLogin) preLogin.href = window.VBAccount.loginHref();
-    window.VBAccount.session().then(function (s) {
-      preSess = s;
-      var on = !!s;
-      prePick.hidden = !on;
-      preGuest.hidden = on;
-      if (on) preLoad();
-    }).catch(function () { /* Gast-Ansicht bleibt stehen */ });
+    var los = function (s) {
+      preSess = s || null;
+      prePick.hidden = false;
+      preGuest.hidden = !!preSess;
+      return (preSess ? preMerge() : Promise.resolve()).then(preLoad);
+    };
+    window.VBAccount.session().then(los, function () { return los(null); });
   }
   if (window.VBAccount) preBoot();
   else addEventListener('vb-account-ready', preBoot, { once: true });
@@ -1166,6 +1340,13 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   onDoc('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
+    /* Fundorte nach Ertrag oder Chance (F01). Eigener Zweig vor allen
+       anderen: der Umschalter liegt ausserhalb jeder Zeile. */
+    var srt = t.closest('[data-locsort]');
+    if (srt) {
+      S.locSort = srt.getAttribute('data-locsort') === 'ch' ? 'ch' : 'ef';
+      renderAll(); return;
+    }
     /* Rueckfragen (D-01 Loeschen, Betreiber-Befund 15.08.2026 Ueberschreiben)
        zuerst, noch vor Umbenennen/Auswahl: der zweite, bestaetigende Klick
        fuehrt die Aktion aus; der erste verwandelt den Knopf nur in eine
