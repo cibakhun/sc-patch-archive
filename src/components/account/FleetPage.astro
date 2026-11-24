@@ -161,8 +161,8 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     ships?(): Ship[];
     owner?(): string;
     toggle(id: string, label: string): Promise<boolean>;
-    add?(id: string, label: string): Promise<boolean>;
-    remove?(id: string): Promise<boolean>;
+    add(id: string, label: string): Promise<boolean>;
+    remove(id: string): Promise<boolean>;
     subscribe(fn: (s: Snap) => void): () => void;
     retry(): Promise<unknown>;
     dismissMerged(): void;
@@ -247,7 +247,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
     const remove = (s: Ship) => {
       if (!fleet) return;
-      void (fleet.remove ? fleet.remove(s.id) : fleet.toggle(s.id, s.label));
+      void fleet.remove(s.id);
       undoShip = s;
       undoFrom = whose(last);
       $('fltUndoTxt').textContent = fill(C.removed, { name: s.label });
@@ -267,15 +267,18 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
     $('fltUndoBtn').addEventListener('click', () => {
       const s = undoShip;
-      if (fleet && s && whose(last) === undoFrom && !fleet.ids().includes(s.id)) {
-        // Der Fokus geht an die Karte, sobald sie wieder dasteht (paint).
-        focusShip = s.id;
-        void (fleet.add ? fleet.add(s.id, s.label) : fleet.toggle(s.id, s.label));
+      const same = !!(fleet && s && whose(last) === undoFrom);
+      if (same) {
+        // add liest die Ablage, nicht die Anzeige: fehlt das Schiff dort, kommt
+        // es zurück, auch wenn diese Seite es noch zeigt; steht es schon da,
+        // bleibt die Flotte, wie sie ist. Der Fokus geht an seine Karte (paint).
+        focusShip = s!.id;
+        void fleet!.add(s!.id, s!.label);
       }
       dropUndo();
-      if (focusShip) { if (last) paint(last); return; }
-      // Nichts wiederhergestellt (das Schiff stand schon wieder da, oder der
-      // Eintrag war verfallen): der Fokus bleibt nie am ausgeblendeten Knopf.
+      if (same) { if (focusShip && last) paint(last); return; }
+      // Eintrag verfallen (andere Flotte): der Fokus bleibt nie am
+      // ausgeblendeten Knopf.
       if (!(s && focusCard(s.id))) focusFallback();
     });
 
