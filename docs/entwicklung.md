@@ -149,7 +149,7 @@ ehrlich „NICHT geprüft“, statt grün zu tun.
 Einzeln aufrufbar bleibt weiterhin alles:
 
 ```bash
-npm run test:e2e       # node:test, braucht einen Build (sagt es sonst)
+npm run test:e2e       # node:test ueber scripts/run-e2e.mjs, braucht einen Build (sagt es sonst)
 npm run verify         # jede lokale href/src/url() in dist/ zeigt auf eine Datei
 npm run verify:vendor  # vendortes three.js passt zur devDependency
 npm run audit:csp      # die CSP in nginx/default.conf deckt alles ab, was lädt
