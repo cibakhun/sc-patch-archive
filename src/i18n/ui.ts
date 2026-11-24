@@ -248,9 +248,12 @@ const UI = {
     // tatsaechlich verwendet -- 16-03-PLAN.md SCHRITT 4, absichtlich vorgezogen.
     'ship.console.readout.aria': 'Auslesung',
     'ship.console.count': '%n% am Schiff verortet',
+    'ship.console.count0': 'Am Schiff nicht verortet',
     'ship.stage.length': 'Länge',
     'ship.stage.crew': 'Besatzung',
     'ship.stage.cargo': 'Fracht',
+    'ship.stage.ore': 'Erz',
+    'ship.desc.nurEn': 'Für dieses Schiff gibt es die Beschreibung bisher nur auf Englisch.',
     'ship.stage.scm': 'SCM',
     'ship.stage.priceIngame': 'Im Verse ab',
     'ship.stage.pledge': 'Pledge',
@@ -309,7 +312,9 @@ const UI = {
     'ship.slot.radar': 'Radar',
     // -- Konsolen-Rail + konsolidierte Abschnitts-Koepfe (Phase 14, Tracer) --
     'ship.ch.gear': 'Ausstattung',
-    'ship.ch.context': 'Umfeld',
+    // Heuristik P82: „Umfeld“ verriet nicht, was drinsteht (Versicherung,
+    // Lackierungen, Varianten, Patch-Archiv); der Name nennt die zwei meistgesuchten.
+    'ship.ch.context': 'Lack & Varianten',
     // Kurzform NUR fuer die Rail. Die abgeloeste Kapitel-Sprungleiste fuehrte
     // aus demselben Grund eigene Pillen-Beschriftungen (ship.jump.*): eine
     // 220px-Spalte traegt "Leistungsprofil" nicht, gemessen 207px Eintrag
@@ -317,6 +322,10 @@ const UI = {
     // es umbrechen koennte. Der Abschnitt selbst behaelt seinen vollen Titel.
     'ship.rail.trade': 'Kaufen',
     'ship.rail.rank': 'Leistung',
+    // Heuristik P82: mit dem vollen Titel „Lack & Varianten“ bricht die Leiste
+    // bei acht Eintraegen auch zwischen 1280 und 1440 px auf zwei Zeilen
+    // (gemessen 44 -> 89 px Hoehe); „Varianten“ haelt sie einzeilig.
+    'ship.rail.context': 'Varianten',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
     // -- Flotte (assets/fleet.js setzt den Zustand; ohne Konto im Browser, mit Konto als Favoriten) --
@@ -326,6 +335,7 @@ const UI = {
     'fleet.retry': 'Nicht gespeichert · erneut versuchen',
     'fleet.resync': 'Nicht abgeglichen · erneut versuchen',
     'ship.hangar3d': 'Im 3D-Hangar ansehen',
+    'ship.cmp': 'Vergleichen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.ship': 'SCHIFF',
     'ship.code.trade': 'HANDEL',
@@ -693,9 +703,12 @@ const UI = {
     // 16-03-PLAN.md SCHRITT 4, deliberately front-loaded.
     'ship.console.readout.aria': 'Readout',
     'ship.console.count': '%n% located on the ship',
+    'ship.console.count0': 'Not located on the ship',
     'ship.stage.length': 'Length',
     'ship.stage.crew': 'Crew',
     'ship.stage.cargo': 'Cargo',
+    'ship.stage.ore': 'Ore',
+    'ship.desc.nurEn': 'This description is only available in English.',
     'ship.stage.scm': 'SCM',
     'ship.stage.priceIngame': 'In the ’verse from',
     'ship.stage.pledge': 'Pledge',
@@ -754,11 +767,12 @@ const UI = {
     'ship.slot.radar': 'Radar',
     // -- Console rail + consolidated section headers (Phase 14, tracer) --
     'ship.ch.gear': 'Specs',
-    'ship.ch.context': 'Extras',
+    'ship.ch.context': 'Paints & variants',
     // Short form for the rail only — see the German comment for the measured
     // reason. The section itself keeps its full title.
     'ship.rail.trade': 'Buy',
     'ship.rail.rank': 'Profile',
+    'ship.rail.context': 'Paints & variants',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
     // -- Fleet (assets/fleet.js sets the state; in this browser without an account, as favorites with one) --
@@ -768,6 +782,7 @@ const UI = {
     'fleet.retry': 'Not saved · try again',
     'fleet.resync': 'Not synced · try again',
     'ship.hangar3d': 'View in the 3D hangar',
+    'ship.cmp': 'Compare',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.ship': 'SHIP',
     'ship.code.trade': 'TRADE',
