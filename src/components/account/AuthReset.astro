@@ -23,6 +23,8 @@ const COPY = {
     doneBody: 'Falls ein Konto zu %e% existiert, ist ein Link zum Zurücksetzen unterwegs. Der Link ist etwa eine Stunde gültig.',
     errRate: 'Zu viele Anfragen — bitte kurz warten und erneut probieren.',
     errNet: 'Netzwerkfehler — bitte später erneut versuchen.',
+    errMail: 'Das ist keine gültige E-Mail-Adresse — bitte prüfe die Schreibweise.',
+    missing: 'Bitte ausfüllen: {f}.',
     toLogin: '← Zurück zur Anmeldung',
   },
   en: {
@@ -33,6 +35,8 @@ const COPY = {
     doneBody: 'If an account exists for %e%, a reset link is on its way. The link is valid for about an hour.',
     errRate: 'Too many requests — please wait a moment and try again.',
     errNet: 'Network error — please try again later.',
+    errMail: 'That is not a valid e-mail address — please check the spelling.',
+    missing: 'Please fill in: {f}.',
     toLogin: '← Back to sign-in',
   },
 }[lang];
@@ -47,6 +51,8 @@ const loginHref = href('/account/login.html', lang);
     data-redirect={updateRedirect}
     data-msg-rate={COPY.errRate}
     data-msg-net={COPY.errNet}
+    data-msg-mail={COPY.errMail}
+    data-msg-missing={COPY.missing}
     data-busy={COPY.busy}
     data-submit={COPY.submit}
   >
@@ -76,6 +82,7 @@ const loginHref = href('/account/login.html', lang);
 
 <script>
   import { linkClient } from '../../lib/supabase';
+  import { badEmail, missingFields } from '../../lib/auth-felder';
 
   const form = document.getElementById('rsForm') as HTMLFormElement | null;
   if (form) {
@@ -90,8 +97,12 @@ const loginHref = href('/account/login.html', lang);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       status.hidden = true;
-      const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
-      if (!email) return;
+      const field = form.elements.namedItem('email') as HTMLInputElement;
+      const email = field.value.trim();
+      // Leer: Satz statt nur roter Rand. Falsche Form: Satz statt der
+      // Erfolgsmeldung, die sonst auch bei „abc“ käme.
+      if (missingFields(form, status)) return;
+      if (badEmail(field, status, D.msgMail!)) return;
 
       btn.disabled = true;
       btnTxt.textContent = D.busy!;

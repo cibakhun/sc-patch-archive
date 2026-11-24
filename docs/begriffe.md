@@ -59,6 +59,7 @@ Konto und Service (rechts in der Leiste bzw. im Fuß, kein Bereich):
 | Schlüssel | Pfad | DE | EN | Unterzeile DE / EN |
 |---|---|---|---|---|
 | `konto` | `/account/login.html` | Anmelden (angemeldet: Konto) | Sign in (signed in: Account) | Flotte & Profil / Fleet & profile |
+| `flotte` | `/account/fleet.html` | Meine Flotte | My fleet | Schiffe aus „Zur Flotte“, auch ohne Konto / Ships from “Add to fleet”, even without an account |
 | `feedback` | `/feedback.html` | Feedback | Feedback | Ideen & Fehler melden / Ideas & bug reports |
 | `discord` | Einladung | Discord | Discord | Werkstatt hinter der Seite / The workshop behind the site |
 | `support` | `/support.html` | Unterstützen | Support | Server & Domain mitfinanzieren / Help pay for server & domain |

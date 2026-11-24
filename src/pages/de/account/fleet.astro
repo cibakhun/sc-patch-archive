@@ -1,0 +1,44 @@
+---
+// „Meine Flotte“ — DE-Spiegel von /account/fleet.html. noindex (NOINDEX_PATHS).
+// Flotte lesen und schreiben: assets/fleet.js (nach account-lite.js aus SiteNav).
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import Attribution from '../../../components/Attribution.astro';
+import AccountShell from '../../../components/account/AccountShell.astro';
+import FleetPage from '../../../components/account/FleetPage.astro';
+import { versioned } from '../../../lib/assetVersion';
+---
+<Layout
+  title={'Meine Flotte | VerseBase'}
+  description={'Deine Star-Citizen-Flotte auf VerseBase: die Schiffe, die du mit „Zur Flotte“ aufnimmst, in diesem Browser oder in deinem Konto.'}
+  themeColor="#05070d"
+  ogImage="/assets/og-default.jpg"
+  translated={true}
+  noindex={true}
+  analytics={false}
+>
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<link slot="head" rel="stylesheet" href={versioned('assets/account.css', '/assets/account.css')} />
+<style is:inline>
+.hero__in{max-width:var(--maxw)}</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+
+<SiteNav crumbs={[{ label: 'Konto', href: '/de/account.html' }, { label: 'Meine Flotte' }]} hasEn={true} />
+
+<main id="main">
+  <AccountShell
+    eyebrow="VerseBase · Flotte"
+    titleThin="Meine"
+    title="Flotte"
+    lead="Die Schiffe, die du auf ihrem Datenblatt mit „Zur Flotte“ aufnimmst. Ohne Konto bleiben sie in diesem Browser, mit Konto auf jedem Gerät."
+    wide
+  >
+    <FleetPage lang="de" />
+  </AccountShell>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+<script is:inline defer src={versioned('assets/fleet.js', '/assets/fleet.js')}></script>
+</Layout>
