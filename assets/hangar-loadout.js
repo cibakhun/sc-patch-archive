@@ -290,7 +290,14 @@ function adopt(ship, lo) {
 
 const shipSel = $('lo-shipsel');
 const nameIn = $('lo-name');
-shipSel.replaceChildren(...SHIPS.map((s) => el('option', { value: s.id }, s.maker ? `${s.name} · ${s.maker}` : s.name)));
+// Nach Hersteller gruppiert, die Option traegt nur den Namen: "Name · Hersteller"
+// schnitt in der geschlossenen Auswahl gerade das Ende ab, das Varianten trennt.
+const byMaker = new Map();
+for (const s of SHIPS) byMaker.set(s.maker || '', [...(byMaker.get(s.maker || '') ?? []), s]);
+shipSel.replaceChildren(...[...byMaker].sort(([a], [b]) => a.localeCompare(b, loc)).flatMap(([mk, list]) => {
+  const opts = list.map((s) => el('option', { value: s.id }, s.name));
+  return mk ? [el('optgroup', { label: mk }, opts)] : opts;
+}));
 
 function paintTop() {
   shipSel.value = draft.ship;
