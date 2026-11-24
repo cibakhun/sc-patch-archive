@@ -1105,6 +1105,32 @@ export const CHECKS = [
       'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); jede Karte verlinkt genau ein Blatt und traegt dessen Namen samt Zusatz, jedes Blatt hat genau eine Karte; Klinke fuer gelesene Blaetter je Sprache',
   },
   {
+    // Neuzugang 24.11.2026 (UX-Audit A9, IA-Vorschlag V13), ~12 s: liest
+    // dist/ als Text und buendelt src/lib/bereiche.ts mit esbuild (dessen
+    // Dienst ist der einzige Kindprozess, wie bei verify:crafting). Kein
+    // env-Feld: kein git, kein Netz.
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau von staging 01e1b0f9
+    // mit von Hand verbogenen Dateien in dist/: Precision-Jump-Links der
+    // Startseiten umgebogen, „Refinery“ im Datenblatt-Menue eines Items
+    // umbenannt, data-area einer Bereichsleiste geaendert, ein Werkzeug im
+    // Suchregister umbenannt, ein Inhaltslink aufs Impressum eingesetzt,
+    // id="topbar" einer Seite entfernt: 7 FEHLER (2 Waisen, Zombie-Ausnahme
+    // Impressum, Seite ohne Navigation, beide Menues, Bereichsleiste,
+    // Suchregister). Zweiter Lauf: robots-noindex auf /refinery.html und die
+    // lokale Leiste von /fracturing.html entfernt: 2 FEHLER ([1c] und die
+    // fehlende Leiste). Dritter Lauf gegen den Vorschau-Bau: id="topbar" und
+    // class="dp-bar" je einer Seite umbenannt (geaendertes Markup): 2 FEHLER
+    // (Rahmen-Filter greift nicht, Seiten ohne Navigation). Gruen nach dem
+    // Zuruecklegen. Der erste Vorschau-Lauf fand die 462 Hangar-Bucht-Seiten
+    // ohne Navigation; sie stehen jetzt als benannte Ausnahme (nur Vorschau).
+    id: 'verify:ia',
+    npm: 'verify:ia',
+    script: 'scripts/verify-ia.mjs',
+    rail: 'A',
+    checks:
+      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts (Schluessel, Adresse, Name, Reihenfolge), jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten',
+  },
+  {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
     // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
     // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
