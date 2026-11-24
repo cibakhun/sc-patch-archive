@@ -10,6 +10,7 @@ import { pageItemIds } from '../lib/items';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
+import { WERTNAMEN_DE, PFADGLIEDER_DE, pfadname, gattung } from '../i18n/craftingWerte';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
@@ -779,14 +780,14 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             <summary class="cdb-cat-summary">
               <label class="cdb-check cdb-check--top">
                 <input type="checkbox" class="cdb-cat" value={c.top} />
-                <span>{c.top} <em>{c.count}</em></span>
+                <span>{pfadname(c.top, lang)} <em>{c.count}</em></span>
               </label>
             </summary>
             <div class="cdb-subs">
               {c.subs.map((s) => (
                 <label class="cdb-check cdb-check--sub">
                   <input type="checkbox" class="cdb-sub" data-top={c.top} value={`${c.top}||${s}`} />
-                  <span>{s}</span>
+                  <span>{pfadname(s, lang)}</span>
                 </label>
               ))}
             </div>
@@ -874,7 +875,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             data-cat={c.top === 'Vehiclegear' || c.top === 'Ammo' ? c.top : undefined}
           >
             <div class="cbp__top">
-              <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
+              {/* Anzeige in der Sprache der Seite (docs/sprachregel.md); Filter
+                  und Suche lesen die Schluessel aus data-top/data-sub. */}
+              <span class="cbp__cat" data-top={c.top} data-sub={c.sub}>{pfadname(c.top, lang)}{c.sub && (<em>{pfadname(c.sub, lang)}</em>)}</span>
             </div>
             <h3 class="cbp__name"><a href={c.url}>{c.name}</a></h3>
             {/* Werkbank: dieselben drei Angaben, die Zeichen davor kommen als
@@ -905,7 +908,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
                   <li set:text={c.sp.sizes.map((n) => `S${n}`).join(' / ')} />
                 )}
                 {c.sp.grade && (<li>{c.sp.grade}</li>)}
-                {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
+                {c.sp.tone && (<li class="tone" data-roh={c.sp.tone} set:text={gattung(c.sp.tone, lang)} />)}
               </ul>
             )}
             {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
@@ -1103,6 +1106,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   werkbank,
   wbT: werkbank ? WB_JS : undefined,
   t: JS_T,
+  // Wertnamen und Pfadglieder nur auf DE (src/i18n/craftingWerte.ts).
+  werte: lang === 'de' ? WERTNAMEN_DE : undefined,
+  glieder: lang === 'de' ? PFADGLIEDER_DE : undefined,
 })};`} />
 {/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
     Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am
