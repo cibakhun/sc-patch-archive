@@ -28,7 +28,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { NAMEN_ALIASE } from './lib/item-namen-aliase.mjs';
+import { NAMEN_ALIASE, ALTE_ADRESSEN } from './lib/item-namen-aliase.mjs';
 import { wendeFundorteAn } from './lib/loot-orte.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -148,8 +148,11 @@ console.log(`Ids neu vergeben: ${umbenannt.size}${umbenannt.size ? ` (${[...umbe
 console.log(`Verschwundene Adressen (301): ${umzug.size}`);
 console.log(`Katalog: ${db.items.length} -> ${bleiben.length}`);
 if (!zusammen.length) { console.log('Nichts zu tun.'); process.exit(0); }
-if (DRY) { console.log('--dry: nichts geschrieben.'); process.exit(0); }
-
+// Erst alles im Speicher rechnen und pruefen, dann schreiben, den Katalog
+// zuletzt (Review #471): scheitert eine Pruefung, ist nichts geschrieben.
+// Bricht das Schreiben mittendrin ab, steht das Doppel noch im Katalog; ein
+// neuer Lauf legt es wieder zusammen und erkennt die schon umgeschluesselten
+// Verweise und vorhandenen Weiterleitungen als erledigt.
 for (const it of bleiben) if (umbenannt.has(it.id)) it.id = umbenannt.get(it.id);
 db.items = bleiben;
 if (db.counts) {
@@ -159,8 +162,16 @@ if (db.counts) {
   if (db.counts.snapFallbackRows != null) db.counts.snapFallbackRows += snapRueckfall;
 }
 const fz = wendeFundorteAn(db, JSON.parse(readFileSync(FD, 'utf8')));
-writeFileSync(DB, JSON.stringify(db));
-console.log(`OK: ${DB} (Fundorte ${fz.items} Items, withObtain ${db.counts?.withObtain})`);
+const katalogText = JSON.stringify(db);
+
+// Jede verschwundene Adresse muss in ALTE_ADRESSEN stehen, mit dem Spielnamen
+// als Ziel: daraus prueft verify:namen-aliase [4] die Weiterleitungen.
+const nameVonId = new Map(bleiben.map((it) => [it.id, it.name]));
+const festgehalten = new Map(ALTE_ADRESSEN.map(([id, nach]) => [id, nach]));
+for (const [vorher, nachher] of umzug) {
+  const nach = nameVonId.get(nachher);
+  if (festgehalten.get(vorher) !== nach) fehler.push(`verschwundene Adresse ${vorher} (-> "${nach}") fehlt in ALTE_ADRESSEN (scripts/lib/item-namen-aliase.mjs) oder nennt ein anderes Ziel — dort ergaenzen`);
+}
 
 // Dateien, die Items per Id ansprechen. Ersetzt wird im Text, damit ihr
 // Format (eine Zeile je Item) bleibt, wie die Erzeuger es schreiben.
@@ -170,8 +181,9 @@ function hangarKeyIst(text, vorher, nachher) {
   const suche = (o) => o && typeof o === 'object' && (o[vorher]?.key === nachher || Object.values(o).some(suche));
   return suche(JSON.parse(text));
 }
+const vorherText = {}, nachherText = {}, nachgezogen = {};
 for (const [art, pfad] of Object.entries(ID_DATEIEN)) {
-  let text = readFileSync(pfad, 'utf8');
+  let text = (vorherText[art] = readFileSync(pfad, 'utf8'));
   let n = 0;
   for (const [vorher, nachher] of umbenannt) {
     // 3D-Dateien: Schluessel am Zeilenanfang. Hangar: das Feld key verbindet
@@ -182,33 +194,38 @@ for (const [art, pfad] of Object.entries(ID_DATEIEN)) {
     if (!treffer) {
       // Ein Modell, das nach der alten Id heisst, braucht key = neue Id. Traegt
       // es den schon (frueherer Lauf), ist nichts zu tun; sonst von Hand.
-      if (art === 'hangar' && new RegExp(`"${esc(vorher)}": \\{`).test(text) && !hangarKeyIst(text, vorher, nachher)) throw new Error(`${pfad}: Modell ${vorher} ohne Feld key — von Hand nachziehen`);
+      if (art === 'hangar' && new RegExp(`"${esc(vorher)}": \\{`).test(text) && !hangarKeyIst(text, vorher, nachher)) fehler.push(`${pfad}: Modell ${vorher} ohne Feld key — von Hand nachziehen`);
       continue;
     }
-    if (art !== 'hangar' && (treffer > 1 || new RegExp(`^\\s*"${esc(nachher)}":`, 'm').test(text))) throw new Error(`${pfad}: ${vorher} -> ${nachher} nicht eindeutig umschluesselbar`);
+    if (art !== 'hangar' && (treffer > 1 || new RegExp(`^\\s*"${esc(nachher)}":`, 'm').test(text))) { fehler.push(`${pfad}: ${vorher} -> ${nachher} nicht eindeutig umschluesselbar`); continue; }
     text = text.replace(muster, art === 'hangar' ? `"key": "${nachher}"` : `$1"${nachher}":`);
     n += treffer;
   }
-  if (n) writeFileSync(pfad, text);
-  console.log(`${art}: ${n} Id(s) nachgezogen`);
+  nachherText[art] = text;
+  nachgezogen[art] = n;
 }
 // Der 3D-Bericht traegt den Fingerabdruck der Liste (Item und Modelldatei),
 // damit verify:item3d-befunde einen Bericht aus einem anderen Lauf erkennt.
 // Umgeschluesselt sind beide gleich: dieselben Modelle, dieselben Befunde, nur
-// die Id ist neu. Deshalb hier derselbe Abdruck wie in scripts/item3d/manifest.mjs
-// bzw. im Tor (sortierte Ids).
-{
-  const liste = JSON.parse(readFileSync(ID_DATEIEN.item3d, 'utf8')).items ?? {};
-  const abdruck = createHash('sha256').update(JSON.stringify(Object.keys(liste).sort().map((id) => [id, liste[id]?.[0] ?? null]))).digest('hex').slice(0, 16);
-  const text = readFileSync(ID_DATEIEN.befunde, 'utf8');
-  const neu = text.replace(/^( "liste": )"[0-9a-f]{16}",$/m, `$1"${abdruck}",`);
-  if (neu !== text) { writeFileSync(ID_DATEIEN.befunde, neu); console.log(`befunde: Fingerabdruck der Liste -> ${abdruck}`); }
+// die Id ist neu. Das gilt aber nur, wenn der Bericht schon vorher zur Liste
+// passte (Review #471): sonst machte das Umschluesseln einen fremden Bericht
+// passend. Derselbe Abdruck wie in scripts/item3d/manifest.mjs bzw. im Tor.
+const abdruckVon = (text) => {
+  const liste = JSON.parse(text).items ?? {};
+  return createHash('sha256').update(JSON.stringify(Object.keys(liste).sort().map((id) => [id, liste[id]?.[0] ?? null]))).digest('hex').slice(0, 16);
+};
+const LISTE_RE = /^( "liste": )"([0-9a-f]{16})",$/m;
+if (nachherText.item3d !== vorherText.item3d) {
+  const bisher = vorherText.befunde.match(LISTE_RE)?.[2];
+  const passend = abdruckVon(vorherText.item3d);
+  if (bisher !== passend) fehler.push(`${ID_DATEIEN.befunde}: Fingerabdruck ${bisher ?? '(fehlt)'} passt schon vor dem Umschluesseln nicht zur Liste (${passend}) — der Bericht stammt aus einem anderen Lauf; erst node scripts/item3d/manifest.mjs, dann dieses Skript erneut`);
+  else nachherText.befunde = nachherText.befunde.replace(LISTE_RE, `$1"${abdruckVon(nachherText.item3d)}",`);
 }
 
 // 301 je verschwundene Adresse, EN und DE, alphabetisch eingereiht.
-const conf = readFileSync(UMZUEGE, 'utf8').split('\n');
+const confVorher = readFileSync(UMZUEGE, 'utf8');
 const kopf = [], paare = [];
-for (const z of conf) (z.startsWith('#') || (!paare.length && !z.trim()) ? kopf : paare).push(z);
+for (const z of confVorher.split('\n')) (z.startsWith('#') || (!paare.length && !z.trim()) ? kopf : paare).push(z);
 const vorhanden = new Set(paare.filter((z) => z.trim()).map((z) => z.split(' ')[0]));
 let neu = 0;
 for (const [vorher, nachher] of umzug) {
@@ -219,6 +236,20 @@ for (const [vorher, nachher] of umzug) {
     neu++;
   }
 }
-const sortiert = paare.filter((z) => z.trim()).sort();
-writeFileSync(UMZUEGE, `${[...kopf, ...sortiert].join('\n')}\n`);
+const confNachher = `${[...kopf, ...paare.filter((z) => z.trim()).sort()].join('\n')}\n`;
+
+if (fehler.length) {
+  for (const f of fehler) console.error(`FEHLER: ${f}`);
+  console.error('Nichts geschrieben.');
+  process.exit(1);
+}
+if (DRY) { console.log('--dry: alles geprueft, nichts geschrieben.'); process.exit(0); }
+
+for (const art of Object.keys(ID_DATEIEN)) {
+  if (nachherText[art] !== vorherText[art]) writeFileSync(ID_DATEIEN[art], nachherText[art]);
+  console.log(`${art}: ${nachgezogen[art]} Id(s) nachgezogen${art === 'befunde' && nachherText.befunde !== vorherText.befunde ? `, Fingerabdruck der Liste -> ${nachherText.befunde.match(LISTE_RE)[2]}` : ''}`);
+}
+if (confNachher !== confVorher) writeFileSync(UMZUEGE, confNachher);
 console.log(`nginx/umzuege.conf: ${neu} Weiterleitung(en) neu`);
+writeFileSync(DB, katalogText);
+console.log(`OK: ${DB} (Fundorte ${fz.items} Items, withObtain ${db.counts?.withObtain})`);

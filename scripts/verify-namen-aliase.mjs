@@ -25,7 +25,10 @@
      [4] Adressen: die Seite jedes Ziels ist in EN und DE Ziel einer
          Weiterleitung in nginx/umzuege.conf, und die Adresse, die der alte
          Name ergab, ist entweder die Seite des Ziels selbst oder leitet
-         dorthin. Dass jede Quelle keine Seite mehr ist und jedes Ziel eine,
+         dorthin. Dazu jede beim Zusammenlegen verschwundene Item-Id
+         (ALTE_ADRESSEN in scripts/lib/item-namen-aliase.mjs, auch die
+         "-2"-Ids der Zwillinge): EN und DE leiten auf die Seite des
+         Spielnamens. Dass jede Quelle keine Seite mehr ist und jedes Ziel eine,
          prueft verify:redirects [6].
 
    Selbstauskunft: Paare, Katalog-Items, Quellennamen, Weiterleitungen;
@@ -36,7 +39,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { NAMEN_ALIASE } from './lib/item-namen-aliase.mjs';
+import { NAMEN_ALIASE, ALTE_ADRESSEN } from './lib/item-namen-aliase.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
@@ -45,6 +48,7 @@ const lies = (p) => JSON.parse(readFileSync(resolve(ROOT, p), 'utf8'));
 
 // Klinke (nur nach oben; nach unten nur per Commit, der das gestrichene Paar nennt).
 const MIN_PAARE = 56; // 24.11.2026: 12 Schreibweisen, 44 Umbenennungen
+const MIN_ALTE_ADRESSEN = 56; // 24.11.2026: verschwundene Item-Ids des Zusammenlegens
 const MIN_QUELLENNAMEN = 4000; // verschiedene Namen in den drei Quellen (24.11.2026: 4.111)
 
 const fehler = [];
@@ -65,8 +69,17 @@ for (const [von, nach, art] of NAMEN_ALIASE) {
   if (!['schreibweise', 'umbenannt'].includes(art)) tabelle.push(`"${von}": Art "${art}" unbekannt`);
 }
 for (const [, nach] of NAMEN_ALIASE) if (alte.has(k(nach))) tabelle.push(`Ziel "${nach}" ist selbst ein alter Name (Kette)`);
+// Verschwundene Adressen: jede Id einmal, jedes Ziel ein Spielname der Tabelle.
+const ziele = new Set(NAMEN_ALIASE.map(([, nach]) => k(nach)));
+const alteIds = new Set();
+for (const [id, nach] of ALTE_ADRESSEN) {
+  if (alteIds.has(id)) tabelle.push(`alte Adresse ${id} doppelt`);
+  alteIds.add(id);
+  if (!ziele.has(k(nach))) tabelle.push(`alte Adresse ${id}: "${nach}" ist kein Ziel der Tabelle`);
+}
+if (ALTE_ADRESSEN.length < MIN_ALTE_ADRESSEN) tabelle.push(`nur ${ALTE_ADRESSEN.length} verschwundene Adressen (Klinke ${MIN_ALTE_ADRESSEN})`);
 console.log('\n[1] Tabelle in sich stimmig');
-console.log(`    Paare: ${NAMEN_ALIASE.length}   Widersprueche — Soll: 0   Ist: ${tabelle.length}`);
+console.log(`    Paare: ${NAMEN_ALIASE.length}   verschwundene Adressen: ${ALTE_ADRESSEN.length} (Klinke ${MIN_ALTE_ADRESSEN})   Widersprueche — Soll: 0   Ist: ${tabelle.length}`);
 if (tabelle.length) fehler.push(`[1] ${liste(tabelle)}`);
 
 // [2]
@@ -76,6 +89,7 @@ const distKatalog = resolve(DIST, 'assets/universal-items.json');
 if (existsSync(distKatalog)) kataloge.push(['dist/assets/universal-items.json', distKatalog]);
 else fehler.push('[2] dist/assets/universal-items.json fehlt — erst bauen (npm run build), dann pruefen');
 let zielIds = null;
+let idNachName = null; // Katalog-Id je Spielname (aus assets/)
 for (const [name, pfad] of kataloge) {
   const items = JSON.parse(readFileSync(pfad, 'utf8')).items;
   const nachName = new Map(items.map((i) => [k(i.name), i]));
@@ -85,6 +99,7 @@ for (const [name, pfad] of kataloge) {
   if (nochDa.length) fehler.push(`[2] ${name}: ${nochDa.length} alte(r) Name(n) wieder als eigenes Item — node scripts/namen-zusammenfuehren.mjs laufen lassen: ${liste(nochDa)}`);
   if (zielOhne.length) fehler.push(`[2] ${name}: ${zielOhne.length} Ziel(e) fehlen oder tragen keine Spieldaten — Spielname geaendert? Paar anpassen: ${liste(zielOhne)}`);
   if (!zielIds) zielIds = new Map(NAMEN_ALIASE.map(([von, nach]) => [von, nachName.get(k(nach))?.id ?? null]));
+  if (!idNachName) idNachName = (n) => nachName.get(k(n))?.id ?? null;
 }
 
 // [3]
@@ -120,7 +135,19 @@ for (const [von] of NAMEN_ALIASE) {
     if (alt !== zielSeite && umzug.get(alt) !== zielSeite) adressFehler.push(`${alt} -> ${umzug.get(alt) ?? '(keine Weiterleitung)'} statt ${zielSeite}`);
   }
 }
-console.log(`    Weiterleitungen in nginx/umzuege.conf: ${umzug.size}   Paare x Sprachen geprueft: ${geprueft}   ohne Weg zur Zielseite — Soll: 0   Ist: ${adressFehler.length}`);
+let alteGeprueft = 0;
+for (const [id, nach] of ALTE_ADRESSEN) {
+  const ziel = idNachName?.(nach);
+  if (!ziel) continue; // fehlt schon unter [2]
+  for (const p of ['', '/de']) {
+    alteGeprueft++;
+    const alt = `${p}/items/${id}.html`;
+    const zielSeite = `${p}/items/${ziel}.html`;
+    if (alt === zielSeite) adressFehler.push(`${alt} ist wieder die Seite von "${nach}" — verschwundene Adresse und Ziel gleich, ALTE_ADRESSEN pruefen`);
+    else if (umzug.get(alt) !== zielSeite) adressFehler.push(`${alt} -> ${umzug.get(alt) ?? '(keine Weiterleitung)'} statt ${zielSeite}`);
+  }
+}
+console.log(`    Weiterleitungen in nginx/umzuege.conf: ${umzug.size}   Paare x Sprachen geprueft: ${geprueft}   verschwundene Adressen x Sprachen: ${alteGeprueft}   ohne Weg zur Zielseite — Soll: 0   Ist: ${adressFehler.length}`);
 if (adressFehler.length) fehler.push(`[4] ${adressFehler.length} alte Adresse(n) ohne Weg zur Seite mit dem Spielnamen: ${liste(adressFehler)}`);
 
 if (fehler.length) {

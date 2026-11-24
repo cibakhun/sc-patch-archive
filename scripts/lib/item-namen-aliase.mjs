@@ -82,7 +82,8 @@ export const NAMEN_ALIASE = [
   ['Xanthule Sehya Helmet', 'Xanthule Sehya Flight Helmet', 'umbenannt'],
   ['Xanthule Tahn Helmet', 'Xanthule Tahn Flight Helmet', 'umbenannt'],
   ['Zeus Exploration Suit Helmet', 'Zeus Exploration Helmet', 'umbenannt'],
-  ['Zeus Exploration Suit Helmet Solar', 'Zeus Exploration Helmet Solar', 'umbenannt'],];
+  ['Zeus Exploration Suit Helmet Solar', 'Zeus Exploration Helmet Solar', 'umbenannt'],
+];
 
 /** Name in der Quelle (klein, getrimmt) -> Name im Spiel. */
 export const ALIAS_ZIEL = new Map(NAMEN_ALIASE.map(([von, nach]) => [von.toLowerCase().trim(), nach]));
@@ -92,3 +93,73 @@ export function katalogName(name) {
   const t = String(name).trim();
   return ALIAS_ZIEL.get(t.toLowerCase()) ?? t;
 }
+
+// Die Adressen, die beim Zusammenlegen verschwunden sind: [alte Item-Id,
+// Name im Spiel]. Festgehalten am 24.11.2026 aus dem Lauf von
+// scripts/namen-zusammenfuehren.mjs ueber den Katalog davor. Das ist nicht
+// immer die Adresse des alten Namens: bei den Zwillingen mit geschuetztem
+// Leerzeichen behaelt das zusammengelegte Item die bekannte Id, und die
+// Id mit "-2" verschwindet (lynx-legs-2); bei Deadrig und Get Up Coffee trug
+// schon der alte Name das "-2". verify:namen-aliase [4] verlangt fuer jede
+// Zeile in EN und DE eine Weiterleitung auf die Seite des Spielnamens, und
+// das Zusammenfuehr-Skript bricht ab, wenn ein Lauf eine Adresse verliert,
+// die hier fehlt. Eintraege bleiben, auch wenn ein Paar oben faellt: die
+// Adresse war einmal eine Seite.
+export const ALTE_ADRESSEN = [
+  ["ace-interceptor-flight-suit", "Ace Interceptor Racing Flight Suit"],
+  ["argus-helmet-gold-gray-black", "Argus Helmet Gold/Grey/Black"],
+  ["aurora-cl-ship-armor", "Aurora Mk I CL Ship Armor"],
+  ["aurora-es-ship-armor", "Aurora Mk I ES Ship Armor"],
+  ["aurora-lx-ship-armor", "Aurora Mk I LX Ship Armor"],
+  ["aurora-mr-ship-armor", "Aurora Mk I MR Ship Armor"],
+  ["azrael-helmet", "Azrael Racing Helmet"],
+  ["azrael-helmet-ruby", "Azrael Racing Helmet Ruby"],
+  ["calva-helmet", "Calva Racing Helmet"],
+  ["calva-helmet-red-festival", "Calva Helmet Red Racing Festival"],
+  ["calva-helmet-year-of-the-rat", "Calva Racing Helmet Year of the Rat"],
+  ["deadrig-noxious-shotgun-2", "Deadrig 'Noxious' Shotgun"],
+  ["emod-stabilizer-1", "Emod Stabilizer1"],
+  ["emod-stabilizer-2", "Emod Stabilizer2"],
+  ["emod-stabilizer-3", "Emod Stabilizer3"],
+  ["fortuna-racing-helmet", "Neutrino Racing Helmet Fortuna"],
+  ["get-up-coffee-milk-2", "Get Up Coffee  (Milk)"],
+  ["giocoso-helmet-azure", "Giocoso Racing Helmet Azure"],
+  ["giocoso-helmet-ivory", "Giocoso Racing Helmet Ivory"],
+  ["giocoso-helmet-obsidian", "Giocoso Racing Helmet Obsidian"],
+  ["hellion-scattergun-2", "Hellion\u00a0Scattergun"],
+  ["lynx-legs-2", "Lynx\u00a0Legs"],
+  ["mirai-racing-helmet", "Neutrino Racing Helmet Mirai"],
+  ["murray-cup-racing-helmet", "Neutrino Racing Helmet Murray Cup"],
+  ["odyssey-ii-helmet-alpha", "Odyssey II Racing Helmet Alpha"],
+  ["odyssey-ii-helmet-blue", "Odyssey II Racing Helmet Blue"],
+  ["odyssey-ii-helmet-envy", "Odyssey II Racing Helmet Envy"],
+  ["odyssey-ii-helmet-imperial", "Odyssey II Racing Helmet Imperial"],
+  ["odyssey-ii-helmet-lovestruck", "Odyssey II Racing Helmet Lovestruck"],
+  ["odyssey-ii-helmet-obsidian", "Odyssey II Racing Helmet Obsidian"],
+  ["odyssey-ii-helmet-purple", "Odyssey II Racing Helmet Purple"],
+  ["odyssey-ii-helmet-slate", "Odyssey II Racing Helmet Slate"],
+  ["odyssey-ii-helmet-starcrossed", "Odyssey II Racing Helmet Starcrossed"],
+  ["omni-afs-sapphire-helmet", "OMNI-AFS-Sapphire Flight Helmet"],
+  ["omni-afs-sapphire-helmet-alpine", "OMNI-AFS-Sapphire Flight Helmet Alpine"],
+  ["omni-afs-sapphire-helmet-jungle", "OMNI-AFS-Sapphire Flight Helmet Jungle"],
+  ["omni-afs-sapphire-helmet-slate", "OMNI-AFS-Sapphire Flight Helmet Slate"],
+  ["oracle", "Oracle\u00a0Helmet"],
+  ["oracle-helmet-2", "Oracle\u00a0Helmet"],
+  ["p8-sc-midnight-smg-2", "P8-SC\u00a0\"Midnight\" SMG"],
+  ["p8-sc-nightstalker-smg-2", "P8-SC\u00a0\"Nightstalker\" SMG"],
+  ["p8-sc-warhawk-smg-2", "P8-SC\u00a0\"Warhawk\" SMG"],
+  ["sol-iii-helmet-aviator", "Sol-III Flight Helmet Aviator"],
+  ["star-kitten-racing-helmet", "Neutrino Racing Helmet Star Kitten"],
+  ["sw16br1", "SW16BR1 “Buzzsaw” Repeater"],
+  ["sw16br2", "SW16BR2 “Sawbuck” Repeater"],
+  ["sw16br3", "SW16BR3 “Shredder” Repeater"],
+  ["tcs-4-undersuit-black-grey-2", "TCS-4 Undersuit\u00a0Black/Grey"],
+  ["truedef-pro-arms-white-silver-gray", "TrueDef-Pro Arms White/Silver/Grey"],
+  ["truedef-pro-core-white-silver-gray", "TrueDef-Pro Core White/Silver/Grey"],
+  ["xanthule-ascension-helmet", "Xanthule Ascension Flight Helmet"],
+  ["xanthule-helmet", "Xanthule Flight Helmet"],
+  ["xanthule-sehya-helmet", "Xanthule Sehya Flight Helmet"],
+  ["xanthule-tahn-helmet", "Xanthule Tahn Flight Helmet"],
+  ["zeus-exploration-suit-helmet", "Zeus Exploration Helmet"],
+  ["zeus-exploration-suit-helmet-solar", "Zeus Exploration Helmet Solar"],
+];
