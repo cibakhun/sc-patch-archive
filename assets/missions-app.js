@@ -297,7 +297,7 @@
 
   // Voller Suchindex (Blueprint-Namen, Orte, Titel-Varianten — nichts davon
   // steht sichtbar auf der Karte): einmal laden, 1 Tag Browser-Cache, per
-  // ?v=<DB-Stand> versioniert. Bis dahin trägt der Kartentext die Suche.
+  // ?v=<Inhaltshash> versioniert. Bis dahin trägt der Kartentext die Suche.
   if (CFG.searchUrl) {
     fetch(CFG.searchUrl).then(function (r) { return r.json(); }).then(function (idx) {
       for (var i = 0; i < cards.length; i++) {
@@ -422,8 +422,16 @@
       var offeneSuche = !!timer;
       if (timer) { clearTimeout(timer); timer = null; }
       setTimeout(function () {
+        var vorher = gerendert;
         if (offeneSuche && apply()) nachZu = true;
-        if (!nachZu) return;
+        if (!nachZu) {
+          // Stand wie beim Oeffnen, die Liste zeigte aber einen anderen (der
+          // Index filterte eine Suche, die Esc wieder leerte): die Sperre
+          // stellte die Stelle an der kurzen Liste her, der Browser kappte
+          // sie (gemessen 5.000 -> 1.808 px). Zurueck an die Stelle vom Oeffnen.
+          if (gerendert !== vorher) window.scrollTo(0, yOffen);
+          return;
+        }
         nachZu = false;
         var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
         var ziel = Math.max(0, oben(kopf) - Math.round(nav));
