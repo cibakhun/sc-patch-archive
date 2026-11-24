@@ -166,7 +166,7 @@ const UI = {
     'ship.holo.loading': '3D-Modell lädt … %p% %',
     'ship.holo.error': '3D-Modell konnte nicht geladen werden.',
     // -- Interaktives Komponenten-Hologramm --
-    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Scrollen: zoomen',
+    'holo.hint': 'Ziehen: drehen · Rechtsklick: verschieben · Strg + Mausrad: zoomen',
     'holo.activate': 'Hologramm aktivieren',
     'holo.panel.title': 'Komponenten-Details',
     'holo.panel.size': 'Größe',
@@ -587,7 +587,7 @@ const UI = {
     'ship.holo.loading': 'Loading 3D model … %p% %',
     'ship.holo.error': 'Could not load 3D model.',
     // -- Interactive component hologram --
-    'holo.hint': 'Drag: rotate · right-drag: pan · scroll: zoom',
+    'holo.hint': 'Drag: rotate · right-drag: pan · Ctrl + wheel: zoom',
     'holo.activate': 'Activate hologram',
     'holo.panel.title': 'Component details',
     'holo.panel.size': 'Size',
