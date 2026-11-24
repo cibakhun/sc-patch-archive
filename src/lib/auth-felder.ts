@@ -10,6 +10,28 @@ export function joinNames(names: string[], and: string): string {
   return names.slice(0, -1).join(', ') + and + names[names.length - 1];
 }
 
+/**
+ * Feld fokussieren und den Satz mit ins Bild holen. Beim Registrieren am
+ * Desktop zeigte der Fokus nur das Feld, der Satz stand darunter außer
+ * Sicht. Passt nicht alles, geht das Feld vor dem Satz und der Satz vor der
+ * Beschriftung; oben bleiben 80 px für die Kopfleiste. Es rollt nur das eigene Fenster, nicht die Seite um einen
+ * Rahmen herum: im Terminal der Halle läuft das Formular in einem.
+ */
+function insBild(feld: HTMLInputElement, status: HTMLElement): void {
+  if (typeof window === 'undefined' || typeof feld.getBoundingClientRect !== 'function') {
+    feld.focus();
+    return;
+  }
+  feld.focus({ preventScroll: true });
+  const f = feld.getBoundingClientRect();
+  const s = status.getBoundingClientRect();
+  const satz = s.bottom - window.innerHeight + 16; // so weit rollen, und der Satz steht im Bild
+  const mitLabel = f.top - 140; // höchstens so weit, und die Beschriftung bleibt sichtbar
+  const nurFeld = f.top - 80; // höchstens so weit, und das Feld bleibt sichtbar
+  const weg = satz <= mitLabel ? Math.min(Math.max(0, satz), mitLabel) : Math.min(satz, nurFeld);
+  if (weg) window.scrollBy(0, weg);
+}
+
 /** Name eines Feldes aus seinem Label, ohne das Pflicht-Sternchen. */
 function nameOf(input: HTMLInputElement): string {
   const lbl = input.id ? input.form?.querySelector<HTMLLabelElement>(`label[for="${input.id}"]`) : null;
@@ -40,7 +62,7 @@ export function missingFields(form: HTMLFormElement, status: HTMLElement): boole
   status.textContent = msg;
   status.classList.remove('acx-status--ok');
   status.hidden = false;
-  leer[0].focus();
+  insBild(leer[0], status);
   return true;
 }
 
@@ -60,6 +82,6 @@ export function badEmail(input: HTMLInputElement, status: HTMLElement, msg: stri
   status.textContent = msg;
   status.classList.remove('acx-status--ok');
   status.hidden = false;
-  input.focus();
+  insBild(input, status);
   return true;
 }
