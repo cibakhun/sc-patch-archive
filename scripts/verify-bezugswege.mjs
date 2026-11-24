@@ -219,14 +219,30 @@ function missionsSeitenName(ziel) {
   }
   return missionsSeitenNamen.get(ziel);
 }
+/**
+ * Attribute eines Start-Tags (der Teil nach dem Tag-Namen) als Map: Name klein,
+ * Wert ohne Anfuehrungszeichen. Gelesen von links nach rechts wie im HTML-
+ * Tokenizer: ein Wert in Anfuehrungszeichen ist ein Stueck, was darin steht,
+ * ist kein Attribut; bei doppeltem Namen gilt das erste (Review #451).
+ */
+function attribute(attr) {
+  const m = new Map();
+  for (const [, name, wert] of attr.matchAll(/([^\s"'>\/=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g)) {
+    const n = name.toLowerCase();
+    if (!m.has(n)) m.set(n, wert == null ? '' : wert.replace(/^(["'])([\s\S]*)\1$/, '$2'));
+  }
+  return m;
+}
 let missionsNamen = 0;
 const missionsNameFalsch = [];
 function pruefeMissionsNamen(pfad, schnipsel) {
   // Jeder Anker, gleich in welcher Reihenfolge seine Attribute stehen, mit
   // „>“ in einem Attributwert, href in doppelten oder einfachen
   // Anfuehrungszeichen, mit oder ohne Anker/Abfrage an der Adresse (Review #451).
+  // Das Ziel ist das echte href-Attribut, nicht ein „href=“ im Wert eines
+  // anderen Attributs (attribute() liest Werte als Ganzes).
   for (const [, attr, text] of schnipsel.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/a>/g)) {
-    const ziel = attr.match(/\shref\s*=\s*(["'])((?:\/de)?\/missionen\/[a-z0-9-]+\.html)(?:[?#][^"']*)?\1/)?.[2];
+    const ziel = attribute(attr).get('href')?.match(/^((?:\/de)?\/missionen\/[a-z0-9-]+\.html)(?:[?#].*)?$/)?.[1];
     if (!ziel) continue;
     missionsNamen++;
     const soll = missionsSeitenName(ziel);

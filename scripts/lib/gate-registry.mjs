@@ -806,6 +806,14 @@ export const CHECKS = [
     // falschem Namen -> die vorige Fassung zaehlte 10.814 Links und blieb
     // gruen, die neue 10.816 und 2 Befunde, exit 1; zurueckgespielt, sha256
     // 81b68ac8… und d796c592… wie vorher, gruen.
+    // Dritte Runde (PR #451): das Ziel ist das echte href-Attribut, gelesen
+    // wie im HTML-Tokenizer (Werte in Anfuehrungszeichen am Stueck, erstes
+    // gleichnamiges gilt), nicht ein „href=“ im Wert eines anderen Attributs.
+    // Gegenprobe im Vorschau-Bau: Wanted-Link als <a title='
+    // href="/de/missionen/kill-order.html"' href="/de/missionen/wanted.html">
+    // Kill Order</a>, dazu der karna-Link aus Runde 2 -> die vorige Fassung
+    // fand nur den karna-Link (1 Befund), die neue beide (2 Befunde), exit 1;
+    // zurueckgespielt, sha256 540410d8… und 6e531ce0… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
