@@ -580,3 +580,17 @@ export function startWeitere(lang: Locale, vorschau?: boolean): Ziel[] {
   const kachel = new Set(START.map(([key]) => key));
   return bereiche(lang, vorschau).flatMap((b) => b.seiten).filter((z) => !kachel.has(z.key));
 }
+
+/* ---------- Feedback mit Seite (UX-Audit A8) ---------- */
+
+/** Adresse des Feedback-Formulars, die die Seite mitnimmt (?seite=<Pfad>),
+ *  wie „Falschen Wert melden“ auf den Datenblaettern (?wert=). Fuer Menue
+ *  und Fuss beider Rahmen. Ein einziger Parameter: ein zweiter braeuchte ein
+ *  & im href, das Astro als &#38; schreibt. Auf der Feedback-Seite selbst
+ *  ohne Parameter. Das Formular (FeedbackForm.astro) nimmt nur eigene Pfade
+ *  an und setzt sie nur als Text. */
+export function feedbackHref(pathname: string, lang: Locale): string {
+  const z = ziel('feedback', lang);
+  if (ohneDe(pathname) === z.path) return z.href;
+  return `${z.href}?seite=${encodeURIComponent(pathname).replace(/%2F/g, '/')}`;
+}

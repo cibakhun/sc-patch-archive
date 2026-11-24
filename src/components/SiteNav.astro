@@ -15,7 +15,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
-import { bereiche, bereichVon, dienste, krumen } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, feedbackHref, krumen } from '../lib/bereiche';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
@@ -185,7 +185,8 @@ const deckItem = (key: string): DeckItem[] => {
     ? pfadHier.startsWith('/account/')
     : z.key !== 'archiv' && hier?.seite === z.key;
   return [{
-    href: z.href,
+    // Feedback nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“.
+    href: z.key === 'feedback' ? feedbackHref(Astro.url.pathname, lang) : z.href,
     label: z.name,
     sub: z.key === 'themen' ? `${z.sub} · ${topicCount}` : z.sub,
     icon: z.icon ?? '',
@@ -274,7 +275,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
-    <FxToggle place="bar" />
   </div>
   <div class="snav__right">
     <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
@@ -659,20 +659,19 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Sprache, Suche, Discord und Menue rechts. 89 % der Besucher kommen am
      Desktop, und dort stand die ganze Navigation hinter „Menue“ (IA B2).
      Platz: bei 1280 px bleiben nach Wortmarke und Bedienknoepfen rund 540 px,
-     die Bereiche brauchen ~500. Deshalb wandern ab hier der Partikel-Schalter
-     (steht im Menue-Fuss) und die Tastenkappen der Suche (Strg K gilt
-     weiter) aus der Leiste, und der Menueknopf zeigt nur sein Zeichen. */
+     die Bereiche brauchen ~500. Deshalb wandern ab hier die Tastenkappen der
+     Suche (Strg K gilt weiter) aus der Leiste, und der Menueknopf zeigt nur
+     sein Zeichen. Der Partikel-Schalter steht seit UX-Audit A7 bei jeder
+     Breite nur noch im Menue, neben der Sprache. */
   @media (min-width: 1280px) {
     .snav { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 1.1rem; }
     .snav__center { grid-column: 1; justify-self: start; }
     .snav__areas { grid-column: 2; grid-row: 1; justify-self: center; display: flex; align-items: center; gap: 0.1rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
     .snav__left { grid-column: 3; }
     .snav__right { grid-column: 4; }
-    /* Klasse am Huellen-Span (FxToggle place="bar"), nicht am Knopf; und der
-       Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
-       .snav__menu-txt (gleiche Spezifitaet) und beides stuende weiter da. */
-    .snav__left > :global(.fxsw-wrap--bar) { display: none; }
     .snav__search kbd { display: none; }
+    /* Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
+       .snav__menu-txt (gleiche Spezifitaet) und er stuende weiter da. */
     .snav__menu-btn .snav__menu-txt--open { display: none; }
   }
   .snav__areas a {
@@ -1328,12 +1327,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Regel sind ersatzlos raus; die Rahmenspur sitzt jetzt auf
      `.snav-deck__body` (siehe dort). */
 
+  /* Deckend (UX-Audit A7, HE B17): --chrome-solid ist halbdurchsichtig (0,95,
+     auf Archivseiten 0,86), und am Handy lief der Text der Seite dahinter
+     durch die Menuepunkte. Darunter liegt jetzt die volle Grundfarbe; die
+     Weichzeichnung des Hintergrunds war damit unsichtbar und entfaellt —
+     sie war ohnehin die teuerste Ebene des ganzen Menues. */
   .snav-deck__back {
     position: absolute;
     inset: 0;
     background: radial-gradient(110% 85% at 85% 15%, color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent), transparent 65%),
-      radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid));
-    backdrop-filter: blur(24px) saturate(1.1);
+      radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid)) var(--bg, #05070d);
   }
 
   /* Filmkorn-Textur.
@@ -1952,8 +1955,24 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__hints {
       display: none;
     }
+    /* Sprache und Effekte stehen am Handy OBEN im Menue, nicht nach allen
+       Gruppen (UX-Audit A7, TF M7): beide sind Einstellungen fuer die ganze
+       Seite, und unten fand sie nur, wer die Liste bis zum Ende rollte. Die
+       Datenblaetter zeigen die Sprache an derselben Stelle ihres Menues. */
     .snav-deck__foot {
+      order: -1;
       justify-content: center;
+      padding-top: 0;
+      padding-bottom: clamp(0.6rem, 1.4vh, 1rem);
+      margin-bottom: 1.2rem;
+      border-top: 0;
+      border-bottom: 1px solid var(--line, var(--line-soft));
+    }
+    /* Der Hinweis des Effekte-Schalters klappt im Fuss nach oben auf — oben
+       im Menue waere er unter der Kopfleiste verschwunden. */
+    .snav-deck__foot :global(.fxsw-wrap--deck .fxsw__tip) {
+      top: calc(100% + 0.5rem);
+      bottom: auto;
     }
   }
   @media (max-width: 560px) {

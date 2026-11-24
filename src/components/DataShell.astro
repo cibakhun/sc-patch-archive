@@ -25,7 +25,7 @@ import { versioned } from '../lib/assetVersion';
 import { SITE, DISCORD } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
-import { bereiche, bereichVon, dienste, krumen, recht, ziel } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, feedbackHref, krumen, recht, ziel } from '../lib/bereiche';
 import Datenstand from './Datenstand.astro';
 import type { StandZeile } from '../lib/datenstand';
 
@@ -120,7 +120,9 @@ const searchUi = href('/search-ui.json', lang);
 // Planer“ fuer das Blueprint-Verzeichnis — im Menue die Unterzeilen von Item
 // Finder und Werkbank, also zwei Namen fuer je zwei Ziele (UX-Audit A4).
 const fussZiele = ['finder', 'items', 'blueprints', 'schiffe', 'missionen'].map((k) => ziel(k, lang));
-const fussRecht = [...recht(lang), ziel('feedback', lang), ziel('support', lang)];
+// Feedback nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“.
+const meldenSeite = feedbackHref(Astro.url.pathname, lang);
+const fussRecht = [...recht(lang), { ...ziel('feedback', lang), href: meldenSeite }, ziel('support', lang)];
 
 // Brotkrumen nach der Bereichsliste (UX-Audit A3, krumen() in
 // src/lib/bereiche.ts): Bereich › Seite › was die Seite darunter nennt. Die
@@ -207,7 +209,12 @@ const loginHref = href('/account/login.html', lang);
       <a class="dp-discord" href={DISCORD.invite} target="_blank" rel="noopener noreferrer" aria-label={t('nav.discord.aria')}></a>
       <details class="dp-menu">
         <summary aria-label={t('nav.menu.open')}><span class="dp-menu__icon" aria-hidden="true"></span><span class="dp-menu__txt">{t('nav.menu')}</span></summary>
-        <nav class="dp-menu__panel" aria-label={t('nav.main')}><div class="dp-menu__cols">
+        <nav class="dp-menu__panel" aria-label={t('nav.main')}>
+          {/* Sprache oben im Menue, an derselben Stelle wie im Menue der
+              Seiten mit voller Navigation (UX-Audit A7) — am Handy ist das
+              der einzige Sprachwechsel, die Leiste hat keinen Platz dafuer. */}
+          <p class="dp-menu__set"><span class="dp-menu__h">{t('nav.langSwitch')}</span><a href={otherHref} hreflang={HTML_LANG[other]} lang={HTML_LANG[other]} rel="alternate">{SPRACHE[other]}</a></p>
+          <div class="dp-menu__cols">
           {alleBereiche.map((b) => (
             <div class="dp-menu__grp">
               <p class="dp-menu__h">{b.name}</p>
@@ -226,9 +233,8 @@ const loginHref = href('/account/login.html', lang);
                   ? <li><a href={loginHref} data-dp-acct data-l-in={t('nav.account')}>{z.name}</a></li>
                   : z.extern
                     ? <li><a href={z.href} target="_blank" rel="noopener noreferrer">{z.name}</a></li>
-                    : <li><a href={z.href}>{z.name}</a></li>
+                    : <li><a href={z.key === 'feedback' ? meldenSeite : z.href}>{z.name}</a></li>
               ))}
-              <li><a href={otherHref} hreflang={HTML_LANG[other]} lang={HTML_LANG[other]} rel="alternate">{SPRACHE[other]}</a></li>
             </ul>
           </div>
         </div></nav>

@@ -426,6 +426,30 @@ body {
 }
 .dp-menu__grp a:hover { color: var(--tone-1); }
 .dp-menu__grp a[aria-current='true'] { color: var(--tone-1); font-weight: 600; }
+/* Sprache als erste Zeile des Menues (UX-Audit A7). */
+.dp-menu__set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.dp-menu__set .dp-menu__h { margin: 0; }
+.dp-menu__set a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  font-family: var(--font-ui);
+  font-size: var(--fs-7);
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+.dp-menu__set a:hover { color: var(--tone-1); border-color: var(--tone-1); }
 
 @media (min-width: 1200px) {
   .dp-bar { padding-top: 0.55rem; padding-bottom: 0.4rem; }
@@ -479,6 +503,7 @@ body {
   .dp-menu__panel { right: 0.75rem; padding: 0.9rem 1rem 0.3rem; }
   .dp-menu__cols { columns: 2 7.5rem; column-gap: 1rem; }
   .dp-menu__grp a { display: flex; align-items: center; min-height: 40px; padding: 0; }
+  .dp-menu__set a { min-height: 40px; }
 }
 
 /* Im Hangar-Terminal steht die Seite unter der Leiste des Terminals: dort
