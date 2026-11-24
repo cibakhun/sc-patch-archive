@@ -52,6 +52,22 @@ const tf = (key: Parameters<typeof t>[0], vars: Record<string, string | number>)
 const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { n });
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
+// Am Handy ist der Zeitstrahl breiter als der Schirm und wird seitlich
+// gewischt (UX-Audit H8): so breit, dass auch die zwei dichtesten Marken
+// 25 px auseinander liegen und jede Marke 24 px breit sein kann, ohne die
+// Nachbarin zu ueberdecken. Gleicher Tag (Abstand 0) zaehlt nicht mit; die
+// Kappe haelt ein Datenversehen davon ab, einen kilometerlangen Streifen zu
+// bauen. Die Breite gilt nur unter 620 px (archive.css).
+const ribbonMin = (() => {
+  const ts = a.entries.map((e) => e.t).sort((x, y) => x - y);
+  let eng = 1;
+  for (let i = 1; i < ts.length; i++) {
+    const d = ts[i] - ts[i - 1];
+    if (d > 0.001 && d < eng) eng = d;
+  }
+  return Math.min(2400, Math.ceil(25 / eng));
+})();
+
 // The flight path below reads newest-first (a.eras), but the ribbon is a plot
 // of real time and runs oldest-left. Its DOM has to run that way too: the
 // chapter dividers are drawn by `.ribbon__band + .ribbon__band` on each band's
@@ -97,7 +113,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
       <span class="mast__pulse" aria-hidden="true"></span>
       <span class="mast__eyebrow-txt" set:html={t('arch.eyebrow')} />
       <span class="mast__eyebrow-code" aria-hidden="true">
-        {a.stats.patches} REL · {a.stats.eras} ERA · {a.stats.majors} MAJ
+        {tf('arch.code', { p: a.stats.patches, e: a.stats.eras, m: a.stats.majors })}
       </span>
     </p>
 
@@ -135,6 +151,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
         The cadence of the voyage (the dense 4.8 cluster, the 2025 summer gaps)
         is legible before any entry is read. */}
     <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
+      <div class="ribbon__scroll" style={`--plot-min:${ribbonMin}px`}>
       <div class="ribbon__plot">
         {/* Numeral and data-chapter both come from era.chapter — the
             CHRONOLOGICAL number, which is what the chapter heading below prints
@@ -170,6 +187,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
           </a>
         ))}
       </div>
+      </div>
       <p class="ribbon__axis">
         <span>{a.ribbon.startLabel}</span>
         <span class="ribbon__legend" aria-hidden="true">
@@ -177,6 +195,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
           <span class="ribbon__k ribbon__k--point">{t('arch.filter.point')}</span>
           <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
         </span>
+        <span class="ribbon__wisch" aria-hidden="true">{t('arch.ribbon.swipe')}</span>
         <span>{a.ribbon.endLabel}</span>
       </p>
     </nav>
