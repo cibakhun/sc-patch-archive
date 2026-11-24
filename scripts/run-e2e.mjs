@@ -70,16 +70,20 @@ const zahl = { suiten: 0, tests: 0, uebersprungen: 0, todo: 0 };
 const rot = [];
 const stream = run({ files: dateien, concurrency: true });
 
+// skip und todo sind Marken, keine Wahrheitswerte: t.skip('') und
+// { todo: '' } melden eine leere Begruendung (''), ohne Marke fehlt das
+// Feld ganz. Nachgemessen mit Node 22 (CodeRabbit-Hinweis zu #468).
+const markiert = (v) => v !== undefined;
 stream.on('test:pass', (d) => {
   if (d.details?.type === 'suite') zahl.suiten++;
-  else if (d.skip) zahl.uebersprungen++;
-  else if (d.todo) zahl.todo++;
+  else if (markiert(d.skip)) zahl.uebersprungen++;
+  else if (markiert(d.todo)) zahl.todo++;
   else zahl.tests++;
 });
 stream.on('test:fail', (d) => {
   const suite = d.details?.type === 'suite';
   if (suite) zahl.suiten++;
-  if (d.todo) { zahl.todo++; return; }
+  if (markiert(d.todo)) { zahl.todo++; return; }
   const err = d.details?.error;
   const typ = err?.failureType ?? '?';
   // Rot nur, weil Tests darin rot sind: die zaehlen selbst.
