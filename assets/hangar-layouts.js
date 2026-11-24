@@ -318,7 +318,8 @@ const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'
  * steht vorher als Platzhalter im Feld und wird genau einmal beim Speichern
  * vergeben, nie beim Zeichnen: sameLayout vergleicht den Namen, und am
  * naechsten Tag hiesse ein gespeichertes Loadout sonst „ungespeichert“.
- * Waere er laenger als MAX_NAME, faellt die Waffe weg, nie der Tag.
+ * Waere er laenger als MAX_NAME, faellt die Waffe weg, nie der Tag (ein
+ * ueberlanger Schiffsname wird vor dem Tag gekuerzt).
  *   loadoutName('Gladius', 'Panther', new Date(2026, 10, 13), true) === 'Gladius · Panther · 13.11.'
  *   loadoutName('Gladius', null, new Date(2026, 10, 3), false) === 'Gladius · Nov 3'
  */
@@ -328,7 +329,11 @@ export function loadoutName(ship, weapon, when, de) {
     ? `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`
     : `${MONTHS_EN[d.getMonth()]} ${d.getDate()}`;
   const voll = [ship, weapon, tag].filter(Boolean).join(' · ');
-  return cleanName(voll.length <= MAX_NAME ? voll : [ship, tag].filter(Boolean).join(' · '));
+  if (voll.length <= MAX_NAME) return cleanName(voll);
+  // Ohne Waffe; reicht auch das nicht, wird das Schiff gekuerzt, der Tag bleibt.
+  const ende = ' · ' + tag;
+  const schiff = cleanName(ship).slice(0, MAX_NAME - ende.length).trim();
+  return cleanName(schiff ? schiff + ende : tag);
 }
 
 /** Wie viele Slots vom Serienstand abweichen; eine Halterung samt Rakete zaehlt einmal, die Lackierung als eigener Slot. */

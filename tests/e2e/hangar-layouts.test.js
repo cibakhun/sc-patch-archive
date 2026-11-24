@@ -143,7 +143,10 @@ describe('Werkstatt: Standardname (Schiff · Hauptwaffe · Tag)', () => {
   test('Name: zu lang? Die Waffe faellt weg, nie der Tag; nie laenger als MAX_NAME', () => {
     const n = loadoutName('Anvil F7C-M Super Hornet Heartseeker Mk II', 'Omnisky VI Laser Cannon', new Date(2026, 10, 3), true);
     assert.equal(n, 'Anvil F7C-M Super Hornet Heartseeker Mk II · 03.11.');
-    assert.ok(loadoutName('x'.repeat(80), 'w', new Date(2026, 10, 3), true).length <= MAX_NAME);
+    const lang = loadoutName('x'.repeat(80), 'w', new Date(2026, 10, 3), true);
+    assert.ok(lang.length <= MAX_NAME);
+    assert.ok(lang.endsWith(' · 03.11.'), lang);
+    assert.ok(loadoutName('y'.repeat(80), null, new Date(2026, 10, 3), false).endsWith(' · Nov 3'));
   });
   test('Name: ein gespeicherter Standardname bleibt gespeichert (sameLayout), auch am naechsten Tag', () => {
     const heute = { ship: 'gladius', name: loadoutName('Gladius', 'Mantis GT-220 Gatling', new Date(2026, 10, 13), true), slots: {} };
