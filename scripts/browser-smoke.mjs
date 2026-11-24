@@ -149,7 +149,12 @@ const SEITEN = [
   // Mining zeigt die vier Seiten seines Kreislaufs unter der Kopfleiste.
   // Und die Signaturen-Spalte am Telefon (probeMiningHandy): dort war sie
   // bis 24.11.2026 0 px hoch, obwohl Erze angeheftet waren.
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: async (page) => (await probeLokaleLeiste(page, 'Mining-Thema', 4)) ?? (await probeMiningHandy(page)) },
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: async (page) => (await probeLokaleLeiste(page, 'Mining-Thema', 5)) ?? (await probeMiningHandy(page)) },
+  // Einstieg „Mining in fuenf Schritten" (UX-Audit 24.11.2026, G12): fuenf
+  // Schritte, und die Seite steht selbst in der lokalen Mining-Leiste.
+  { id: 'mining-start', en: '/mining-guide.html', de: '/de/mining-guide.html', leit: '.mg-step', minAnzahl: 5, probe: (page) => probeLokaleLeiste(page, 'Mining-Einstieg', 5) },
+  // Refinery: der Tracker laeuft seit G11 auch ohne Konto (probeRefineryGast).
+  { id: 'refinery', en: '/refinery.html', de: '/de/refinery.html', leit: '#rf-rank li', minAnzahl: 10, probe: probeRefineryGast },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
   // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
@@ -224,7 +229,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let miningHandy = 0, aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
+let refineryGast = 0, miningHandy = 0, aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -1912,6 +1917,81 @@ async function probeMiningHandy(page) {
     }
   }
   return probleme.length ? `Mining-Werkbank am Telefon: ${probleme.join('; ')}` : null;
+}
+
+/* Refinery-Tracker ohne Konto (UX-Audit 24.11.2026, Paket G11): Gaeste sahen
+   bis dahin nur ein Schloss mit Anmelde-Knopf. Jetzt laeuft der Tracker im
+   Browser (src/lib/refineryGast.ts). Gespielt wird der ganze Weg in einem
+   frischen Kontext ohne Speicher: Tracker und Gast-Hinweis sichtbar, die
+   Konto-Schalter nicht; ein Auftrag geht ueber das Formular hinein, steht in
+   der Liste und in der Ablage, ueberlebt das Neuladen (dann mit dem Tracker
+   oben, weil der Gast-Riegel die Ablage kennt) und landet nach „Abholen" in
+   der Historie. Selbstauskunft: refineryGast zaehlt die durchgespielten Wege. */
+async function probeRefineryGast(page) {
+  const ziel = page.url();
+  const ctx = await page.context().browser().newContext({
+    viewport: { width: 1280, height: 800 }, colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  try {
+    await ctx.route('**/*', (route) => (route.request().url().startsWith(BASE) ? route.continue() : route.abort()));
+    await ctx.addInitScript(() => {
+      try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Speicher bleibt die Hilfe zu */ }
+    });
+    const { p, grund } = await zusatzSeite(ctx);
+    const lage = () => mitSichtbar(p, (_, da) => {
+      const t = document.getElementById('tracker');
+      const nach = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING));
+      let ablage = null;
+      try { ablage = JSON.parse(localStorage.getItem('vb.refinery.v1') || 'null'); } catch { ablage = 'kaputt'; }
+      return {
+        tracker: da(document.getElementById('rfd')),
+        gast: da(document.getElementById('rfd-gast')),
+        schalter: da(document.getElementById('rfd-notify')),
+        schloss: !!document.getElementById('rfd-out'),
+        oben: nach(t, document.getElementById('erze')),
+        aktiv: [...document.querySelectorAll('#rfd-active .rf-job')].filter((x) => da(x)).length,
+        historie: [...document.querySelectorAll('#rfd-history .rf-hrow')].filter((x) => da(x)).length,
+        gespeichert: ablage && Array.isArray(ablage.jobs) ? ablage.jobs.map((j) => j.status) : [],
+        meldung: [document.getElementById('rfd-form-status'), document.getElementById('rfd-sync')].filter((x) => da(x)).map((x) => x.textContent.trim()),
+      };
+    });
+    await p.goto(ziel, { waitUntil: 'load' });
+    await p.waitForSelector('#rfd:not([hidden])', { timeout: 15000 }).catch(() => {});
+    const a = await lage();
+    const probleme = [];
+    if (a.schloss) probleme.push('das alte Schloss (#rfd-out) steht wieder im Tracker');
+    if (!a.tracker) return `Refinery als Gast: der Tracker ist nicht zu sehen${(await grund()) ? ` (${await grund()})` : ''}`;
+    if (!a.gast) probleme.push('der Hinweis „Gespeichert in diesem Browser" fehlt');
+    if (a.schalter) probleme.push('die Konto-Schalter (Benachrichtigungen) stehen fuer Gaeste da');
+    if (a.oben) probleme.push('ohne Auftraege steht der Tracker vor den Erzen statt am Ende (Gast-Riegel)');
+    await p.selectOption('#rfd-station', { index: 1 });
+    await p.selectOption('#rfd-method', { index: 1 });
+    await p.selectOption('#rfd-ores .rf-ore [data-role="ore"]', { index: 1 });
+    await p.fill('#rfd-ores .rf-ore [data-role="raw"]', '12');
+    await p.fill('#rfd-ores .rf-ore [data-role="yield"]', '9');
+    await p.fill('#rfd-hours', '2');
+    await p.click('#rfd-submit');
+    await p.waitForTimeout(300);
+    const b = await lage();
+    if (b.aktiv !== 1 || b.gespeichert.length !== 1) probleme.push(`nach „Tracking starten" ${b.aktiv} aktive Auftraege und ${b.gespeichert.length} in der Ablage statt je 1${b.meldung.length ? ` (Meldung: ${b.meldung.join(' / ')})` : ''}`);
+    await p.reload({ waitUntil: 'load' });
+    await p.waitForSelector('#rfd:not([hidden])', { timeout: 15000 }).catch(() => {});
+    const c = await lage();
+    if (c.aktiv !== 1) probleme.push(`nach dem Neuladen ${c.aktiv} aktive Auftraege statt 1`);
+    if (!c.oben) probleme.push('mit gespeichertem Auftrag steht der Tracker nach dem Neuladen nicht vor den Erzen');
+    if (c.aktiv === 1) {
+      await p.click('#rfd-active .rf-job .btn.ok');
+      await p.waitForTimeout(300);
+      const d = await lage();
+      if (d.aktiv !== 0 || d.historie !== 1 || d.gespeichert.join() !== 'done') probleme.push(`nach „Abholen" ${d.aktiv} aktiv, ${d.historie} in der Historie, Ablage [${d.gespeichert.join(', ')}] statt 0, 1, [done]`);
+    }
+    const befund = await grund();
+    if (befund) probleme.push(befund);
+    refineryGast++;
+    return probleme.length ? `Refinery als Gast: ${probleme.join('; ')}` : null;
+  } finally {
+    await ctx.close();
+  }
 }
 
 /* Lokale Leiste (UX-Audit A6, 24.11.2026): auf den Seiten eines Bereichs mit
@@ -3734,6 +3814,14 @@ console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Unterg
 const MINING_HANDY_SOLL = MINING_HANDY.length * 2;
 const mitMining = seiten.some((x) => x.id === 'mining-thema');
 if (mitMining) console.log(`  Mining-Werkbank am Telefon: Signaturen-Spalte ${miningHandy}-mal gemessen   Untergrenze: ${MINING_HANDY_SOLL}`);
+// Refinery als Gast: je Sprache ein durchgespielter Weg (Formular, Ablage,
+// Neuladen, Abholen). Weniger heisst, die Probe brach vor dem Weg ab.
+const REFINERY_GAST_SOLL = 2;
+if (seiten.some((x) => x.id === 'refinery')) {
+  console.log(`  Refinery als Gast: ${refineryGast} Wege durchgespielt   Untergrenze: ${REFINERY_GAST_SOLL}`);
+  if (refineryGast < REFINERY_GAST_SOLL && !fehler.some((f) => f.includes('Refinery als Gast')))
+    fehler.push(`Refinery als Gast: nur ${refineryGast} von ${REFINERY_GAST_SOLL} Wegen durchgespielt — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
+}
 if (mitMining && miningHandy < MINING_HANDY_SOLL && !fehler.some((f) => f.includes('Mining-Werkbank am Telefon')))
   fehler.push(`Mining-Werkbank am Telefon: nur ${miningHandy} von ${MINING_HANDY_SOLL} Messungen der Signaturen-Spalte — leerlaufende Probe? Ursache klaeren, nicht die Untergrenze senken`);
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);

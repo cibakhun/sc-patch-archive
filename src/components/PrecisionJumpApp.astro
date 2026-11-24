@@ -71,9 +71,12 @@ const S = {
     howStep1: 'Konsole mit <b>`</b> (Backtick) öffnen',
     howStep2: '<b>r_DisplayInfo 1</b> eingeben',
     howStep3: 'die Zonen- / Sonnensystem-Koordinaten X-Y-Z beobachten',
-    confTitle: 'Vertrauens-Wert',
+    // Einfache Sprache statt Fachwort (UX-Audit 24.11.2026, P67): bis dahin
+    // „Vertrauens-Wert" und „Tangenten-Empfindlichkeit". Gemessen wird
+    // dasselbe, gesagt wird, was es fuer den Flug heisst.
+    confTitle: 'Treffsicherheit',
     confBody:
-      'Der Wert misst die Tangenten-Empfindlichkeit. Eine Route, die den Radius fast frontal kreuzt, ist <b>hoch</b>; eine Route, die den Radius nur streift, reagiert stärker auf Endpunkt-Fehler und gilt als <b>tangenten-empfindlich</b>.',
+      'Wie genau du abschalten musst. Kreuzt deine Route das Band fast gerade, landest du auch mit etwas Verzögerung beim Abschalten noch im Band: <b>hoch</b>. Streift sie das Band nur schräg, bringt dich schon ein kleiner Fehler daneben heraus: <b>streift das Band</b>. Dann hilft ein anderer Startort.',
     stationTitle: 'Stations-Anker',
     stationBody:
       'Everus Harbor, Seraphim, Baijini Point und Port Tressler lösen auf das Zentrum ihres Mutterplaneten auf — ein kleiner Endpunkt-Fehler gegen eine einfache, wiederholbare Routen-Bibliothek.',
@@ -133,9 +136,9 @@ const S = {
     howStep1: 'Open the console with <b>`</b> (backtick)',
     howStep2: 'Enter <b>r_DisplayInfo 1</b>',
     howStep3: 'Watch the Zone / solar-system X-Y-Z coordinates',
-    confTitle: 'Confidence rating',
+    confTitle: 'Margin for error',
     confBody:
-      'Confidence measures tangent sensitivity. A route crossing the radius nearly head-on is <b>high</b>; a route skimming the radius is more sensitive to endpoint errors and is marked <b>tangent-sensitive</b>.',
+      'How precisely you need to cut the drive. If your route crosses the band almost straight on, you still land inside it when you cut a little late: <b>high</b>. If it only skims the band at a shallow angle, a small slip puts you outside it: <b>skims the band</b>. A different departure point helps then.',
     stationTitle: 'Station anchors',
     stationBody:
       'Everus Harbor, Seraphim, Baijini Point and Port Tressler resolve to their parent planet centres — a small endpoint variance traded for a simple, repeatable route library.',
@@ -181,10 +184,13 @@ const JS_T = {
   cRouteSub: lang === 'de' ? 'Kanonisch: %s%' : 'Canonical: %s%',
   cBand: lang === 'de' ? 'Zielband' : 'Target band',
   cBandSub: lang === 'de' ? 'Spitze %p% km · %d% Dichte' : 'Peak %p% km · %d% density',
-  cConf: lang === 'de' ? 'Tangenten-Vertrauen' : 'Tangent confidence',
-  cConfSub: lang === 'de' ? 'Kreuzungsfaktor %f% · %a%° von radial' : 'Crossing factor %f% · %a%° from radial',
-  cPlane: lang === 'de' ? 'Halo-Ebenen-Check' : 'Halo plane check',
-  cPlaneSub: lang === 'de' ? '|Z| %z% km · nominale Halbdicke %h% km' : '|Z| %z% km · nominal half-thickness %h% km',
+  // P67: Kennwerte in einfacher Sprache. Bis 24.11.2026 „Tangenten-
+  // Vertrauen / Kreuzungsfaktor … von radial" und „Halo-Ebenen-Check / |Z| …
+  // nominale Halbdicke"; die Zahlen bleiben, die Worte sagen, was sie heissen.
+  cConf: lang === 'de' ? 'Treffsicherheit' : 'Margin for error',
+  cConfSub: lang === 'de' ? 'Trifft das Band %a%° schräg · Faktor %f%' : 'Meets the band %a%° off straight-on · factor %f%',
+  cPlane: lang === 'de' ? 'Höhe im Gürtel' : 'Height in the belt',
+  cPlaneSub: lang === 'de' ? '%z% km über oder unter der Mitte, der Gürtel reicht %h% km' : '%z% km above or below the middle; the belt reaches %h% km',
   cProgress: lang === 'de' ? 'Routen-Fortschritt' : 'Route progress',
   cProgressSub: lang === 'de' ? '%k% km zurückgelegt' : '%k% km travelled',
   cDist: lang === 'de' ? 'Restdistanz' : 'Distance remaining',
@@ -198,10 +204,17 @@ const JS_T = {
   // die Dringlichkeit, nicht Grossbuchstaben.
   confHigh: lang === 'de' ? 'Hoch' : 'High',
   confMod: lang === 'de' ? 'Mittel' : 'Moderate',
-  confLow: lang === 'de' ? 'Tangenten-empfindlich' : 'Tangent-sensitive',
-  planeSafe: lang === 'de' ? 'In der Ebene' : 'In plane',
-  planeMarg: lang === 'de' ? 'Ebene knapp' : 'Plane marginal',
-  planeOut: lang === 'de' ? 'Außerhalb der Ebene' : 'Outside the plane',
+  confLow: lang === 'de' ? 'Streift das Band' : 'Skims the band',
+  planeSafe: lang === 'de' ? 'Mittendrin' : 'Well inside',
+  planeMarg: lang === 'de' ? 'Knapp am Rand' : 'Near the edge',
+  planeOut: lang === 'de' ? 'Über oder unter dem Gürtel' : 'Above or below the belt',
+  // Kurzweg (P67): die Route als drei Saetze, fuer alle, die nur fliegen
+  // wollen. %v% ist der Ausloesewert im Spielformat (lang="en", s. P56).
+  kurzTitle: lang === 'de' ? 'Kurz gesagt' : 'In short',
+  kurz1: lang === 'de' ? 'Starte bei %s%.' : 'Start at %s%.',
+  kurz2: lang === 'de' ? 'Setz %z% als Quantum-Ziel und spring los.' : 'Set %z% as your quantum target and jump.',
+  kurz3Up: lang === 'de' ? 'Schalte den Antrieb ab, sobald %a% auf %v% steigt.' : 'Cut the drive as %a% rises to %v%.',
+  kurz3Down: lang === 'de' ? 'Schalte den Antrieb ab, sobald %a% auf %v% fällt.' : 'Cut the drive as %a% falls to %v%.',
   coordsTitle: lang === 'de' ? 'Erwarteter Ausstiegspunkt — Stanton, Meter' : 'Expected dropout point — Stanton global metres',
   winTitle: lang === 'de' ? 'Bandfenster auf der abgelesenen Achse' : 'Band window on the axis you read',
   // Beschriftung der verschmolzenen Zeichnung. Ohne diese vier Zeilen ist
@@ -541,6 +554,14 @@ const CLIENT = {
     color: var(--text); text-shadow: none; margin: .15rem 0 .25rem; letter-spacing: normal;
   }
   .pj-trigger__sub { margin: 0; max-width: 68ch; font-size: var(--fs-8); }
+  /* order/flex: im Auslöse-Block (Flex, Felder order 1-4) steht der Kurzweg
+     als eigene Zeile darunter, nicht vor der Achse. Die Zeilenlaenge begrenzt
+     das li: ein max-width an der Liste kappt die 100 % und holt sie zurueck
+     in die Zeile des Auslösewerts. */
+  .pj-kurz { order: 5; flex: 0 0 100%; margin: .7rem 0 0; padding-left: 1.35rem; font-family: var(--font-ui); font-size: var(--fs-8); color: var(--text); line-height: 1.5; }
+  .pj-kurz li { margin: .1rem 0; padding-left: .2rem; max-width: 68ch; }
+  .pj-kurz li::marker { color: var(--accent); font-weight: 700; }
+  .pj-kurz [lang] { font-variant-numeric: tabular-nums; font-weight: 700; }
   .pj-copy { text-transform: none; letter-spacing: normal; font-size: var(--fs-7); }
 
   /* 3 — Keine Seitenstreifen und keine Akzentkanten an gerundeten Flaechen.
@@ -819,6 +840,8 @@ const CLIENT = {
             verify:sprache und verify:clienttext pruefen ihn danach. */}
         <div class="pj-trigger__val" id="pj-trigval" lang="en">0</div>
         <div class="pj-trigger__sub" id="pj-trigsub"></div>
+        {/* Kurzweg (UX-Audit 24.11.2026, P67): dieselbe Route in drei Saetzen. */}
+        <ol class="pj-kurz" id="pj-kurz" aria-label={JS_T.kurzTitle} hidden></ol>
         <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
       </div>
 
@@ -1174,6 +1197,22 @@ const CLIENT = {
     byId('pj-cx').textContent = byId('pj-cy').textContent = byId('pj-cz').textContent = '—';
     byId('pj-coordstitle').textContent = '';
     byId('pj-copy').style.visibility = 'hidden';
+    byId('pj-kurz').hidden = true;
+  }
+
+  // Kurzweg (P67): Start, Ziel und Abschaltwert als drei Saetze, als Text.
+  function kurzweg(sa, ea, achse, steigt, wert) {
+    var ol = byId('pj-kurz');
+    ol.textContent = '';
+    var li = function () { var n = document.createElement('li'); ol.appendChild(n); return n; };
+    li().textContent = fill(T.kurz1, { s: sa.displayName });
+    li().textContent = fill(T.kurz2, { z: ea.displayName });
+    var teile = fill(steigt ? T.kurz3Up : T.kurz3Down, { a: achse }).split('%v%');
+    var v = document.createElement('b');
+    v.lang = 'en';
+    v.textContent = wert;
+    li().append(teile[0], v, teile[1] || '');
+    ol.hidden = false;
   }
 
   function render() {
@@ -1226,6 +1265,7 @@ const CLIENT = {
     var copyBtn = byId('pj-copy');
     copyBtn.style.visibility = 'visible';
     copyBtn.dataset.value = spiel(trig);
+    kurzweg(sa, ea, axis.toUpperCase(), rising, spiel(trig));
 
     // Vier Kennwerte statt acht. Gestrichen, weil anderswo schon vorhanden:
     // Route (steht an beiden Achsenenden), Zielband (Achsen-Zonenlabel und

@@ -108,13 +108,18 @@ export function stockShips(item: Item): StockShip[] {
 // Rechner wirklich zur Auswahl hat (dieselbe Datei, aus der er seine Listen
 // baut) — die Kategorie allein reicht nicht: unter "Utility / Gadgets"
 // stehen auch Feuerloescher und Traktorstrahler.
-// Laser filtert der Rechner wie hier: fest verbaute (builtIn, z. B. der
-// Pitman am Golem) und solche ohne Abbauwert fehlen in seiner Auswahl.
-type MiningEntry = { name: string; builtIn?: boolean; mining?: { dps?: number } };
+// Laser filtert der Rechner mit derselben Regel (imBruchrechner): fest
+// verbaute (builtIn, z. B. der Pitman am Golem), solche ohne Abbauwert und
+// seit dem UX-Audit 24.11.2026 (Paket G) die der Groesse 0. Das sind die
+// Laser der Bodenfahrzeuge (ROC); ihr Abbauwert von 0,8 bis 1 steht in
+// einem anderen Massstab als der der Schiffslaser, und der Rechner zeigte
+// fuer sie Kraft 1 und das Verhaeltnis 0,00 bei jedem Brocken.
+type MiningEntry = { name: string; size?: number; builtIn?: boolean; mining?: { dps?: number } };
+export const imBruchrechner = (l: MiningEntry): boolean => !l.builtIn && !!l.mining?.dps && (l.size ?? 0) > 0;
 const MM = MINING_MODEL as unknown as Record<'lasers' | 'modules' | 'gadgets', MiningEntry[] | undefined>;
 const fracturingNames = new Set(
   [
-    ...(MM.lasers ?? []).filter((l) => !l.builtIn && l.mining && l.mining.dps),
+    ...(MM.lasers ?? []).filter(imBruchrechner),
     ...(MM.modules ?? []),
     ...(MM.gadgets ?? []),
   ].map((g) => norm(g.name)),
