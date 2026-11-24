@@ -1546,7 +1546,7 @@
           // Zutatenname ist der Sprung zum Fundort — genau hier steht man, wenn
           // man wissen will, wo das Zeug herkommt.
           html += '<div class="cbm__opt">' + mineNameHtml(o.name, 'on') +
-            '<span class="oq">' + fmtNum((o.quantity_scu || 0) * 100) + ' cSCU</span>' +
+            '<span class="oq">' + fmtNum(o.quantity_scu || 0) + ' SCU</span>' +
             // Werkbank: 4.334 von 4.357 Zutaten nennen 0 oder 1 als
             // Mindestqualitaet (jede Qualitaet reicht). Die Marke steht dort
             // nur noch an den 23, die wirklich etwas verlangen (ab 500).
@@ -2025,7 +2025,7 @@
       return;
     }
     var totalTime = 0;
-    var shop = {}; // resource -> total cSCU
+    var shop = {}; // resource -> Gesamtmenge in SCU (eine Einheit wie die Bauplan-Seiten, P52)
     var vorher = WB ? wbPlanStand : null;
     var spaet = WB && performance.now() < wbFlugBis ? ' is-spaet' : '';
     listEl.innerHTML = slugs.map(function (k) {
@@ -2060,7 +2060,7 @@
       // traegt dafuer die zuletzt gezeigte Menge je Material.
       var mengen = {};
       shopEl.innerHTML = names.length ? names.map(function (n) {
-        var menge = mengen[n] = fmtNum(shop[n] * 100) + ' cSCU';
+        var menge = mengen[n] = fmtNum(shop[n]) + ' SCU';
         var alt = WB && wbShopStand ? wbShopStand[n] : null;
         return '<div class="ps__row' + (WB && wbShopStand && alt == null ? ' is-neu' : '') + '">' + mineNameHtml(n, 'ps__n') +
           '<b' + (alt != null && alt !== menge ? ' class="is-tick"' : '') + '>' + menge + '</b></div>';
