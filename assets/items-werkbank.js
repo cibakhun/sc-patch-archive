@@ -294,12 +294,21 @@
     return (C.zg && C.zg[root]) || 'chip';
   }
 
+  // Hersteller der Sets wie auf der Set-Seite (setHersteller() in
+  // scripts/lib/armor-sets.mjs): Kurzform des Set-Tags -> Anzeigename,
+  // „Unknown" -> kein Hersteller.
+  function setHersteller(m) {
+    m = typeof m === 'string' ? m.trim() : '';
+    if (!m || /^unknown$/i.test(m)) return null;
+    var A = C.setHersteller || {};
+    return Object.prototype.hasOwnProperty.call(A, m) ? A[m] : m;
+  }
   function vorbereiten(db) {
     ITEMS = db.items || [];
     FUNDORTE = db.fundorte || null;
     SETS = karte();
     SETLISTE = db.sets || [];
-    SETLISTE.forEach(function (s) { SETS[s.id] = s; });
+    SETLISTE.forEach(function (s) { s.manufacturer = setHersteller(s.manufacturer); SETS[s.id] = s; });
     ITEMS.forEach(function (it) {
       if (FUNDORTE) lootZeilen(it);
       var g = it.game || null;
@@ -308,9 +317,12 @@
       it._b = B_CAT[it.category] || null;
       it._kc = farbe(it._root);
       it._g = zeichen(it);
+      // Name wie im Spiel, auf beiden Sprachen; der deutsche Name steht als
+      // Zweitname darunter (Sprachregel, wie altName() und displayName() in
+      // src/lib/items.ts).
       var nde = g && g.nameDe ? String(g.nameDe).trim() : '';
-      it._n = DE && nde ? nde : it.name;
-      it._alt = nde && nde !== it.name ? (DE ? it.name : nde) : null;
+      it._n = it.name;
+      it._alt = nde && nde !== it.name ? nde : null;
       it._p = minPrice(it);
       it._ps = primaryStat(it);
       it._page = hasPage(it);
@@ -378,10 +390,14 @@
     if (QW.length && !trifft(it._h)) return false;
     return true;
   }
-  // Wie gut trifft der Name die Suche? 0 genau, 1 beginnt damit, 2 alle
+  // Wie gut trifft der Name (oder der Zweitname) die Suche? 0 genau, 1 beginnt damit, 2 alle
   // Woerter am Wortanfang, 3 alle Woerter irgendwo, 4 nur Hersteller, Ort usw.
   function suchRang(it) {
-    var n = it._n.toLowerCase(), q = QW.join(' ');
+    var r = nameRang(it._n);
+    return it._alt ? Math.min(r, nameRang(it._alt)) : r;
+  }
+  function nameRang(name) {
+    var n = name.toLowerCase(), q = QW.join(' ');
     if (n === q) return 0;
     if (n.indexOf(q) === 0) return 1;
     var anfang = true;
@@ -977,7 +993,7 @@
     h += '<div class="wzb-kopf"><div class="wzb-emb">' + RING + '<span class="wg" data-g="' + it._g + '" aria-hidden="true"></span></div>' +
       '<div class="wzb-kopf__t"><p class="wzb-pfad">' + pfadHtml(it) + '</p>' +
       '<h2 class="wzb-name" id="wzb-name">' + esc(it._n) + '</h2>' +
-      (it._alt ? '<p class="wzb-alt" lang="' + (DE ? 'en' : 'de') + '">' + esc(it._alt) + '</p>' : '') +
+      (it._alt ? '<p class="wzb-alt" lang="de">' + esc(it._alt) + '</p>' : '') +
       (chips.length ? '<ul class="wzb-chips">' + chips.join('') + '</ul>' : '') +
       '</div></div>';
     // Kennwerte: Spielwerte, dann der Preis.

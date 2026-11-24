@@ -8,7 +8,7 @@
 // Hand: Boden auf -0,12 m, eine Wand, ein Vorbau, eine Grube.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { werkBodenStuecke, pruefeWerkBoden, BODEN_ANTEIL } from '../../scripts/lib/werk-boden.mjs';
+import { werkBodenStuecke, pruefeWerkBoden, pruefeWerkLicht, BODEN_ANTEIL } from '../../scripts/lib/werk-boden.mjs';
 import { knotenFlaechen, hallenRaster } from '../../scripts/lib/hall-deko.mjs';
 
 // ein Quader als Dreiecke im Rahmen eines Knotens (Ursprung unten mittig)
@@ -97,4 +97,25 @@ test('zwei niedrige Kisten am selben Platz sind ineinander, nebeneinander nicht'
   assert.equal(ein.ineinander.length, 1);
   assert.equal(ein.zahlen.paare, 1);
   assert.deepEqual(fall([['kiste', 0, -0.12, 0, 0], ['kiste', 0.5, -0.12, 0, 0]]).ineinander, []);
+});
+
+// Arbeitslicht je Zone (WERK_BODEN_LICHT): vor der Zone, im Raum, in keinem Stück
+test('Lampen der Arbeitsplätze: richtig vor der Zone, vorgeführt rot', () => {
+  const block = { zonen: [{ name: 'wand', glieder: [['schrank', 0, -0.12, -4.6, 0]] }, { name: 'ecke', glieder: [['kiste', 6, -0.12, -4.5, 0]] }] };
+  const { stuecke } = werkBodenStuecke(block, masse);
+  const raum = { x: [-10, 10], z: [-5, 5] };
+  const gut = pruefeWerkLicht({ hoehe: 1.7, orte: { wand: [0, -2.5], ecke: [6, -2.8] } }, stuecke, raum);
+  assert.deepEqual([gut.fehlt, gut.zombie, gut.draussen, gut.inStueck, gut.abstand, gut.hoehe], [[], [], [], [], [], null]);
+  assert.equal(gut.lampen, 2);
+  // fehlt, Zombie, draußen, zu weit, auf dem Stück, zu hoch
+  const rot = pruefeWerkLicht({ hoehe: 2.8, orte: { wand: [0, 4.5], alt: [0, -5.5] } }, stuecke, raum);
+  assert.deepEqual(rot.fehlt, ['ecke']);
+  assert.deepEqual(rot.zombie, ['alt']);
+  assert.equal(rot.draussen.length, 1);
+  assert.equal(rot.abstand.length, 1);
+  assert.equal(rot.hoehe, '2.8 m');
+  // im Schrank (bis 1,88 m hoch): Lampe auf 1,7 m über seiner Grundfläche
+  const drin = pruefeWerkLicht({ hoehe: 1.7, orte: { wand: [0.2, -4.6], ecke: [6, -2.8] } }, stuecke, raum);
+  assert.equal(drin.inStueck.length, 1);
+  assert.equal(drin.abstand.length, 1);
 });

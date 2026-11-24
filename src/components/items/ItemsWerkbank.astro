@@ -22,6 +22,7 @@ import { ITEM_UI } from '../../i18n/itemText';
 import { assertLocale, href } from '../../i18n/ui';
 import { jsonForScript } from '../../lib/safeJson';
 import { erzKatalog } from '../../lib/miningLinks';
+import { SET_HERSTELLER } from '../../../scripts/lib/armor-sets.mjs';
 import { db, pageItems, armorSets, ITEM_PATCH, num } from '../../lib/items';
 
 interface Props { lang: 'de' | 'en' }
@@ -115,6 +116,7 @@ const CFG = {
   zg: ZEICHEN_GRUPPE,
   farben: GRUPPEN_FARBE,
   erze: erzKatalog(lang),
+  setHersteller: SET_HERSTELLER,
   t: ITEM_UI[lang],
   w: W,
 };

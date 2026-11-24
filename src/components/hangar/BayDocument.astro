@@ -9,7 +9,8 @@
 //     halten die vier WARN-Pruefungen still
 //   - der sichtbare Text laeuft wie jede andere Seite durch die Herkunfts-
 //     und Platzhalter-Pruefung
-// Kein Layout, keine Navigation, kein CSS, kein JS. Astro stellt nur
+// Kein Layout, keine Navigation, kein CSS, kein JS (Handy und Dunkel nur
+// ueber viewport und color-scheme im Kopf). Astro stellt nur
 // <!DOCTYPE html> voran, weil in diesem Baum kein <style> und kein
 // gebuendeltes <script> steckt.
 import ShipBay from './ShipBay.astro';
@@ -28,16 +29,21 @@ const open = `${href('/hangar.html', bay.lang)}?ship=${bay.id}`;
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex">
+<!-- Direkt aufgerufen (Lesezeichen, geteilter Link) ist das hier die Seite:
+     lesbar am Handy und dunkel wie die Webseite, ohne eigenes CSS (UX-Prüfung
+     P80); der Weg in den Hangar steht oben -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>{bay.doc.title}</title>
 <meta name="description" content={bay.doc.description}>
 </head>
 <body>
 <main class="hgx-baydoc" data-bay-id={bay.id}>
 <h1>{bay.doc.h1}</h1>
+<p><a href={open}>{t('doc.open')}</a></p>
 <ShipBay bay={bay} region="head" />
 <ShipBay bay={bay} region="panel" />
 <ShipBay bay={bay} region="marks" />
-<p><a href={open}>{t('doc.open')}</a></p>
 </main>
 </body>
 </html>

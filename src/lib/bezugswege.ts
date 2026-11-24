@@ -17,7 +17,8 @@ import { minPrice, pageItems, sortedObtain, type Item, type Obtain } from './ite
 import { blueprintsByMission, craftDb, recipeForItem, type BlueprintEntry } from './crafting';
 import ZERLEGEN from '../../assets/dismantling-items.json';
 import ROHSTOFFE from '../data/commodity-prices.json';
-import { missionBySlug, seoTitle } from './missions';
+import type { Locale } from '../i18n/ui';
+import { missionBySlug, missionName, missionVollname, missionZusatz, seoTitle } from './missions';
 import {
   schiffeZumTeil, shopSystem, stockShips, wikeloBlueprintTrades, wikeloTrades, SYSTEME,
   type SternSystem, type StockShip,
@@ -32,7 +33,12 @@ export interface KaufGruppe {
 
 export interface MissionsWeg {
   slug: string;
+  /** Name wie auf der Missionsseite: titel, mit zusatz in Klammern */
   label: string;
+  /** Spieltitel (englisch, auf DE mit lang="en" auszuzeichnen) */
+  titel: string;
+  /** was gleichnamige Missionen unterscheidet, in der Sprache der Seite ('' = nichts) */
+  zusatz: string;
   /** hat eine eigene Missions-Seite (sonst nur Text) */
   seite: boolean;
 }
@@ -181,26 +187,37 @@ export function poolSpanne(bp: BlueprintEntry, mission: { id: string; pool?: str
 const aussicht = (chance: number, pool: number) => chance / Math.max(pool, 1);
 
 /** pool = groesster in Frage kommender Pool (zaehlt fuer die Reihenfolge), poolMin = kleinster. */
-export interface MissionsZeile { slug: string; label: string; seite: boolean; chance: number; pool: number; poolMin: number }
+export interface MissionsZeile { slug: string; label: string; titel: string; zusatz: string; seite: boolean; chance: number; pool: number; poolMin: number }
+
+/**
+ * Name einer Mission in fremden Listen: derselbe wie auf ihrer Seite
+ * (Titel mit unterscheidendem Zusatz, src/lib/missionTitel.ts, Paket F1).
+ * Der Arbeitsname aus den Crafting-Daten bleibt nur, wo es keine Seite gibt.
+ */
+const missionsLabel = (m: { id: string; name: string }, lang: Locale): { label: string; titel: string; zusatz: string } => {
+  const mission = missionBySlug.get(m.id);
+  if (!mission) return { label: seoTitle(m.name), titel: seoTitle(m.name), zusatz: '' };
+  return { label: missionVollname(mission, lang), titel: missionName(mission).titel, zusatz: missionZusatz(mission, lang) };
+};
 
 /** Alle Missionen eines Bauplans fuer die Tabelle, beste Aussicht zuerst. */
-export function missionsZeilen(bp: BlueprintEntry): MissionsZeile[] {
+export function missionsZeilen(bp: BlueprintEntry, lang: Locale): MissionsZeile[] {
   return (bp.missions ?? [])
     .map((m) => {
       const { min, max } = poolSpanne(bp, m);
-      return { slug: m.id, label: seoTitle(m.name), seite: missionBySlug.has(m.id), chance: m.drop_chance, pool: max, poolMin: min };
+      return { slug: m.id, ...missionsLabel(m, lang), seite: missionBySlug.has(m.id), chance: m.drop_chance, pool: max, poolMin: min };
     })
     .sort((a, b) => aussicht(b.chance, b.pool) - aussicht(a.chance, a.pool) || a.label.localeCompare(b.label, 'en'));
 }
 
 /**
- * Missionen eines Bauplans als verschiedene Titel. Viele Missionen teilen
- * sich einen Titel („Reputation Rank …"), dreimal derselbe Text hilft
- * niemandem; je Titel zaehlt die erste Mission mit eigener Seite.
+ * Missionen eines Bauplans als verschiedene Namen. Seit die Namen ihren
+ * Zusatz tragen (Paket F1), lauten gleichnamige Missionen verschieden; was
+ * dann noch gleich lautet, steht einmal, mit der ersten Mission mit Seite.
  */
-export function missionsWege(bp: BlueprintEntry): MissionsWeg[] {
+export function missionsWege(bp: BlueprintEntry, lang: Locale): MissionsWeg[] {
   // Missionen mit eigener Seite zuerst, darin die beste Aussicht (D4).
-  const list = missionsZeilen(bp)
+  const list = missionsZeilen(bp, lang)
     .filter((m) => m.label)
     .sort((a, b) => Number(b.seite) - Number(a.seite));
   const seen = new Set<string>();
@@ -209,12 +226,12 @@ export function missionsWege(bp: BlueprintEntry): MissionsWeg[] {
     const k = m.label.toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
-    out.push({ slug: m.slug, label: m.label, seite: m.seite });
+    out.push({ slug: m.slug, label: m.label, titel: m.titel, zusatz: m.zusatz, seite: m.seite });
   }
   return out;
 }
 
-export function bezugswege(item: Item): Bezugswege {
+export function bezugswege(item: Item, lang: Locale): Bezugswege {
   const rows = sortedObtain(item);
   const ab = minPrice(item);
   const gruppen = kaufGruppen(rows);
@@ -229,7 +246,7 @@ export function bezugswege(item: Item): Bezugswege {
     : null;
 
   const bp = recipeForItem(item);
-  const herstellen = bp ? { bp, missionen: missionsWege(bp), wikelo: wikeloBlueprintTrades(bp.name) } : null;
+  const herstellen = bp ? { bp, missionen: missionsWege(bp, lang), wikelo: wikeloBlueprintTrades(bp.name) } : null;
 
   const wikelo = wikeloTrades(item)?.reward ?? 0;
   const abWerk = stockShips(item);

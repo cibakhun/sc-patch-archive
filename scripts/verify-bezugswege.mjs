@@ -55,6 +55,10 @@
 //      anderen (scripts/lib/waffen-art.mjs), die erste Karte hat die Art,
 //      sobald die Kategorie eine zweite Waffe dieser Art kennt, und kein
 //      Modell steht oefter als AUSFUEHRUNGEN_JE_MODELL mal da. Klinke.
+//  15  Missionsnamen (Paket F1): jeder Link auf eine Missionsseite in der
+//      Missionstabelle eines Bauplans und im Block „So bekommst du es" traegt
+//      denselben Namen wie die Missionsseite selbst (ihr <title> vor „ — "),
+//      also Titel samt unterscheidendem Zusatz statt des Arbeitsnamens. Klinke.
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -77,7 +81,7 @@ const DIST = resolve(ROOT, 'dist');
 const KLINKEN = {
   itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000,
   poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10900,
-  waffenBlaetter: 700,
+  waffenBlaetter: 700, missionsNamen: 10700,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
@@ -201,12 +205,60 @@ function merkeTitel(pfad, html) {
   if (liste) liste.push(eintrag);
   else namensGruppen.set(g, [eintrag]);
 }
+// [15] Missionsnamen wie auf der Missionsseite. Der Name steht im <title>
+// der Missionsseite vor „ — <Art> | VerseBase" (MissionDetail.astro, seoName
+// = missionVollname). Verglichen wird sichtbarer Text, Leerraum gefaltet.
+const missionsSeitenNamen = new Map(); // Pfad -> Name oder null (Seite fehlt)
+const falte = (x) => x.replace(/\s+/g, ' ').trim();
+function missionsSeitenName(ziel) {
+  if (!missionsSeitenNamen.has(ziel)) {
+    const datei = join(DIST, ziel);
+    const t = existsSync(datei) ? readFileSync(datei, 'utf8').match(/<title>([^<]*)<\/title>/)?.[1] : null;
+    const ende = t == null ? -1 : t.lastIndexOf(' — ');
+    missionsSeitenNamen.set(ziel, t == null ? null : falte(sichtbar(ende < 0 ? t : t.slice(0, ende))));
+  }
+  return missionsSeitenNamen.get(ziel);
+}
+/**
+ * Attribute eines Start-Tags (der Teil nach dem Tag-Namen) als Map: Name klein,
+ * Wert ohne Anfuehrungszeichen. Gelesen von links nach rechts wie im HTML-
+ * Tokenizer: ein Wert in Anfuehrungszeichen ist ein Stueck, was darin steht,
+ * ist kein Attribut; bei doppeltem Namen gilt das erste (Review #451).
+ */
+function attribute(attr) {
+  const m = new Map();
+  for (const [, name, wert] of attr.matchAll(/([^\s"'>\/=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g)) {
+    const n = name.toLowerCase();
+    if (!m.has(n)) m.set(n, wert == null ? '' : wert.replace(/^(["'])([\s\S]*)\1$/, '$2'));
+  }
+  return m;
+}
+let missionsNamen = 0;
+const missionsNameFalsch = [];
+function pruefeMissionsNamen(pfad, schnipsel) {
+  // Jeder Anker, gleich in welcher Reihenfolge seine Attribute stehen, mit
+  // „>“ in einem Attributwert, href in doppelten oder einfachen
+  // Anfuehrungszeichen, mit oder ohne Anker/Abfrage an der Adresse (Review #451).
+  // Das Ziel ist das echte href-Attribut, nicht ein „href=“ im Wert eines
+  // anderen Attributs (attribute() liest Werte als Ganzes).
+  for (const [, attr, text] of schnipsel.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/a>/g)) {
+    const ziel = attribute(attr).get('href')?.match(/^((?:\/de)?\/missionen\/[a-z0-9-]+\.html)(?:[?#].*)?$/)?.[1];
+    if (!ziel) continue;
+    missionsNamen++;
+    const soll = missionsSeitenName(ziel);
+    const ist = falte(sichtbar(text));
+    if (soll == null) missionsNameFalsch.push(`${pfad} -> ${ziel} (Missionsseite fehlt)`);
+    else if (ist !== soll) missionsNameFalsch.push(`${pfad} -> ${ziel} („${ist}“ statt „${soll}“)`);
+  }
+}
+
 function pruefeBauplanP2(pfad, html) {
   merkeTitel(pfad, html);
   // [8] Planer-Knopf einmal
   if ((html.match(PLANER_KNOPF) ?? []).length > 1) planerDoppelt.push(pfad);
   // [7] Pool je Missionszeile
   const sec = abschnitt(html, 'missionen');
+  if (sec) pruefeMissionsNamen(pfad, sec); // [15]
   const tabelle = sec && sec.match(/<table[\s\S]*?<\/table>/)?.[0];
   if (tabelle) {
     poolTabellen++;
@@ -388,6 +440,7 @@ for (const rel of ['items', 'de/items']) {
     if (!(wege > 0) && !/href="(?:\/de)?\/feedback\.html\?wert=/.test(block)) leer.push(pfad);
     if (wege === 0) ohneWeg++;
     merkeTitel(pfad, html);
+    pruefeMissionsNamen(pfad, block); // [15]
     // [10] Schiffsteil -> Schiff
     if (block.includes('data-weg="schiffsteil"')) {
       schiffsteile++;
@@ -569,6 +622,11 @@ console.log('\n[14] P64 „Ähnliche Items" einer Handwaffe: gleiche Art zuerst,
 console.log(`    Handwaffen-Blaetter: ${waffenBlaetter} (Klinke ${KLINKEN.waffenBlaetter})   falsch geordnet — Soll: 0   Ist: ${aehnlichFalsch.length}`);
 need(waffenBlaetter >= KLINKEN.waffenBlaetter, `nur ${waffenBlaetter} Handwaffen-Blaetter erkannt, Klinke ${KLINKEN.waffenBlaetter} — Ursache klaeren, nicht die Klinke senken`);
 need(!aehnlichFalsch.length, `${aehnlichFalsch.length} Handwaffen-Blatt/Blaetter mit falsch geordneten „Ähnlichen Items" — ${liste(aehnlichFalsch)}`);
+
+console.log('\n[15] Missionsnamen auf Bauplan- und Item-Seiten wie auf der Missionsseite');
+console.log(`    Missionslinks: ${missionsNamen} (Klinke ${KLINKEN.missionsNamen}, Missionsseiten gelesen: ${missionsSeitenNamen.size})   anderer Name oder Seite fehlt — Soll: 0   Ist: ${missionsNameFalsch.length}`);
+need(missionsNamen > 0 && missionsNamen >= KLINKEN.missionsNamen, `nur ${missionsNamen} Missionslinks geprueft, Klinke ${KLINKEN.missionsNamen} — Muster veraltet? Ursache klaeren, nicht die Klinke senken`);
+need(!missionsNameFalsch.length, `${missionsNameFalsch.length} Missionslink(s) mit anderem Namen als die Missionsseite — ${liste(missionsNameFalsch)}`);
 
 console.log('\n    Selbstauskunft (kein Urteil, Fremdquelle): Blaetter mit Kaufzeilen ohne Systemangabe '
   + `${ohneSystem} von ${kaufBlaetter}`);

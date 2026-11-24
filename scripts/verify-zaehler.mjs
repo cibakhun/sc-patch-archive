@@ -103,8 +103,12 @@ const BLOCKER_MUSTER = [
 // 14 -> 22 mit der Review-Korrektur: in der Raffinerie sitzen sie an den
 // Feldern, die die Vorschau neu rechnen, statt am ganzen Formular, dazu der
 // Zuruecksetzen-Knopf im Precision-Jump-Rechner.
+// 24.11.2026 (Missionen, UX-Paket F5): 112 -> 108. Die drei Auswahlen
+// Auftraggeber, Fraktion und Gilde der Missionsliste sind eine geworden
+// („Für wen“, data-ev-filter="auftraggeber"); je Sprache fallen zwei Marken
+// weg, und die Filternamen fraktion und gilde sind aus der Liste gestrichen.
 const MIN_EREIGNIS_SEITEN = 17000;
-const MIN_EREIGNIS_MARKEN = 112;
+const MIN_EREIGNIS_MARKEN = 108;
 // 11.11.2026 (Ereignis extern): 8 Proben mehr, 32 Laeufe; Bedienung auf
 // der Seite: 13 Proben mehr, 45 Laeufe; Review: Pilotenprofil und mittlere
 // Taste, 3 Proben mehr, 48 Laeufe. 24.11.2026 (Messluecken K6): 4 Proben
