@@ -791,6 +791,12 @@ export const CHECKS = [
     // /items/karna-rifle.html den Missionslink im Block umbenannt -> 2
     // Befunde, exit 1; zurueckgespielt, sha256 681208f3… und 11264d88… wie
     // vorher, gruen: 10.816 Missionslinks auf 648 Missionsseiten.
+    // Nach dem Review (CodeRabbit, PR #451) liest [15] jeden Anker und dann
+    // sein href, gleich in welcher Reihenfolge die Attribute stehen. Gegenprobe
+    // auf derselben DE-Seite: der Wanted-Link als <a class="x"
+    // href="…/wanted.html#details">Wanted</a> -> die alte Fassung zaehlte
+    // 10.815 Links und blieb gruen, die neue 10.816 und 1 Befund, exit 1;
+    // zurueckgespielt, sha256 540410d8… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der

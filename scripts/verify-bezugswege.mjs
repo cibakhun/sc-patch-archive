@@ -222,7 +222,11 @@ function missionsSeitenName(ziel) {
 let missionsNamen = 0;
 const missionsNameFalsch = [];
 function pruefeMissionsNamen(pfad, schnipsel) {
-  for (const [, ziel, text] of schnipsel.matchAll(/<a href="((?:\/de)?\/missionen\/[a-z0-9-]+\.html)"[^>]*>([\s\S]*?)<\/a>/g)) {
+  // Jeder Anker, gleich in welcher Reihenfolge seine Attribute stehen und mit
+  // oder ohne Anker/Abfrage an der Adresse (Review #451).
+  for (const [, attr, text] of schnipsel.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
+    const ziel = attr.match(/\shref="((?:\/de)?\/missionen\/[a-z0-9-]+\.html)(?:[?#][^"]*)?"/)?.[1];
+    if (!ziel) continue;
     missionsNamen++;
     const soll = missionsSeitenName(ziel);
     const ist = falte(sichtbar(text));
