@@ -239,7 +239,13 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     let undoFrom = '';
     let focusShip = '';
     const whose = (snap: Snap | null) => (snap ? snap.mode + ':' + (fleet?.owner?.() || '') : '');
-    const dropUndo = () => { undoShip = null; undoFrom = ''; $('fltUndo').hidden = true; };
+    // moveFocus: verfällt der Eintrag, während der Fokus auf „Rückgängig“
+    // liegt (An- oder Abmeldung in einem anderen Tab), geht er weiter.
+    const dropUndo = (moveFocus = false) => {
+      const had = document.activeElement === $('fltUndoBtn');
+      undoShip = null; undoFrom = ''; $('fltUndo').hidden = true;
+      if (moveFocus && had) focusFallback();
+    };
     const remove = (s: Ship) => {
       if (!fleet) return;
       void fleet.toggle(s.id, s.label);
@@ -249,6 +255,17 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
       $('fltUndo').hidden = false;
       ($('fltUndoBtn') as HTMLButtonElement).focus();
     };
+    // Fokus an eine Karte (Link oder ×); false, wenn sie nicht dasteht.
+    const focusCard = (id: string, x = false, preventScroll = false) => {
+      const li = Array.from($('fltList').children).find((n) => (n as HTMLElement).dataset.ship === id);
+      const el = li?.querySelector<HTMLElement>(x ? '.flt-card__x' : '.flt-card__link');
+      if (el) el.focus({ preventScroll });
+      return !!el;
+    };
+    // Kein Ziel mehr: die erste Karte, sonst „Zu den Schiffen“ im Fuß.
+    const focusFallback = () => {
+      ($('fltList').querySelector<HTMLElement>('.flt-card__link') || root.querySelector<HTMLElement>('.flt-foot a'))?.focus();
+    };
     $('fltUndoBtn').addEventListener('click', () => {
       const s = undoShip;
       if (fleet && s && whose(last) === undoFrom && !fleet.ids().includes(s.id)) {
@@ -257,7 +274,10 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
         void fleet.toggle(s.id, s.label);
       }
       dropUndo();
-      if (focusShip && last) paint(last);
+      if (focusShip) { if (last) paint(last); return; }
+      // Nichts wiederhergestellt (das Schiff stand schon wieder da, oder der
+      // Eintrag war verfallen): der Fokus bleibt nie am ausgeblendeten Knopf.
+      if (!(s && focusCard(s.id))) focusFallback();
     });
 
     const shipsNow = (): Ship[] => {
@@ -267,7 +287,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
 
     const paint = (snap: Snap) => {
-      if (undoShip && whose(snap) !== undoFrom) dropUndo();
+      if (undoShip && whose(snap) !== undoFrom) dropUndo(true);
       last = snap;
       const list = shipsNow().slice().sort((a, b) => coll.compare(a.label, b.label));
       // Neu zeichnen ohne Positionsverlust: lag der Fokus auf einer Karte (Link
@@ -276,21 +296,15 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
       const was = act?.closest<HTMLElement>('#fltList .flt-card');
       const keep = was ? { id: was.dataset.ship || '', x: act!.classList.contains('flt-card__x') } : null;
       $('fltList').replaceChildren(...list.map(card));
-      const back = (id: string, x: boolean) => {
-        const li = Array.from($('fltList').children).find((n) => (n as HTMLElement).dataset.ship === id);
-        const el = li?.querySelector<HTMLElement>(x ? '.flt-card__x' : '.flt-card__link');
-        if (el) el.focus({ preventScroll: !!keep && !focusShip });
-        return !!el;
-      };
       if (focusShip) {
         // Nach Rückgängig: an die wiederhergestellte Karte, sonst an die
         // erste Karte oder den Weg zu den Schiffen.
-        if (back(focusShip, false)) focusShip = '';
+        if (focusCard(focusShip)) focusShip = '';
         else if (!fleet || !fleet.ids().includes(focusShip)) {
           focusShip = '';
-          ($('fltList').querySelector<HTMLElement>('.flt-card__link') || $('fltEmpty').querySelector<HTMLElement>('a'))?.focus();
+          focusFallback();
         }
-      } else if (keep) back(keep.id, keep.x);
+      } else if (keep) focusCard(keep.id, keep.x, true);
       $('fltEmpty').hidden = list.length > 0;
       $('fltCount').textContent = list.length ? (list.length === 1 ? C.count1 : fill(C.countN, { n: list.length })) : '';
       const guest = snap.mode === 'guest';
