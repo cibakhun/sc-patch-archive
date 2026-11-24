@@ -106,12 +106,15 @@ jobs:
       # Link zum Lauf in diesem privaten Repo.
       - name: Entwarnung (offene Fehlermeldung schliessen)
         if: success()
+        # das Archiv liegt zu diesem Zeitpunkt schon hoch: reisst nur die
+        # GitHub-API hier, darf das nicht als „kein Archiv" Alarm schlagen
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           VB_ALARM_WEBHOOK: ${{ secrets.VB_ALARM_WEBHOOK }}
         run: |
           lauf="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          offen="$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
+          offen="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
             --jq '.[] | select(.pull_request == null) | select(.title | startswith("Live-Backup fehlgeschlagen")) | .number')"
           [ -n "$offen" ] || exit 0
           for n in $offen; do
@@ -137,8 +140,10 @@ jobs:
             jq -n --arg t "🔴 Live-Sicherung rot ($heute), kein Archiv entstanden: $lauf" '{content: $t, allowed_mentions: {parse: []}}' \
               | curl -fsS -m 10 --retry 3 -H 'content-type: application/json' --data-binary @- "$VB_ALARM_WEBHOOK" > /dev/null || true
           fi
-          offen="$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
-            --jq '[.[] | select(.pull_request == null) | select(.title | startswith("Live-Backup fehlgeschlagen")) | .number] | min // empty')"
+          # alle Seiten lesen, dann das aelteste offene nehmen (die Liste kommt neueste zuerst)
+          offen="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
+            --jq '.[] | select(.pull_request == null) | select(.title | startswith("Live-Backup fehlgeschlagen")) | .number' \
+            | sort -n | awk 'NR == 1')"
           if [ -n "$offen" ]; then
             gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$offen/comments" -f body="Wieder rot am $heute: $lauf" > /dev/null
           else
