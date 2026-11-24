@@ -258,59 +258,52 @@ export function classStrip(values, lower = false) {
 export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
 /** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
 export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'bomb']);
+/**
+ * Kennwert eines Teils zum Summieren: bei Bordwaffen die genaue DPS (der
+ * Kennwert ist auf ganze Zahlen gerundet; 24 x 818 statt 24 x 817,88 waeren
+ * 3 DPS zu viel), sonst der Kennwert.
+ */
+export const figure = (it) => (it ? (it[2] === 'gun' ? it[8]?.dps ?? it[7] : it[7]) : 0);
 // Komponenten, die der Hangar als Teil ans Schiff setzt (wie die Bordwaffen)
 const COMPONENT_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 
 /**
- * Schildgeneratoren, die gleichzeitig laufen. Der Schildwert des Schiffs ist
- * bei allen 188 Schiffen mit Generatoren die Summe der zwei stärksten
- * Serien-Generatoren, auch wo drei, vier oder sechs eingebaut sind
- * (Prospector: 3 × 2.160 HP eingebaut, Schild 4.320 HP; gezählt 24.11.2026).
- * Jede Summe des Schilds nimmt deshalb nur die stärksten, so zeigen Hangar,
- * Loadout und Schiffsblatt dieselbe Zahl (UX-Prüfung P19).
- */
-export const SCHILDE_AKTIV = 2;
-
-/**
- * Die Generatoren, die laufen: je Stück einmal, die stärksten zuerst,
- * höchstens SCHILDE_AKTIV. paare: [[teil, anzahl]], hp: teil -> Schild-HP.
- * @template T @param {[T, number][]} paare @param {(teil: T) => number} hp @returns {T[]}
- */
-export function aktiveSchilde(paare, hp) {
-  return paare.flatMap(([teil, n]) => Array.from({ length: Math.max(0, n) }, () => teil))
-    .sort((a, b) => hp(b) - hp(a)).slice(0, SCHILDE_AKTIV);
-}
-
-/**
  * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl;
  * jetzt mit der Anzahl der gewaehlten Halterung). Slots ohne bekanntes Teil
- * zaehlen 0. Beim Schild nur die Generatoren, die laufen (aktiveSchilde).
+ * zaehlen 0.
  * @returns {Map<string, { now: number, stock: number }>}
  */
-export function groupTotals(slots, layout, items, rackSel = null, racks = null) {
+export function groupTotals(slots, layout, items, rackSel = null, racks = null, shieldAct = 0) {
   const out = new Map();
-  const hp = (k) => items[k]?.[7] ?? 0;
-  const schild = { now: [], stock: [] };
+  const gens = { now: [], stock: [] };
   for (const s of slots) {
     if (!SUMMED.has(s.group)) continue;
     const now = layout[s.key] ?? s.stock;
     const n = rackSlot(s, rackSel?.[s.key], racks).count;
     if (s.group === 'shield') {
-      schild.now.push([now, n]);
-      schild.stock.push([s.stock, s.count]);
+      for (let i = 0; i < n; i++) gens.now.push([figure(items[now]), 0]);
+      for (let i = 0; i < s.count; i++) gens.stock.push([figure(items[s.stock]), 0]);
       if (!out.has('shield')) out.set('shield', { now: 0, stock: 0 });
       continue;
     }
     const t = out.get(s.group) ?? { now: 0, stock: 0 };
-    t.now += hp(now) * n;
-    t.stock += hp(s.stock) * s.count;
+    t.now += figure(items[now]) * n;
+    t.stock += figure(items[s.stock]) * s.count;
     out.set(s.group, t);
   }
-  if (out.has('shield')) {
-    const summe = (paare) => aktiveSchilde(paare, hp).reduce((a, k) => a + hp(k), 0);
-    out.set('shield', { now: summe(schild.now), stock: summe(schild.stock) });
-  }
+  if (out.has('shield')) out.set('shield', { now: activeShields(gens.now, shieldAct)[0], stock: activeShields(gens.stock, shieldAct)[0] });
   return out;
+}
+
+/**
+ * Schild eines Schiffs aus seinen Generatoren, gens = [HP, Aufladung] je
+ * Stueck. act: wie viele zugleich arbeiten (layouts shieldAct; ein Raumschiff
+ * nutzt hoechstens zwei, der Rest ist Reserve, Zaehlregel D-20 wie im
+ * Schiffsblatt). Es zaehlen die staerksten; ohne act alle. Gibt [HP, Aufladung].
+ */
+export function activeShields(gens, act = 0) {
+  const on = act > 0 ? [...gens].sort((a, b) => b[0] - a[0]).slice(0, act) : gens;
+  return on.reduce((t, g) => [t[0] + g[0], t[1] + g[1]], [0, 0]);
 }
 
 /** Gleicher Inhalt: Schiff, Name, Abweichungen, Halterungen und Lackierung. */
@@ -1148,7 +1141,7 @@ export function initWorkshop(doc, bridge) {
     paintMods();
     paintModel();
     paintCatCounts();
-    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]);
     for (const [g, t] of totals) {
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
       if (b) b.textContent = `${nf.format(Math.round(t.now))} ${groupUnit(g)}`;
@@ -1749,7 +1742,7 @@ export function initWorkshop(doc, bridge) {
     if (t) {
       const unit = groupUnit(os.group), title = m(`grp.${os.group}`);
       if (peeked) {
-        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks).get(os.group);
+        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]).get(os.group);
         effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} → ${nf.format(Math.round(to.now))} ${unit}`, ...pctOf(Math.round(to.now), Math.round(t.now), true) };
       } else effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} ${unit}`, ...pctOf(Math.round(t.now), Math.round(t.stock)) };
     }
@@ -1795,7 +1788,7 @@ export function initWorkshop(doc, bridge) {
   }
   /** Das Datenblatt des Teils k an der Stelle der Auswahlliste des offenen Slots; false, wenn es keines gibt. */
   function sheetView(slot, pick, k) {
-    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks));
+    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]));
     if (!d) return false;
     const tone = (dir) => (dir > 0 ? 'is-up' : dir < 0 ? 'is-down' : 'is-flat');
     // Streifen der Klasse: Lage in Prozent, rechts ist besser (classStrip)
@@ -1841,7 +1834,7 @@ export function initWorkshop(doc, bridge) {
     const isSaved = !!saved && sameLayout(saved, draft);
     const present = new Set(slots.map(tabOf));
     if (hasPaints()) present.add('paint');
-    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]);
     let num = 0;
     const groups = cat === 'paint' ? [] : GROUPS.map((gid) => {
       const mine = slots.filter((s) => s.group === gid && tabOf(s) === cat);

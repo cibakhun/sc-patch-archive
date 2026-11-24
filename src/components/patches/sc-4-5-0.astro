@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -185,7 +186,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Dawn of <span>Engineering</span></div>
       <div class="tagline">{de ? 'Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer.' : 'Engineering gameplay, ship armor and spreading fire.'}</div>
       <div class="tags">
-        <span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">{de ? 'Feuer' : 'Fire'}</span><span class="tag">Vulkan</span><span class="tag">VR</span>
+        <Schlagwort>Engineering</Schlagwort><Schlagwort>Ship Armor</Schlagwort><Schlagwort hot>{de ? 'Feuer' : 'Fire'}</Schlagwort><Schlagwort>Vulkan</Schlagwort><Schlagwort>VR</Schlagwort>
       </div>
       <a href={de ? '/de/topics/4-5-0-engineering.html' : '/topics/4-5-0-engineering.html'} style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-9);text-transform:uppercase;font-size:var(--fs-6);color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">{de ? 'Engineering · Detailseite →' : 'Engineering · Detail page →'}</a>
     </div>

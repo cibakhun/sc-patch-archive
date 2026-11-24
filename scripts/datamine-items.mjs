@@ -236,9 +236,17 @@ function ammoFromRef(ref) {
   let out = null;
   if (rec) {
     const ao = db.readRecord(rec, { maxDepth: 14, typed: true });
-    // BulletProjectileParams.damage ODER erstes DamageInfo mit Schaden
+    // BulletProjectileParams.damage ODER erstes DamageInfo mit Schaden.
+    // Verzerrungswaffen (Suckerpunch, Distortion Scattergun, DR Model-XJ,
+    // ATVS/EVSD der Vanguard) tragen im Treffer selbst nur 0,00009 und den
+    // ganzen Schaden in der Detonation (detonationParams.explosionParams):
+    // Suckerpunch S1 81 Verzerrung je Schuss, wie im Spiel. Ohne diesen
+    // Rueckfall hatten 12 Munitionsarten keinen Schaden, und ihre Waffen
+    // fehlten im Advanced Loadout ganz (Hawk, Vanguard Sentinel, Cutlass Blue).
+    // Traegt der Treffer Schaden, bleibt er allein der Wert (wie bisher).
     const bp = first(ao, /BulletProjectileParams|SProjectileParams/);
-    out = { damage: damageObj((bp && bp.damage) || first(ao, /DamageInfo/)), speed: num(ao.speed), lifetime: num(ao.lifetime) };
+    const damage = damageObj(bp?.damage) ?? damageObj(bp?.detonationParams?.explosionParams?.damage) ?? (bp?.damage ? null : damageObj(first(ao, /DamageInfo/)));
+    out = { damage, speed: num(ao.speed), lifetime: num(ao.lifetime) };
   }
   ammoCache.set(ref, out);
   return out;

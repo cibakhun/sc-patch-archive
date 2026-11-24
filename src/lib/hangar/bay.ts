@@ -20,6 +20,7 @@ import { formatStat, percentile, shipData, shipFacts, type ShipId, type StatKey 
 import { vSize, vStatus } from '../../i18n/vehicleText';
 import { shipGeometry, type PortName, type StockItem, type Vec3 } from './ports';
 import { isMiningLaser } from '../shipFacts';
+import { layoutData } from './layouts';
 
 /** Die eine Tab-Liste. Die Seite rendert daraus die Tab-Knoepfe, ShipBay je Tab ein Panel. */
 export const TABS = ['overview', 'weapons', 'systems', 'cargo'] as const;
@@ -302,13 +303,6 @@ const fuel = (tag: string, x: number | null, lang: Locale) => {
   return n == null ? null : `${tag} ${num(Math.round(n * 10) / 10, lang)} SCU`;
 };
 
-/**
- * Schildgeneratoren, die gleichzeitig laufen; dieselbe Zahl wie SCHILDE_AKTIV
- * in assets/hangar-layouts.js (tests/e2e/hangar-schild.test.js hält beide
- * gleich). Der Schildwert jedes Schiffs ist die Summe der zwei stärksten.
- */
-const SCHILDE_AKTIV = 2;
-
 /** Gruppensumme aus vehicles.json. Der Record-Typ verlangt jede Gruppe, auch die ohne Summe. */
 const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => string | null>> = {
   pilot: (v, lang) => formatStat('dps', pos(v.pilotDps), lang),
@@ -464,10 +458,12 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
         rowOf.set(dk, row);
         return row;
       });
-      // Mehr Schildgeneratoren, als laufen: Die Summe ist die der stärksten
-      // (SCHILDE_AKTIV), nicht Stückzahl mal HP (UX-Prüfung P19)
-      const gens = g === 'shield' ? mine.reduce((a, [, d]) => a + d.count, 0) : 0;
-      const note = gens > SCHILDE_AKTIV ? t('grp.shield.aktiv', { n: num(SCHILDE_AKTIV, lang), m: num(gens, lang) }) : null;
+      // Mehr Schildgeneratoren, als laufen: Die Summe ist die der stärksten,
+      // nicht Stückzahl mal HP (UX-Prüfung P19). Wie viele laufen, sagt
+      // dieselbe Zahl, mit der Werkstatt und Loadout rechnen (shieldAct).
+      const act = g === 'shield' ? layoutData().shieldAct[id] ?? 0 : 0;
+      const gens = act ? mine.reduce((a, [, d]) => a + d.count, 0) : 0;
+      const note = gens > act ? t('grp.shield.aktiv', { n: num(act, lang), m: num(gens, lang) }) : null;
       return [{ key: g, title: t(`grp.${g}`), total: GROUP_TOTAL[g](v, lang), note, rows }];
     });
   };

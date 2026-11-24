@@ -1,0 +1,73 @@
+---
+// Ein Schlagwort-Chip im Kopf der Themen- und Patchseiten (UX-Audit H5).
+// Hat das Schlagwort ein Ziel (src/lib/schlagworte.ts), wird es ein Link mit
+// Pfeil; sonst steht es flach da, ohne Rahmen, damit es nicht wie ein Knopf
+// aussieht. Auf der Zielseite selbst bleibt es flach.
+//
+// Benutzung wie vorher der Span: <Schlagwort hot>Hunt The Polaris</Schlagwort>.
+// `klasse` reicht Seiten-eigene Varianten durch (z. B. "case").
+import { href, localeFromPath } from '../../i18n/ui';
+import { schlagwortZiel } from '../../lib/schlagworte';
+
+interface Props {
+  hot?: boolean;
+  klasse?: string;
+}
+const { hot = false, klasse } = Astro.props;
+const lang = localeFromPath(Astro.url.pathname);
+const html = (await Astro.slots.render('default')).trim();
+const text = html
+  .replace(/<[^>]*>/g, '')
+  .replace(/&amp;/g, '&')
+  .replace(/&#0?39;|&apos;/g, "'")
+  .replace(/&quot;/g, '"');
+const ziel = schlagwortZiel(text);
+const hier = Astro.url.pathname.replace(/^\/de(?=\/)/, '').replace(/\/$/, '');
+const verlinkt = ziel !== null && ziel !== hier && `${ziel.replace(/\.html$/, '')}` !== hier;
+---
+{verlinkt
+  ? (<a class:list={['tag', { hot }, klasse, 'tag--ziel']} href={href(ziel!, lang)}><Fragment set:html={html} /><span class="tag__pfeil" aria-hidden="true">→</span></a>)
+  : (<span class:list={['tag', { hot }, klasse, 'tag--flach']}><Fragment set:html={html} /></span>)}
+
+<style is:global>
+  /* Flach: dieselbe Schrift, kein Rahmen, kein Grund; ein kleiner Rhombus
+     davor trennt die Woerter, wie die Punkte der Listen auf der Seite. */
+  .tags .tag.tag--flach {
+    border-color: transparent;
+    background: none;
+    padding-inline: 0.15rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .tags .tag.tag--flach::before {
+    content: '';
+    flex: none;
+    width: 5px;
+    height: 5px;
+    background: currentColor;
+    opacity: 0.55;
+    transform: rotate(45deg);
+  }
+  /* Ziel: der Chip bleibt ein Chip, mit Akzentrand und Pfeil. */
+  .tags a.tag.tag--ziel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    text-decoration: none;
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    transition: background-color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui);
+  }
+  .tags a.tag.tag--ziel:hover,
+  .tags a.tag.tag--ziel:focus-visible {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .tags .tag__pfeil {
+    color: var(--accent);
+    transition: transform var(--dur-base) var(--ease-ui);
+  }
+  .tags a.tag.tag--ziel:hover .tag__pfeil {
+    transform: translateX(2px);
+  }
+</style>

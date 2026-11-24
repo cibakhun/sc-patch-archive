@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-5-0.html' : '/patches/sc-4-5-0.html'}>Alpha 4.5.0 · Dawn of Engineering</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Das Schiff wird zum Schlachtfeld' : 'The ship becomes the battlefield'}</span>Engineering</h1>
       <p class="lead">{de ? 'Mit 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay: Energie verteilen, Panzerung managen, Braende loeschen — wer im Gefecht ueberlebt, haelt sein Schiff am Laufen.' : 'With 4.5.0, operating your ship becomes gameplay in itself: distribute power, manage armor, put out fires — whoever survives the fight is the one who keeps their ship running.'}</p>
-      <div class="tags"><span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">{de ? 'Feuer-Hazard' : 'Fire Hazard'}</span><span class="tag">Power Management</span><span class="tag">VR</span></div>
+      <div class="tags"><Schlagwort>Engineering</Schlagwort><Schlagwort>Ship Armor</Schlagwort><Schlagwort hot>{de ? 'Feuer-Hazard' : 'Fire Hazard'}</Schlagwort><Schlagwort>Power Management</Schlagwort><Schlagwort>VR</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

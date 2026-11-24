@@ -6,6 +6,8 @@
 import { getCollection } from 'astro:content';
 import { useTranslations, href, localeFromPath } from '../i18n/ui';
 import { mergePatchEn } from '../i18n/patchText';
+import Bezuege from './dossier/Bezuege.astro';
+import { themaBezuege } from '../lib/bezuege';
 
 interface Props {
   topicSlug: string;
@@ -68,6 +70,7 @@ const dispVersion = dataVersion ?? parent?.data.version;
         ) : (
           feats[0] && <p class="tf__desc">{feats[0].desc}</p>
         )}
+        <Bezuege eintraege={themaBezuege(topicSlug)} />
         {!evergreen && (
           <a class="tf__prov" href={L(`/patches/sc-${parent.id}.html`)}>
             {t('tf.introduced').replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
@@ -227,4 +230,5 @@ const dispVersion = dataVersion ?? parent?.data.version;
       overflow-wrap: anywhere;
       min-width: 0;
     }
-  }</style>
+  }
+</style>

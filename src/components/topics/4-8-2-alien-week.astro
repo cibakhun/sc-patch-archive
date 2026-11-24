@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-2.html' : '/patches/sc-4-8-2.html'}>Alpha 4.8.2 · Gatac &amp; Alien Week</a> &nbsp;·&nbsp; Event</div>
       <h1><span class="thin">First Contact Day 2956</span>Alien Week</h1>
       <p class="lead">{de ? 'Die jährliche Feier der nicht-menschlichen Hersteller: rund um First Contact Day rückt Alien Week Xenotech ins Rampenlicht — mit den Gatac-Schiffen Railen, Syulen und Tyilui als Headliner.' : 'The annual celebration of non-human manufacturers: around First Contact Day, Alien Week puts xenotech in the spotlight — headlined by the Gatac ships Railen, Syulen and Tyilui.'}</p>
-      <div class="tags"><span class="tag hot">Event</span><span class="tag">First Contact Day</span><span class="tag">Gatac</span><span class="tag">Aopoa</span><span class="tag">Xenotech</span></div>
+      <div class="tags"><Schlagwort hot>Event</Schlagwort><Schlagwort>First Contact Day</Schlagwort><Schlagwort>Gatac</Schlagwort><Schlagwort>Aopoa</Schlagwort><Schlagwort>Xenotech</Schlagwort></div>
       <div class="hero__play" data-lb="yt:Xh35kuWo0a4"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
