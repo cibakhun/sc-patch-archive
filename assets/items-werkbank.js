@@ -294,12 +294,21 @@
     return (C.zg && C.zg[root]) || 'chip';
   }
 
+  // Hersteller der Sets wie auf der Set-Seite (setHersteller() in
+  // scripts/lib/armor-sets.mjs): Kurzform des Set-Tags -> Anzeigename,
+  // „Unknown" -> kein Hersteller.
+  function setHersteller(m) {
+    m = typeof m === 'string' ? m.trim() : '';
+    if (!m || /^unknown$/i.test(m)) return null;
+    var A = C.setHersteller || {};
+    return Object.prototype.hasOwnProperty.call(A, m) ? A[m] : m;
+  }
   function vorbereiten(db) {
     ITEMS = db.items || [];
     FUNDORTE = db.fundorte || null;
     SETS = karte();
     SETLISTE = db.sets || [];
-    SETLISTE.forEach(function (s) { SETS[s.id] = s; });
+    SETLISTE.forEach(function (s) { s.manufacturer = setHersteller(s.manufacturer); SETS[s.id] = s; });
     ITEMS.forEach(function (it) {
       if (FUNDORTE) lootZeilen(it);
       var g = it.game || null;

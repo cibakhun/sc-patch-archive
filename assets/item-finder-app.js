@@ -146,6 +146,15 @@
     var rest = item.obtain.filter(function (o) { return o.price == null; });
     item.obtain = preis.concat(neu, rest);
   }
+  // Hersteller der Sets wie auf der Set-Seite (setHersteller() in
+  // scripts/lib/armor-sets.mjs): Kurzform des Set-Tags -> Anzeigename,
+  // „Unknown" -> kein Hersteller.
+  function setHersteller(m) {
+    m = typeof m === 'string' ? m.trim() : '';
+    if (!m || /^unknown$/i.test(m)) return null;
+    var A = CFG.setHersteller || {};
+    return Object.prototype.hasOwnProperty.call(A, m) ? A[m] : m;
+  }
   function setOf(item) { return item.game && item.game.setId ? SETS[item.game.setId] || null : null; }
 
   // Schlüssel-Stat je Item (Badge auf der Karte + Wert-Sortierung). n = Zahl zum Sortieren.
@@ -1182,7 +1191,7 @@
       FUNDORTE = db.fundorte || null;
       if (FUNDORTE) ALL_ITEMS.forEach(lootZeilen);
       SETS = {};
-      (db.sets || []).forEach(function (s) { SETS[s.id] = s; });
+      (db.sets || []).forEach(function (s) { s.manufacturer = setHersteller(s.manufacturer); SETS[s.id] = s; });
 
       var sub = document.getElementById('uif-subline');
       if (sub && META) {

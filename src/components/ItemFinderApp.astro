@@ -17,6 +17,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
 import { erzKatalog } from '../lib/miningLinks';
+import { SET_HERSTELLER } from '../../scripts/lib/armor-sets.mjs';
 
 interface Props { lang: 'de' | 'en' }
 // Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
@@ -1047,6 +1048,6 @@ const JS_T = ITEM_UI[lang];
   }
 </style>
 
-<script is:inline set:html={`window.__UIF=${jsonForScript({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, erze: erzKatalog(lang), t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${jsonForScript({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, erze: erzKatalog(lang), setHersteller: SET_HERSTELLER, t: JS_T })};`} />
 <script is:inline src={appJs}></script>
 <script is:inline defer src={backJs}></script>
