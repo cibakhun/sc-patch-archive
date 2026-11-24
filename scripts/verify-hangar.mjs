@@ -822,6 +822,9 @@
     ek  dort data-g="shield" umbenannt (1 Abweichung, 423 statt 424
         Buchten mit Schild: Schildgruppe fehlt, obwohl 2 von 3
         laufen)                                                     -> [25]
+    el  dort zusätzlich eine Zeile in der Gruppe pilot mit dem
+        Port des Bergbaulasers (1 Abweichung: Laser doppelt, auch
+        unter den Pilotenwaffen)                                    -> [26]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3725,6 +3728,9 @@ const MINING = { schiffe: 8, ports: 10 };
       const inGruppe = new Set(zeilen.filter((z) => z.g === 'mining' && z.kind === 'miningLaser').flatMap((z) => z.ports));
       for (const p of erwartet) if (!inGruppe.has(p)) bad.push(`${b.file}: Port ${p} trägt einen Mining-Laser, steht aber nicht in der Gruppe „mining“ (${zeilen.find((z) => z.ports.includes(p))?.g ?? 'nirgends'})`);
       for (const z of zeilen) {
+        // Derselbe Port zusätzlich in einer anderen Zeile: die Mining-Zeile
+        // erfüllt die Mengenprüfung oben, der Laser stünde trotzdem doppelt da.
+        if (!(z.g === 'mining' && z.kind === 'miningLaser')) for (const p of z.ports) if (erwartet.has(p)) bad.push(`${b.file}: Port ${p} trägt einen Mining-Laser, steht aber auch in der Gruppe ${z.g} (${z.kind})`);
         if ((z.g === 'mining') !== (z.kind === 'miningLaser')) bad.push(`${b.file}: Zeile ${z.kind} in Gruppe ${z.g}`);
         if (z.kind === 'miningLaser') for (const p of z.ports) if (!erwartet.has(p)) bad.push(`${b.file}: Port ${p} steht als Mining-Laser da, trägt aber keinen`);
       }
