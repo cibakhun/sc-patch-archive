@@ -317,9 +317,9 @@
       it._b = B_CAT[it.category] || null;
       it._kc = farbe(it._root);
       it._g = zeichen(it);
-      // Name wie im Spiel, auf beiden Sprachen; der deutsche Name aus den
-      // Spieldaten steht als Zweitname darunter (Sprachregel, wie altName()
-      // und displayName() in src/lib/items.ts).
+      // Name wie im Spiel, auf beiden Sprachen; der deutsche Name steht als
+      // Zweitname darunter (Sprachregel, wie altName() und displayName() in
+      // src/lib/items.ts).
       var nde = g && g.nameDe ? String(g.nameDe).trim() : '';
       it._n = it.name;
       it._alt = nde && nde !== it.name ? nde : null;
