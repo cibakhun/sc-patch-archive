@@ -492,6 +492,12 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       JS die Leiste und der Verlauf aus mobile-ux.css stehen bleiben. Auf
       Seiten ohne solchen Kasten kostet es ein querySelectorAll. */}
   <script is:inline defer src={versioned('assets/scroll-affordance.js', '/assets/scroll-affordance.js')}></script>
+  {/* Grosswoerter der Patch- und Themenseiten (Wort-Kacheln, Bandwoerter)
+      in ihren Kasten einpassen statt sie mitten im Wort zu trennen
+      (Heuristik P90). `defer`: misst nach dem Aufbau, ohne JS bleibt die
+      Silbentrennung oben als Rueckfall. Auf allen anderen Seiten kostet es
+      ein querySelectorAll. */}
+  <script is:inline defer src={versioned('assets/grosswort.js', '/assets/grosswort.js')}></script>
   {/* Sprachhinweis: wer mit deutschem Browser auf einer englischen Seite
       einsteigt, bekommt die deutsche Fassung angeboten (und umgekehrt).
       Begruendung und Bedingungen im Kopf der Datei. Ohne Gegenstueck,

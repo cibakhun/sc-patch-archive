@@ -9,7 +9,9 @@
 //    setStats(discordUserId, patch)   -> { updated }
 //    refineryDue()                    -> faellige Raffinerie-Meldungen
 //    refinerySent(jobIds)             -> { updated }
-//  (die beiden letzten nur fuer refinery-notify.mjs)
+//    chatDue()                        -> faellige Hinweise auf Chat-Nachrichten
+//    chatSent(msgIds)                 -> { updated }
+//  (refinery* nur fuer refinery-notify.mjs, chat* nur fuer chat-notify.mjs)
 //
 //  Zwei Wege dahinter:
 //
@@ -51,6 +53,21 @@ function cleanJobIds(ids) {
     throw new Error(`keine gueltigen Auftrags-IDs: ${JSON.stringify(ids).slice(0, 80)}`);
   }
   return out;
+}
+
+/** 1-100 Nachrichten-IDs (positive Ganzzahlen), sonst Fehler vor jedem Aufruf. */
+function cleanMsgIds(ids) {
+  const out = [...new Set(ids || [])];
+  if (!out.length || out.length > 100 || !out.every((v) => Number.isSafeInteger(v) && v >= 1)) {
+    throw new Error(`keine gueltigen Nachrichten-IDs: ${JSON.stringify(ids).slice(0, 80)}`);
+  }
+  return out;
+}
+
+/** Nur Zeilen mit Discord-ID und Nachrichten-ID; der Rest waere nicht zustellbar. */
+function chatRows(rows) {
+  if (!Array.isArray(rows)) throw new Error('chat_due: Antwort ist keine Liste');
+  return rows.filter((r) => SNOWFLAKE.test(String(r?.discord_user_id ?? '')) && Number.isSafeInteger(r?.msg_id));
 }
 
 /** Nur Zeilen mit Discord-ID und Auftrags-ID; der Rest waere nicht zustellbar. */
@@ -141,6 +158,13 @@ function functionBackend({ url, secret }, fetchImpl, log = console.warn) {
       const out = await call({ op: 'refinery_sent', ids: cleanJobIds(jobIds) });
       return { updated: Number(out?.updated) || 0 };
     },
+    async chatDue() {
+      return chatRows((await call({ op: 'chat_due' }))?.rows);
+    },
+    async chatSent(msgIds) {
+      const out = await call({ op: 'chat_sent', ids: cleanMsgIds(msgIds) });
+      return { updated: Number(out?.updated) || 0 };
+    },
   };
 }
 
@@ -210,6 +234,12 @@ function legacyBackend({ url, key }, fetchImpl) {
     async refinerySent(jobIds) {
       return { updated: Number(await rpc('refinery_discord_sent', { p_ids: cleanJobIds(jobIds) })) || 0 };
     },
+    async chatDue() {
+      return chatRows(await rpc('chat_discord_due', { p_limit: 50 }));
+    },
+    async chatSent(msgIds) {
+      return { updated: Number(await rpc('chat_discord_sent', { p_ids: cleanMsgIds(msgIds) })) || 0 };
+    },
   };
   async function rpc(name, args) {
     const res = await fetchImpl(`${url}/rest/v1/rpc/${name}`, {
@@ -242,6 +272,7 @@ function withFallback(primary, fallback, log) {
     mode: fallback ? 'function+legacy' : 'function',
     listLinked: wrap('listLinked'), listBadges: wrap('listBadges'), setTester: wrap('setTester'), setStats: wrap('setStats'),
     refineryDue: wrap('refineryDue'), refinerySent: wrap('refinerySent'),
+    chatDue: wrap('chatDue'), chatSent: wrap('chatSent'),
   };
 }
 

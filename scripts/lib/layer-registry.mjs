@@ -517,8 +517,8 @@ export const DISCOVERED_REGISTRY = [
     rationale:
       'Das Vanduul-Bild fuellt die rechten 64 % des Abschnitts; sein Verlauf blendet es nach links in --bg-2 aus. Die Zahl „64 → 250“ ragt an der linken Bildkante hinein, gemessen wird dort.',
     kind: 'photo',
-    images: [{ id: 'chronik-vanduul-angriff', path: 'assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp', usedBy: 'src/components/patch-chronik/Chronik.astro (.wort__bild)' }],
-    anchor: { xFrac: 0.04, yFrac: 0.42 },
+    images: [{ id: 'chronik-vncl-glaive', path: 'assets/patch-4-10-3/rsi/vncl-glaive-1920.webp', usedBy: 'src/components/patch-chronik/Chronik.astro (.wort__bild)' }],
+    anchor: { xFrac: 0.28, yFrac: 0.4 },
     scrim: { layers: [{ angle: 90, stops: [{ t: 0, rgba: { r: 11 / 255, g: 12 / 255, b: 18 / 255, alpha: 1 } }, { t: 0.3, rgba: { r: 11 / 255, g: 12 / 255, b: 18 / 255, alpha: 0.5 } }, { t: 0.7, transparent: true }] }] },
     text: { large: { tokenKey: '#ffffff', minRatio: 3.0, label: '.wort__zahl (64 → 250)' } },
   },

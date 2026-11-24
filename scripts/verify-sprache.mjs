@@ -20,7 +20,7 @@
 //      (DE-Seite zeigt "Claim time", EN-Seite zeigt "Spieler je Instanz").
 //   2  WARNUNG: deutsches Einzelwort aus dem Katalog auf einer EN-Seite
 //      ("RAUM", "unbestätigt"). Nur WARNUNG, weil ein Einzelwort auch
-//      Englisch sein kann ("Station") — dann waere "uebersetzen"
+//      Englisch sein kann ("Station", "Torso") — dann waere "uebersetzen"
 //      falsch. Solche Woerter stehen als benannte Ausnahme da, damit die
 //      Liste im Normalzustand leer ist; Zombie-Waechter wie ueblich.
 //      Die Gegenrichtung fehlt bewusst: die Spieldaten sind englisch, und
@@ -119,15 +119,10 @@ const MIN_NAMENSPAARE = Number(argWert('--klinke-namen') ?? 5_500);
 // Benannte Ausnahmen fuer Regel 2 (Grundsatz 6): deutsche Katalogwoerter,
 // die zugleich englische Woerter sind. Trifft eine nichts mehr, reisst das
 // Tor (Zombie-Waechter).
-// "Torso" (Kategorie "Armour / Torso") ist am 24.11.2026 gestrichen: die
-// einzige Quelle war das Doppel "TrueDef-Pro Core White/Silver/Gray", das
-// IA C8 (scripts/lib/item-namen-aliase.mjs) in sein Spiel-Item mit der
-// Kategorie "Armour / Core" zusammengelegt hat; der Zombie-Waechter hat es
-// gemeldet. Kommt die Kategorie zurueck, meldet Regel 2 das Wort wieder.
 const WORT_AUSNAHMEN = [
   {
     wort: 'Station',
-    anlass: 'auch Englisch: Spaltenkopf der Raffinerie- und Mining-Tabellen und ein Item-Name in der Liste "Other".',
+    anlass: 'auch Englisch: Spaltenkopf der Raffinerie- und Mining-Tabellen und ein Item-Name ("Engineering Control Station", Schiffssysteme).',
   },
 ];
 

@@ -15,6 +15,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
 import { seoTitle } from '../lib/missions';
+import { GATTUNG as SUCH_GATTUNG } from '../lib/searchAliases';
 import { WERKBANK_CSS } from '../lib/werkbankCss';
 import { WERKBANK_DESIGN_CSS } from '../lib/werkbankDesign';
 import { wbGlyphCss, wbGlyphKey } from '../lib/werkbankGlyphs';
@@ -1109,6 +1110,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   // Wertnamen und Pfadglieder nur auf DE (src/i18n/craftingWerte.ts).
   werte: lang === 'de' ? WERTNAMEN_DE : undefined,
   glieder: lang === 'de' ? PFADGLIEDER_DE : undefined,
+  // Deutsche Gattungswoerter fuer die Suche („karna gewehr" -> Karna Rifle),
+  // dieselbe Tabelle wie die Kopfsuche, in beiden Sprachen. Einmal je Seite
+  // statt je Karte (HTML-Diaet); die Zuordnung rechnet crafting-app.js.
+  gattung: SUCH_GATTUNG.map(([re, woerter]) => [re.source, woerter]),
 })};`} />
 {/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
     Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am

@@ -13,12 +13,15 @@
 #                                        Trigger, Storage-Policies, Realtime)
 #   history_schema.sql, history_data.sql Migrationshistorie
 #   katalog.json                         Objekte, Rechte, Zeilenzahlen der Quelle
+#   plattform.json                       Auth- und Storage-Version der Quelle
+#                                        (daran bindet sich die Probe)
 #   storage/<bucket>/<name>, storage.json die Dateien aus Supabase Storage
 #   manifest.json                        Pruefsummen und Zaehlungen (verify-backup)
 #
 # Umgebung (optional): VB_ERWARTETE_REF (Projektref, die im Benutzernamen
 # stehen muss), VB_KLINKE_KONTEN / VB_KLINKE_TABELLEN (Untergrenzen),
-# VB_PG_IMAGE, SUPABASE_BIN.
+# VB_QUELLE_APIKEY (oeffentlicher Publishable Key der Quelle, fuer die
+# Auth-Version), VB_PG_IMAGE, SUPABASE_BIN.
 # ============================================================
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/gemeinsam.sh"
@@ -44,6 +47,9 @@ fi
 schritt "Verbindung und Rolle"
 info="$(pg -c "select current_user || ' ' || current_setting('server_version') || ' ro=' || current_setting('default_transaction_read_only')")"
 echo "  $info"
+
+schritt "Plattform-Stand der Quelle (Auth, Storage)"
+node "$REPO/scripts/backup/plattform.mjs" quelle "$ZIEL/plattform.json" "${VB_STORAGE_URL:?VB_STORAGE_URL fehlt}"
 
 schritt "Skripte der Supabase-CLI ($("$SUPABASE_BIN" --version 2>/dev/null | head -1))"
 cli_skript "$SKRIPTE/roles.sh" --role-only
