@@ -242,12 +242,8 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     let undoFrom = '';
     let focusShip = '';
     const whose = (snap: Snap | null) => (snap ? snap.mode + ':' + (fleet?.owner?.() || '') : '');
-    // moveFocus: verfällt der Eintrag, während der Fokus auf „Rückgängig“
-    // liegt (An- oder Abmeldung in einem anderen Tab), geht er weiter.
-    const dropUndo = (moveFocus = false) => {
-      const had = document.activeElement === $('fltUndoBtn');
+    const dropUndo = () => {
       undoShip = null; undoFrom = ''; $('fltUndo').hidden = true;
-      if (moveFocus && had) focusFallback();
     };
     const remove = (s: Ship) => {
       if (!fleet) return;
@@ -290,7 +286,13 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
 
     const paint = (snap: Snap) => {
-      if (undoShip && whose(snap) !== undoFrom) dropUndo(true);
+      // Verfällt „Rückgängig“, während es den Fokus hat (An- oder Abmeldung in
+      // einem anderen Tab), geht der Fokus nach dem Neuzeichnen weiter.
+      let lostUndo = false;
+      if (undoShip && whose(snap) !== undoFrom) {
+        lostUndo = document.activeElement === $('fltUndoBtn');
+        dropUndo();
+      }
       last = snap;
       const list = shipsNow().slice().sort((a, b) => coll.compare(a.label, b.label));
       // Neu zeichnen ohne Positionsverlust: lag der Fokus auf einer Karte (Link
@@ -307,7 +309,10 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
           focusShip = '';
           focusFallback();
         }
-      } else if (keep) focusCard(keep.id, keep.x, true);
+      } else if (keep ? !focusCard(keep.id, keep.x, true) : lostUndo) {
+        // Die Karte mit dem Fokus ist weg, oder „Rückgängig“ verfiel.
+        focusFallback();
+      }
       $('fltEmpty').hidden = list.length > 0;
       $('fltCount').textContent = list.length ? (list.length === 1 ? C.count1 : fill(C.countN, { n: list.length })) : '';
       const guest = snap.mode === 'guest';
