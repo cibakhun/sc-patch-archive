@@ -1833,7 +1833,7 @@ async function probeMiningHandy(page) {
       const p = await ctx.newPage();
       await p.goto(ziel, { waitUntil: 'load' });
       await p.waitForSelector('.wb__tile .wb__pin', { timeout: 15000 });
-      const m = await p.evaluate(async () => {
+      const m = await mitSichtbar(p, async (_, da) => {
         const naechstesBild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         const nadel = document.querySelector('.wb__tile .wb__pin');
         const reiter = document.querySelector('[data-seg="sig"]');
@@ -1851,7 +1851,9 @@ async function probeMiningHandy(page) {
         // Gezeichnet heisst: eigene Hoehe UND innerhalb der Spalte, die mit
         // overflow:hidden alles darunter abschneidet. Der Eintrag zusaetzlich
         // innerhalb der Liste selbst: eine 20 px hohe Liste schnitte ihn ab,
-        // obwohl er noch in der Spalte laege (Review PR #420).
+        // obwohl er noch in der Spalte laege (Review PR #420). Und sichtbar
+        // nach der einen Bestimmung oben (SICHTBAR): visibility:hidden oder
+        // Opazitaet 0 lassen die Geometrie stehen (Review PR #429).
         const im = (x, r) => !!x && !!r && x.height > 0 && x.top >= r.top - 1 && x.bottom <= r.bottom + 1;
         const drin = (x) => im(x, rs);
         return {
@@ -1859,8 +1861,8 @@ async function probeMiningHandy(page) {
           spalteDa: !!rs && rs.height > 0 && getComputedStyle(spalte).display !== 'none',
           liste: rl ? Math.round(rl.height) : -1,
           inhalt: liste ? liste.scrollHeight : -1,
-          kopfDrin: drin(rk),
-          eintragDrin: drin(re) && im(re, rl),
+          kopfDrin: drin(rk) && da(kopf),
+          eintragDrin: drin(re) && im(re, rl) && da(eintrag),
           name: eintrag?.querySelector('.nm')?.textContent || '',
         };
       });

@@ -1280,22 +1280,27 @@ const CLIENT = {
       history.replaceState(history.state, '', location.pathname + '?' + q.toString() + location.hash);
     } catch (e) { /* ohne Verlauf bleibt die Adresse, wie sie war */ }
   }
+  /* Nur eigene Schluessel zaehlen: ?band=constructor oder ein solcher Wert
+     im Speicher traefe sonst eine geerbte Eigenschaft und verdraengte die
+     gueltige Wahl (Review PR #429). */
+  function own(o, k) { return typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k); }
   function load() {
     var v = null;
     try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
     var a = fromAddress();
     if (a) {
       v = v || {};
-      if (a.s && AMAP[a.s]) v.s = a.s;
-      if (a.e && AMAP[a.e]) v.e = a.e;
-      if (a.b && D.bands[a.b]) v.b = a.b;
+      if (own(AMAP, a.s)) v.s = a.s;
+      if (own(AMAP, a.e)) v.e = a.e;
+      if (own(D.bands, a.b)) v.b = a.b;
     }
     var s = byId('pj-start'), e = byId('pj-end'), b = byId('pj-bandsel');
-    s.value = (v && AMAP[v.s]) ? v.s : D.def.start;
-    e.value = (v && AMAP[v.e]) ? v.e : D.def.end;
-    b.value = (v && D.bands[v.b]) ? v.b : D.def.band;
+    s.value = (v && own(AMAP, v.s)) ? v.s : D.def.start;
+    e.value = (v && own(AMAP, v.e)) ? v.e : D.def.end;
+    b.value = (v && own(D.bands, v.b)) ? v.b : D.def.band;
     if (!s.value) s.value = D.def.start;
     if (!e.value) e.value = D.def.end;
+    if (!b.value) b.value = D.def.band;
   }
 
   function onChange() { save(); render(); toAddress(); }

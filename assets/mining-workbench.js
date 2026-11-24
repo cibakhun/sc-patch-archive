@@ -1057,14 +1057,31 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      Eine Erzwahl wechselt dort jetzt dorthin und holt die Reiterleiste ins
      Bild — sonst stuende man mitten in einer Liste, die es nicht mehr gibt.
      Gefragt wird die Medienabfrage, nicht die Breite: dieselbe Grenze
-     (760 px) wie im Stilblock, an der die Reiter erscheinen. */
-  function zurAnsichtAmHandy() {
+     (760 px) wie im Stilblock, an der die Reiter erscheinen.
+     Die Reiterleiste ruht danach UNTER der festen Kopfleiste, nicht an der
+     Fensterkante: deren Hoehe steht in --nav-h und waechst mit jeder Zeile,
+     die sie traegt (Zurueck-Marke, lokale Leiste). Mit `wie.tastatur` geht
+     auch der Fokus auf den Reiter „Ansicht" -- sonst stuende er auf einer
+     Kachel, deren Spalte gerade verschwunden ist. Beim Laden (`wie.laden`)
+     wird weder gerollt noch fokussiert: die Seite steht dann noch oben, und
+     ein Fokus ohne Anlass zoege den Vorleser vom Seitenanfang weg. */
+  function zurAnsichtAmHandy(wie) {
+    wie = wie || {};
     if (!grid || !grid.classList.contains('has-seg')) return;
     var mm = window.matchMedia && window.matchMedia('(max-width:760px)');
     if (!mm || !mm.matches) return;
     setSeg('view');
+    if (wie.laden) return;
     var bar = document.querySelector('.wb__seg');
-    if (bar && bar.getBoundingClientRect().top < 0 && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
+    if (!bar) return;
+    var kopf = 0;
+    try { kopf = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 0; } catch (e) { kopf = 0; }
+    var oben = bar.getBoundingClientRect().top;
+    if (oben < kopf && window.scrollBy) window.scrollBy(0, oben - kopf - 8);
+    if (wie.tastatur) {
+      var reiter = bar.querySelector('[data-seg="view"]');
+      if (reiter && reiter.focus) reiter.focus({ preventScroll: true });
+    }
   }
 
   /* Die Handler haengen am document und sehen JEDEN Klick der Seite — auch
@@ -1252,7 +1269,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       S.sel = tile.getAttribute('data-min');
       S.view = 'ore';
       renderAll();
-      zurAnsichtAmHandy();
+      zurAnsichtAmHandy({ tastatur: true });
       return;
     }
     /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
@@ -1525,17 +1542,22 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      ersten renderAll() (unten) -- sonst gewinnt der gespeicherte Zustand.
      Beide Parameter vertragen sich: der Mineral-Zweig bestimmt weiterhin das
      gewaehlte Erz (Fusszeile), dieser Zweig nur die ANSICHT. */
+  var locLinked = false;
   (function fromQueryLoc() {
     var want;
     try { want = new URLSearchParams(location.search).get('fundort'); } catch (e) { return; }
     if (!want) return;
     var key = want.trim().toLowerCase();
-    for (var p in locIndex) if (p.toLowerCase() === key) { S.selLoc = p; S.view = 'loc'; return; }
+    for (var p in locIndex) if (p.toLowerCase() === key) { S.selLoc = p; S.view = 'loc'; locLinked = true; return; }
   })();
 
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
   renderAll();
   adresseAn = true;
+  /* Wer per Tieflink kommt, will das verlinkte Erz oder den Fundort sehen,
+     und der steht am Handy im Reiter „Ansicht" (Review PR #429). Ohne
+     Tieflink bleibt der Start in „Minerale". */
+  if (deepLinked || locLinked) zurAnsichtAmHandy({ laden: true });
 
   /* Angesprungene Kachel ins Bild holen. Zwei Fallen: nicht ueber offsetTop
      rechnen (misst gegen das naechste positionierte Elternelement), und EIN
