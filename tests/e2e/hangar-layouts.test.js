@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, mainWeapon, loadoutName,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, mainWeapon, loadoutName, shipShort,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -147,6 +147,15 @@ describe('Werkstatt: Standardname (Schiff · Hauptwaffe · Tag)', () => {
     assert.ok(lang.length <= MAX_NAME);
     assert.ok(lang.endsWith(' · 03.11.'), lang);
     assert.ok(loadoutName('y'.repeat(80), null, new Date(2026, 10, 3), false).endsWith(' · Nov 3'));
+  });
+  test('Name: Herstellerkuerzel vorn faellt weg, wenn es zur Schiffs-ID gehoert', () => {
+    assert.equal(shipShort('MISC Prospector', 'misc-prospector'), 'Prospector');
+    assert.equal(shipShort('MISC Freelancer MAX', 'misc-freelancer-max'), 'Freelancer MAX');
+    assert.equal(shipShort('ATLS GEO', 'argo-atls-geo'), 'ATLS GEO', 'kein Herstellerkuerzel');
+    assert.equal(shipShort('Gladius', 'aegs-gladius'), 'Gladius');
+    assert.equal(shipShort('MISC', 'misc-x'), 'MISC', 'nie leer');
+    assert.equal(shipShort('', ''), '');
+    assert.equal(loadoutName(shipShort('MISC Prospector', 'misc-prospector'), 'CF-117 Bulldog Repeater', new Date(2026, 10, 24), true), 'Prospector · CF-117 Bulldog Repeater · 24.11.');
   });
   test('Name: ein gespeicherter Standardname bleibt gespeichert (sameLayout), auch am naechsten Tag', () => {
     const heute = { ship: 'gladius', name: loadoutName('Gladius', 'Mantis GT-220 Gatling', new Date(2026, 10, 13), true), slots: {} };

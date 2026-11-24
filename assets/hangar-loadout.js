@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, mainWeapon, loadoutName } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, mainWeapon, loadoutName, shipShort } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -66,7 +66,7 @@ const times = (n) => (n > 1 ? `${n}× ` : '');
 // hangar-layouts.js), als Platzhalter gezeigt und beim Speichern einmal vergeben.
 const placeholder = () => {
   const w = data ? mainWeapon(slots, current) : null;
-  return loadoutName(shipName(draft.ship), w && data.items[w] ? itemName(w) : null, new Date(), de);
+  return loadoutName(shipShort(shipName(draft.ship), draft.ship), w && data.items[w] ? itemName(w) : null, new Date(), de);
 };
 const itemName = (k) => {
   const it = data.items[k];

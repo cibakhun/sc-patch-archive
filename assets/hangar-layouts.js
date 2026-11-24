@@ -336,6 +336,20 @@ export function loadoutName(ship, weapon, when, de) {
   return cleanName(schiff ? schiff + ende : tag);
 }
 
+/**
+ * Schiffsname fuer den Standardnamen: ohne Herstellerkuerzel vorn, wenn es
+ * dem Kuerzel der Schiffs-ID entspricht („MISC Prospector“, misc-prospector
+ * → „Prospector“). Der Hersteller steht in der Schiffswahl daneben, und das
+ * Namensfeld ist schmal. Andere Namen bleiben, wie sie sind („ATLS GEO“ hat
+ * die ID argo-atls-geo).
+ */
+export function shipShort(name, id) {
+  const n = String(name || '');
+  const code = String(id || '').split('-')[0];
+  const t = n.split(' ');
+  return code && t.length > 1 && t[0].toLowerCase() === code ? t.slice(1).join(' ') : n;
+}
+
 /** Wie viele Slots vom Serienstand abweichen; eine Halterung samt Rakete zaehlt einmal, die Lackierung als eigener Slot. */
 export function changeCount(lo) {
   return new Set([...Object.keys(lo.slots ?? {}), ...Object.keys(lo.racks ?? {})]).size + (lo.paint ? 1 : 0);
@@ -780,7 +794,7 @@ export function initWorkshop(doc, bridge) {
   // Platzhalter gezeigt und beim Speichern einmal vergeben.
   const placeholder = () => {
     const w = mainWeapon(slots, current);
-    return loadoutName(bridge.shipName(draft.ship), w && data?.items[w] ? itemName(w) : null, new Date(), de);
+    return loadoutName(shipShort(bridge.shipName(draft.ship), draft.ship), w && data?.items[w] ? itemName(w) : null, new Date(), de);
   };
 
   /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
