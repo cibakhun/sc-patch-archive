@@ -7917,6 +7917,29 @@ const WERK_BODEN_SCHATTEN = 0.55;
 // Katalogs sind dunkel lackiert und stehen im Abfall des Lichts zu den
 // Wänden; ohne ihn blieben sie Schatten vor der helleren Wand
 const WERK_BODEN_TON = 2;
+// Eine Lampe je Arbeitsplatz (Zone von WERK_BODEN, gleicher Name): Am
+// ausgelieferten Stand auf Krisz' PC lasen sich die Stücke aus der Nähe, aus
+// der Startansicht und dem Überblick aber nicht; sie standen im Abfall des
+// Lichts zu den Wänden (WERK_WAND) unter dem Vorbau. Je Platz ein warmes
+// Arbeitslicht vor der Zone, ohne den Abfall der Reihen, mit ihnen an.
+// orte: x und z in Hallenmetern vor der Zone in Richtung Mitte, hoehe über
+// dem Boden (unter dem Vorbau in 2,44 m); reichweite in m, staerke wie
+// WERK_LIGHT.rowI, farbe wärmer als die Reihen. verify:hangar-hall [18]
+// prüft, dass jede Zone ihre Lampe hat, jede vor ihrer Zone im Innenraum
+// steht und in keinem Stück.
+const WERK_BODEN_LICHT = /* work-werkbodenlicht */ {
+  "staerke": 12, "reichweite": 5.5, "hoehe": 1.7, "farbe": [1.0, 0.86, 0.68],
+  "orte": {
+    "nische-links": [-92.4, -10.0],
+    "nische-rechts": [-92.4, 9.6],
+    "werkbankwand": [-87.0, -14.8],
+    "reifenlager": [-80.5, -13.8],
+    "hebebucht": [-79.0, 15.0],
+    "schweissplatz": [-72.6, 15.0],
+    "tankecke": [-67.0, -13.6],
+    "werkzeugecke": [-60.0, 13.8]
+  }
+} /* /work-werkbodenlicht */;
 // Geometrien gleicher Attribute (position, normal, uv) zu einer
 function werkVerbinde(gs) {
   const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
@@ -8101,7 +8124,8 @@ for ( int i = 0; i < HG_WK_N; i ++ ) {
 	float att = ( 1.0 - q * q ) * ( 1.0 - q * q ) / ( d2 + 1.0 );
 	if ( c.w > -1.5 ) att *= smoothstep( c.w, d.w, dot( - directLight.direction, normalize( ( viewMatrix * vec4( d.xyz, 0.0 ) ).xyz ) ) );
 	if ( i == HG_WK_N - 1 && vHgWk.x < hgWkTor.x ) att *= hgWkTor.y;
-	if ( i < HG_WK_N - 2 ) att *= hgWkV;
+	// zur Wand hin dunkler nur die Reihen; die Lampen der Arbeitsplätze stehen dort
+	if ( i < HG_WK_ROW_N ) att *= hgWkV;
 	directLight.color = c.rgb * att * hgWkSh.x * ( 1.0 - 0.88 * hgWkDeep );
 	directLight.visible = true;
 	RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
@@ -10775,7 +10799,10 @@ ${HG_UV.map(([d, v]) => `#ifdef USE_${d}\n\t${v} *= hgGate.xy;\n#endif`).join('\
   // Kegel einmal, die Bildschleife (werkFrame) die Farbe mal Helligkeit.
   // Die Leuchtflächen gehen mit ihrem Band an (glow, glowX).
   const WK_JE = Q0 === 'niedrig' ? 1 : WERK.lampen.je, WK_ROWS = WERK.reihen.length;
-  const WK_ROW_N = WK_JE * WK_ROWS, WK_SPOT = WK_ROW_N, WK_SPILL = WK_ROW_N + 1, WK_N = WK_ROW_N + 2;
+  // Nach den Reihen eine Lampe je Arbeitsplatz am Boden (WERK_BODEN_LICHT),
+  // nur ab Stufe mittel: auf „niedrig“ stehen dort keine Stücke
+  const WK_ROW_N = WK_JE * WK_ROWS, WK_ZONE_N = Q0 === 'niedrig' ? 0 : WERK_BODEN.zonen.length;
+  const WK_SPOT = WK_ROW_N + WK_ZONE_N, WK_SPILL = WK_SPOT + 1, WK_N = WK_SPILL + 1;
   const werkU = {
     p: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, 1e4, 0, 1)) },   // Lage, 1/Reichweite²
     c: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, 0, 0, -2)) },    // Farbe mal Stärke, cos Außenkegel (-2 rundum)
@@ -10822,7 +10849,7 @@ ${HG_UV.map(([d, v]) => `#ifdef USE_${d}\n\t${v} *= hgGate.xy;\n#endif`).join('\
       .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nuniform vec3 hgWkOff;\nvarying vec3 vHgWk;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK - hgWkOff;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${fz ? '#define HG_WK_FZ\n' : ''}${WERK_LIGHTS_GLSL}`)
+      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROW_N ${WK_ROW_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${fz ? '#define HG_WK_FZ\n' : ''}${WERK_LIGHTS_GLSL}`)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt() * mix( 1.0, hgWkVig(), ${WERK_WAND.glow.toFixed(2)} );\n#endif`)
       .replace('#include <lights_fragment_begin>', WERK_LIGHTS_BEGIN)
@@ -11784,11 +11811,18 @@ void main() {
       ps.slice(0, WK_JE).forEach((p, j) => { werkLamp(i * WK_JE + j, [p[0], p[1] - 0.3, p[2]], 15 * gs); lamps++; });
     });
     const rowLamps = picked.map((ps) => Math.min(WK_JE, ps.length));
+    // Lampen der Arbeitsplätze: nur für Zonen, deren Stücke stehen
+    const bodenLicht = Array.from({ length: WK_ZONE_N }, (_, z) => {
+      const ort = WERK_BODEN_LICHT.orte[WERK_BODEN.zonen[z].name];
+      const an = !!(boden && ort && werkBodenHuellen.some((h) => h.name === WERK_BODEN.zonen[z].name));
+      werkLamp(WK_ROW_N + z, an ? [ort[0], WERK_BODEN_LICHT.hoehe, ort[1]] : [0, 1e4, 0], WERK_BODEN_LICHT.reichweite);
+      return an;
+    });
     werkLamp(WK_SPOT, [F.x, WERK.spot.y - 0.05, F.z], 24, [0, -1, 0], WERK.spot.innen, WERK.spot.aussen);
     werkLamp(WK_SPILL, [T.x + 2.2, 2.6, 0], 30, [-1, -0.1, 0], 30, 72);
     hallDoor.value.set(T.x, T.b / 2, T.h, 1);
     return {
-      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke, boden,
+      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke, boden, bodenLicht,
       gateSec: D.gate?.motion?.open?.seconds ?? 6.667, gateT: D.gate?.motion?.open?.t ?? [],
       // Tor (v: offen 0..1, dir: +1 auf, -1 zu) und Bühne (v: Höhe in
       // Hallenmetern, 0 oben), beide unten (werkMove); Reihen und Spot
@@ -13364,6 +13398,9 @@ void main() {
     werkU.c.value[WK_SPILL].setX(WL.spill[0] * WL.spillI).setY(WL.spill[1] * WL.spillI).setZ(WL.spill[2] * WL.spillI);
     werkU.tor.value.set(WERK.tor.x, W.tor.v, WL.torAmb, 0);
     const avg = sum / W.rows.length, a = WL.amb0 + WL.ambK * avg + 0.04 * sv;
+    // Arbeitsplätze: mit den Reihen an (Mittel ihrer Helligkeit)
+    const BL = WERK_BODEN_LICHT, bi = BL.staerke * avg;
+    W.bodenLicht.forEach((an, z) => werkU.c.value[WK_ROW_N + z].setX(an ? BL.farbe[0] * bi : 0).setY(an ? BL.farbe[1] * bi : 0).setZ(an ? BL.farbe[2] * bi : 0));
     werkU.amb.value.setRGB(WL.amb[0] * a, WL.amb[1] * a, WL.amb[2] * a);
     werkU.env.value = WL.env0 + WL.envK * avg;
     // Torblätter: auf mit der Bahn „open“, zu mit „close“ (ab offen), so
