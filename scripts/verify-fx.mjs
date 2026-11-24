@@ -136,6 +136,12 @@ console.log('\n[4] js-fx-toggle: genau ein Schalter je Seite, im Menuefuss, kein
   // Navigation ist ebenso falsch montiert. Datenblaetter (DataShell) haben
   // beides nicht und bleiben aussen vor.
   const VOLLE_NAV = 'id="topbar"';
+  // Zaehlen allein beweist die Lage nicht: der Knopf muss im Menuefuss
+  // stehen, und zwar als erstes Kind seines Deck-Rahmens (so rendert ihn
+  // FxToggle.astro mit place="deck"). Ein Deck-Rahmen an anderer Stelle oder
+  // ein Knopf neben einem leeren Rahmen faellt hier durch.
+  const FUSS_RE = /<footer class="snav-deck__foot"[^>]*>([\s\S]*?)<\/footer>/;
+  const IM_RAHMEN_RE = /<span class="fxsw-wrap fxsw-wrap--deck"[^>]*>\s*<button class="fxsw js-fx-toggle"/;
   for (const f of htmlFiles) {
     const html = htmlCache.get(f);
     const knoepfe = count(html, KNOPF);
@@ -144,10 +150,14 @@ console.log('\n[4] js-fx-toggle: genau ein Schalter je Seite, im Menuefuss, kein
     mit++;
     const deck = count(html, 'fxsw-wrap--deck');
     const bar = count(html, 'fxsw-wrap--bar');
-    if (!nav || knoepfe !== 1 || deck !== 1 || bar !== 0) bad.push(`${f} (${nav ? 'volle Navigation' : 'OHNE volle Navigation'}, ${knoepfe} Knoepfe, Menue ${deck}x, Leiste ${bar}x)`);
+    const fuss = (html.match(FUSS_RE) || [])[1] || '';
+    const imFuss = count(fuss, KNOPF) === 1 && IM_RAHMEN_RE.test(fuss);
+    if (!nav || !imFuss || knoepfe !== 1 || deck !== 1 || bar !== 0) {
+      bad.push(`${f} (${nav ? 'volle Navigation' : 'OHNE volle Navigation'}, ${knoepfe} Knoepfe, Menue ${deck}x, Leiste ${bar}x, im Menuefuss ${imFuss ? 'ja' : 'NEIN'})`);
+    }
   }
   console.log(`    Seiten mit voller Navigation oder Schalter: ${mit} (Klinke ${KLINKE})`);
-  console.log(`    davon nicht genau einmal im Menue oder noch in der Leiste — Soll: 0   Ist: ${bad.length}`);
+  console.log(`    davon nicht genau einmal im Menuefuss oder noch in der Leiste — Soll: 0   Ist: ${bad.length}`);
   if (mit < KLINKE) fail(`nur ${mit} Seiten mit voller Navigation oder Effekte-Schalter, erwartet mindestens ${KLINKE}`);
   if (bad.length) fail(`Effekte-Schalter falsch montiert: ${bad.slice(0, 10).join(', ')}`);
 }
