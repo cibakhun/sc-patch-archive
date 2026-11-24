@@ -24,7 +24,8 @@ import { kategorieTitel } from './itemKategorien';
 
 // Zwei Seiten, ein Name: in der Suche, im Browser-Tab und im Suchergebnis
 // sah man nicht, welche welche ist. Gemessen 24.11.2026: 11 Bauplan-Namen
-// doppelt (Adresse „-2"), 4 deutsche Item-Namen doppelt, dazu Item-Paare, bei
+// doppelt (Adresse „-2"), 4 deutsche Item-Namen doppelt (bis Paket C4; seitdem
+// heissen Items auch auf /de/ englisch), dazu Item-Paare, bei
 // denen eines die Preise und das andere die Spielwerte traegt. Die Adressen
 // bleiben (keine Weiterleitung ohne Krisz' Ja); jede Seite bekommt einen
 // Zusatz, der sie unterscheidet, und verlinkt ihren Zwilling.
@@ -56,8 +57,9 @@ export function itemZusatz(i: Item, lang: Locale): string | null {
   const g = itemGruppe(i, lang);
   if (g.length < 2) return null;
   const t = bwT(lang);
-  // Deutscher Name doppelt, englischer verschieden: der englische trennt.
-  if (lang === 'de' && new Set(g.map((x) => namensSchluessel(x.name))).size === g.length) return i.name;
+  // Die Gruppe haengt am Anzeigenamen, und der ist seit Paket C4 in beiden
+  // Sprachen der englische (displayName). Ein Fall „deutscher Name doppelt,
+  // englischer verschieden" kann darum nicht mehr entstehen.
   // Katalogpaare: eines traegt Preise, das andere die Spielwerte.
   const art = (x: Item) => (hatPreise(x) && !hatWerte(x) ? 'preise' : hatWerte(x) && !hatPreise(x) ? 'werte' : '');
   const arten = g.map(art);
@@ -65,11 +67,11 @@ export function itemZusatz(i: Item, lang: Locale): string | null {
   return fill(t('twinVariant'), { n: String(g.indexOf(i) + 1) });
 }
 
-/** Anzeigename mit Zusatz: „Lynx Legs (mit Preisen)", deutsch doppelt „Lynx-Beine (Dunkelgrün) / Lynx Arms Dark Green". */
+/** Anzeigename mit Zusatz: „Lynx Legs (mit Preisen)". */
 export function itemNameMitZusatz(i: Item, lang: Locale): string {
   const name = displayName(i, lang);
   const zusatz = itemZusatz(i, lang);
-  return !zusatz ? name : zusatz === i.name ? `${name} / ${zusatz}` : `${name} (${zusatz})`;
+  return zusatz ? `${name} (${zusatz})` : name;
 }
 
 /** Die anderen Item-Seiten mit demselben Namen, je mit Namen samt Zusatz. */
