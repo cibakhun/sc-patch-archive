@@ -737,6 +737,27 @@ try {
     try { assert.equal(await notifyChat(ctx, { log: () => {} }), 1); } finally { console.log = loud; }
     assert.deepEqual(marked, [1, 2]);
   });
+  await ta('a failed confirmation is retried first, and until it lands no new DM goes out', async () => {
+    const marked = [];
+    let fail = 1, sends = 0, asked = 0;
+    const ctx = {
+      siteDb: {
+        chatDue: async () => { asked += 1; return [row({ msg_id: 10 + asked })]; },
+        chatSent: async (ids) => { if (fail-- > 0) throw new Error('503'); marked.push(...ids); return { updated: ids.length }; },
+      },
+      client: { users: { fetch: async () => ({ send: async () => { sends += 1; } }) } },
+    };
+    const loud = console.log; console.log = () => {};
+    try {
+      assert.equal(await notifyChat(ctx, { log: () => {} }), 1, 'first DM goes out, marking fails');
+      fail = 1;
+      assert.equal(await notifyChat(ctx, { log: () => {} }), 0, 'retry fails: no new query, no new DM');
+      assert.equal(asked, 1);
+      assert.equal(await notifyChat(ctx, { log: () => {} }), 1, 'retry lands, then the next note');
+    } finally { console.log = loud; }
+    assert.deepEqual(marked, [11, 12]);
+    assert.equal(sends, 2);
+  });
   await ta('the same read error is logged once, not every minute', async () => {
     const logged = [];
     const ctx = { siteDb: { chatDue: async () => { throw new Error('function bot-role-sync: 400 unknown_op'); } }, client: {} };
