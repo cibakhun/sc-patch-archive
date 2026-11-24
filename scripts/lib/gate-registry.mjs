@@ -1129,12 +1129,21 @@ export const CHECKS = [
     // noch im Kommentar ([1c]), Feedback-Zeile ohne href (Befund statt
     // Absturz), dist/build.json ohne staging (abgelehnt); robots mit
     // vertauschten Attributen blieb richtig gruen.
+    // Nach der zweiten Runde (Vorschau-Bau): Bereichsleiste aus nav#topbar
+    // in den Fuss verschoben („steht nicht in nav#topbar“), letzter Link der
+    // ersten Menuegruppe hinter deren </section> („Link ausserhalb der
+    // Gruppen“, vorher gruen), echter Inhaltslink aufs Impressum (Zombie):
+    // 3 FEHLER. Richtig gruen blieben: &#x110000; in einem href (kein
+    // Absturz), „<a href>“ im Wert eines anderen Attributs und
+    // href="/impres&lt;b&gt;sum.html" (beide kein Link aufs Impressum), eine
+    // Weiterleitung hinter „<!-- <body> -->“ im Kopf (erkannt). Gleiche
+    // Linkzahl wie vorher (636 832): der Tag-Lauf weicht im Bau nirgends ab.
     id: 'verify:ia',
     npm: 'verify:ia',
     script: 'scripts/verify-ia.mjs',
     rail: 'A',
     checks:
-      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal und in ihrem Rahmen (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

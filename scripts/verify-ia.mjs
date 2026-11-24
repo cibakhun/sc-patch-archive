@@ -215,9 +215,12 @@ function ohneAlle(s, re) {
   return s;
 }
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+// Wie der HTML-Parser: 0, Ersatzhaelften und alles ueber U+10FFFF werden
+// U+FFFD, statt den Lauf mit einem RangeError abzubrechen.
+const zeichen = (n) => (n > 0 && n <= 0x10ffff && (n < 0xd800 || n > 0xdfff) ? String.fromCodePoint(n) : '�');
 const entitaeten = (s) =>
   s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) =>
-    e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : ENT[e.toLowerCase()] ?? m);
+    e[0] === '#' ? zeichen(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : ENT[e.toLowerCase()] ?? m);
 const text = (s) => entitaeten(ohneAlle(s, /<[^>]*>/g)).replace(/\s+/g, ' ').trim();
 
 // Attribute wie der HTML-Parser: beliebige Anfuehrung (oder keine), Abstand
@@ -285,6 +288,8 @@ const RE = {
   dsLeiste: mitKlasse('ul', 'dp-areas'),
   dsMenue: mitKlasse('div', 'dp-menu__cols'),
   dsLokal: mitKlasse('nav', 'dp-local'),
+  snGruppe: mitKlasse('section', 'snav-deck__group'),
+  dsGruppe: mitKlasse('div', 'dp-menu__grp'),
   pillen: mitKlasse('nav', 'hero__areas'),
 };
 
@@ -327,8 +332,11 @@ function inhalt(html) {
 
 const IGNOR = /^(?:#|mailto:|tel:|javascript:|data:)/i;
 const HOST = /^(?:www\.)?verse-base\.com$/;
+// `href` kommt schon dekodiert aus attr(): nur Leerraum am Rand faellt weg,
+// wie beim URL-Parser. Kein text(): der wuerde „<…>“ aus der Adresse
+// schneiden und ein zweites Mal dekodieren.
 function auflösen(href, von) {
-  href = text(href);
+  href = href.trim();
   if (!href || IGNOR.test(href)) return null;
   let u;
   try {
@@ -357,9 +365,21 @@ const indexierbarNachRegel = (url) => url !== '/404.html' && !SEO.NOINDEX_PATHS.
 // robots und Weiterleitung am echten <meta> im Kopf, ohne Kommentare, in
 // jeder Attributreihenfolge.
 const META = new RegExp(`<meta\\b${TAGRUMPF}>`, 'gi');
+// Die Kopfgrenze zaehlt erst ausserhalb von Kommentaren, Skripten und Stilen:
+// ein „<body>“ in einem Kommentar beendet den Kopf nicht. Der Lauf hoert an
+// der Grenze auf, statt die ganze Datei vorher zu bereinigen.
+const KOPF_ENDE = new RegExp(`${OHNE.source}|<\\/head\\s*>|<body\\b`, 'gi');
 function kopfMetas(html) {
-  const ende = html.search(/<\/head\s*>|<body\b/i);
-  return [...ohneAlle(ende < 0 ? html : html.slice(0, ende), OHNE).matchAll(META)].map((m) => attrs(m[1]));
+  let ende = html.length;
+  KOPF_ENDE.lastIndex = 0;
+  for (let m; (m = KOPF_ENDE.exec(html)); ) {
+    if (/^<(?:\/head|body)/i.test(m[0])) {
+      ende = m.index;
+      break;
+    }
+  }
+  KOPF_ENDE.lastIndex = 0;
+  return [...ohneAlle(html.slice(0, ende), OHNE).matchAll(META)].map((m) => attrs(m[1]));
 }
 const robotsNoindex = (metas) =>
   metas.some((a) => (a.get('name') ?? '').toLowerCase() === 'robots' && (a.get('content') ?? '').toLowerCase().split(/[\s,]+/).includes('noindex'));
@@ -437,7 +457,11 @@ const folge = (z, von) => {
 };
 
 const ANKER = new RegExp(`<a\\b${TAGRUMPF}>([\\s\\S]*?)<\\/a\\s*>`, 'gi');
+// Fuer [1] geht der Lauf Tag fuer Tag durch den Inhalt: ein „<a href>“ im
+// Wert eines anderen Attributs ist Text dieses Tags und kein Link.
+const TAG_AUF = new RegExp(`<([a-z][^\\s/>]*)${TAGRUMPF}>`, 'gi');
 const ANKER_AUF = new RegExp(`<a\\b${TAGRUMPF}>`, 'gi');
+const ankerZahl = (s) => s.match(ANKER_AUF)?.length ?? 0;
 const lies = (stueck) => [...stueck.matchAll(ANKER)].map((m) => ({ tag: m[1], innen: m[2], text: text(m[2]) }));
 
 for (const [url, f] of html) {
@@ -461,8 +485,9 @@ for (const [url, f] of html) {
     const rumpf = inhalt(sauber);
     const marke = rumpf.match(RAHMEN_MARKE);
     if (marke) rahmenImInhalt.push(`${url} (${marke[1]})`);
-    for (const m of rumpf.matchAll(ANKER_AUF)) {
-      const href = attr(m[1], 'href');
+    for (const m of rumpf.matchAll(TAG_AUF)) {
+      if (m[1].toLowerCase() !== 'a') continue;
+      const href = attr(m[2], 'href');
       if (href === null) continue;
       const z = folge(auflösen(href, url), url);
       if (!z || z === url) continue;
@@ -486,8 +511,21 @@ for (const [url, f] of html) {
   if (sn || ds) zahl.mitRahmen++;
   if (!sn && !ds) eigenerRahmen.push(url);
 
-  const leiste = (re, tag, art) => {
-    const s = einzeln(sauber, re, tag, art, url);
+  // Jede Leiste steht in ihrem Rahmen: nur dort ist sie die Navigation, die
+  // der Besucher oben sieht. Eine einzige Kopie im Fuss oder im Inhalt
+  // bestuende sonst den Abgleich, waehrend oben die Leiste fehlt.
+  const rahmenSn = sn ? elemente(sauber, /<nav\b[^>]*\bid="topbar"[^>]*>/g, 'nav') : [];
+  const deckSn = sn ? elemente(sauber, /<div\b[^>]*\bid="snavDeck"[^>]*>/g, 'div') : [];
+  const rahmenDs = ds ? elemente(sauber, RE.datenleiste, 'header') : [];
+  const drin = (s, rahmen, wo, art) => {
+    if (s && rahmen && !rahmen.some((r) => r.includes(s))) {
+      leisteFalsch(art, url, `steht nicht in ${wo}`);
+      return null;
+    }
+    return s;
+  };
+  const leiste = (re, tag, art, rahmen, wo) => {
+    const s = drin(einzeln(sauber, re, tag, art, url), rahmen, wo, art);
     if (!s) return;
     const ist = lies(s).map((a) => [attr(a.tag, 'data-area'), attr(a.tag, 'href'), a.text]);
     if (!gleich(ist, E.leiste)) leisteFalsch(art, url, abweichung(ist, E.leiste));
@@ -495,13 +533,15 @@ for (const [url, f] of html) {
   };
   if (sn) {
     zahl.leisteSn++;
-    leiste(RE.snLeiste, 'ul', 'Bereichsleiste (volle Navigation, ul.snav__areas)');
+    leiste(RE.snLeiste, 'ul', 'Bereichsleiste (volle Navigation, ul.snav__areas)', rahmenSn, 'nav#topbar');
     zahl.menueSn++;
     const artSn = 'Menue (volle Navigation, nav.snav-deck__cols)';
-    const deck = einzeln(sauber, RE.snMenue, 'nav', artSn, url);
+    const deck = drin(einzeln(sauber, RE.snMenue, 'nav', artSn, url), deckSn, 'div#snavDeck', artSn);
     if (deck) {
-      const [vor, ...gruppen] = deck.split(/<section\b[^>]*\bclass="snav-deck__group"/);
-      if (lies(vor).length) leisteFalsch(artSn, url, 'Link ausserhalb der Gruppen');
+      // Zeilen nur aus den Gruppenelementen selbst; jeder Anker des Menues,
+      // der in keiner Gruppe liegt (davor, dazwischen, dahinter), ist ein Befund.
+      const gruppen = elemente(deck, RE.snGruppe, 'section');
+      if (ankerZahl(deck) !== gruppen.reduce((n, g) => n + ankerZahl(g), 0)) leisteFalsch(artSn, url, 'Link ausserhalb der Gruppen');
       else {
         const ist = gruppen.map((g) => {
           const name = text((g.match(/<span class="snav-deck__gname"[^>]*>([\s\S]*?)<\/span>/) || [])[1] ?? '');
@@ -514,18 +554,19 @@ for (const [url, f] of html) {
         prüfeMenue(ist, E, url, lang, artSn);
       }
     }
-    const lokalIst = einzeln(sauber, RE.snLokal, 'ul', 'Lokale Leiste (volle Navigation, ul.snav__local)', url, true);
-    prüfeLokal(lokalIst, url, lang, 'Lokale Leiste (volle Navigation, ul.snav__local)');
+    const artLokal = 'Lokale Leiste (volle Navigation, ul.snav__local)';
+    const lokalIst = drin(einzeln(sauber, RE.snLokal, 'ul', artLokal, url, true), rahmenSn, 'nav#topbar', artLokal);
+    prüfeLokal(lokalIst, url, lang, artLokal);
   }
   if (ds) {
     zahl.leisteDs++;
-    leiste(RE.dsLeiste, 'ul', 'Bereichsleiste (Datenblatt, ul.dp-areas)');
+    leiste(RE.dsLeiste, 'ul', 'Bereichsleiste (Datenblatt, ul.dp-areas)', rahmenDs, 'header.dp-bar');
     zahl.menueDs++;
     const artDs = 'Menue (Datenblatt, .dp-menu__cols)';
-    const menue = einzeln(sauber, RE.dsMenue, 'div', artDs, url);
+    const menue = drin(einzeln(sauber, RE.dsMenue, 'div', artDs, url), rahmenDs, 'header.dp-bar', artDs);
     if (menue) {
-      const [vor, ...gruppen] = menue.split(/<div\b[^>]*\bclass="dp-menu__grp"/);
-      if (lies(vor).length) leisteFalsch(artDs, url, 'Link ausserhalb der Gruppen');
+      const gruppen = elemente(menue, RE.dsGruppe, 'div');
+      if (ankerZahl(menue) !== gruppen.reduce((n, g) => n + ankerZahl(g), 0)) leisteFalsch(artDs, url, 'Link ausserhalb der Gruppen');
       else {
         const ist = gruppen.map((g) => {
           const name = text((g.match(/<p class="dp-menu__h"[^>]*>([\s\S]*?)<\/p>/) || [])[1] ?? '');
