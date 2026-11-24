@@ -258,6 +258,12 @@ export function classStrip(values, lower = false) {
 export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
 /** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
 export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'bomb']);
+/**
+ * Kennwert eines Teils zum Summieren: bei Bordwaffen die genaue DPS (der
+ * Kennwert ist auf ganze Zahlen gerundet; 24 x 818 statt 24 x 817,88 waeren
+ * 3 DPS zu viel), sonst der Kennwert.
+ */
+export const figure = (it) => (it ? (it[2] === 'gun' ? it[8]?.dps ?? it[7] : it[7]) : 0);
 // Komponenten, die der Hangar als Teil ans Schiff setzt (wie die Bordwaffen)
 const COMPONENT_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 
@@ -273,8 +279,8 @@ export function groupTotals(slots, layout, items, rackSel = null, racks = null) 
     if (!SUMMED.has(s.group)) continue;
     const t = out.get(s.group) ?? { now: 0, stock: 0 };
     const now = layout[s.key] ?? s.stock;
-    t.now += (items[now]?.[7] ?? 0) * rackSlot(s, rackSel?.[s.key], racks).count;
-    t.stock += (items[s.stock]?.[7] ?? 0) * s.count;
+    t.now += figure(items[now]) * rackSlot(s, rackSel?.[s.key], racks).count;
+    t.stock += figure(items[s.stock]) * s.count;
     out.set(s.group, t);
   }
   return out;

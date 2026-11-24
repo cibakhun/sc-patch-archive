@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, figure,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -146,6 +146,15 @@ describe('Werkstatt: passende Teile', () => {
     assert.deepEqual(t.get('pilot'), { now: 1054 + 546, stock: 853 + 546 });
     assert.deepEqual(t.get('manned'), { now: 853 * 2, stock: 546 * 2 });
     assert.deepEqual(t.get('shield'), { now: 3168, stock: 3168 });
+  });
+
+  test('Gruppensummen rechnen mit der genauen DPS, nicht mit dem gerundeten Kennwert', () => {
+    const rhino = { rhino: ['CF-447 Rhino Repeater', 0, 'gun', 4, 'Klaus & Werner', 0, 'A', 818, { dt: 'e', dps: 817.88 }, 0] };
+    const turrets = shipSlots([['turret', 'gun', 4, 'rhino', 'manned', 24]]);
+    assert.equal(groupTotals(turrets, {}, rhino).get('manned').stock.toFixed(2), '19629.12');
+    assert.equal(figure(rhino.rhino), 817.88);
+    assert.equal(figure(items.allstop), 3168);
+    assert.equal(figure(undefined), 0);
   });
 
   test('Raketen: je Halterung derselbe Untertyp und dieselbe Groesse, Schaden mal Stueckzahl', () => {

@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -209,7 +209,7 @@ function tally(pick, list = slots) {
     const it = data.items[k];
     if (!it) continue;
     const x = it[8] ?? {};
-    if (it[2] === 'gun') { t.fire += it[7] * n; t.alpha += alphaOf(x) * n; }
+    if (it[2] === 'gun') { t.fire += figure(it) * n; t.alpha += alphaOf(x) * n; }
     else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
     else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
     else if (it[2] === 'power') t.power += it[7] * n;
