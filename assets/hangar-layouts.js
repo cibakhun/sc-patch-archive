@@ -262,20 +262,53 @@ export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'b
 const COMPONENT_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 
 /**
+ * Schildgeneratoren, die gleichzeitig laufen. Der Schildwert des Schiffs ist
+ * bei allen 188 Schiffen mit Generatoren die Summe der zwei stärksten
+ * Serien-Generatoren, auch wo drei, vier oder sechs eingebaut sind
+ * (Prospector: 3 × 2.160 HP eingebaut, Schild 4.320 HP; gezählt 24.11.2026).
+ * Jede Summe des Schilds nimmt deshalb nur die stärksten, so zeigen Hangar,
+ * Loadout und Schiffsblatt dieselbe Zahl (UX-Prüfung P19).
+ */
+export const SCHILDE_AKTIV = 2;
+
+/**
+ * Die Generatoren, die laufen: je Stück einmal, die stärksten zuerst,
+ * höchstens SCHILDE_AKTIV. paare: [[teil, anzahl]], hp: teil -> Schild-HP.
+ * @template T @param {[T, number][]} paare @param {(teil: T) => number} hp @returns {T[]}
+ */
+export function aktiveSchilde(paare, hp) {
+  return paare.flatMap(([teil, n]) => Array.from({ length: Math.max(0, n) }, () => teil))
+    .sort((a, b) => hp(b) - hp(a)).slice(0, SCHILDE_AKTIV);
+}
+
+/**
  * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl;
  * jetzt mit der Anzahl der gewaehlten Halterung). Slots ohne bekanntes Teil
- * zaehlen 0.
+ * zaehlen 0. Beim Schild nur die Generatoren, die laufen (aktiveSchilde).
  * @returns {Map<string, { now: number, stock: number }>}
  */
 export function groupTotals(slots, layout, items, rackSel = null, racks = null) {
   const out = new Map();
+  const hp = (k) => items[k]?.[7] ?? 0;
+  const schild = { now: [], stock: [] };
   for (const s of slots) {
     if (!SUMMED.has(s.group)) continue;
-    const t = out.get(s.group) ?? { now: 0, stock: 0 };
     const now = layout[s.key] ?? s.stock;
-    t.now += (items[now]?.[7] ?? 0) * rackSlot(s, rackSel?.[s.key], racks).count;
-    t.stock += (items[s.stock]?.[7] ?? 0) * s.count;
+    const n = rackSlot(s, rackSel?.[s.key], racks).count;
+    if (s.group === 'shield') {
+      schild.now.push([now, n]);
+      schild.stock.push([s.stock, s.count]);
+      if (!out.has('shield')) out.set('shield', { now: 0, stock: 0 });
+      continue;
+    }
+    const t = out.get(s.group) ?? { now: 0, stock: 0 };
+    t.now += hp(now) * n;
+    t.stock += hp(s.stock) * s.count;
     out.set(s.group, t);
+  }
+  if (out.has('shield')) {
+    const summe = (paare) => aktiveSchilde(paare, hp).reduce((a, k) => a + hp(k), 0);
+    out.set('shield', { now: summe(schild.now), stock: summe(schild.stock) });
   }
   return out;
 }

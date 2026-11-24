@@ -27,7 +27,7 @@ import { hangarT } from '../../i18n/hangarText';
 import { getCollection } from 'astro:content';
 import { versioned } from '../../lib/assetVersion';
 import { jsonForScript } from '../../lib/safeJson';
-import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STAT, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
+import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, OHNE_MODELL, SCHIFFE_GESAMT, STAT, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
 import { buildBay, COMPARE, TABS } from '../../lib/hangar/bay';
 import { PURPOSES, ROLE_GROUPS, SIZES, CREW, CARGO_STEPS, PRICE_STEPS, shipFinder, vocab, label, fold } from '../../lib/hangar/finder';
 import hangarCards from '../../data/hangar-cards.json';
@@ -100,6 +100,14 @@ const FACETS: Facet[] = [
 const icon = (path: string, size = 18) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${path}</svg>`;
 const bay = buildBay(HANGAR_DEFAULT_SHIP, lang);
 const count = t(new Intl.PluralRules(loc).select(ships.length) === 'one' ? 'msg.count.one' : 'msg.count.other', { n: ships.length.toLocaleString(loc) });
+// Schiffe der Schiffsliste ohne 3D-Modell: am Ende der Liste genannt (UX-Prüfung P52)
+const ohneModell = OHNE_MODELL.length
+  ? t(new Intl.PluralRules(loc).select(OHNE_MODELL.length) === 'one' ? 'dock.ohne.one' : 'dock.ohne.other', {
+    n: OHNE_MODELL.length.toLocaleString(loc),
+    gesamt: SCHIFFE_GESAMT.toLocaleString(loc),
+    namen: new Intl.ListFormat(loc, { type: 'conjunction' }).format(OHNE_MODELL.map((s) => s.name)),
+  })
+  : '';
 const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overview.js');
 // Einstieg am Bildschirm: Das Inline-Skript in <main> entscheidet vor dem
 // ersten Bild, ob dieser Aufruf im Leitstand beginnt, mit derselben Liste
@@ -233,6 +241,16 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-tools .hgx-tip{top:auto;bottom:calc(100% + 6px);transform:translateY(3px)}
 /* Am Zeilenende liefe sie aus dem Fenster: dort rechtsbuendig (hangar-overview.js, fitTips) */
 .hgx-tip.is-end{left:auto;right:0}
+/* Ohne Hover (Handy, Tablet) erklärt die Blase nichts: Unter dem Namen steht
+   das Wort neben dem Zeichen (UX-Prüfung P84). Der Knopf zur Schiffsauswahl
+   zeigt sich nur schmal, wo sie am Seitenende liegt (P22). */
+.hgx-wahl{display:none;text-decoration:none}
+.hgx-ohne a{color:inherit;text-decoration:underline;text-underline-offset:.2em}
+.hgx-ohne a:hover,.hgx-ohne a:focus-visible{color:var(--text)}
+@media (hover:none){
+  .hgx-actions .hgx-ico{width:auto;gap:.45rem;padding-inline:.75rem}
+  .hgx-actions .hgx-tip{position:static;opacity:1;transform:none;padding:0;border:0;background:none;color:inherit;font-size:var(--fs-7)}
+}
 .hg-tools{position:absolute;left:var(--hg-left);bottom:16px;z-index:2;display:flex;gap:.4rem}
 .hgx-gfx[hidden],.hgx-snd[hidden]{display:none}
 .hgx-snd[aria-pressed="true"] .hgx-snd__off,.hgx-snd[aria-pressed="false"] .hgx-snd__on{display:none}
@@ -604,6 +622,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-grp{margin:0 0 .9rem}
 .hgx-grp h3{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 0 .3rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
 .hgx-grp h3 b{color:var(--hg-on);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hgx-grp h3 b small{font-weight:500;color:var(--hg-dim)}
 .hgx-grp ul{margin:0;padding:0;list-style:none}
 .hgx-slot__btn{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:.55rem;align-items:center;width:100%;margin:0;padding:.3rem .35rem;appearance:none;background:none;border:1px solid transparent;border-radius:4px;color:var(--hg-on);font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui)}
 .hgx-slot__btn:hover,.hgx-slot__btn:focus-visible{border-color:var(--hg-hair)}
@@ -913,6 +932,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 }
 @media (max-width:760px){
   .hg-title{max-width:calc(100% - 32px)}
+  .hgx-wahl{display:inline-flex}
+  .hg-dock{scroll-margin-top:76px}
   /* Die Aktionen brechen hier in zwei Zeilen um: Meldungen an den Buehnenfuss.
      Die Modellmeldung steht ueber den Knoepfen der Buehne (#hg-tools, 44 px
      hoch, 12 px ueber dem Fuss), die mit ihr sichtbar bleiben; reicht der
@@ -1043,6 +1064,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
             <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d={link} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
             <span class="hgx-tip">{t('act.copy')}</span>
           </button>
+          {/* Schmal steht die Schiffsauswahl am Seitenende unter Bühne und Tafeln:
+              dieser Knopf führt hin und klappt sie auf (UX-Prüfung P22,
+              hangar-overview.js). Ab 761 px liegt sie auf der Bühne, dort fehlt er. */}
+          <a class="hg-btn hgx-act hgx-ico hgx-wahl" id="hgx-wahl" href="#hgx-dock">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            <span class="hgx-tip">{t('act.wahl')}</span>
+          </a>
           <input class="hgx-copyfield" id="hgx-copyfield" type="text" readonly hidden aria-label={t('act.copyField')} />
         </div>
       </header>
@@ -1291,7 +1319,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     </dialog>
   </div>
 
-  <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
+  <section class="hg-dock" id="hgx-dock" data-media-surface aria-label={t('dock.label')}>
     <div class="hg-filter">
       <ToolHelp tool="hangar" lang={lang} steps={5} />
       {/* Hinter der Hilfe: tool-help.js laesst sie beim Erstbesuch nur offen,
@@ -1414,6 +1442,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </ul>
       <p class="hg-empty" id="hg-empty" hidden>{t('dock.empty')}</p>
       <p class="hg-empty" id="hgx-empty-fleet" hidden>{t('fleet.empty')}</p>
+      {ohneModell && <p class="hg-empty hgx-ohne" id="hgx-ohne">{ohneModell} <a href={href('/schiffe.html', lang)}>{t('dock.ohne.link')}</a></p>}
       <Datenstand lang={lang} zeilen={standHangar(lang, HANGAR_IDS)} innen />
     </div>
     {/* Schnellansicht neben dem Dock (ab 761 px): das Schiff unter der Maus

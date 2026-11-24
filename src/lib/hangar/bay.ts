@@ -188,6 +188,8 @@ export interface SlotGroup {
   readonly title: string;
   /** Gruppensumme aus vehicles.json: '1,944.5 DPS', '6', 'H2 1.6 SCU · QT 0.6 SCU'. */
   readonly total: string | null;
+  /** Zusatz zur Summe: beim Schild mit mehr Generatoren, als laufen, '2 von 3 laufen'. */
+  readonly note: string | null;
   readonly rows: readonly SlotRow[];
 }
 
@@ -292,6 +294,13 @@ const fuel = (tag: string, x: number | null, lang: Locale) => {
   const n = pos(x);
   return n == null ? null : `${tag} ${num(Math.round(n * 10) / 10, lang)} SCU`;
 };
+
+/**
+ * Schildgeneratoren, die gleichzeitig laufen; dieselbe Zahl wie SCHILDE_AKTIV
+ * in assets/hangar-layouts.js (tests/e2e/hangar-schild.test.js hält beide
+ * gleich). Der Schildwert jedes Schiffs ist die Summe der zwei stärksten.
+ */
+const SCHILDE_AKTIV = 2;
 
 /** Gruppensumme aus vehicles.json. Der Record-Typ verlangt jede Gruppe, auch die ohne Summe. */
 const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => string | null>> = {
@@ -447,7 +456,11 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
         rowOf.set(dk, row);
         return row;
       });
-      return [{ key: g, title: t(`grp.${g}`), total: GROUP_TOTAL[g](v, lang), rows }];
+      // Mehr Schildgeneratoren, als laufen: Die Summe ist die der stärksten
+      // (SCHILDE_AKTIV), nicht Stückzahl mal HP (UX-Prüfung P19)
+      const gens = g === 'shield' ? mine.reduce((a, [, d]) => a + d.count, 0) : 0;
+      const note = gens > SCHILDE_AKTIV ? t('grp.shield.aktiv', { n: num(SCHILDE_AKTIV, lang), m: num(gens, lang) }) : null;
+      return [{ key: g, title: t(`grp.${g}`), total: GROUP_TOTAL[g](v, lang), note, rows }];
     });
   };
 

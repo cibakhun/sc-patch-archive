@@ -105,6 +105,19 @@ export const HANGAR_IDS: readonly ShipId[] = [...VEHICLES.keys()].filter((id) =>
 
 const IDS = new Set<string>(HANGAR_IDS);
 
+/**
+ * Fahrzeuge der Schiffsliste ohne Holo-Modell, in Katalogreihenfolge: Sie
+ * stehen nicht in der Halle. Das Dock nennt sie am Ende der Liste, damit wer
+ * eines sucht, erfährt, wo es steht (UX-Prüfung P52; die Schiffsliste sagt
+ * dasselbe am Weg in den Hangar).
+ */
+export const OHNE_MODELL: readonly { readonly id: string; readonly name: string }[] = [...VEHICLES.values()]
+  .filter((v) => !MESHES[v.id])
+  .map((v) => ({ id: v.id, name: v.name }));
+
+/** Alle Fahrzeuge der Schiffsliste, mit und ohne Modell. */
+export const SCHIFFE_GESAMT = VEHICLES.size;
+
 /** Grenze fuer Ids, die als Zeichenkette ankommen (Routenparameter). */
 export function parseShipId(raw: string | undefined): ShipId | null {
   return raw && IDS.has(raw) ? (raw as ShipId) : null;

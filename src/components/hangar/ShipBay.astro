@@ -80,7 +80,7 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
               )}
               {panel.groups.map((g) => (
                 <section class="hgx-grp" data-g={g.key}>
-                  <h3><span>{g.title}</span>{g.total && <b>{g.total}</b>}</h3>
+                  <h3><span>{g.title}</span>{g.total && <b>{g.total}{g.note && <small> · {g.note}</small>}</b>}</h3>
                   <ul>
                     {g.rows.map((row) => (
                       <li class="hgx-slot" data-row={row.key} data-kind={row.kind} data-ports={row.ports.join(' ')}>

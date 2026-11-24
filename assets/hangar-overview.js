@@ -1086,7 +1086,24 @@ export function boot(doc) {
       else localStorage.removeItem(DOCK_KEY);
     } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
   }
-  dockTog.addEventListener('click', () => setDock(main.dataset.dock === 'closed', true));
+  // Aufgeklappt mit Maus oder Tastatur geht der Fokus gleich ins Suchfeld,
+  // Tippen filtert (UX-Prüfung P83). Am Handy nicht: Dort schöbe sich die
+  // Tastatur über die Liste, bevor man sie gesehen hat.
+  const feinZeiger = window.matchMedia('(pointer: fine)');
+  dockTog.addEventListener('click', () => {
+    const auf = main.dataset.dock === 'closed';
+    setDock(auf, true);
+    if (auf && feinZeiger.matches) $('hg-q').focus({ preventScroll: true });
+  });
+  // Schmal: Der Knopf unter dem Namen führt zur Schiffsauswahl am Seitenende
+  // und klappt sie auf (UX-Prüfung P22). Ohne Skript springt der Link hin.
+  $('hgx-wahl')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    setDock(true, true);
+    // unter die Kopfleiste der Seite, die am Handy oben stehen bleibt
+    const kopf = Math.max(0, $('topbar')?.getBoundingClientRect().bottom ?? 0);
+    window.scrollTo({ top: $('hgx-dock').getBoundingClientRect().top + window.scrollY - kopf - 8, behavior: reduce ? 'auto' : 'smooth' });
+  });
 
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
   // Schliessen geht dorthin zurueck, statt einen zweiten Eintrag zu stapeln.

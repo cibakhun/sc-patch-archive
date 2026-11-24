@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, aktiveSchilde } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -204,6 +204,7 @@ function specs(k) {
 // list: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
 function tally(pick, list = slots) {
   const t = { fire: 0, alpha: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
+  const schilde = [];
   for (const s of list) {
     const [k, n] = pick(s);
     const it = data.items[k];
@@ -211,10 +212,16 @@ function tally(pick, list = slots) {
     const x = it[8] ?? {};
     if (it[2] === 'gun') { t.fire += it[7] * n; t.alpha += alphaOf(x) * n; }
     else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
-    else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
+    else if (it[2] === 'shield') schilde.push([k, n]);
     else if (it[2] === 'power') t.power += it[7] * n;
     else if (it[2] === 'cooler') t.cool += it[7] * n;
     else if (it[2] === 'quantum') t.qt = Math.max(t.qt, it[7]);
+  }
+  // Nur die stärksten Generatoren laufen (aktiveSchilde in hangar-layouts.js):
+  // Schild und Aufladung kommen von denselben, in Serie ist das der Schiffswert.
+  for (const k of aktiveSchilde(schilde, (k) => data.items[k][7])) {
+    t.shield += data.items[k][7];
+    t.regen += data.items[k][8]?.regen ?? 0;
   }
   return t;
 }

@@ -323,6 +323,20 @@
         Woerter der Zeile stehen auf beiden Seiten, mit ihren
         Platzhaltern, deutsch anders als englisch. Klinken: Schiffe, je
         Stufe, Stellen der Naht, Woerter.
+    25  Schild der Werkstatt (seit 24.11.2026, UX-Prüfung P19: der
+        Hangar zeigte bei der Prospector 4.320 HP, das Loadout 6.480 HP).
+        Es laufen höchstens SCHILDE_AKTIV Generatoren, die stärksten
+        (aktiveSchilde in assets/hangar-layouts.js). Geprüft wird mit den
+        ausgelieferten Funktionen: Je Schiff mit Generatoren in
+        dist/hangar-layouts.json ist die Serien-Summe von groupTotals
+        gleich dem Schildwert des Schiffs (vehicles.json shieldHp), den
+        Übersicht und Schiffsblatt zeigen. Reißt es, zeigten Hangar,
+        Loadout und Schiffsblatt verschiedene Zahlen. Dazu: SCHILDE_AKTIV
+        in src/lib/hangar/bay.ts (Zusatz „2 von 3 laufen“) ist dieselbe
+        Zahl. Klinken: Schiffe mit Generatoren, Schiffe mit mehr
+        Generatoren, als laufen. Schiffe, deren Generator in der
+        Werkstatt kein Serienteil hat (Banu Defender, Javelin),
+        summiert die Werkstatt nicht; sie werden gezählt und genannt.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -3583,6 +3597,51 @@ const GROESSE_AUSNAHMEN = {
   if (verdrahtet < GROESSE.draht) fail(`[24] nur ${verdrahtet} Stellen der Naht geprüft (Klinke ${GROESSE.draht})`);
   if (worte < GROESSE.worte) fail(`[24] nur ${worte} Wörter der Hangargröße auf den Seiten (Klinke ${GROESSE.worte})`);
   ist.grStufen = stufen; ist.grSchiffe = schiffe; ist.grZahl = zahl; ist.grHallen = hallen.size; ist.grDraht = verdrahtet; ist.grWorte = worte; ist.grQuellen = quellen;
+}
+
+say('\n[25] Schild der Werkstatt: Serie gleich dem Schildwert des Schiffs');
+// Sperrklinken (Grundsatz 5), Startwerte aus dem Bau am 24.11.2026
+const SCHILD = { schiffe: 188, mehr: 31 };
+{
+  const wsFile = join(DIST, 'assets', 'hangar-layouts.js');
+  let lib = null;
+  try { lib = await import(pathToFileURL(wsFile).href); } catch (e) { fail(`[25] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
+  const lf = join(DIST, 'hangar-layouts.json');
+  const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
+  const schiffswert = new Map(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.map((v) => [v.id, v.shieldHp]));
+  let schiffe = 0, mehr = 0;
+  const bad = [], ohneSerie = [];
+  if (lib && (typeof lib.groupTotals !== 'function' || typeof lib.shipSlots !== 'function' || !Number.isInteger(lib.SCHILDE_AKTIV) || lib.SCHILDE_AKTIV < 1)) {
+    fail('[25] dist/assets/hangar-layouts.js liefert groupTotals, shipSlots und SCHILDE_AKTIV (ganze Zahl ab 1) nicht mehr');
+    lib = null;
+  }
+  if (lib) {
+    for (const [id, rows] of Object.entries(ld.ships ?? {})) {
+      const slots = lib.shipSlots(rows).filter((x) => x.group === 'shield');
+      if (!slots.length) continue;
+      // Ohne Serienteil an einem Generator (Banu Defender, Javelin) hat die
+      // Werkstatt keine Serie zu summieren; das ist eine Lücke der Teileliste,
+      // kein Widerspruch der Regel. Gezählt und genannt, die Klinke hält den Rest.
+      if (slots.some((x) => !ld.items?.[x.stock])) { ohneSerie.push(id); continue; }
+      schiffe++;
+      const n = slots.reduce((a, x) => a + x.count, 0);
+      if (n > lib.SCHILDE_AKTIV) mehr++;
+      const serie = lib.groupTotals(slots, {}, ld.items ?? {}).get('shield')?.stock ?? 0;
+      const soll = schiffswert.get(id);
+      if (typeof soll !== 'number') bad.push(`${id}: ${n} Generatoren in der Werkstatt, aber kein Schildwert des Schiffs`);
+      else if (Math.abs(serie - soll) > 0.5) bad.push(`${id}: in Serie ${serie} HP aus ${n} Generatoren (es zählen die ${lib.SCHILDE_AKTIV} stärksten), das Schiff ${soll} HP`);
+    }
+    const bay = readFileSync(join(ROOT, 'src/lib/hangar/bay.ts'), 'utf8').match(/^const SCHILDE_AKTIV = (\d+);/m);
+    if (!bay) fail('[25] src/lib/hangar/bay.ts nennt SCHILDE_AKTIV nicht mehr: der Zusatz „2 von 3 laufen“ an den Schildgeneratoren hinge an keiner Zahl');
+    else if (Number(bay[1]) !== lib.SCHILDE_AKTIV) fail(`[25] SCHILDE_AKTIV ist in src/lib/hangar/bay.ts ${bay[1]}, in assets/hangar-layouts.js ${lib.SCHILDE_AKTIV}: Übersicht und Werkstatt zählten verschieden viele Generatoren`);
+  }
+  for (const t of bad.slice(0, 8)) fail(`[25] ${t}: Hangar, Loadout und Schiffsblatt zeigten verschiedene Zahlen. Regel aktiveSchilde (assets/hangar-layouts.js) oder Daten prüfen`);
+  if (bad.length > 8) fail(`[25] … und ${bad.length - 8} weitere Schiffe`);
+  say(`    Schiffe mit Generatoren: ${schiffe}   davon mit mehr, als laufen (${lib?.SCHILDE_AKTIV ?? '?'}): ${mehr}   abweichend: ${bad.length}   ohne Serienteil (nicht geprüft): ${ohneSerie.length}${ohneSerie.length ? ` (${ohneSerie.join(', ')})` : ''}`);
+  sollIst(`Schiffe >= ${SCHILD.schiffe}, mit mehr Generatoren, als laufen, >= ${SCHILD.mehr}, abweichend 0`, `${schiffe}, ${mehr}, ${bad.length}`);
+  if (lib && schiffe < SCHILD.schiffe) fail(`[25] nur ${schiffe} Schiffe mit Schildgeneratoren in dist/hangar-layouts.json (Klinke ${SCHILD.schiffe})`);
+  if (lib && mehr < SCHILD.mehr) fail(`[25] nur ${mehr} Schiffe mit mehr Generatoren, als laufen (Klinke ${SCHILD.mehr}): prüft das Tor die Regel noch, wo sie zählt?`);
+  ist.schildSchiffe = schiffe; ist.schildMehr = mehr;
 }
 
 say('\n[Selbstauskunft]');
