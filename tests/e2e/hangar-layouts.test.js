@@ -10,7 +10,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
-  sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
+  sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount, activeShields,
   syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER, figure,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
@@ -155,6 +155,23 @@ describe('Werkstatt: passende Teile', () => {
     assert.equal(figure(rhino.rhino), 817.88);
     assert.equal(figure(items.allstop), 3168);
     assert.equal(figure(undefined), 0);
+  });
+
+  test('Schild zaehlt nur die Generatoren, die zugleich arbeiten: die zwei staerksten, ohne Kappung alle', () => {
+    // Prospector: drei Bulwark zu 2.160, ein Raumschiff nutzt zwei (Schiffsblatt 4.320).
+    const bw = { bulwark: ['Bulwark', 0, 'shield', 1, 'Basilisk', 'Civilian', 'C', 2160, { regen: 216 }, 0], ...items };
+    const three = shipSlots([
+      ['shield_generator', 'shield', 1, 'bulwark', 'shield', 1],
+      ['shield_generator_b', 'shield', 1, 'bulwark', 'shield', 1],
+      ['shield_generator_c', 'shield', 1, 'bulwark', 'shield', 1],
+    ]);
+    assert.deepEqual(groupTotals(three, {}, bw, null, null, 2).get('shield'), { now: 4320, stock: 4320 });
+    assert.deepEqual(groupTotals(three, {}, bw).get('shield'), { now: 6480, stock: 6480 });
+    // Ein staerkerer Generator an dritter Stelle verdraengt einen schwaecheren.
+    assert.deepEqual(groupTotals(three, { shield_generator_c: 'palisade' }, bw, null, null, 2).get('shield'), { now: 3900 + 2160, stock: 4320 });
+    assert.deepEqual(activeShields([[2160, 216], [3900, 300], [2160, 216]], 2), [6060, 516]);
+    assert.deepEqual(activeShields([[2160, 216], [3900, 300]], 0), [6060, 516]);
+    assert.deepEqual(activeShields([], 2), [0, 0]);
   });
 
   test('Raketen: je Halterung derselbe Untertyp und dieselbe Groesse, Schaden mal Stueckzahl', () => {

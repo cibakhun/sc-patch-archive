@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure, activeShields } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -201,9 +201,11 @@ function specs(k) {
 }
 
 // Summen des ganzen Layouts: Feuerkraft, Salve, Raketen, Schild, Strom, Kuehlung, Quantum.
-// list: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
-function tally(pick, list = slots) {
+// list/ship: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
+// Schild und Aufladung nur aus den Generatoren, die zugleich arbeiten (activeShields).
+function tally(pick, list = slots, ship = draft.ship) {
   const t = { fire: 0, alpha: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
+  const gens = [];
   for (const s of list) {
     const [k, n] = pick(s);
     const it = data.items[k];
@@ -211,11 +213,12 @@ function tally(pick, list = slots) {
     const x = it[8] ?? {};
     if (it[2] === 'gun') { t.fire += figure(it) * n; t.alpha += alphaOf(x) * n; }
     else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
-    else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
+    else if (it[2] === 'shield') for (let i = 0; i < n; i++) gens.push([it[7], x.regen ?? 0]);
     else if (it[2] === 'power') t.power += it[7] * n;
     else if (it[2] === 'cooler') t.cool += it[7] * n;
     else if (it[2] === 'quantum') t.qt = Math.max(t.qt, it[7]);
   }
+  [t.shield, t.regen] = activeShields(gens, data.shieldAct?.[ship]);
   return t;
 }
 const TOT = [['fire', 'tot.fire', 'DPS'], ['alpha', 'tot.alpha', ''], ['ord', 'tot.ord', ''], ['ordn', 'tot.ordn', ''],
@@ -767,7 +770,7 @@ function savedFacts(e) {
   const rows = data?.ships?.[e.ship];
   if (!rows) return null;
   const list = shipSlots(rows);
-  const t = tally((s) => [e.slots?.[s.key] ?? s.stock, rackSlot(s, e.racks?.[s.key], data.racks).count], list);
+  const t = tally((s) => [e.slots?.[s.key] ?? s.stock, rackSlot(s, e.racks?.[s.key], data.racks).count], list, e.ship);
   const nums = [t.fire ? `${m('tot.fire')} ${nf.format(Math.round(t.fire))} DPS` : '', t.shield ? `${m('tot.shield')} ${nf.format(Math.round(t.shield))} HP` : ''].filter(Boolean).join(' · ');
   const used = new Map();
   for (const k of Object.values(e.slots ?? {})) used.set(k, (used.get(k) ?? 0) + 1);

@@ -273,17 +273,37 @@ const COMPONENT_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar'
  * zaehlen 0.
  * @returns {Map<string, { now: number, stock: number }>}
  */
-export function groupTotals(slots, layout, items, rackSel = null, racks = null) {
+export function groupTotals(slots, layout, items, rackSel = null, racks = null, shieldAct = 0) {
   const out = new Map();
+  const gens = { now: [], stock: [] };
   for (const s of slots) {
     if (!SUMMED.has(s.group)) continue;
-    const t = out.get(s.group) ?? { now: 0, stock: 0 };
     const now = layout[s.key] ?? s.stock;
-    t.now += figure(items[now]) * rackSlot(s, rackSel?.[s.key], racks).count;
+    const n = rackSlot(s, rackSel?.[s.key], racks).count;
+    if (s.group === 'shield') {
+      for (let i = 0; i < n; i++) gens.now.push([figure(items[now]), 0]);
+      for (let i = 0; i < s.count; i++) gens.stock.push([figure(items[s.stock]), 0]);
+      if (!out.has('shield')) out.set('shield', { now: 0, stock: 0 });
+      continue;
+    }
+    const t = out.get(s.group) ?? { now: 0, stock: 0 };
+    t.now += figure(items[now]) * n;
     t.stock += figure(items[s.stock]) * s.count;
     out.set(s.group, t);
   }
+  if (out.has('shield')) out.set('shield', { now: activeShields(gens.now, shieldAct)[0], stock: activeShields(gens.stock, shieldAct)[0] });
   return out;
+}
+
+/**
+ * Schild eines Schiffs aus seinen Generatoren, gens = [HP, Aufladung] je
+ * Stueck. act: wie viele zugleich arbeiten (layouts shieldAct; ein Raumschiff
+ * nutzt hoechstens zwei, der Rest ist Reserve, Zaehlregel D-20 wie im
+ * Schiffsblatt). Es zaehlen die staerksten; ohne act alle. Gibt [HP, Aufladung].
+ */
+export function activeShields(gens, act = 0) {
+  const on = act > 0 ? [...gens].sort((a, b) => b[0] - a[0]).slice(0, act) : gens;
+  return on.reduce((t, g) => [t[0] + g[0], t[1] + g[1]], [0, 0]);
 }
 
 /** Gleicher Inhalt: Schiff, Name, Abweichungen, Halterungen und Lackierung. */
@@ -1121,7 +1141,7 @@ export function initWorkshop(doc, bridge) {
     paintMods();
     paintModel();
     paintCatCounts();
-    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]);
     for (const [g, t] of totals) {
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
       if (b) b.textContent = `${nf.format(Math.round(t.now))} ${groupUnit(g)}`;
@@ -1722,7 +1742,7 @@ export function initWorkshop(doc, bridge) {
     if (t) {
       const unit = groupUnit(os.group), title = m(`grp.${os.group}`);
       if (peeked) {
-        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks).get(os.group);
+        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]).get(os.group);
         effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} → ${nf.format(Math.round(to.now))} ${unit}`, ...pctOf(Math.round(to.now), Math.round(t.now), true) };
       } else effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} ${unit}`, ...pctOf(Math.round(t.now), Math.round(t.stock)) };
     }
@@ -1768,7 +1788,7 @@ export function initWorkshop(doc, bridge) {
   }
   /** Das Datenblatt des Teils k an der Stelle der Auswahlliste des offenen Slots; false, wenn es keines gibt. */
   function sheetView(slot, pick, k) {
-    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks));
+    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]));
     if (!d) return false;
     const tone = (dir) => (dir > 0 ? 'is-up' : dir < 0 ? 'is-down' : 'is-flat');
     // Streifen der Klasse: Lage in Prozent, rechts ist besser (classStrip)
@@ -1814,7 +1834,7 @@ export function initWorkshop(doc, bridge) {
     const isSaved = !!saved && sameLayout(saved, draft);
     const present = new Set(slots.map(tabOf));
     if (hasPaints()) present.add('paint');
-    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks, data.shieldAct?.[draft.ship]);
     let num = 0;
     const groups = cat === 'paint' ? [] : GROUPS.map((gid) => {
       const mine = slots.filter((s) => s.group === gid && tabOf(s) === cat);

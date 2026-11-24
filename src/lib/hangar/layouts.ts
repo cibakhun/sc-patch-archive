@@ -29,6 +29,7 @@
 
 import { createHash } from 'node:crypto';
 import hangarAssets from '../../data/hangar-assets.json';
+import VEHICLES from '../../data/vehicles.json';
 import { craftEntryPath, recipeForItem } from '../crafting';
 import { items, pageItemIds, type Item, type ItemStats } from '../items';
 import { HANGAR_IDS } from './catalog';
@@ -113,6 +114,13 @@ export interface LayoutData {
    * Feuerkraft; die Seite zeigt sie als eigene Zeile darunter.
    */
   readonly pdc: Readonly<Record<string, readonly [n: number, dps: number]>>;
+  /**
+   * Gleichzeitig aktive Schildgeneratoren, nur bei Schiffen mit mehr
+   * Generatoren: ein Raumschiff nutzt hoechstens zwei, die weiteren sind
+   * Reserve (Zaehlregel D-20 in scripts/datamine-vehicles.mjs, dieselbe Zahl
+   * wie shieldHp im Schiffsblatt). Schild und Aufladung zaehlen die staerksten.
+   */
+  readonly shieldAct: Readonly<Record<string, number>>;
 }
 
 /**
@@ -495,7 +503,16 @@ function build(): LayoutData {
   const offered = new Set(Object.values(ships).flatMap((slots) => slots.flatMap((s) => s[6] ?? [])));
   const rackOut: Record<string, LayoutRack> = {};
   for (const k of Object.keys(racks).sort()) if (offered.has(k)) rackOut[k] = racks[k];
-  return { v: 1, items: used, ships, models, paints, racks: rackOut, pdc };
+  // Aktive Schildgeneratoren: Raumschiffe zaehlen hoechstens zwei (D-20).
+  // Bodenfahrzeuge zaehlen alle, wie im Schiffsblatt.
+  const spaceship = new Map((VEHICLES as unknown as { vehicles: { id: string; isSpaceship?: boolean }[] }).vehicles.map((v) => [v.id, v.isSpaceship !== false]));
+  const shieldAct: Record<string, number> = {};
+  for (const [id, slots] of Object.entries(ships)) {
+    const n = slots.reduce((a, s) => a + (s[1] === 'shield' ? s[5] : 0), 0);
+    if (n > 2 && spaceship.get(id) !== false) shieldAct[id] = 2;
+  }
+
+  return { v: 1, items: used, ships, models, paints, racks: rackOut, pdc, shieldAct };
 }
 
 function ensure() {
