@@ -173,7 +173,11 @@ for (const seite of seiten) {
     const erwartet = { [eigen]: seite, [zielSprache]: zwilling };
     for (const l of ['de', 'en']) {
       const p = alt[l] == null ? null : zuPfad(alt[l], seite);
-      if (p !== erwartet[l]) melde(3, `${seite}: hreflang="${l}" nennt ${alt[l] ?? '(fehlt)'}, erwartet ${erwartet[l]}`);
+      // Suchmaschinen verlangen die volle Adresse samt Protokoll; ein
+      // relativer hreflang-Wert zaehlt nicht, auch wenn der Pfad stimmt
+      // (Review PR #426). Umschalter-Optionen duerfen relativ bleiben.
+      if (alt[l] != null && !/^[a-z][a-z0-9+.-]*:\/\//i.test(alt[l].trim())) melde(3, `${seite}: hreflang="${l}" nennt ${alt[l]} — keine volle Adresse (${HAUS}/…)`);
+      else if (p !== erwartet[l]) melde(3, `${seite}: hreflang="${l}" nennt ${alt[l] ?? '(fehlt)'}, erwartet ${erwartet[l]}`);
       else if (!imBau.has(p)) melde(3, `${seite}: hreflang="${l}" nennt ${p}, das steht nicht im Bau`);
     }
   }

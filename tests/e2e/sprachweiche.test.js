@@ -103,6 +103,12 @@ test('[3] rot: hreflang auf fremden Ursprung', () => {
   assert.match(r.out, /\[3\] \/archiv\.html: hreflang="de" nennt https:\/\/example\.org\/de\/archiv\.html, erwartet \/de\/archiv\.html/);
 });
 
+test('[3] rot: relativer hreflang-Wert, auch wenn der Pfad stimmt (Review PR #426)', () => {
+  const r = lauf(bau({ ...GUT, 'archiv.html': seite({ opt: '/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }).replaceAll('https://verse-base.com/', '/') }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\[3\] \/archiv\.html: hreflang="de" nennt \/de\/archiv\.html — keine volle Adresse/);
+});
+
 test('Kommentare zaehlen nicht: ein auskommentierter falscher Umschalter bleibt ohne Befund', () => {
   const html = seite({ opt: '/de/archiv.html', de: '/de/archiv.html', en: '/archiv.html' }).replace('<body>', '<body><!-- <a class="langsw__opt" href="/de.html">alt</a> -->');
   const r = lauf(bau({ ...GUT, 'archiv.html': html }));
