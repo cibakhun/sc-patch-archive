@@ -1215,7 +1215,9 @@ export async function initHolo(container, cfg) {
          naechsten Durchgang sichtbar, und der Nachbar weicht allein nach unten. */
       for (const L of vis) {
         const minY = obenFreiVon(L) + L.h / 2;
-        if (L.cy < minY) L.cy = minY;
+        // Auch die Klemme ist eine Bewegung: sie kann zwei Kaesten erst
+        // aufeinanderlegen, und der naechste Durchgang muss das sehen.
+        if (L.cy < minY) { L.cy = minY; moved = true; }
       }
       if (!moved) break;
     }

@@ -1173,6 +1173,13 @@ a{color:inherit;text-decoration:none}
    Maus-Bedienung, die auf einem Geraet dieser Breite oft gar nicht vorliegt —
    also weg, statt sie zu quetschen. */
 @media(max-width:899px){.holo__hintline{display:none}}
+/* Mit Maus leuchtet sie auch hier auf, wenn das Mausrad ueber dem Hologramm
+   die Seite rollt (radHinweis): sonst erfaehrt im schmalen Desktopfenster
+   niemand, dass Strg + Mausrad zoomt. Nur fuer die 1,8 s des Aufleuchtens,
+   umbrechend statt 400px breit, damit sie den Strahl nicht dauerhaft kreuzt. */
+@media(max-width:899px) and (hover:hover) and (pointer:fine){
+  .holo__stage.is-3d .holo__hintline.is-hervor{display:block;white-space:normal;max-width:min(20rem,calc(100% - 2rem))}
+}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
 /* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
