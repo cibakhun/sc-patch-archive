@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -47,7 +48,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-0.html' : '/patches/sc-4-0-0.html'}>Alpha 4.0.0 · Destination Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Technologie' : ' &nbsp;·&nbsp; Technology'} /></div>
       <h1><span class="thin">{de ? 'Die Technik hinter 4.0.0' : 'The technology behind 4.0.0'}</span>Server Meshing</h1>
       <p class="lead">{de ? 'Die Schlüsseltechnik von Alpha 4.0.0: mehrere Game-Server bedienen unsichtbar und nahtlos einen einzigen Shard — erstmals teilen sich hunderte Spieler ein zusammenhängendes Universum.' : 'The key technology of Alpha 4.0.0: multiple game servers invisibly and seamlessly serve a single shard — for the first time, hundreds of players share one contiguous universe.'}</p>
-      <div class="tags"><span class="tag">Static Server Meshing</span><span class="tag">Replication Layer</span><span class="tag">1 Shard</span><span class="tag hot">{de ? '500 Spieler' : '500 players'}</span><span class="tag">Stanton + Pyro</span></div>
+      <div class="tags"><Schlagwort>Static Server Meshing</Schlagwort><Schlagwort>Replication Layer</Schlagwort><Schlagwort>1 Shard</Schlagwort><Schlagwort hot>{de ? '500 Spieler' : '500 players'}</Schlagwort><Schlagwort>Stanton + Pyro</Schlagwort></div>
       <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

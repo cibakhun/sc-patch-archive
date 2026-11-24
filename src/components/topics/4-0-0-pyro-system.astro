@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -49,7 +50,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-0.html' : '/patches/sc-4-0-0.html'}>Alpha 4.0.0 · Destination Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Sternsystem' : ' &nbsp;·&nbsp; Star system'} /></div>
       <h1><span class="thin">{de ? 'Das zweite Sternsystem' : 'The second star system'}</span>Pyro</h1>
       <p class="lead">{de ? 'Gesetzlos, sonnenverbrannt, von Gangs beherrscht: mit 4.0.0 wird Pyro das zweite voll simulierte Sternsystem — sechs ruinierte Welten um einen sterbenden Stern, ohne Sicherheit, ohne Rettung.' : 'Lawless, sun-scorched, ruled by gangs: with 4.0.0, Pyro becomes the second fully simulated star system — six ruined worlds around a dying star, without security, without rescue.'}</p>
-      <div class="tags"><span class="tag">{de ? 'Sternsystem' : 'Star system'}</span><span class="tag">{de ? '6 Planeten' : '6 planets'}</span><span class="tag">Ruin Station</span><span class="tag hot">{de ? 'Gesetzlos' : 'Lawless'}</span><span class="tag">Jump Point</span></div>
+      <div class="tags"><Schlagwort>{de ? 'Sternsystem' : 'Star system'}</Schlagwort><Schlagwort>{de ? '6 Planeten' : '6 planets'}</Schlagwort><Schlagwort>Ruin Station</Schlagwort><Schlagwort hot>{de ? 'Gesetzlos' : 'Lawless'}</Schlagwort><Schlagwort>Jump Point</Schlagwort></div>
       <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

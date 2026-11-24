@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -48,7 +49,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-0.html' : '/patches/sc-4-8-0.html'}>Alpha 4.8.0 · Tactical Strike</a> &nbsp;·&nbsp; Endgame</div>
       <h1><span class="thin">{de ? 'Der erste echte Koop-Raid' : 'The first true co-op raid'}</span>Tactical Strike Groups</h1>
       <p class="lead">{de ? '4.8.0s Endgame: eine mehrphasige, kooperative Schlacht gegen eine Vanduul-Bedrohung — im All und am Boden. Nur eine koordinierte Schiffs-Streitmacht mit klaren Rollen kommt durch.' : '4.8.0\'s endgame: a multi-phase, cooperative battle against a Vanduul threat — in space and on the ground. Only a coordinated ship force with clear roles makes it through.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Koop-Raid' : 'Co-op Raid'}</span><span class="tag">{de ? 'PvE-Endgame' : 'PvE Endgame'}</span><span class="tag">Vanduul Mauler</span><span class="tag">Nyx</span><span class="tag">{de ? '7+ Spieler' : '7+ Players'}</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Koop-Raid' : 'Co-op Raid'}</Schlagwort><Schlagwort>{de ? 'PvE-Endgame' : 'PvE Endgame'}</Schlagwort><Schlagwort>Vanduul Mauler</Schlagwort><Schlagwort>Nyx</Schlagwort><Schlagwort>{de ? '7+ Spieler' : '7+ Players'}</Schlagwort></div>
       <div class="hero__play" data-lb="yt:SsOtI2dtvBc"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

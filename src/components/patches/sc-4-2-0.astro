@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -200,7 +201,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename"><span>Storm Breaker</span></div>
       <div class="tagline">{de ? 'Persistente Sturm-Aktivität, dynamischer Regen und Strahlung.' : 'Persistent storm activity, dynamic rain and radiation.'}</div>
       <div class="tags">
-        <span class="tag">Storm Breaker</span><span class="tag">{de ? 'Regen' : 'Rain'}</span><span class="tag hot">{de ? 'Strahlung' : 'Radiation'}</span><span class="tag">ATLS IKTI</span>
+        <Schlagwort>Storm Breaker</Schlagwort><Schlagwort>{de ? 'Regen' : 'Rain'}</Schlagwort><Schlagwort hot>{de ? 'Strahlung' : 'Radiation'}</Schlagwort><Schlagwort>ATLS IKTI</Schlagwort>
       </div>
       <a href={de ? '/de/topics/4-2-0-storm-breaker.html' : '/topics/4-2-0-storm-breaker.html'} style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-9);text-transform:uppercase;font-size:var(--fs-6);color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">{de ? 'Storm Breaker · Detailseite →' : 'Storm Breaker · Detail page →'}</a>
     </div>
