@@ -532,3 +532,51 @@ describe('Fehler- und Leerzustände', () => {
     assert.strictEqual(cards(dom).length, 6);
   });
 });
+
+// Heuristik-Befund P29: Erze stehen im Katalog ohne Bezugsquelle, ihre
+// Fundorte fuehrt die Mining-Seite. Karte und Modal verweisen dorthin.
+describe('Erze verweisen auf die Mining-Seite', () => {
+  let dom;
+  const ERZE = { url: '/de/topics/mining.html', m: { quantainium: ['Quantainium', 17], sadaryx: ['Sadaryx', 0] } };
+  function erzDb() {
+    const items = [
+      { id: 'quantainium', name: 'Quantainium', category: 'Commodity', obtain: [] },
+      { id: 'quantainium-raw', name: 'Quantainium (Raw)', category: 'Commodity', obtain: [] },
+      { id: 'sadaryx-raw', name: 'Sadaryx (Raw)', category: 'Commodity', obtain: [] },
+      { id: 'quantainium-water-bottle', name: '"Quantainium" Water Bottle', category: 'Utility / Drinks', obtain: [] },
+    ];
+    return { generator: 'x', generatedAt: '2026-11-24', note: 'Fixture', sources: {}, counts: { items: items.length, withObtain: 0, catalogOnly: items.length }, items };
+  }
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: erzDb(), craft: CRAFT_FIXTURE, uifCfg: { lang: 'de', erze: ERZE } });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+  function karte(id) { return cards(dom).find((c) => c.getAttribute('data-id') === id); }
+  function body() { return dom.elements['uif-modal-body-content']; }
+
+  test('29a. Erz-Karte nennt den Abbau statt „Kein Fundort bekannt“', () => {
+    for (const id of ['quantainium', 'quantainium-raw']) {
+      const t = karte(id).querySelector('.uif-card-location').textContent;
+      assert.ok(t.includes('Abbau · 17 Fundorte'), `${id}: ${t}`);
+    }
+    assert.ok(karte('sadaryx-raw').querySelector('.uif-card-location').textContent.includes('Abbau'));
+    // Ein Getraenk mit Erznamen im Namen ist kein Erz.
+    assert.ok(karte('quantainium-water-bottle').querySelector('.uif-card-location').textContent.includes('Kein Fundort bekannt'));
+  });
+
+  test('29b. Erz-Modal verlinkt das Mineral auf der Mining-Seite', () => {
+    karte('quantainium-raw').click();
+    const a = body().querySelector('a.uif-xlink');
+    assert.ok(a, 'Verweis fehlt');
+    assert.strictEqual(a.getAttribute('href'), '/de/topics/mining.html?mineral=Quantainium#db');
+    assert.ok(body().textContent.includes('Die Mining-Seite führt 17 Fundorte'));
+    assert.ok(!body().textContent.includes('keine verifizierten Shop- oder Loot-Daten'));
+  });
+
+  test('29c. Ohne erfasste Fundorte steht der Verweis ohne Zahl', () => {
+    karte('sadaryx-raw').click();
+    assert.ok(body().textContent.includes('Was über Fundorte bekannt ist'));
+    assert.strictEqual(body().querySelector('a.uif-xlink').getAttribute('href'), '/de/topics/mining.html?mineral=Sadaryx#db');
+  });
+});

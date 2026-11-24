@@ -73,6 +73,17 @@
     for (var k in g.stats) if (Object.prototype.hasOwnProperty.call(g.stats, k)) return true;
     return false;
   }
+  // Erze stehen im Katalog ohne Bezugsquelle, ihre Fundorte fuehrt die
+  // Mining-Seite (CFG.erze aus erzKatalog() in src/lib/miningLinks.ts).
+  // Roh- und Raffinadename zeigen auf dasselbe Mineral: „(Ore)“/„(Raw)“ fallen weg.
+  function erzVon(item) {
+    var E = CFG.erze;
+    if (!E || !E.m || item.category !== 'Commodity' || item.obtain.length) return null;
+    var k = String(item.name || '').replace(/\s*\((?:ore|raw)\)\s*$/i, '').trim().toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(E.m, k)) return null;
+    var m = E.m[k];
+    return { name: m[0], n: m[1], url: E.url + '?mineral=' + encodeURIComponent(m[0]) + '#db' };
+  }
   function itemUrl(item) {
     return (CFG.itemBase || '/items/') + encodeURIComponent(item.id) + '.html';
   }
@@ -505,7 +516,7 @@
       } else {
         priceHtml = esc(tr('noTradeData', 'Keine Handelsdaten'));
       }
-      var locHtml;
+      var locHtml, erz;
       if (item.obtain.length) {
         var extra = item.obtain.length - 1, o0 = item.obtain[0];
         // Der Fundort-Name steht in einem EIGENEN span, nicht als blosser
@@ -519,6 +530,8 @@
         locHtml = '<span class="uif-loc-name">' +
           esc(obtainText(o0)) + '</span>' +
           (extra > 0 ? '<span class="uif-loc-more">+' + extra + '</span>' : '');
+      } else if ((erz = erzVon(item))) {
+        locHtml = '<span class="uif-loc-erz">' + esc(erz.n ? tr('oreCard', 'Abbau · {n} Fundorte').replace('{n}', fmtNum(erz.n)) : tr('oreCardOhne', 'Abbau')) + '</span>';
       } else {
         locHtml = '<span class="uif-loc-none">' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span>';
       }
@@ -881,6 +894,7 @@
     var modal = document.getElementById('uif-item-modal');
     var content = document.getElementById('uif-modal-body-content');
     if (!modal || !content) return;
+    var erzM;
 
     var parent = parentCategory(item.category);
     var html = '<div class="uif-modal-header">' +
@@ -994,6 +1008,12 @@
         '<tbody>' + rows + '</tbody></table></div>' +
         '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) +
           (item.obtain.some(function (o) { return !!o.ort; }) ? ' · ' + esc(tr('lootStatusNote', '')) : '') + '</p>' +
+      '</div>';
+    } else if ((erzM = erzVon(item))) {
+      html += '<div class="uif-modal-section">' +
+        '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
+        '<p class="uif-catalog-note">' + esc(erzM.n ? tr('oreNote', 'Rohstoff aus dem Bergbau: Die Mining-Seite führt {n} Fundorte.').replace('{n}', fmtNum(erzM.n)) : tr('oreNoteOhne', 'Rohstoff aus dem Bergbau. Was über Fundorte bekannt ist, steht auf der Mining-Seite.')) + '</p>' +
+        '<a class="uif-xlink" href="' + esc(erzM.url) + '">' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + ' →</a>' +
       '</div>';
     } else {
       html += '<div class="uif-modal-section">' +

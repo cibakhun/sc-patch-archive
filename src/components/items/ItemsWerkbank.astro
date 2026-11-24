@@ -21,6 +21,7 @@ import { kategorieBaum, ZEICHEN_BLATT, ZEICHEN_GRUPPE, GRUPPEN_FARBE } from '../
 import { ITEM_UI } from '../../i18n/itemText';
 import { assertLocale, href } from '../../i18n/ui';
 import { jsonForScript } from '../../lib/safeJson';
+import { erzKatalog } from '../../lib/miningLinks';
 import { db, pageItems, armorSets, ITEM_PATCH, num } from '../../lib/items';
 
 interface Props { lang: 'de' | 'en' }
@@ -113,6 +114,7 @@ const CFG = {
   zb: ZEICHEN_BLATT,
   zg: ZEICHEN_GRUPPE,
   farben: GRUPPEN_FARBE,
+  erze: erzKatalog(lang),
   t: ITEM_UI[lang],
   w: W,
 };

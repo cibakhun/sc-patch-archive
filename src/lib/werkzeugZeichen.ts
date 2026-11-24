@@ -67,6 +67,8 @@ export const WZ_BEDIEN: Record<string, string> = {
   gem: '<path d="M7 4h10l3.5 5L12 20.5 3.5 9z"/><path d="M3.5 9h17M9.5 4 12 9l2.5-5M12 9v11.5"/>',
   ship: NEU.ship,
   grid4: NEU.grid4,
+  // Erze: Verweis auf die Mining-Seite (Kartenzeile und Haupthandlung im Datenblatt).
+  mining: WB_GLYPHS.mining,
 };
 
 const SONDER: Record<string, [string, number, boolean]> = {

@@ -508,7 +508,7 @@
     if (g && g.rarity) tags += '<li class="wz-tag" data-sel="' + esc(g.rarity) + '">' + esc(rarityLabel(g.rarity)) + '</li>';
     var st = setOf(it);
     if (st && st.id !== S.set) tags += '<li><button type="button" class="wz-tag" data-set="' + esc(st.id) + '" title="' + esc(tr('facetSet', 'Set')) + '"><span class="wi wi--layers" aria-hidden="true"></span>' + esc(st.name) + '</button></li>';
-    var preis, ort;
+    var preis, ort, erz;
     if (it._p != null) {
       preis = '<span class="wz-k__preis">' + (it.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + esc(auec(it._p)) + '</span>';
     } else if (it.obtain.length) {
@@ -520,6 +520,8 @@
     if (it.obtain.length) {
       var extra = it.obtain.length - 1;
       ort = '<span class="wz-k__ort" title="' + esc(obtainText(it.obtain[0])) + '"><span class="wi wi--pick" aria-hidden="true"></span><span>' + esc(obtainText(it.obtain[0])) + '</span>' + (extra > 0 ? '<i>+' + extra + '</i>' : '') + '</span>';
+    } else if ((erz = erzVon(it))) {
+      ort = '<span class="wz-k__ort"><span class="wi wi--mining" aria-hidden="true"></span><span>' + esc(erz.n ? tr('oreCard', 'Abbau · {n} Fundorte').replace('{n}', fmt(erz.n)) : tr('oreCardOhne', 'Abbau')) + '</span></span>';
     } else {
       ort = '<span class="wz-k__ort is-still"><span>' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span></span>';
     }
@@ -890,8 +892,25 @@
     return (C.katBase || '/items/category/') + it._b.s + (seite > 1 ? '-' + seite : '') + '.html';
   }
 
+  // Erze stehen im Katalog ohne Bezugsquelle, ihre Fundorte fuehrt die
+  // Mining-Seite (C.erze aus erzKatalog() in src/lib/miningLinks.ts). Roh- und
+  // Raffinadename zeigen auf dasselbe Mineral: „(Ore)“/„(Raw)“ fallen weg.
+  function erzVon(it) {
+    var E = C.erze;
+    if (!E || !E.m || it.category !== 'Commodity' || it.obtain.length) return null;
+    var k = String(it.name || '').replace(/\s*\((?:ore|raw)\)\s*$/i, '').trim().toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(E.m, k)) return null;
+    var m = E.m[k];
+    return { name: m[0], n: m[1], url: E.url + '?mineral=' + encodeURIComponent(m[0]) + '#db' };
+  }
+
   function quellenHtml(it) {
     var h = '<h3 class="wzb-h">' + esc(w('hQuellen')) + (it.obtain.length ? '<em>' + fmt(it.obtain.length) + '</em>' : '') + '</h3>';
+    var erz = erzVon(it);
+    if (erz) {
+      // Der Verweis selbst steht oben bei den Handlungen (blattItem).
+      return h + '<p class="wzb-note">' + esc(erz.n ? tr('oreNote', 'Rohstoff aus dem Bergbau: Die Mining-Seite führt {n} Fundorte.').replace('{n}', fmt(erz.n)) : tr('oreNoteOhne', 'Rohstoff aus dem Bergbau. Was über Fundorte bekannt ist, steht auf der Mining-Seite.')) + '</p>';
+    }
     if (!it.obtain.length) {
       return h + '<p class="wzb-note">' + esc(it.game && it.game.lootable === true
         ? tr('lootUnknown', 'Fundort unbekannt.')
@@ -961,9 +980,13 @@
     h += '<div class="wzb-inh">';
     // Handlungen
     h += '<div class="wzb-akt" id="wzb-akt">';
+    var erzA = erzVon(it);
     if (it._page) {
       h += '<a class="wzb-haupt" href="' + esc(itemUrl(it)) + '"><span class="wi wi--sheet" aria-hidden="true"></span>' + esc(w('datenblatt')) + '</a>';
-    } else {
+    } else if (erzA) {
+      h += '<a class="wzb-haupt" href="' + esc(erzA.url) + '"><span class="wi wi--mining" aria-hidden="true"></span>' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + '</a>';
+    }
+    if (!it._page) {
       var ks = katSeite(it);
       if (ks) h += '<a class="wzb-neben" href="' + esc(ks) + '"><span>' + esc(w('kategorieListe')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>';
     }
