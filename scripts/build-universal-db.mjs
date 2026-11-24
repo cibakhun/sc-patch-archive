@@ -37,6 +37,7 @@ import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
+import { ohneDoppelteZeilen } from './lib/hersteller-zeilen.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -206,6 +207,9 @@ let gameRows = 0, gameStats = 0, gameSets = [];
       if (g[k] != null) gm[k] = g[k];
     }
     gm.guid = g.id;
+    // Eine Feuerrate je Waffe (UX-Audit D3): Kopfzeilen der Beschreibung, die
+    // eine gemessene Kennzahl doppeln, fallen weg (scripts/lib/hersteller-zeilen.mjs).
+    for (const f of ['desc', 'descDe']) if (gm[f]) gm[f] = ohneDoppelteZeilen(gm[f], gm);
     e.game = gm;
     gameRows++;
     if (g.stats) gameStats++;

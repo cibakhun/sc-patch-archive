@@ -116,3 +116,31 @@ export function patchLinkFromKennung(
   const haupt = `${m[1]}.${m[2]}`;
   return { version: haupt, label: `Alpha ${haupt}`, href: patchPageHref(haupt, lang) };
 }
+
+/**
+ * Anker einer Zeile der Evolution-Matrix ("Combat & Waffen" -> "sys-combat-waffen").
+ *
+ * ANLASS (UX-Audit H3, 24.11.2026): die Evolution hatte einen einzigen
+ * Inhaltslink, und die Patchseiten nannten das System jeder Neuerung nur als
+ * Etikett. Seitdem fuehrt das Etikett im Dossier zur Zeile seines Systems.
+ * Die Namen sind je Sprache verschieden (mergePatchEn), Dossier und Matrix
+ * einer Sprache lesen aber dieselben — der Anker passt deshalb innerhalb
+ * einer Sprache immer.
+ */
+export function systemAnker(system: string): string {
+  const slug = system
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `sys-${slug}`;
+}
+
+/** Anker einer Zelle der Matrix: System × Patch ("sys-mining--4-1-0"). */
+export const zellenAnker = (system: string, version: string): string =>
+  `${systemAnker(system)}--${version.replace(/\./g, '-')}`;
+
+/** Verweis in die Evolution auf die Zelle eines Systems in einem Patch. */
+export const evolutionHref = (system: string, version: string, lang: Locale): string =>
+  `${href('/evolution.html', lang)}#${zellenAnker(system, version)}`;

@@ -9,7 +9,11 @@
 // Standardsprache der Site), mit JavaScript wechselt sie unter /de/ auf
 // Deutsch und zieht lang + Titel + Heimweg-Link mit.
 import Layout from '../layouts/Layout.astro';
+import SearchOverlay from '../components/SearchOverlay.astro';
 import { patchPageSlugs } from '../lib/patchPages';
+import { searchRootData } from '../lib/searchUi';
+import { useTranslations } from '../i18n/ui';
+import { jsonForScript } from '../lib/safeJson';
 
 // Spanne der Patch-Seiten aus dem Dateibestand, nicht als Literal: hier stand
 // bis zum 06.11.2026 fest „Alpha 4.0.0 to 4.8.2", waehrend die Patch-Seiten
@@ -22,6 +26,26 @@ const fassungen = [...patchPageSlugs]
   .map((v) => v.join('.'));
 if (fassungen.length === 0) throw new Error('404: keine Patch-Seite gefunden');
 const spanne = `Alpha ${fassungen[0]} to ${fassungen[fassungen.length - 1]}`;
+
+// Suche auf der 404 (UX-Audit 24.11.2026: „404 ohne Kopf, Menü und Suche",
+// heuristische Evaluation B32, Task-Flows A10). Gebaut wird die Suche EINMAL
+// auf Englisch; unter /de/ tauscht das Skript unten vor dem ersten Öffnen
+// Index-Adressen und Beschriftungen gegen die deutschen. Das geht, weil
+// assets/search-overlay.js seine Einstellungen aus dem LEBENDEN dataset von
+// #scs liest und den Index erst beim Öffnen holt.
+const tDe = useTranslations('de');
+const sucheDe = {
+  data: searchRootData('de'),
+  placeholder: tDe('search.placeholder'),
+  term: tDe('search.term'),
+  dialog: tDe('search.dialog'),
+  close: tDe('search.close'),
+  results: tDe('search.results'),
+  foot: [tDe('search.pick'), tDe('search.open'), tDe('search.craftHint'), tDe('search.dismiss')],
+  dismiss: tDe('search.dismiss'),
+  // Steht im Fenster als Kennung neben dem Suchfeld; im Wörterbuch mit &nbsp;.
+  sys: tDe('search.sys').replace(/&nbsp;/g, '\u00a0'),
+};
 ---
 <Layout
   title="404 — Lost in the Verse | VerseBase"
@@ -30,45 +54,138 @@ const spanne = `Alpha ${fassungen[0]} to ${fassungen[fassungen.length - 1]}`;
   noindex={true}
 >
 <style is:inline>
-:root{--bg:#05070d;--surface:#0f1524;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif}
 
 
 
 
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;
-  background:radial-gradient(120% 90% at 50% 30%,rgba(45,212,255,.10),transparent 60%),var(--bg);color:var(--text);
-  font-family:var(--font-body);padding:2rem 1.5rem;overflow:hidden}
+/* Alles auf .nf begrenzt: Seit die Suche auf der Seite liegt, erbte ihr
+   Fenster sonst die Mitte-Ausrichtung und die p-/h1-Regeln dieser Seite. */
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;background:radial-gradient(120% 90% at 50% 30%,rgba(45,212,255,.10),transparent 60%),var(--bg);color:var(--text);
+  font-family:var(--font-body);overflow-x:hidden}
+.nf *{margin:0;padding:0}
+.nf{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;padding:4.5rem 1.5rem 2rem}
 .code{font-family:var(--font-display);font-weight:900;line-height:.9;font-size:clamp(5rem,26vw,16rem);background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 36px rgba(45,212,255,.4))}
 .kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-20);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent)}
-h1{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2rem)}
-p{max-width:52ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.15rem)}
+.nf h1{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2rem)}
+.nf p{max-width:52ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.15rem)}
 .home{margin-top:.6rem;display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);
   text-transform:uppercase;font-size:var(--fs-7);color:var(--ink);background:var(--accent);padding:.8rem 1.5rem;border-radius:4px;text-decoration:none;
   box-shadow:0 0 30px rgba(45,212,255,.35);transition:transform var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui)}
 .home:hover{transform:translateY(-2px);box-shadow:0 0 46px rgba(45,212,255,.6)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.nf-top{position:absolute;top:0;left:0;right:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.5rem}
+.nf-mark{font-family:var(--font-display);font-weight:700;letter-spacing:var(--ls-10);font-size:var(--fs-8);color:var(--text);text-decoration:none}
+.nf-mark:hover{color:var(--accent)}
+.nf-wege{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.7rem;margin-top:.6rem}
+.nf-such{display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-7);
+  color:var(--text);background:transparent;border:1px solid var(--line);padding:.8rem 1.3rem;border-radius:4px;cursor:pointer;
+  transition:border-color var(--dur-base) var(--ease-ui),color var(--dur-base) var(--ease-ui)}
+.nf-such:hover{border-color:var(--accent);color:var(--accent)}
+.nf-such kbd{font-family:var(--font-ui);font-size:var(--fs-5);border:1px solid var(--line);border-radius:3px;padding:.05rem .35rem;color:var(--muted)}
+.nf-wege .home{margin-top:0}
+.nf .nf-vorschlag{font-size:var(--fs-8)}
+.nf-vorschlag button{font:inherit;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.nf-vorschlag button:hover{color:var(--text)}
+@media (max-width:520px){.nf-such kbd{display:none}}</style>
 
+<div class="nf-top">
+  <a class="nf-mark" href="/index.html" data-home aria-label="VerseBase, home" data-de-aria="VerseBase, Startseite">VerseBase</a>
+</div>
+
+<main class="nf">
 <div class="kicker" data-en="Error 404 · Jump point failed" data-de="Fehler 404 · Sprungpunkt fehlgeschlagen">Error 404 · Jump point failed</div>
 <div class="code">404</div>
 <h1 data-en="Lost in the Verse" data-de="Verloren im Verse">Lost in the Verse</h1>
 <p data-en="These coordinates don't exist in the archive — maybe an old link, a typo, or a jump into the void."
    data-de="Diese Koordinaten gibt es im Archiv nicht — vielleicht ein alter Link, ein Tippfehler oder ein Sprung ins Leere.">These coordinates don't exist in the archive — maybe an old link, a typo, or a jump into the void.</p>
-<a class="home" href="/index.html" data-en="⌂ Back to VerseBase" data-de="⌂ Zurück zu VerseBase">⌂ Back to VerseBase</a>
+<p class="nf-vorschlag" hidden><span data-en="Looking for" data-de="Gesucht">Looking for</span> <button type="button" data-nf-q></button>?</p>
+<div class="nf-wege">
+  <button type="button" class="nf-such" data-scs-open><span data-en="Search VerseBase" data-de="VerseBase durchsuchen">Search VerseBase</span><kbd>Ctrl K</kbd></button>
+  <a class="home" href="/index.html" data-home data-en="⌂ Back to VerseBase" data-de="⌂ Zurück zu VerseBase">⌂ Back to VerseBase</a>
+</div>
+</main>
+
+<SearchOverlay lang="en" />
+<script type="application/json" id="nf-suche-de" set:html={jsonForScript(sucheDe)}></script>
 
 <script is:inline>
   // nginx liefert diese Datei auch fuer /de/-Routen aus; die URL im Browser
   // bleibt dabei die angefragte. Daran haengt die Sprachwahl.
   (function () {
-    if (location.pathname.indexOf('/de/') !== 0) return;
-    document.documentElement.lang = 'de';
-    document.title = '404 — Verloren im Verse | VerseBase';
-    var home = document.querySelector('.home');
-    if (home) home.setAttribute('href', '/de/index.html');
-    var els = document.querySelectorAll('[data-de]');
-    for (var i = 0; i < els.length; i++) els[i].textContent = els[i].getAttribute('data-de');
+    var de = location.pathname.indexOf('/de/') === 0;
+    if (de) {
+      document.documentElement.lang = 'de';
+      document.title = '404 — Verloren im Verse | VerseBase';
+      // Die deutsche Startseite ist /de.html. Bis 24.11.2026 stand hier
+      // /de/index.html — die Adresse gibt es nicht, der Knopf fuehrte also
+      // wieder auf diese 404 (Feature-Audit H1).
+      var homes = document.querySelectorAll('[data-home]');
+      for (var h = 0; h < homes.length; h++) homes[h].setAttribute('href', '/de.html');
+      var aria = document.querySelectorAll('[data-de-aria]');
+      for (var a = 0; a < aria.length; a++) aria[a].setAttribute('aria-label', aria[a].getAttribute('data-de-aria'));
+      var els = document.querySelectorAll('[data-de]');
+      for (var i = 0; i < els.length; i++) els[i].textContent = els[i].getAttribute('data-de');
+
+      // Suche auf Deutsch: Index-Adressen und Texte tauschen, bevor jemand
+      // sie oeffnet (siehe Kopf von 404.astro).
+      var root = document.getElementById('scs');
+      var src = document.getElementById('nf-suche-de');
+      if (root && src) {
+        try {
+          var S = JSON.parse(src.textContent || '{}');
+          var data = S.data || {};
+          for (var k in data) {
+            if (!Object.prototype.hasOwnProperty.call(data, k) || k.indexOf('data-') !== 0) continue;
+            root.setAttribute(k, data[k]);
+          }
+          var inp = document.getElementById('scs-in');
+          if (inp) {
+            if (S.placeholder) inp.setAttribute('placeholder', S.placeholder);
+            if (S.term) inp.setAttribute('aria-label', S.term);
+          }
+          var dlg = root.querySelector('[role="dialog"]');
+          if (dlg && S.dialog) dlg.setAttribute('aria-label', S.dialog);
+          var lst = document.getElementById('scs-list');
+          if (lst && S.results) lst.setAttribute('aria-label', S.results);
+          var x = root.querySelector('.scs__x');
+          if (x && S.close) x.setAttribute('aria-label', S.close);
+          var sys = root.querySelector('.scs__sys');
+          if (sys && S.sys) sys.textContent = S.sys;
+          var tap = root.querySelector('.scs__x-tap');
+          if (tap && S.dismiss) tap.textContent = S.dismiss;
+          var foot = root.querySelectorAll('.scs__foot > span');
+          for (var f = 0; f < foot.length && S.foot && f < S.foot.length; f++) {
+            var last = foot[f].lastChild;
+            if (last && last.nodeType === 3) last.nodeValue = ' ' + S.foot[f];
+          }
+        } catch (e) { /* bleibt englisch — die Suche selbst funktioniert trotzdem */ }
+      }
+    }
+
+    // Vorschlag aus dem Adressende: /schiffe/aegs-gladus.html -> „aegs gladus".
+    // Ein Klick oeffnet die Suche mit diesen Woertern (Task-Flows V8).
+    var seg = location.pathname.replace(/\/+$/, '').split('/').pop() || '';
+    try { seg = decodeURIComponent(seg); } catch (e) { /* roh lassen */ }
+    var q = seg.replace(/\.html?$/i, '').replace(/[-_+.]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (q.length > 40) q = q.slice(0, 40).replace(/\s+\S*$/, '');
+    var box = document.querySelector('.nf-vorschlag');
+    var btn = document.querySelector('[data-nf-q]');
+    if (box && btn && q.length >= 3 && !/^(index|de|en)$/i.test(q)) {
+      btn.textContent = q;
+      box.hidden = false;
+      btn.addEventListener('click', function () {
+        if (typeof window.__scsOpen !== 'function') return;
+        window.__scsOpen();
+        var inp = document.getElementById('scs-in');
+        if (!inp) return;
+        inp.value = q;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
   })();
 </script>
 </Layout>

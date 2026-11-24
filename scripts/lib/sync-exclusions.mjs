@@ -69,14 +69,15 @@ export const EXCLUSIONS = [
     openTagPattern: () => /<section\s+class="opl-wrap reveal"[^>]*>/,
     tagName: 'section',
     reason:
-      'src/components/topics/4-0-0-contested-zones.astro Zeilen ~178-186 und ' +
-      'src/components/topics/4-2-0-storm-breaker.astro (dieselbe Stelle, wortgleicher ' +
-      'Quellkommentar): {de && <OnepagerLink …>} — den Onepager gibt es nur auf Deutsch ' +
+      'src/components/OnepagerLink.astro (seit 24.11.2026 dort, vorher in ' +
+      'src/components/topics/4-0-0-contested-zones.astro und 4-2-0-storm-breaker.astro): ' +
+      '{de && <section class="opl-wrap">…} — den Onepager gibt es nur auf Deutsch ' +
       '(public/onepager/contested-zones/, public/onepager/storm-breaker/), die EN-Fassung hat ' +
       'ihn noch nie verlinkt und soll das ausdruecklich auch nicht anfangen. Daran haengen auch ' +
       'die vier ungepaarten Dateien aus Zusicherung 1 (dist/onepager/*/index.html, ' +
       'dist/downloads/onepager-*.html) — dieselbe bewusste EN-Luecke, nur auf Dateiebene statt ' +
-      'auf Abschnittsebene. Anker ist section.opl-wrap (OnepagerLink.astro Zeile 16); ' +
+      'auf Abschnittsebene. Die Downloads-Zeile danach (div.opl-dl) steht in beiden Fassungen. ' +
+      'Anker ist section.opl-wrap (OnepagerLink.astro); ' +
       'verschwindet die Bedingung oder die Klasse, trifft diese Ausnahme auf kein Paar mehr zu ' +
       'und der Zombie-Waechter (Zusicherung 5) schlaegt an.',
   },

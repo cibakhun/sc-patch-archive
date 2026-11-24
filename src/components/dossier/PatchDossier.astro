@@ -9,7 +9,7 @@ import { getCollection } from 'astro:content';
 import vehicles from '../../data/vehicles.json';
 import { crewFmt } from '../../lib/shipFacts';
 import { standDossier, standTexte, standVerweis } from '../../lib/datenstand';
-import { patchLinkFromKennung } from '../../lib/patchPages';
+import { patchLinkFromKennung, evolutionHref } from '../../lib/patchPages';
 import { stripSpine } from '../../../scripts/lib/patch-spine.mjs';
 import { useTranslations, href, assertLocale, type Locale } from '../../i18n/ui';
 
@@ -56,6 +56,11 @@ const standZeilen = standDossier(lang, {
 });
 const st = standTexte(lang);
 const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
+// Querwege (UX-Audit H3, 24.11.2026): das System-Etikett jeder Neuerung fuehrt
+// zur Zeile seines Systems in der Evolution, die Fusszeile zurueck ins Archiv
+// (an die Stelle dieses Patches) und in die Evolution.
+const evoTitel = (sys: string) => t('do.evoChip').replace('%s%', sys);
+const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`;
 ---
 <section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)}>
   <div class="do__in">
@@ -82,7 +87,7 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
         <article class="do__feat">
           <div class="do__feat-head">
             <h4>{f.name}{f.unverified && <abbr class="do__unv" title={t('common.unverified')}>*</abbr>}</h4>
-            {f.system && <span class="do__chip">{f.system}</span>}
+            {f.system && <a class="do__chip do__chip--link" href={evolutionHref(f.system, patch.version, lang)} title={evoTitel(f.system)}>{f.system}</a>}
           </div>
           <p class="do__desc">{f.desc}</p>
           {(f.facts?.length ?? 0) > 0 && (
@@ -199,6 +204,11 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
         )}
       </div>
     )}
+
+    <p class="do__weiter">
+      <a href={archivHref}>{t('do.toArchive')} →</a>
+      <a href={L('/evolution.html')}>{t('do.toEvo')} →</a>
+    </p>
 
     <p class="do__note">
       {hasUnverified && <span>{t('do.unvNote')}</span>}{t('do.sources')}
@@ -390,6 +400,42 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
   }
   @media (max-width: 319px) {
     .do__chip { white-space: normal; overflow-wrap: anywhere; }
+  }
+  /* Das Etikett ist seit 24.11.2026 ein Link in die Evolution (UX-Audit H3):
+     er muss nach Link aussehen, nicht nach einem Knopf ohne Wirkung (HE B22). */
+  .do__chip--link {
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
+  }
+  .do__chip--link::after {
+    content: " ›";
+    color: var(--accent, #2dd4ff);
+  }
+  .do__chip--link:hover,
+  .do__chip--link:focus-visible {
+    color: var(--text, #e8eefc);
+    border-color: var(--accent, #2dd4ff);
+  }
+  .do__weiter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    margin: 1.4rem 0 0;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-8);
+  }
+  .do__weiter a {
+    color: var(--accent, #2dd4ff);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
+    padding-bottom: 0.1rem;
+  }
+  .do__weiter a:hover,
+  .do__weiter a:focus-visible {
+    color: var(--text, #e8eefc);
+    border-bottom-color: currentColor;
   }
   .do__desc {
     font-size: var(--fs-10);
