@@ -108,6 +108,42 @@
     }
   }
 
+  /* Kopfleiste der Datenblaetter (DataShell, UX-Audit A2).
+   *
+   * Konto: „Anmelden“ wird „Konto“, wenn im Browser eine Sitzung liegt. Nur
+   * nachgesehen, nicht geprueft — die Kontoseite selbst entscheidet. So
+   * braucht keine der ~17.000 Datenseiten account-lite.js (40 KB).
+   *
+   * Menue: ein <details>, das ohne Skript auf- und zugeht. Hier nur, was ein
+   * Menue sonst noch tut: Esc und ein Klick daneben schliessen es. */
+  var accts = document.querySelectorAll('[data-dp-acct]');
+  if (accts.length) {
+    var drin = false;
+    try {
+      for (var k = 0; k < localStorage.length; k++) {
+        if (/^sb-[a-z0-9]+-auth-token$/.test(localStorage.key(k) || '')) { drin = true; break; }
+      }
+    } catch (err) { /* abgeschotteter Speicher: bleibt „Anmelden“ */ }
+    if (drin) {
+      for (var j = 0; j < accts.length; j++) {
+        accts[j].href = accts[j].getAttribute('data-in');
+        accts[j].textContent = accts[j].getAttribute('data-l-in');
+        accts[j].classList.add('is-authed');
+      }
+    }
+  }
+  var menu = document.querySelector('details.dp-menu');
+  if (menu) {
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !menu.open) return;
+      menu.open = false;
+      menu.querySelector('summary').focus();
+    });
+    document.addEventListener('click', function (e) {
+      if (menu.open && !menu.contains(e.target)) menu.open = false;
+    });
+  }
+
   var links = document.querySelectorAll('a[data-backlink]');
   if (!links.length) return;
 
