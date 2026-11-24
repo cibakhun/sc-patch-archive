@@ -6,8 +6,11 @@
 // laufen auseinander.
 //
 // API (Hangar und Datenblatt verlassen sich darauf):
-//   VBFleet.ids() / ships() / owner() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
+//   VBFleet.ids() / ships() / owner() / has(id) / toggle(id, label) / add(id, label) / remove(id)
+//   / subscribe(fn) / retry() / dismissMerged()
 //   ships() = Kopien [{id,label}] für Listen (/account/fleet.html „Meine Flotte“).
+//   add/remove = wie toggle, aber nur in eine Richtung: ist das Schiff schon da
+//   bzw. schon weg, bleibt die Flotte, wie sie ist (gelesen aus der Ablage).
 //   owner() = Konto-ID der Flotte oder '' (Gast): „Rückgängig“ gilt nur für sie.
 //   snapshot = { ids, mode: 'guest'|'account', sync: 'local'|'syncing'|'synced'|'error',
 //                error: null|'offline'|'auth'|'write'|'read', merged }
@@ -305,6 +308,18 @@
     clearTimeout(flushTimer);
     flushTimer = setTimeout(function () { flushTimer = null; request(false); }, FLUSH_MS);
     return new Promise(function (resolve) { waiters.push({ id: id, resolve: resolve }); });
+  }
+
+  // „Entfernen“ und „Rückgängig“ auf /account/fleet.html meinen eine Richtung,
+  // kein Umschalten. Hat ein anderer Tab schon entfernt oder hinzugefügt und
+  // ist dessen storage-Ereignis hier noch nicht angekommen, bleibt es dabei:
+  // gelesen wird die Ablage, nicht die Anzeige.
+  function ensure(id, label, want) {
+    if (typeof id !== 'string' || !ID_RE.test(id)) return Promise.resolve(false);
+    var now = uid ? computeView() : storageBroken ? ships : readGuest();
+    if ((find(now, id) !== -1) !== want) return toggle(id, label);
+    if (uid || !storageBroken) refresh();
+    return Promise.resolve(want);
   }
 
   // Web Locks reihen die Läufe aller Tabs: ein zweiter Tab liest offene
@@ -617,6 +632,8 @@
     owner: function () { return uid || ''; },
     has: has,
     toggle: toggle,
+    add: function (id, label) { return ensure(id, label, true); },
+    remove: function (id) { return ensure(id, '', false); },
     subscribe: function (fn) {
       if (typeof fn !== 'function') return function () {};
       subs.push(fn);

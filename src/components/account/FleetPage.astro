@@ -4,7 +4,7 @@
 // Flotte aus diesem Browser, angemeldet steht die des Kontos da. Lesen,
 // Entfernen, Abgleich und die Übernahme der Gast-Schiffe beim Anmelden macht
 // assets/fleet.js (der EINE Schreiber der Flotte); diese Seite zeichnet nur
-// dessen Schnappschuss (VBFleet.subscribe) und ruft toggle/retry/dismissMerged.
+// dessen Schnappschuss (VBFleet.subscribe) und ruft remove/add/retry/dismissMerged.
 import { href } from '../../i18n/ui';
 
 interface Props {
@@ -161,6 +161,8 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     ships?(): Ship[];
     owner?(): string;
     toggle(id: string, label: string): Promise<boolean>;
+    add?(id: string, label: string): Promise<boolean>;
+    remove?(id: string): Promise<boolean>;
     subscribe(fn: (s: Snap) => void): () => void;
     retry(): Promise<unknown>;
     dismissMerged(): void;
@@ -232,7 +234,8 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
       return li;
     };
 
-    // Entfernen mit Rückgängig: ein zweiter toggle nimmt das Schiff wieder auf.
+    // Entfernen mit Rückgängig. remove/add wirken nur in eine Richtung: hat ein
+    // anderer Tab das Schiff schon entfernt, holt das × es nicht zurück.
     // Rückgängig gilt nur für die Flotte, aus der das Schiff kam: meldet sich
     // in einem anderen Tab jemand ab oder ein anderes Konto an, verfällt es.
     let undoShip: Ship | null = null;
@@ -248,7 +251,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
     const remove = (s: Ship) => {
       if (!fleet) return;
-      void fleet.toggle(s.id, s.label);
+      void (fleet.remove ? fleet.remove(s.id) : fleet.toggle(s.id, s.label));
       undoShip = s;
       undoFrom = whose(last);
       $('fltUndoTxt').textContent = fill(C.removed, { name: s.label });
@@ -271,7 +274,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
       if (fleet && s && whose(last) === undoFrom && !fleet.ids().includes(s.id)) {
         // Der Fokus geht an die Karte, sobald sie wieder dasteht (paint).
         focusShip = s.id;
-        void fleet.toggle(s.id, s.label);
+        void (fleet.add ? fleet.add(s.id, s.label) : fleet.toggle(s.id, s.label));
       }
       dropUndo();
       if (focusShip) { if (last) paint(last); return; }
