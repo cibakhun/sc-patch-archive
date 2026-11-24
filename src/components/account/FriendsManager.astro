@@ -30,7 +30,7 @@ const COPY = {
     addPh: 'Pilot hinzufügen: @handle',
     addLbl: 'Pilot per Handle oder Name suchen und anfragen',
     send: 'Anfrage senden',
-    filterPh: 'Freunde filtern',
+    filterPh: 'Freund oder Schiff suchen',
     online: 'Online',
     offline: 'Offline',
     incoming: 'Eingehend',
@@ -61,7 +61,7 @@ const COPY = {
     addPh: 'Add pilot: @handle',
     addLbl: 'Find a pilot by handle or name and send a request',
     send: 'Send request',
-    filterPh: 'Filter friends',
+    filterPh: 'Find a friend or a ship',
     online: 'Online',
     offline: 'Offline',
     incoming: 'Incoming',
@@ -105,6 +105,7 @@ const JS = {
     okWithdrawn: 'Anfrage zurückgezogen',
     okDeclined: 'Anfrage abgelehnt',
     okCopied: 'Link kopiert',
+    flies: 'Fliegt %ship%', fleetHidden: 'Bei %n% deiner Freunde ist keine Flotte zu sehen.', fleetHidden1: 'Bei einem Freund ist keine Flotte zu sehen.',
   },
   en: {
     accept: 'Accept', decline: 'Decline', withdraw: 'Withdraw', remove: 'Remove', removeQ: 'Remove?',
@@ -122,6 +123,7 @@ const JS = {
     okWithdrawn: 'Request withdrawn',
     okDeclined: 'Request declined',
     okCopied: 'Link copied',
+    flies: 'Flies %ship%', fleetHidden: '%n% of your friends have no visible fleet.', fleetHidden1: 'One friend has no visible fleet.',
   },
 }[lang];
 
@@ -184,6 +186,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         <ul class="fm-grid" id="fmOffline"></ul>
       </section>
       <p class="sv-none" id="fmNoneFiltered" hidden>{COPY.emptyFiltered}</p>
+      <p class="fm-fleetnote" id="fmFleetNote" hidden></p>
       <div class="ck-empty sv-empty fm-empty" id="fmFriendsEmpty" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
         <p><b>{COPY.emptyFriends}</b><br/>{COPY.emptyHint}</p>
@@ -326,6 +329,11 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     let incoming: Req[] = [];
     let outgoing: Req[] = [];
     let suggestions: Sug[] = [];
+    // Handle -> Schiffe seiner öffentlichen Flotte (Name, Suchschlüssel).
+    let fleets = new Map<string, Array<{ name: string; key: string }>>();
+    let fleetsLoaded = false;
+    // Kleinbuchstaben, Bindestriche wie Leerzeichen: „cutlass-black“ = „Cutlass Black“.
+    const shipKey = (v: string) => v.toLowerCase().replace(/[-_\s]+/g, ' ').trim();
 
     /* --------------------------------------------------------- Meldung --- */
     let toastTimer = 0;
@@ -461,11 +469,15 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       return li;
     };
 
-    const friendCard = (f: { rowId: string; since: string; p: Prof }) => {
+    // ships: die Schiffe aus seiner Flotte, die zum Filter passen („wer fliegt …“).
+    const friendCard = (f: { rowId: string; since: string; p: Prof }, ships: string[] = []) => {
       const p = f.p;
       // Offline steht schon über der Gruppe: dort lieber seit wann ihr befreundet seid.
       const so = presOf(p) === 'offline' ? { text: `${C.since} ${day(f.since)}`, act: false } : subOf(p);
-      const sub = el('small', 'fm-sub' + (so.act ? ' is-act' : ''), so.text);
+      const sub = ships.length
+        ? el('small', 'fm-sub fm-sub--ship', C.flies.replace('%ship%', ships[0]) + (ships.length > 1 ? ` +${ships.length - 1}` : ''))
+        : el('small', 'fm-sub' + (so.act ? ' is-act' : ''), so.text);
+      if (ships.length > 1) sub.title = ships.join(', ');
       const chat = iconBtn('ic-chat', `${C.chat}: ${nameOf(p)}`, 'fm-ib--chat');
       // Chat öffnet in der Freundesleiste (FriendsDock), auf dem Handy als volle Fläche.
       chat.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: p.id })));
@@ -680,6 +692,33 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       loadingEl.hidden = true;
       render();
       loadSuggest().catch(() => {});
+      loadFleets().catch(() => {});
+    };
+
+    // Flotten der Freunde: die Schiffe, die sie auf ihrer Pilotenseite zeigen
+    // (public_favorites, nur mit Handle und „Flotte zeigen“). Eine Abfrage für
+    // alle. Wer fehlt, zeigt keine Schiffe: ob er keine hat oder die Flotte
+    // verbirgt, sagen diese Daten nicht, also sagt es die Seite auch nicht.
+    let fleetSeq = 0;
+    const loadFleets = async () => {
+      const seq = ++fleetSeq;
+      const hs = [...new Set(friends.map((f) => f.p.handle).filter((h): h is string => !!h))];
+      const next = new Map<string, Array<{ name: string; key: string }>>();
+      if (hs.length) {
+        const { data, error } = await supabase.from('public_favorites')
+          .select('handle, slug, label').eq('kind', 'ship').in('handle', hs);
+        if (error || seq !== fleetSeq) return;
+        for (const r of (data || []) as Array<{ handle: string; slug: string; label: string | null }>) {
+          const name = (r.label || '').trim() || r.slug.replace(/-/g, ' ');
+          const list = next.get(r.handle) || [];
+          list.push({ name, key: shipKey(name + ' ' + r.slug) });
+          next.set(r.handle, list);
+        }
+      }
+      if (seq !== fleetSeq) return;
+      fleets = next;
+      fleetsLoaded = true;
+      render();
     };
 
     // Vorschläge: Piloten mit Handle, die man noch nicht kennt. Gründe:
@@ -723,8 +762,17 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
     const render = () => {
       const q = (filterInput.value || '').trim().toLowerCase();
+      // Ab zwei Zeichen sucht der Filter auch in den Flotten: „cutlass“ findet,
+      // wer eine Cutlass hat, und die Karte sagt, welche.
+      const sq = q.length >= 2 ? shipKey(q) : '';
+      const hitShips = new Map<string, string[]>();
       const shown = friends
-        .filter((f) => !q || [f.p.display_name, f.p.handle, roleLabel(f.p.role), f.p.status_text].some((v) => (v || '').toLowerCase().includes(q)))
+        .filter((f) => {
+          if (!q) return true;
+          const ships = sq ? (fleets.get(f.p.handle || '') || []).filter((s) => s.key.includes(sq)).map((s) => s.name) : [];
+          if (ships.length) hitShips.set(f.rowId, ships);
+          return ships.length > 0 || [f.p.display_name, f.p.handle, roleLabel(f.p.role), f.p.status_text].some((v) => (v || '').toLowerCase().includes(q));
+        })
         .sort((a, b) => presRank(a.p) - presRank(b.p) || nameOf(a.p).localeCompare(nameOf(b.p)));
       const on = shown.filter((f) => presOf(f.p) !== 'offline');
       const off = shown.filter((f) => presOf(f.p) === 'offline');
@@ -738,14 +786,20 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       $('fmBadgeSuggest').textContent = String(suggestions.length);
       tabs.suggest.btn.hidden = suggestions.length === 0 && active !== 'suggest';
 
-      $('fmOnline').replaceChildren(...on.map(friendCard));
-      $('fmOffline').replaceChildren(...off.map(friendCard));
+      $('fmOnline').replaceChildren(...on.map((f) => friendCard(f, hitShips.get(f.rowId))));
+      $('fmOffline').replaceChildren(...off.map((f) => friendCard(f, hitShips.get(f.rowId))));
       $('fmOnN').textContent = String(on.length);
       $('fmOffN').textContent = String(off.length);
       $('fmOnSec').hidden = !on.length;
       $('fmOffSec').hidden = !off.length;
-      $('fmFilterWrap').hidden = friends.length < 8 && !q;
+      // Den Filter gibt es ab acht Freunden, oder sobald ein Freund seine Flotte zeigt.
+      $('fmFilterWrap').hidden = friends.length < 8 && !q && !fleets.size;
       $('fmNoneFiltered').hidden = !(friends.length && !shown.length);
+      // Wer keine Schiffe zeigt, kann der Schiffsfilter nicht finden: das sagt die Seite.
+      const hidden = sq && fleetsLoaded ? friends.filter((f) => !fleets.has(f.p.handle || '')).length : 0;
+      const note = $('fmFleetNote');
+      note.textContent = hidden === 1 ? C.fleetHidden1 : C.fleetHidden.replace('%n%', String(hidden));
+      note.hidden = hidden === 0;
       $('fmFriendsEmpty').hidden = !(loaded && friends.length === 0);
       $('fmEmptySuggest').hidden = suggestions.length === 0;
 

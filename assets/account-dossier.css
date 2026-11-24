@@ -1555,6 +1555,8 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .fm-ver svg{width:11px;height:11px}
 .fm-sub{font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fm-sub.is-act{color:var(--accent);font-weight:600}
+.fm-sub--ship{color:var(--accent-2);font-weight:600}
+.fm-fleetnote{margin:-14px 0 18px;text-align:center;color:var(--muted);font-size:var(--fs-6)}
 .fm-why{display:flex;flex-wrap:nowrap;gap:5px;overflow:hidden}
 /* Schmale Karte: Rang nur als Zeichen + Level, der Name hat Vorrang */
 @container (max-width:24rem){.fm-name .rk-nm{display:none}}
