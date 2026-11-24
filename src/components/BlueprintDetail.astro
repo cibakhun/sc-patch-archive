@@ -23,6 +23,7 @@ import { item3dFor } from '../lib/item3d';
 import { HAS_HANGAR } from '../lib/seo';
 import { bwT } from '../i18n/bezugswegeText';
 import { fill } from '../i18n/itemText';
+import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 import { auec } from '../lib/items';
 import { bezugswege, materialWege, missionsZeilen } from '../lib/bezugswege';
 import { wikeloBlueprintTrades } from '../lib/itemLinks';
@@ -84,7 +85,7 @@ const wikeloBp = wikeloBlueprintTrades(bp.name);
 const wikeloBpHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(`${bp.name} Blueprint`)}`;
 const itemWege = (() => {
   if (missions.length > 0 || !linkedItem) return [];
-  const w = bezugswege(linkedItem);
+  const w = bezugswege(linkedItem, lang);
   const out: string[] = [];
   if (w.kaufen) out.push(fill(bt('bpNextItemBuy'), { p: auec(w.kaufen.ab, lang) }));
   if (w.finden && (w.finden.bestaetigt.length || w.finden.recherche.length)) out.push(bt('bpNextItemFind'));
@@ -93,7 +94,7 @@ const itemWege = (() => {
   return out;
 })();
 // D4: Pool statt „100 %" — die Chance gilt dem Pool, nicht diesem Bauplan.
-const zeilen = missionsZeilen(bp);
+const zeilen = missionsZeilen(bp, lang);
 const prozent = (c: number) => (lang === 'de' ? `${Math.round(c * 100)} %` : `${Math.round(c * 100)}%`);
 // Steht nicht fest, aus welchem von mehreren Pools der Bauplan kommt, steht
 // die Spanne da („1 von 5–8“, poolSpanne in src/lib/bezugswege.ts).
@@ -305,9 +306,11 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
               {zeilen.map((z) => (
                 <tr data-mission={z.slug}>
                   <td>
+                    {/* Name wie auf der Missionsseite; der Spieltitel ist
+                        englisch und auf DE so ausgezeichnet (Sprachregel). */}
                     {z.seite
-                      ? <a href={href(`/missionen/${z.slug}.html`, lang)}>{z.label}</a>
-                      : z.label}
+                      ? <a href={href(`/missionen/${z.slug}.html`, lang)}><span lang={fremdLang(lang, MISSIONSTEXT_LANG)}>{z.titel}</span>{z.zusatz && ` (${z.zusatz})`}</a>
+                      : <span lang={fremdLang(lang, MISSIONSTEXT_LANG)}>{z.label}</span>}
                   </td>
                   <td class="dp-num" data-pool={z.pool} data-pool-min={z.poolMin < z.pool ? z.poolMin : undefined}>{poolText(z)}</td>
                 </tr>
