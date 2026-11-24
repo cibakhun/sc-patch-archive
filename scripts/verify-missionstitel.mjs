@@ -51,7 +51,9 @@ const ent = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp
 // Sichtbarer Text eines Markup-Stuecks, nur zum Vergleichen und Melden (die
 // Ausgabe geht in die Konsole, nie zurueck in eine Seite). Tags fallen per
 // Zeichenlauf weg statt per Regex (CodeQL haelt <[^>]*> fuer unvollstaendig
-// bereinigt); spitze Klammern ganz am Ende, also auch die aus &lt; und &gt;.
+// bereinigt). Sichtbare spitze Klammern (&lt; &gt;) werden zu ‹ ›: so bleibt
+// „Rescue <VIP>" von „Rescue VIP" unterscheidbar, und kein < oder > steht
+// im Ergebnis.
 const ohneTags = (h) => {
   let aus = '';
   let drin = false;
@@ -62,7 +64,10 @@ const ohneTags = (h) => {
   }
   return aus;
 };
-const text = (h) => ohneTags(h).replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m)).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+const text = (h) => ohneTags(h)
+  .replace(/&(#\d+|[a-z]+);/g, (m, e) => ent[e] ?? (e[0] === '#' ? String.fromCharCode(+e.slice(1)) : m))
+  .replace(/</g, '‹').replace(/>/g, '›')
+  .replace(/\s+/g, ' ').trim();
 // Marke oder interner Bezeichner im sichtbaren Namen
 const MARKE = /[{}~[\]]|\b[A-Za-z0-9]+_[A-Za-z0-9_]+\b/;
 
