@@ -413,6 +413,8 @@ const WELT = [
   // „Pen" steht hier mitten im Wort (Heuristik P14): vor den Pens war das
   // erste Register mit Missionen und Patches dran.
   { k: 'mission', b: 'Bounty', t: 'Independent Contractor Bounty', s: '', u: '/missionen/i.html', x: '' },
+  // ... und hier am Wortanfang, aber nicht als ganzes Wort.
+  { k: 'mission', b: 'Mercenary', t: 'Stuck Ling Shipment Pending Delivery', s: '', u: '/missionen/p.html', x: '' },
 ];
 const WELT_MORE = [
   { k: 'item', b: 'Countermeasures', t: 'Aegis Gladius: Köderwerfer', s: '', u: '/items/g1.html', x: '' },
@@ -524,7 +526,7 @@ for (const lang of ['de', 'en']) {
       } finally { zurueck(); }
     });
 
-    test('Wortanfang vor Wortmitte: „pen" zeigt die Pens vor „Independent" (P14)', async () => {
+    test('ganzes Wort vor Wortanfang vor Wortmitte: „pen" zeigt die Pens vor „Pending" und „Independent" (P14)', async () => {
       const s = bootWelt(lang);
       try {
         s.win.__scsOpen();
@@ -535,6 +537,8 @@ for (const lang of ['de', 'en']) {
         const pens = ['Medi-Pen (Hemozal)', 'AdrenaPen Xtra'];
         assert.deepEqual(t.slice(0, 2).sort(), [...pens].sort(), t.join(' / '));
         assert.ok(t.indexOf('Serpentine Arms') > 1 && t.indexOf('Independent Contractor Bounty') > 1, t.join(' / '));
+        // Die Gruppe der Pens kommt zuerst, nicht die Missionen mit „Pending".
+        assert.ok(t.indexOf('Stuck Ling Shipment Pending Delivery') > 1, t.join(' / '));
         assert.match(s.optionen()[0].className, /scs__hit--item/);
       } finally { zurueck(); }
     });

@@ -402,16 +402,22 @@
       return treffer;
     });
   }
-  // Steht q irgendwo am Anfang eines Wortes? Wortgrenze ist ein Zeichen
-  // ausser Buchstabe und Ziffer davor oder ein Grossbuchstabe nach einem
-  // kleinen im Namen („AdrenaPen"). „pen" in „Independent" ist keine.
-  function wortanfang(e, q, at) {
+  // Wie gut sitzt q im Namen, wenn nicht ganz vorn? 2 = ein ganzes Wort
+  // („Pen" in „AdrenaPen", „Medi-Pen"), 1 = ein Wortanfang („Pending"),
+  // 0 = Wortmitte („inde-pen-dent"). Wortgrenze ist ein Zeichen ausser
+  // Buchstabe und Ziffer oder ein Grossbuchstabe nach einem kleinen im Namen.
+  function wortlage(e, q, at) {
     var gleich = e.nt.length === e.t.length;
-    for (var p = at; p > 0; p = e.nt.indexOf(q, p + 1)) {
-      if (!/[a-z0-9]/.test(e.nt.charAt(p - 1))) return true;
-      if (gleich && /[a-z]/.test(e.t.charAt(p - 1)) && /[A-Z]/.test(e.t.charAt(p))) return true;
+    var grenze = function (p) {
+      if (p <= 0 || p >= e.nt.length) return true;
+      if (!/[a-z0-9]/.test(e.nt.charAt(p - 1)) || !/[a-z0-9]/.test(e.nt.charAt(p))) return true;
+      return gleich && /[a-z]/.test(e.t.charAt(p - 1)) && /[A-Z]/.test(e.t.charAt(p));
+    };
+    var best = 0;
+    for (var p = at; p > 0 && best < 2; p = e.nt.indexOf(q, p + 1)) {
+      if (grenze(p)) best = grenze(p + q.length) ? 2 : 1;
     }
-    return false;
+    return best;
   }
   function score(e, terms, whole, fz) {
     var total = 0;
@@ -424,10 +430,10 @@
       var f = fz && fz[i];
       if (!f) {
         var at = e.nt.indexOf(q);
-        // Am Namensanfang vor Wortanfang vor Wortmitte: „Pen" zeigt die Pens
-        // vor allem, was „inde-pen-dent" heisst.
+        // Am Namensanfang vor ganzem Wort vor Wortanfang vor Wortmitte: „Pen"
+        // zeigt die Pens vor „Pending" und allem, was „inde-pen-dent" heisst.
         if (at === 0) pts = 40;
-        else if (at > 0) pts = wortanfang(e, q, at) ? 32 : 25;
+        else if (at > 0) pts = [25, 32, 36][wortlage(e, q, at)];
         else if (e.nx.indexOf(q) >= 0) pts = 15;
         else if (e.ns.indexOf(q) >= 0) pts = 8;
         if (at >= 0) abgedeckt += q.length;
