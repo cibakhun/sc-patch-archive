@@ -668,7 +668,7 @@ export const CHECKS = [
     script: 'scripts/verify-bezugswege.mjs',
     rail: 'A',
     checks:
-      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein Schiffsblatt; Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
     // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
     // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
@@ -682,6 +682,11 @@ export const CHECKS = [
     // Missionslink (vorher 0), 3.252 Bauplan-Seiten (1.870 mit „Quelle
     // unbekannt"), 1.030 Blaetter mit Kennzahl Feuerrate, 356
     // Fahrzeug-Itemblaetter, 9.518 Katalog-Items.
+    // Nach dem Review (CodeRabbit, PR #423) drei Zusicherungen geschaerft und
+    // je einmal rot gefahren, zurueckgespielt und per sha256 geprueft: der
+    // Hinweis-Link auf /crafting/p4-ar-rifle.html zeigte auf die Karna, der
+    // Schiffslink von /items/100i.html auf die 125a, die Karna trug in
+    // dist/assets 500 statt 600 Schuss/min: 3 FEHLER, je einer pro Eingriff.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der

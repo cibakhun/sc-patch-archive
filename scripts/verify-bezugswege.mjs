@@ -73,6 +73,12 @@ function abschnitt(html, id) {
   return ende < 0 ? null : html.slice(start, ende);
 }
 
+/** Ueberschrift einer Seite als Vergleichsschluessel (wie src/lib/vehicleItems.ts). */
+const h1Name = (html) => {
+  const t = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1];
+  return t == null ? null : t.replace(/<[^>]+>/g, '').replace(/&#?\w+;/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
 const MISSION_LINK = /href="(?:\/de)?\/missionen\/[a-z0-9-]+\.html"/;
 const ALTE_VERMUTUNG = /evtl\. über Shop oder Reputation|may be obtainable via shop or reputation/;
 
@@ -93,7 +99,11 @@ let bauplanWikelo = 0;
       const sec = abschnitt(html, 'missionen');
       if (sec && MISSION_LINK.test(sec)) { bauplanMitMission.add(pfad.replace(/^\/de/, '')); continue; }
       const quelle = sec && sec.match(/data-quelle="(unbekannt|wikelo)"/);
-      const hinweis = sec && /href="(?:\/de)?\/feedback\.html\?wert=[^"]+"[^>]*data-hinweis/.test(sec);
+      // Der Hinweis-Link im Quellenblock nennt DIESE Seite (wert=<Pfad>),
+      // sonst kaeme die Meldung beim falschen Bauplan an.
+      const wert = sec && sec.match(/href="(?:\/de)?\/feedback\.html\?wert=([^"]+)"[^>]*data-hinweis/)?.[1];
+      let hinweis = false;
+      try { hinweis = !!wert && decodeURIComponent(wert) === pfad; } catch { hinweis = false; }
       if (!quelle || !hinweis) { ohne.push(pfad); continue; }
       if (quelle[1] === 'wikelo') bauplanWikelo++;
       else bauplanUnbekannt++;
@@ -103,7 +113,7 @@ let bauplanWikelo = 0;
   console.log(`    ohne Missionslink und ohne ehrliche Quelle — Soll: 0   Ist: ${ohne.length}`);
   console.log(`    alte Vermutung „evtl. über Shop oder Reputation" — Soll: 0   Ist: ${vermutung.length}`);
   need(bauplaene >= KLINKEN.bauplanSeiten, `nur ${bauplaene} Bauplan-Seiten, Klinke ${KLINKEN.bauplanSeiten} — Ursache klaeren, nicht die Klinke senken`);
-  need(!ohne.length, `${ohne.length} Bauplan-Seite(n) ohne Missionslink und ohne „Woher kommt der Bauplan?" mit Hinweis-Link — ${liste(ohne)}`);
+  need(!ohne.length, `${ohne.length} Bauplan-Seite(n) ohne Missionslink und ohne „Woher kommt der Bauplan?" mit Hinweis-Link auf genau diese Seite — ${liste(ohne)}`);
   need(!vermutung.length, `${vermutung.length} Seite(n) mit der alten Vermutung statt einer ehrlichen Quelle — ${liste(vermutung)}`);
 }
 
@@ -120,6 +130,7 @@ const leer = [];
 const missionFehlt = [];
 const doppelt = [];
 const fahrzeugOhneSchiff = [];
+const fahrzeugFalschesSchiff = [];
 const DOPPEL = [
   { kennzahl: /<b[^>]*>(?:Feuerrate|Fire rate)<\/b>/, text: /(?:^|\n|>)\s*(?:Rate of Fire|Feuerrate)\s*:/i, name: 'Feuerrate' },
   { kennzahl: /<b[^>]*>(?:Magazin|Magazine)<\/b>/, text: /(?:^|\n|>)\s*(?:Magazine Size|Battery Size|Magazingröße|Batteriegröße)\s*:/i, name: 'Magazin' },
@@ -150,9 +161,18 @@ for (const rel of ['items', 'de/items']) {
       if (d.text.test(desc)) doppelt.push(`${pfad} (${d.name})`);
     }
     // [6] Fahrzeug-Itemblatt -> Schiffsblatt
+    // Das Ziel muss SEIN Schiffsblatt sein: dieselbe Zuordnung wie die Seite
+    // (src/lib/vehicleItems.ts, Name ohne Gross/Klein und Satzzeichen) —
+    // verglichen wird die Ueberschrift des Items mit der des Schiffsblatts.
     if (html.includes('data-fahrzeug-item')) {
       fahrzeuge++;
-      if (!/href="(?:\/de)?\/schiffe\/[a-z0-9-]+\.html"[^>]*data-weg="schiff"/.test(html)) fahrzeugOhneSchiff.push(pfad);
+      const ziel = html.match(/href="((?:\/de)?\/schiffe\/[a-z0-9-]+\.html)"[^>]*data-weg="schiff"/)?.[1];
+      if (!ziel) fahrzeugOhneSchiff.push(pfad);
+      else {
+        const zielDatei = join(DIST, ziel);
+        const schiffH1 = existsSync(zielDatei) ? h1Name(readFileSync(zielDatei, 'utf8')) : null;
+        if (!schiffH1 || schiffH1 !== h1Name(html)) fahrzeugFalschesSchiff.push(`${pfad} -> ${ziel}`);
+      }
     }
   }
 }
@@ -176,21 +196,46 @@ console.log('\n[6] Fahrzeug-Itemblaetter verlinken ihr Schiffsblatt');
 console.log(`    Fahrzeug-Itemblaetter: ${fahrzeuge} (Klinke ${KLINKEN.fahrzeugBlaetter})   ohne Link zum Schiffsblatt — Soll: 0   Ist: ${fahrzeugOhneSchiff.length}`);
 need(fahrzeuge >= KLINKEN.fahrzeugBlaetter, `nur ${fahrzeuge} Fahrzeug-Itemblaetter erkannt, Klinke ${KLINKEN.fahrzeugBlaetter} — Ursache klaeren, nicht die Klinke senken`);
 need(!fahrzeugOhneSchiff.length, `${fahrzeugOhneSchiff.length} Fahrzeug-Itemblatt/-blaetter ohne sichtbaren Link zum Schiffsblatt — ${liste(fahrzeugOhneSchiff)}`);
+console.log(`    Link auf ein fremdes Schiffsblatt (Ueberschriften verschieden) — Soll: 0   Ist: ${fahrzeugFalschesSchiff.length}`);
+need(!fahrzeugFalschesSchiff.length, `${fahrzeugFalschesSchiff.length} Fahrzeug-Itemblatt/-blaetter zeigen auf ein anderes Schiffsblatt als ihr eigenes — ${liste(fahrzeugFalschesSchiff)}`);
 
 console.log('\n    Selbstauskunft (kein Urteil, Fremdquelle): Blaetter mit Kaufzeilen ohne Systemangabe '
   + `${ohneSystem} von ${kaufBlaetter}`);
 
 /* ---------- [5] Katalog auf dem Stand der Regel ---------- */
 console.log('\n[5] Katalog auf dem Stand der Regel „eine Zahl je Groesse"');
+// Dazu: die ausgelieferte Kopie (dist/, liest der Item Finder) traegt dieselben
+// gemessenen Werte wie die Quelle, aus der die Blaetter gebaut sind — sonst
+// zeigen Blatt und Finder zwei Feuerraten.
+const KENNZAHLEN = ['fireRate', 'magazine'];
+const messwerte = (db) => {
+  const m = new Map();
+  for (const it of db.items) {
+    const g = it.game;
+    if (!g) continue;
+    const werte = [g.stats, ...(g.variants ?? []).map((v) => v?.stats)].map((st) => KENNZAHLEN.map((k) => st?.[k] ?? null).join('/'));
+    m.set(it.id, werte.join('|'));
+  }
+  return m;
+};
+const katalogWerte = [];
 for (const rel of ['assets/universal-items.json', 'dist/assets/universal-items.json']) {
   const p = resolve(ROOT, rel);
   if (!existsSync(p)) { fail.push(`${rel} fehlt`); continue; }
   const db = JSON.parse(readFileSync(p, 'utf8'));
+  katalogWerte.push(messwerte(db));
   const treffer = [];
   for (const it of db.items) for (const z of doppelteZeilen(it.game)) treffer.push(`${it.id} „${z.zeile}"`);
   console.log(`    ${rel}: ${db.items.length} Items geprueft (Klinke ${KLINKEN.katalogItems}), doppelte Kopfzeilen — Soll: 0   Ist: ${treffer.length}`);
   need(db.items.length >= KLINKEN.katalogItems, `${rel}: nur ${db.items.length} Items, Klinke ${KLINKEN.katalogItems}`);
   need(!treffer.length, `${rel}: ${treffer.length} Kopfzeile(n) doppeln eine Kennzahl — Bau mit scripts/build-universal-db.mjs (Regel scripts/lib/hersteller-zeilen.mjs) oder neu bauen — ${liste(treffer, 5)}`);
+}
+
+if (katalogWerte.length === 2) {
+  const [quelle, kopie] = katalogWerte;
+  const abweichend = [...quelle.keys()].filter((id) => quelle.get(id) !== kopie.get(id));
+  console.log(`    Feuerrate und Magazin: Quelle gegen ausgelieferte Kopie, ${quelle.size} Items — abweichend — Soll: 0   Ist: ${abweichend.length}`);
+  need(!abweichend.length, `${abweichend.length} Item(s) mit anderer Feuerrate oder Magazin in dist/ als in assets/ — Kopie veraltet, neu bauen — ${liste(abweichend)}`);
 }
 
 if (fail.length) {

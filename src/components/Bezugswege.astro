@@ -26,7 +26,11 @@ const k = w.kaufen;
 const f = w.finden;
 const h = w.herstellen;
 const fundOrte = f ? [...f.bestaetigt, ...f.recherche] : [];
-const fundNamen = fundOrte.slice(0, ORTE_OFFEN).map((o) => obtainLabel(o, lang));
+// Die Namen gehoeren zur Zeile darueber: bestaetigte, wo es welche gibt, sonst
+// die recherchierten. Gibt es beides, steht die Zahl der unbestaetigten
+// eigens darunter — kein recherchierter Ort ohne seinen Belegstatus.
+const namenQuelle = f ? (f.bestaetigt.length ? f.bestaetigt : f.recherche) : [];
+const fundNamen = namenQuelle.slice(0, ORTE_OFFEN).map((o) => obtainLabel(o, lang));
 const missionen = h?.missionen ?? [];
 const wikeloHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(item.name)}`;
 const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(Astro.url.pathname).replace(/%2F/g, '/')}`;
@@ -71,7 +75,10 @@ const sonderNamen = [...new Set(w.sonderweg.map((o) => obtainLabel(o, lang)))];
             <strong class="bw-haupt">{f.recherche.length === 1 ? t('findResearchOne') : fill(t('findResearch'), { n: num(f.recherche.length, lang) })}</strong>
           )}
           {fundNamen.length > 0 && (
-            <span class="bw-neben">{fundNamen.join(', ')}{fundOrte.length > ORTE_OFFEN && ' …'}</span>
+            <span class="bw-neben">{fundNamen.join(', ')}{namenQuelle.length > ORTE_OFFEN && ' …'}</span>
+          )}
+          {f.bestaetigt.length > 0 && f.recherche.length > 0 && (
+            <span class="bw-neben" data-fund="recherche">{f.recherche.length === 1 ? t('findResearchOne') : fill(t('findResearch'), { n: num(f.recherche.length, lang) })}</span>
           )}
           {f.unbekannt && <span class="bw-neben">{t('findUnknown')}</span>}
           {fundOrte.length > 0 && <a class="bw-link" href="#bezugsquellen">{t('findAll')} ↓</a>}
@@ -94,7 +101,7 @@ const sonderNamen = [...new Set(w.sonderweg.map((o) => obtainLabel(o, lang)))];
                 )}
               </ul>
             </>
-          ) : (
+          ) : h.wikelo === 0 && (
             <span class="bw-neben" data-quelle="unbekannt">{t('craftUnknown')}</span>
           )}
           {h.wikelo > 0 && <span class="bw-neben">{t('craftWikelo')}</span>}
