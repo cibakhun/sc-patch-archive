@@ -126,10 +126,12 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     assert.match(src, /reply\(401,/, 'kein 401 bei falschem Geheimnis');
     assert.match(src, /reply\(503, \{ error: 'not_configured' \}\)/, 'kein geschlossener Ausfall ohne Geheimnis');
     assert.doesNotMatch(src, /\.(insert|upsert|delete)\(/, 'schreibt mehr als UPDATE');
-    // Benannte Ausnahme (Raffinerie-DMs, 20261030180000): zwei Funktionen, die
-    // nur lesen bzw. nur discord_notified_at setzen. Jede andere rpc reisst,
-    // ebenso ein berechneter Name; eine Ausnahme ohne Aufruf auch.
-    const RPC_OK = ['refinery_discord_due', 'refinery_discord_sent'];
+    // Benannte Ausnahmen: Raffinerie-DMs (20261030180000), zwei Funktionen, die
+    // nur lesen bzw. nur discord_notified_at setzen; Chat-DMs (20261124100000),
+    // zwei Funktionen, die nur lesen bzw. nur in die eigene Merktabelle
+    // private.chat_discord_notified schreiben. Jede andere rpc reisst, ebenso
+    // ein berechneter Name; eine Ausnahme ohne Aufruf auch.
+    const RPC_OK = ['refinery_discord_due', 'refinery_discord_sent', 'chat_discord_due', 'chat_discord_sent'];
     assert.doesNotMatch(src, /\.rpc\((?!\s*')/, 'rpc mit berechnetem Namen');
     const rpcs = [...src.matchAll(/\.rpc\(\s*'([^']+)'/g)].map((m) => m[1]);
     assert.deepEqual(rpcs.filter((n) => !RPC_OK.includes(n)), [], 'ruft eine Funktion ausserhalb der Ausnahme');
@@ -141,6 +143,14 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     assert.match(sent[1], /update public\.refinery_jobs\s+set discord_notified_at = now\(\)\s+where/, 'refinery_discord_sent setzt mehr als discord_notified_at');
     const due = sql.match(/create or replace function public\.refinery_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
     assert.ok(due && /^\s*select\b/i.test(due[1]) && !/\b(insert|update|delete)\b/i.test(due[1]), 'refinery_discord_due liest nicht nur');
+    const chat = fs.readFileSync('supabase/migrations/20261124100000_chat_discord_hinweis.sql', 'utf8');
+    const cDue = chat.match(/create or replace function public\.chat_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(cDue && /^\s*(select|with)\b/i.test(cDue[1]) && !/\b(insert|update|delete)\b/i.test(cDue[1]), 'chat_discord_due liest nicht nur');
+    const cSent = chat.match(/create or replace function public\.chat_discord_sent[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(cSent, 'chat_discord_sent nicht gefunden');
+    assert.doesNotMatch(cSent[1], /\bdelete\b|(?<!\bdo\s+)\bupdate\b/i, 'chat_discord_sent loescht oder aendert eine Tabelle');
+    const ziele = [...cSent[1].matchAll(/\binsert\s+into\s+([\w.]+)/gi)].map((m) => m[1]);
+    assert.deepEqual(ziele, ['private.chat_discord_notified'], 'chat_discord_sent schreibt ausserhalb seiner Merktabelle');
   });
 
   test('project_id ist gesetzt', () => {

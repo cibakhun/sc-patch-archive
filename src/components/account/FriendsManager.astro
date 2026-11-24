@@ -53,6 +53,9 @@ const COPY = {
     inviteOpen: 'Ansehen',
     inviteDc: 'So zeigt Discord deinen Link',
     more: 'Mehr dazu',
+    notifyH: 'Hinweise',
+    nDc: 'Discord-Nachricht bei neuen Nachrichten.',
+    nDcSub: 'Bist du nicht auf VerseBase und bleibt eine Nachricht 5 Minuten ungelesen, schreibt dir der Verse-Bot privat, wer dir geschrieben hat. Den Text schickt er nicht mit, und je Freund höchstens einmal in 30 Minuten.',
   },
   en: {
     tabFriends: 'Friends',
@@ -84,6 +87,9 @@ const COPY = {
     inviteOpen: 'View',
     inviteDc: 'How Discord shows your link',
     more: 'More',
+    notifyH: 'Notifications',
+    nDc: 'Discord message for new messages.',
+    nDcSub: 'When you are not on VerseBase and a message stays unread for 5 minutes, Verse-Bot tells you privately who wrote to you. It does not send the text, and at most once per friend every 30 minutes.',
   },
 }[lang];
 
@@ -106,6 +112,9 @@ const JS = {
     okDeclined: 'Anfrage abgelehnt',
     okCopied: 'Link kopiert',
     flies: 'Fliegt %ship%', fleetHidden: 'Bei %n% deiner Freunde ist keine Flotte zu sehen.', fleetHidden1: 'Bei einem Freund ist keine Flotte zu sehen.',
+    nDcHow: 'Dafür musst du auf dem VerseBase-Discord sein und Direktnachrichten von Servermitgliedern erlauben.',
+    nDcLink: 'Verbinde zuerst Discord in deinem Konto, dann kannst du den Hinweis anschalten.',
+    nDcLinkBtn: 'Zu Discord verbinden', nSaved: 'Gespeichert.',
   },
   en: {
     accept: 'Accept', decline: 'Decline', withdraw: 'Withdraw', remove: 'Remove', removeQ: 'Remove?',
@@ -124,6 +133,9 @@ const JS = {
     okDeclined: 'Request declined',
     okCopied: 'Link copied',
     flies: 'Flies %ship%', fleetHidden: '%n% of your friends have no visible fleet.', fleetHidden1: 'One friend has no visible fleet.',
+    nDcHow: 'You need to be on the VerseBase Discord and allow direct messages from server members.',
+    nDcLink: 'Link Discord in your account first, then you can switch this on.',
+    nDcLinkBtn: 'Go to Link Discord', nSaved: 'Saved.',
   },
 }[lang];
 
@@ -197,6 +209,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     <!-- Einladen (Runde 4): der eigene Pilotenlink, daneben bzw. darunter die
          Karte, die Discord beim Teilen zeigt. Dieselbe Regel setzt nginx in
          die Kopfzeilen der Pilotenseite (src/lib/pilotPreview.ts, nginx/pilot.js). -->
+    <div class="fm-side">
     <aside class="fm-invite" id="fmInvite" aria-labelledby="fmInviteH" hidden>
       <div class="fm-invite__in">
         <h3 class="fm-invite__h" id="fmInviteH">
@@ -233,6 +246,19 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         </div>
       </div>
     </aside>
+
+    <!-- Hinweis per Discord bei ungelesenen Nachrichten (notification_settings.chat_discord).
+         Bleibt verborgen, solange die Datenbank den Schalter nicht kennt. -->
+    <section class="fm-notify" id="fmNotify" aria-labelledby="fmNotifyH" hidden>
+      <h3 class="fm-invite__h" id="fmNotifyH">
+        <svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg>
+        <span>{COPY.notifyH}</span>
+      </h3>
+      <label class="pf-check"><input type="checkbox" id="fmNotifyDc" disabled /><span><b>{COPY.nDc}</b> {COPY.nDcSub}</span></label>
+      <p class="fm-notify__hint" id="fmNotifyHint" hidden></p>
+      <p class="acx-status" id="fmNotifyStatus" role="status" aria-live="polite" hidden></p>
+    </section>
+    </div>
   </div>
 
   <div id="fmPanelRequests" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnRequests" hidden>
@@ -693,6 +719,88 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       render();
       loadSuggest().catch(() => {});
       loadFleets().catch(() => {});
+      if (!notifyStarted) { notifyStarted = true; initNotify().catch(() => {}); }
+    };
+
+    // Hinweis per Discord bei ungelesenen Nachrichten (notification_settings.
+    // chat_discord, Migration 20261124100000). Keine Zeile = aus. Geschrieben
+    // wird per UPDATE und nur ohne Zeile per INSERT (die Rechte erlauben kein
+    // Upsert). Kennt die Datenbank den Schalter noch nicht, bleibt der Kasten
+    // verborgen. Discord geht nur mit verbundenem Discord.
+    let notifyStarted = false;
+    const initNotify = async () => {
+      const box = $('fmNotify');
+      const dc = $('fmNotifyDc') as HTMLInputElement;
+      const hint = $('fmNotifyHint');
+      const status = $('fmNotifyStatus');
+      const [{ data: prefs, error: prefErr }, { data: dcRow }] = await Promise.all([
+        supabase.from('notification_settings').select('chat_discord').maybeSingle(),
+        supabase.from('discord_role_state').select('discord_user_id').maybeSingle(),
+      ]);
+      if (prefErr) return;
+      // Verbinden oder Trennen auf dieser Seite meldet die Discord-Karte (vb:discord).
+      let linked = !!dcRow?.discord_user_id;
+      let saved = !!prefs?.chat_discord;
+      dc.checked = saved && linked;
+      dc.disabled = !linked;
+      box.hidden = false;
+
+      const showHint = () => {
+        hint.textContent = '';
+        if (!linked) {
+          const b = el('button', 'btn sm', C.nDcLinkBtn) as HTMLButtonElement;
+          b.type = 'button';
+          // Die Discord-Karte steht in der Seitenleiste des Kontos.
+          b.addEventListener('click', () => {
+            const card = document.getElementById('discordLinkCard');
+            card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card?.querySelector<HTMLElement>('button, a')?.focus({ preventScroll: true });
+          });
+          hint.append(C.nDcLink, b);
+        } else if (dc.checked) hint.append(C.nDcHow);
+        hint.hidden = !hint.childNodes.length;
+      };
+      showHint();
+      // Die Karte meldet sich bei jedem Zeichnen, auch ohne Wechsel. Waehrend
+      // des Speicherns nur merken: Haken und Sperre setzt der Speichernde.
+      let busy = false;
+      document.addEventListener('vb:discord', (e) => {
+        const now = !!(e as CustomEvent<{ linked?: boolean }>).detail?.linked;
+        if (now === linked) return;
+        linked = now;
+        if (busy) return;
+        dc.checked = saved && linked;
+        dc.disabled = !linked;
+        status.hidden = true;
+        showHint();
+      });
+
+      let exists = !!prefs;
+      dc.addEventListener('change', async () => {
+        status.hidden = true;
+        const row = { chat_discord: dc.checked, lang };
+        busy = true;
+        dc.disabled = true;
+        let error: unknown = null;
+        if (exists) {
+          const r = await supabase.from('notification_settings').update(row).eq('user_id', me).select('user_id');
+          error = r.error;
+          if (!r.error && !r.data?.length) exists = false;
+        }
+        if (!exists && !error) {
+          const r = await supabase.from('notification_settings').insert(row);
+          error = r.error;
+          if (!error) exists = true;
+        }
+        if (!error) saved = row.chat_discord;
+        busy = false;
+        dc.checked = saved && linked;
+        dc.disabled = !linked;
+        status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
+        status.textContent = error ? C.errNet : C.nSaved;
+        status.hidden = false;
+        showHint();
+      });
     };
 
     // Flotten der Freunde: die Schiffe, die sie auf ihrer Pilotenseite zeigen
