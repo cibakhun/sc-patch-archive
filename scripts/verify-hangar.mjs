@@ -804,6 +804,17 @@
         Platz)                                                      -> [21]
     ee  dort loKurz kürzt schon ab LO_KURZ (contentH >= LO_KURZ:
         eine Liste, die passt, bekäme „Alle zeigen“ ohne Gewinn)    -> [21]
+    ef  dist/assets/hangar-layouts.js: SCHILDE_AKTIV = 3 (31 Schiffe
+        abweichend, Starlifter A2 316.800 statt 211.200 HP, dazu
+        der Abgleich mit bay.ts)                                    -> [25]
+    eg  src/lib/hangar/bay.ts: const SCHILDE_AKTIV = 3 (Übersicht
+        und Werkstatt zählten verschieden)                          -> [25]
+    eh  dist/assets/hangar-layouts.js: aktiveSchilde ohne
+        .slice(0, SCHILDE_AKTIV) (jeder Generator zählt wieder:
+        31 Schiffe abweichend, Asgard 42.240 statt 21.120 HP)       -> [25]
+    ei  Buchten vom Stand vor P20 (Mining-Laser unter Pilotenwaffen
+        und bemannten Türmen): 20 Abweichungen in 8 Buchten je
+        Sprache, Mole mit drei Turm-Lasern                          -> [26]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3647,8 +3658,55 @@ const SCHILD = { schiffe: 188, mehr: 31 };
   ist.schildSchiffe = schiffe; ist.schildMehr = mehr;
 }
 
+say('\n[26] Mining-Laser: eigene Gruppe in jeder Bucht, keine Pilotenwaffe');
+// UX-Pruefung P20: Der Bergbaulaser der Prospector stand unter den
+// Pilotenwaffen, die Turm-Laser der Mole unter den bemannten Tuermen. Die
+// Regel ist die des Datenblatts (src/lib/shipFacts.ts isMiningLaser); das Tor
+// liest sie aus den Serienteilen und prueft jede ausgelieferte Bucht dagegen.
+// Klinke aus dem Bau am 24.11.2026.
+const MINING = { schiffe: 8, ports: 10 };
+{
+  const facts = readFileSync(join(ROOT, 'src/lib/shipFacts.ts'), 'utf8');
+  const REGEL = ['/^mining_laser/i', '/\\bmining laser\\b/i'];
+  const fehlt = REGEL.filter((r) => !facts.includes(r));
+  if (fehlt.length) fail(`[26] src/lib/shipFacts.ts isMiningLaser nennt ${fehlt.join(' und ')} nicht mehr: Regel hier und dort angleichen`);
+  const istLaser = (it) => /^mining_laser/i.test(it.cls ?? '') || /\bmining laser\b/i.test(it.name ?? '');
+  const LO = JSON.parse(readFileSync(join(ROOT, 'src/data/ship-loadouts.json'), 'utf8')).ships;
+  const soll = new Map();
+  for (const [id, ports] of Object.entries(LO)) {
+    const laser = Object.entries(ports).filter(([, its]) => its.some(istLaser)).map(([p]) => p);
+    if (laser.length) soll.set(id, new Set(laser));
+  }
+  const bad = [];
+  let schiffe = 0, ports = 0;
+  for (const lang of ['en', 'de']) {
+    for (const b of BAYS[lang]) {
+      const html = readFileSync(join(DIST, b.file), 'utf8');
+      const zeilen = [];
+      for (const sec of html.split(/<section class="hgx-grp" data-g="/).slice(1)) {
+        const g = sec.slice(0, sec.indexOf('"'));
+        for (const m of sec.matchAll(/<li class="hgx-slot"[^>]*\bdata-kind="([^"]+)"[^>]*\bdata-ports="([^"]*)"/g)) zeilen.push({ g, kind: m[1], ports: m[2].split(' ').filter(Boolean) });
+      }
+      const erwartet = soll.get(b.name) ?? new Set();
+      const inGruppe = new Set(zeilen.filter((z) => z.g === 'mining' && z.kind === 'miningLaser').flatMap((z) => z.ports));
+      for (const p of erwartet) if (!inGruppe.has(p)) bad.push(`${b.file}: Port ${p} trägt einen Mining-Laser, steht aber nicht in der Gruppe „mining“ (${zeilen.find((z) => z.ports.includes(p))?.g ?? 'nirgends'})`);
+      for (const z of zeilen) {
+        if ((z.g === 'mining') !== (z.kind === 'miningLaser')) bad.push(`${b.file}: Zeile ${z.kind} in Gruppe ${z.g}`);
+        if (z.kind === 'miningLaser') for (const p of z.ports) if (!erwartet.has(p)) bad.push(`${b.file}: Port ${p} steht als Mining-Laser da, trägt aber keinen`);
+      }
+      if (lang === 'en' && erwartet.size) { schiffe++; ports += erwartet.size; }
+    }
+  }
+  for (const t of bad.slice(0, 8)) fail(`[26] ${t} — src/lib/hangar/bay.ts kindOf`);
+  if (bad.length > 8) fail(`[26] … und ${bad.length - 8} weitere`);
+  say(`    Buchten mit Mining-Laser (EN, DE geprüft): ${schiffe}   Ports: ${ports}   abweichend: ${bad.length}`);
+  sollIst(`Schiffe >= ${MINING.schiffe}, Ports >= ${MINING.ports}, abweichend 0`, `${schiffe}, ${ports}, ${bad.length}`);
+  if (schiffe < MINING.schiffe || ports < MINING.ports) fail(`[26] nur ${schiffe} Buchten mit ${ports} Laser-Ports (Klinke ${MINING.schiffe} und ${MINING.ports}): prüft das Tor noch, wo die Regel greift?`);
+  ist.miningSchiffe = schiffe; ist.miningPorts = ports;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen   Hangargrößen: ${ist.grStufen ?? 0} Stufen, ${ist.grSchiffe ?? 0} Schiffe (S ${ist.grZahl?.S ?? 0}, M ${ist.grZahl?.M ?? 0}, L ${ist.grZahl?.L ?? 0}, XL ${ist.grZahl?.XL ?? 0}, nach Maß ${ist.grZahl?.[''] ?? 0}), ${ist.grHallen ?? 0} Hallen, Naht ${ist.grDraht ?? 0}, ${ist.grWorte ?? 0} Wörter`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen   Mining-Laser: ${ist.miningPorts ?? 0} Ports in ${ist.miningSchiffe ?? 0} Buchten   Hangargrößen: ${ist.grStufen ?? 0} Stufen, ${ist.grSchiffe ?? 0} Schiffe (S ${ist.grZahl?.S ?? 0}, M ${ist.grZahl?.M ?? 0}, L ${ist.grZahl?.L ?? 0}, XL ${ist.grZahl?.XL ?? 0}, nach Maß ${ist.grZahl?.[''] ?? 0}), ${ist.grHallen ?? 0} Hallen, Naht ${ist.grDraht ?? 0}, ${ist.grWorte ?? 0} Wörter`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
