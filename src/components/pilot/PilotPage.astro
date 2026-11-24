@@ -1187,8 +1187,10 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       grid.classList.toggle('is-many', n > 9);
       grid.style.setProperty('--cols', String(Math.max(1, cols)));
       grid.style.setProperty('--rows', String(n === 3 ? 2 : Math.max(1, Math.ceil(n / Math.max(1, cols)))));
-      $('ppHangarCount')!.textContent = n ? String(n) : '';
-      $('ppHangarEmpty')!.hidden = n > 0;
+      // Die Zahl und der Leerzustand gehören den Schiffen: angeheftete
+      // Loadouts stehen mit im Raster, sind aber keine Schiffe der Flotte.
+      $('ppHangarCount')!.textContent = ships.length ? String(ships.length) : '';
+      $('ppHangarEmpty')!.hidden = ships.length > 0;
 
       // Favoriten ohne Schiffe: eine Zeile je Eintrag, Zeichen je Art
       const KC: Record<string, string> = { mineral: 'var(--gold, #e6b25c)', mission: 'var(--accent-2)', item: '#a855f7', patch: '#22c55e', topic: 'var(--muted)' };

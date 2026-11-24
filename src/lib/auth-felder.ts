@@ -1,6 +1,7 @@
-// Leeres Abschicken bei Anmelden und Registrieren: alle fehlenden Pflicht-
-// felder auf einmal nennen (statt still nichts zu tun oder nur das erste zu
-// melden), die Felder markieren und das erste fokussieren. Die Formulare
+// Leeres Abschicken bei Anmelden, Registrieren und „Passwort vergessen“:
+// alle fehlenden Pflichtfelder auf einmal nennen (statt still nichts zu tun
+// oder nur das erste zu melden), die Felder markieren und das erste
+// fokussieren. Dazu die Form der Adresse vor dem Absenden. Die Formulare
 // tragen novalidate, die Browser-Blase kommt also nicht; Text und Bindewort
 // stehen am Formular (data-msg-missing mit {f}, data-and).
 
@@ -14,8 +15,9 @@ export function joinNames(names: string[], and: string): string {
  * Feld fokussieren und den Satz mit ins Bild holen. Beim Registrieren am
  * Desktop zeigte der Fokus nur das Feld, der Satz stand darunter außer
  * Sicht. Passt nicht alles, geht das Feld vor dem Satz und der Satz vor der
- * Beschriftung; oben bleiben 80 px für die Kopfleiste. Es rollt nur das eigene Fenster, nicht die Seite um einen
- * Rahmen herum: im Terminal der Halle läuft das Formular in einem.
+ * Beschriftung; oben bleiben 80 px für die Kopfleiste. Es rollt nur das
+ * eigene Fenster, nicht die Seite um einen Rahmen herum: im Terminal der
+ * Halle läuft das Formular in einem.
  */
 function insBild(feld: HTMLInputElement, status: HTMLElement): void {
   if (typeof window === 'undefined' || typeof feld.getBoundingClientRect !== 'function') {
