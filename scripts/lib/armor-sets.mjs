@@ -115,7 +115,7 @@ export function resolveArmorSets(parts, shortByStem) {
   }
 
   // --- 2) innerhalb jeder Gruppe nach Anzeigenamen clustern und benennen ---
-  const clusters = [];  // { name, source, mfr, stem, parts[] }
+  const clusters = [];  // { name, source, mfr, itemMfr, tagRueck, stem, parts[], tag }
   const conflicts = [];
   let namedByShort = 0, namedByPrefix = 0, namedByTag = 0, unnamed = 0, split = 0;
 
@@ -177,14 +177,17 @@ export function resolveArmorSets(parts, shortByStem) {
       // Stamm in mehrere Namen mit eigenen Tags, gehoert der haeufigste Tag
       // der Gruppe womoeglich einem anderen Cluster. Erst ohne eigenen Tag
       // gilt der Tag der Gruppe (gleicher Dateistamm, bisheriges Verhalten).
-      let mfr = null;
+      // Item- und Tag-Hersteller bleiben getrennt, damit beim Aufsaugen (2b)
+      // und Zusammenfuehren (3) ein Item-Hersteller eines anderen Clusters
+      // einen Tag-Rueckfall noch verdraengt.
+      let itemMfr = null;
       const c = new Map();
       for (const p of cparts) { const m = setHersteller(p.manufacturer); if (m) c.set(m, (c.get(m) || 0) + 1); }
       let best = 0;
-      for (const [m, n] of c) if (n > best) { mfr = m; best = n; }
+      for (const [m, n] of c) if (n > best) { itemMfr = m; best = n; }
       const cTagTeile = cTop ? cTop.slice(SET_TAG_PREFIX.length).split('.') : [];
-      if (!mfr) mfr = setHersteller(cTagTeile.length > 1 ? cTagTeile[0] : null) || setHersteller(tagMfr);
-      clusters.push({ name, source, mfr: mfr || null, stem: g.stem || null, parts: cparts, tag: cTop });
+      const tagRueck = setHersteller(cTagTeile.length > 1 ? cTagTeile[0] : null) || setHersteller(tagMfr) || null;
+      clusters.push({ name, source, mfr: itemMfr || tagRueck, itemMfr, tagRueck, stem: g.stem || null, parts: cparts, tag: cTop });
     }
   }
 
@@ -203,7 +206,11 @@ export function resolveArmorSets(parts, shortByStem) {
   const kept = [];
   for (const c of clusters) {
     const host = c.tag && c.parts.length <= 2 ? biggestByTag.get(c.tag) : null;
-    if (host && host !== c) { host.parts = host.parts.concat(c.parts); absorbed++; continue; }
+    if (host && host !== c) {
+      host.parts = host.parts.concat(c.parts);
+      if (!host.itemMfr && c.itemMfr) { host.itemMfr = c.itemMfr; host.mfr = c.itemMfr; }
+      absorbed++; continue;
+    }
     kept.push(c);
   }
   clusters.length = 0;
@@ -216,7 +223,9 @@ export function resolveArmorSets(parts, shortByStem) {
     const m = merged.get(key);
     if (!m) { merged.set(key, { ...c, stems: c.stem ? [c.stem] : [] }); continue; }
     m.parts = m.parts.concat(c.parts);
-    if (!m.mfr && c.mfr) m.mfr = c.mfr;
+    if (!m.itemMfr && c.itemMfr) m.itemMfr = c.itemMfr;
+    if (!m.tagRueck && c.tagRueck) m.tagRueck = c.tagRueck;
+    m.mfr = m.itemMfr || m.tagRueck || null;
     if (c.stem && !m.stems.includes(c.stem)) m.stems.push(c.stem);
     // Quelle: die belastbarste gewinnt (short > prefix > tag)
     const rank = { short: 3, prefix: 2, tag: 1 };

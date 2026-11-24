@@ -60,3 +60,31 @@ test('Rueckfall nimmt den Tag des eigenen Clusters, nicht den haeufigsten der Gr
   assert.strictEqual(nach.Alpha, 'Roberts Space Industries');
   assert.strictEqual(nach.Beta, "CC's Conversions");
 });
+
+test('Hersteller am Item gewinnt gegen den Tag-Rueckfall eines gleichnamigen Sets auf anderem Stamm', async () => {
+  const { resolveArmorSets } = await import('../../scripts/lib/armor-sets.mjs');
+  // Stamm „erst": Alpha traegt den haeufigsten Tag (ohne Hersteller), Beta seinen
+  // eigenen mit Kurzform, alles „Unknown". Stamm „zweit": Beta mit echtem Hersteller.
+  const teil = (stamm, name, slot, nr, tag, manufacturer) => ({
+    key: `${stamm}:${name}`, name, gameType: 'Char_Armor_' + slot, file: `${stamm}_${slot.toLowerCase()}_01_0${nr}`, manufacturer,
+    tagPaths: [tag],
+  });
+  const erst = [
+    teil('erst', 'Alpha Helmet', 'Helmet', 1, 'Armor.FPS.Set.Alpha', 'Unknown'),
+    teil('erst', 'Alpha Torso', 'Torso', 2, 'Armor.FPS.Set.Alpha', 'Unknown'),
+    teil('erst', 'Alpha Arms', 'Arms', 3, 'Armor.FPS.Set.Alpha', 'Unknown'),
+    teil('erst', 'Alpha Legs', 'Legs', 4, 'Armor.FPS.Set.Alpha', 'Unknown'),
+    teil('erst', 'Beta Helmet', 'Helmet', 5, 'Armor.FPS.Set.ClarkeDefense.Beta', 'Unknown'),
+    teil('erst', 'Beta Arms', 'Arms', 6, 'Armor.FPS.Set.ClarkeDefense.Beta', 'Unknown'),
+    teil('erst', 'Beta Legs', 'Legs', 7, 'Armor.FPS.Set.ClarkeDefense.Beta', 'Unknown'),
+  ];
+  const zweit = (n) => ['Torso', 'Helmet', 'Arms'].slice(0, n).map((slot, i) =>
+    teil('zweit', `Beta ${slot}`, slot, i + 1, 'Armor.FPS.Set.ClarkeDefense.Beta', 'Clark Defense Systems'));
+  // Zusammengefuehrt ueber den Namen (beide Beta-Cluster gross genug fuer ein eigenes Set) …
+  const viaName = resolveArmorSets([...erst, ...zweit(3)], new Map());
+  assert.strictEqual(viaName.sets.find((s) => s.name === 'Beta').manufacturer, 'Clark Defense Systems');
+  // … und aufgesogen als kleiner Cluster mit demselben Tag.
+  const viaTag = resolveArmorSets([...erst, ...zweit(2)], new Map());
+  assert.strictEqual(viaTag.sets.find((s) => s.name === 'Beta').manufacturer, 'Clark Defense Systems');
+  assert.strictEqual(viaName.sets.find((s) => s.name === 'Alpha').manufacturer, null);
+});
