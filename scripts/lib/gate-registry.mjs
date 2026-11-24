@@ -1123,12 +1123,18 @@ export const CHECKS = [
     // (Rahmen-Filter greift nicht, Seiten ohne Navigation). Gruen nach dem
     // Zuruecklegen. Der erste Vorschau-Lauf fand die 462 Hangar-Bucht-Seiten
     // ohne Navigation; sie stehen jetzt als benannte Ausnahme (nur Vorschau).
+    // Nach dem CodeRabbit-Review von #463 vorgefuehrt rot: zweite
+    // Bereichsleiste in einer Kopfleiste („steht 2-mal da“), Link vor der
+    // ersten Menuegruppe („Link ausserhalb der Gruppen“), robots-noindex nur
+    // noch im Kommentar ([1c]), Feedback-Zeile ohne href (Befund statt
+    // Absturz), dist/build.json ohne staging (abgelehnt); robots mit
+    // vertauschten Attributen blieb richtig gruen.
     id: 'verify:ia',
     npm: 'verify:ia',
     script: 'scripts/verify-ia.mjs',
     rail: 'A',
     checks:
-      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts (Schluessel, Adresse, Name, Reihenfolge), jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten',
+      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

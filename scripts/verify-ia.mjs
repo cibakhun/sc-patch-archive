@@ -36,10 +36,18 @@
        Datenblaetter (.dp-menu__cols), lokale Leiste (ul.snav__local,
        nav.dp-local) genau dort, wo lokaleLeiste() eine liefert, die
        Bereichs-Pillen der Startseite in beiden Sprachen und die
-       Werkzeug-Eintraege beider Suchregister (suchZiele()). Verglichen
-       werden Schluessel, Adresse und Name in Reihenfolge; Feedback traegt
-       die eigene Seite als ?seite= (A8). Nicht hier: die TERM-Leiste des
+       Werkzeug-Eintraege beider Suchregister (suchZiele()). Jede Leiste
+       steht genau einmal da. Verglichen werden Adresse und Name in
+       Reihenfolge, dazu was das Markup sonst traegt: der Schluessel
+       (data-area) in Bereichsleisten und Pillen, die markierte Seite
+       (aria-current) der lokalen Leiste, die Unterzeile der Suchwerkzeuge.
+       Menue- und Suchzeilen tragen keinen Schluessel. Feedback traegt die
+       eigene Seite als ?seite= (A8). Nicht hier: die TERM-Leiste des
        Hangar-Terminals (eigener Rahmen, bei den Hangar-Threads).
+
+   Robots-Marke und Weiterleitung werden am echten <meta> im Kopf gelesen
+   (ohne Kommentare, jede Attributreihenfolge), Links am echten href eines
+   <a>. Ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt.
 
    Ausnahmen in [1] sind benannt, mit Anlass und Zombie-Waechter: hat eine
    ausgenommene Seite inzwischen einen Inhaltslink oder gibt es sie nicht
@@ -63,7 +71,7 @@ import { readdirSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
-import { hangarImArtefakt, HANGAR_DIST_DIRS, HANGAR_DIST_FILES } from './lib/hangar-switch.mjs';
+import { HANGAR_DIST_DIRS, HANGAR_DIST_FILES } from './lib/hangar-switch.mjs';
 import { VORSCHAU_DIST_FILES } from './lib/vorschau-seiten.mjs';
 import { VORSCHAU_PATCH_DIST_FILES } from './lib/vorschau-patches.mjs';
 import { zielImBau } from './lib/supabase-ziel.mjs';
@@ -81,12 +89,13 @@ const KLINKE = {
 };
 
 /* ---------- Ausnahmen fuer [1] (benannt, mit Zombie-Waechter) ---------- */
+// Je Sprache ein Eintrag: verschwindet eine der beiden Seiten, meldet der
+// Zombie-Waechter genau diese.
+const IMPRESSUM =
+  'Impressum: sein Ort ist der Fuss jeder Seite (verify:rechtsfuss haelt das fest), ein Inhaltslink dorthin waere kuenstlich. Die Datenschutzerklaerung braucht die Ausnahme nicht, sie wird aus Formularen und Datenblaettern verlinkt.';
 const AUSNAHMEN = [
-  {
-    muster: /^\/(?:de\/)?impressum\.html$/,
-    anlass:
-      'Impressum: sein Ort ist der Fuss jeder Seite (verify:rechtsfuss haelt das fest), ein Inhaltslink dorthin waere kuenstlich. Die Datenschutzerklaerung braucht die Ausnahme nicht, sie wird aus Formularen und Datenblaettern verlinkt.',
-  },
+  { muster: /^\/impressum\.html$/, anlass: IMPRESSUM },
+  { muster: /^\/de\/impressum\.html$/, anlass: IMPRESSUM },
 ];
 
 /* ---------- Seiten ohne Leisten fuer [2] (benannt, mit Zombie-Waechter) ----------
@@ -113,7 +122,19 @@ if (!existsSync(DIST)) {
   console.error('verify:ia: dist/ fehlt. Erst `npm run build`, dann pruefen.');
   process.exit(1);
 }
-const vorschau = hangarImArtefakt(DIST);
+// Welcher Bau liegt in dist/? Der Stempel muss es sagen. hangarImArtefakt()
+// nimmt bei fehlendem Stempel den Vorschau-Bau an (dort der strengere Fall);
+// hier waere es der laxere, weil [1c] im Vorschau-Bau entfaellt. Ein Bau
+// ohne lesbaren Stempel wird deshalb abgelehnt, nicht geraten.
+let stempel = null;
+try {
+  stempel = JSON.parse(readFileSync(join(DIST, 'build.json'), 'utf8'));
+} catch {}
+if (typeof stempel?.staging !== 'boolean') {
+  console.error('verify:ia: dist/build.json fehlt oder nennt `staging` nicht als true/false — unbekannter Bau, das Tor prueft nicht ins Blaue.');
+  process.exit(1);
+}
+const vorschau = stempel.staging;
 // seo.ts liest STAGING beim Laden (HAS_HANGAR): die Quelle muss denselben
 // Stand sehen wie der Bau, der in dist/ liegt.
 if (vorschau) process.env.STAGING = '1';
@@ -121,6 +142,7 @@ else delete process.env.STAGING;
 
 const tmp = mkdtempSync(join(tmpdir(), 'verify-ia-'));
 let B, SEO;
+let buendelFehler = null;
 try {
   const esbuild = await import('esbuild');
   await esbuild.build({
@@ -146,11 +168,14 @@ try {
   B = mod.bereiche;
   SEO = { NOINDEX_PATHS: mod.NOINDEX_PATHS };
 } catch (err) {
-  console.error('verify:ia: src/lib/bereiche.ts liess sich nicht buendeln — das Tor kann die echte Liste nicht pruefen.');
-  console.error(String(err && err.message ? err.message : err));
-  process.exit(1);
+  buendelFehler = err;
 } finally {
   rmSync(tmp, { recursive: true, force: true });
+}
+if (buendelFehler || !B) {
+  console.error('verify:ia: src/lib/bereiche.ts liess sich nicht buendeln — das Tor kann die echte Liste nicht pruefen.');
+  console.error(String(buendelFehler?.message ?? buendelFehler ?? 'Modul ohne Bereichsliste'));
+  process.exit(1);
 }
 
 /* ---------- Bestand ---------- */
@@ -178,21 +203,37 @@ function ziel(p) {
   return null;
 }
 
+/** Entfernt alle Treffer, bis keiner mehr da ist: ein einziger Durchgang
+ *  kann aus Resten einen neuen bilden (`<scr<b>ipt>`). Das Tor liest nur
+ *  den eigenen Bau, aber es soll sich nicht darauf verlassen. */
+function ohneAlle(s, re) {
+  let vorher;
+  do {
+    vorher = s;
+    s = s.replace(re, '');
+  } while (s !== vorher);
+  return s;
+}
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
-const text = (s) =>
-  s
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) =>
-      e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : ENT[e.toLowerCase()] ?? m)
-    .replace(/\s+/g, ' ')
-    .trim();
-const ATTRRE = new Map();
-const attr = (tag, name) => {
-  let re = ATTRRE.get(name);
-  if (!re) ATTRRE.set(name, (re = new RegExp(`\\s${name}="([^"]*)"`)));
-  const m = tag.match(re);
-  return m ? text(m[1]) : null;
-};
+const entitaeten = (s) =>
+  s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) =>
+    e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : ENT[e.toLowerCase()] ?? m);
+const text = (s) => entitaeten(ohneAlle(s, /<[^>]*>/g)).replace(/\s+/g, ' ').trim();
+
+// Attribute wie der HTML-Parser: beliebige Anfuehrung (oder keine), Abstand
+// um das =, der erste von zwei gleichnamigen gewinnt. Ein „>“ in einem
+// Attributwert beendet das Tag nicht.
+const TAGRUMPF = `((?:[^>"']|"[^"]*"|'[^']*')*)`;
+const ATTRS = /([^\s"'>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+function attrs(rumpf) {
+  const m = new Map();
+  for (const a of rumpf.matchAll(ATTRS)) {
+    const k = a[1].toLowerCase();
+    if (!m.has(k)) m.set(k, entitaeten(a[2] ?? a[3] ?? a[4] ?? ''));
+  }
+  return m;
+}
+const attr = (rumpf, name) => attrs(rumpf).get(name) ?? null;
 
 /** Ende des Elements, das bei `start` mit <tag oeffnet (gleichnamige Tags gezaehlt). */
 const TAGRE = new Map();
@@ -208,11 +249,30 @@ function ende(html, start, tag) {
   return html.length;
 }
 
-/** Ein Element als Text: von seinem Anfang bis zum passenden End-Tag. */
-function element(html, re, tag) {
+/** Alle Elemente zu `re` (ohne verschachtelte Treffer im selben Element). */
+function elemente(html, re, tag) {
+  const out = [];
   re.lastIndex = 0;
-  const m = re.exec(html);
-  return m ? html.slice(m.index, ende(html, m.index, tag)) : null;
+  for (let m; (m = re.exec(html)); ) {
+    const e = ende(html, m.index, tag);
+    out.push(html.slice(m.index, e));
+    re.lastIndex = e;
+  }
+  re.lastIndex = 0;
+  return out;
+}
+
+/** Das eine Element einer Leiste; fehlt es (ausser `darfFehlen`) oder steht
+ *  es mehrfach da, ist das ein Befund. Mehrfach ist nie erlaubt: der Schnitt
+ *  in [1] nimmt jede Kopie mit, also muss [2] jede gesehen haben. */
+function einzeln(html, re, tag, art, url, darfFehlen = false) {
+  const alle = elemente(html, re, tag);
+  if (alle.length > 1) {
+    leisteFalsch(art, url, `steht ${alle.length}-mal da`);
+    return null;
+  }
+  if (!alle.length && !darfFehlen) leisteFalsch(art, url, 'fehlt');
+  return alle[0] ?? null;
 }
 
 /** Oeffnendes <tag> mit dieser Klasse, auch neben weiteren Klassen. */
@@ -236,7 +296,8 @@ const RAHMEN = [
   [mitKlasse('nav', 'dp-local|hero__areas'), 'nav'],
   [/<footer\b[^>]*>/g, 'footer'],
 ];
-const OHNE = /<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>/g;
+// Gross- und Kleinschreibung, `</script >` und `--!>` wie im HTML-Parser.
+const OHNE = /<!--[\s\S]*?--!?>|<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>|<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi;
 // Gegenprobe: keines dieser Rahmen-Teile darf nach dem Schnitt im Inhalt
 // stehen. Aendert sich das Markup einer Leiste so, dass RAHMEN sie nicht
 // mehr trifft, zaehlten ihre Links still als Inhalt und das Tor waere
@@ -293,8 +354,20 @@ const nurVorschau = (url) => {
 const grundform = (url) => (url === '/de.html' ? '/index.html' : url.startsWith('/de/') ? url.slice(3) : url);
 /** Die Regel, die der Live-Bau anwendet (Layout.astro, isNoindex, 404-Prop). */
 const indexierbarNachRegel = (url) => url !== '/404.html' && !SEO.NOINDEX_PATHS.has(grundform(url)) && !nurVorschau(url);
-const ROBOTS_NOINDEX = /<meta\s+name="robots"\s+content="[^"]*noindex/i;
-const REFRESH = /<meta[^>]+http-equiv=["']refresh["'][^>]*content=["'][^"']*url=([^"']+)["']/i;
+// robots und Weiterleitung am echten <meta> im Kopf, ohne Kommentare, in
+// jeder Attributreihenfolge.
+const META = new RegExp(`<meta\\b${TAGRUMPF}>`, 'gi');
+function kopfMetas(html) {
+  const ende = html.search(/<\/head\s*>|<body\b/i);
+  return [...ohneAlle(ende < 0 ? html : html.slice(0, ende), OHNE).matchAll(META)].map((m) => attrs(m[1]));
+}
+const robotsNoindex = (metas) =>
+  metas.some((a) => (a.get('name') ?? '').toLowerCase() === 'robots' && (a.get('content') ?? '').toLowerCase().split(/[\s,]+/).includes('noindex'));
+function refreshZiel(metas) {
+  const a = metas.find((x) => (x.get('http-equiv') ?? '').toLowerCase() === 'refresh');
+  const m = a && (a.get('content') ?? '').match(/url\s*=\s*['"]?([^'"]+)/i);
+  return m ? m[1].trim() : null;
+}
 
 /* ---------- Erwartete Leisten aus der Quelle ---------- */
 
@@ -339,7 +412,7 @@ const umleitung = new Map();
 const robotsAbweichung = [];
 const eigenerRahmen = [];
 const rahmenImInhalt = [];
-const zahl = { sitenav: 0, datashell: 0, leisteSn: 0, leisteDs: 0, menueSn: 0, menueDs: 0, lokal: 0, start: 0, such: 0 };
+const zahl = { sitenav: 0, datashell: 0, mitRahmen: 0, leisteSn: 0, leisteDs: 0, menueSn: 0, menueDs: 0, lokal: 0, start: 0, such: 0 };
 const leistenFehler = new Map(); // Art -> [Seiten]
 const leisteFalsch = (art, url, detail) => {
   if (!leistenFehler.has(art)) leistenFehler.set(art, { seiten: [], detail });
@@ -350,11 +423,10 @@ const leisteFalsch = (art, url, detail) => {
 const html = new Map();
 for (const f of dateien) {
   const url = urlVon(f);
-  const roh = readFileSync(f, 'utf8');
-  const r = roh.slice(0, 4000).match(REFRESH);
+  const r = refreshZiel(kopfMetas(readFileSync(f, 'utf8')));
   if (r) {
     umleitungen++;
-    umleitung.set(url, r[1].trim());
+    umleitung.set(url, r);
     continue;
   }
   html.set(url, f);
@@ -364,19 +436,20 @@ const folge = (z, von) => {
   return z;
 };
 
-const AREA_A = /<a\b([^>]*)>([\s\S]*?)<\/a>/g;
-const lies = (stueck) => [...stueck.matchAll(AREA_A)].map((m) => ({ tag: m[1], text: text(m[2]) }));
+const ANKER = new RegExp(`<a\\b${TAGRUMPF}>([\\s\\S]*?)<\\/a\\s*>`, 'gi');
+const ANKER_AUF = new RegExp(`<a\\b${TAGRUMPF}>`, 'gi');
+const lies = (stueck) => [...stueck.matchAll(ANKER)].map((m) => ({ tag: m[1], innen: m[2], text: text(m[2]) }));
 
 for (const [url, f] of html) {
   gesamt++;
   const lang = url === '/de.html' || url.startsWith('/de/') ? 'de' : 'en';
   const E = ERWARTET[lang];
   const roh = readFileSync(f, 'utf8');
-  const sauber = roh.replace(OHNE, '');
+  const sauber = ohneAlle(roh, OHNE);
 
   // ---- Indexierbarkeit ----
   const regel = indexierbarNachRegel(url);
-  if (!vorschau && regel === ROBOTS_NOINDEX.test(roh)) robotsAbweichung.push(url);
+  if (!vorschau && regel === robotsNoindex(kopfMetas(sauber))) robotsAbweichung.push(url);
   if (regel) zielseiten.push(url);
 
   // ---- [1] Inhaltslinks ----
@@ -388,8 +461,10 @@ for (const [url, f] of html) {
     const rumpf = inhalt(sauber);
     const marke = rumpf.match(RAHMEN_MARKE);
     if (marke) rahmenImInhalt.push(`${url} (${marke[1]})`);
-    for (const m of rumpf.matchAll(/<a\b[^>]*?\shref="([^"]*)"/g)) {
-      const z = folge(auflösen(m[1], url), url);
+    for (const m of rumpf.matchAll(ANKER_AUF)) {
+      const href = attr(m[1], 'href');
+      if (href === null) continue;
+      const z = folge(auflösen(href, url), url);
       if (!z || z === url) continue;
       links++;
       ziele.add(z);
@@ -408,11 +483,12 @@ for (const [url, f] of html) {
   const ds = RE.datenleiste.test(sauber);
   if (sn) zahl.sitenav++;
   if (ds) zahl.datashell++;
+  if (sn || ds) zahl.mitRahmen++;
   if (!sn && !ds) eigenerRahmen.push(url);
 
   const leiste = (re, tag, art) => {
-    const s = element(sauber, re, tag);
-    if (!s) return leisteFalsch(art, url, 'fehlt');
+    const s = einzeln(sauber, re, tag, art, url);
+    if (!s) return;
     const ist = lies(s).map((a) => [attr(a.tag, 'data-area'), attr(a.tag, 'href'), a.text]);
     if (!gleich(ist, E.leiste)) leisteFalsch(art, url, abweichung(ist, E.leiste));
     return true;
@@ -421,33 +497,44 @@ for (const [url, f] of html) {
     zahl.leisteSn++;
     leiste(RE.snLeiste, 'ul', 'Bereichsleiste (volle Navigation, ul.snav__areas)');
     zahl.menueSn++;
-    const deck = element(sauber, RE.snMenue, 'nav');
-    if (!deck) leisteFalsch('Menue (volle Navigation, nav.snav-deck__cols)', url, 'fehlt');
-    else {
-      const ist = deck.split(/<section\b[^>]*\bclass="snav-deck__group"/).slice(1).map((g) => {
-        const name = text((g.match(/<span class="snav-deck__gname"[^>]*>([\s\S]*?)<\/span>/) || [])[1] ?? '');
-        const zeilen = [...g.matchAll(/<a\b([^>]*)>[\s\S]*?<span class="snav-deck__label[^"]*"[^>]*>([\s\S]*?)<\/span>/g)].map((m) => [attr(m[1], 'href'), text(m[2])]);
-        return [name, zeilen];
-      });
-      prüfeMenue(ist, E, url, lang, 'Menue (volle Navigation, nav.snav-deck__cols)');
+    const artSn = 'Menue (volle Navigation, nav.snav-deck__cols)';
+    const deck = einzeln(sauber, RE.snMenue, 'nav', artSn, url);
+    if (deck) {
+      const [vor, ...gruppen] = deck.split(/<section\b[^>]*\bclass="snav-deck__group"/);
+      if (lies(vor).length) leisteFalsch(artSn, url, 'Link ausserhalb der Gruppen');
+      else {
+        const ist = gruppen.map((g) => {
+          const name = text((g.match(/<span class="snav-deck__gname"[^>]*>([\s\S]*?)<\/span>/) || [])[1] ?? '');
+          const zeilen = lies(g).map((a) => {
+            const label = a.innen.match(/<span class="snav-deck__label[^"]*"[^>]*>([\s\S]*?)<\/span>/);
+            return [attr(a.tag, 'href'), label ? text(label[1]) : null];
+          });
+          return [name, zeilen];
+        });
+        prüfeMenue(ist, E, url, lang, artSn);
+      }
     }
-    const lokalIst = element(sauber, RE.snLokal, 'ul');
+    const lokalIst = einzeln(sauber, RE.snLokal, 'ul', 'Lokale Leiste (volle Navigation, ul.snav__local)', url, true);
     prüfeLokal(lokalIst, url, lang, 'Lokale Leiste (volle Navigation, ul.snav__local)');
   }
   if (ds) {
     zahl.leisteDs++;
     leiste(RE.dsLeiste, 'ul', 'Bereichsleiste (Datenblatt, ul.dp-areas)');
     zahl.menueDs++;
-    const menue = element(sauber, RE.dsMenue, 'div');
-    if (!menue) leisteFalsch('Menue (Datenblatt, .dp-menu__cols)', url, 'fehlt');
-    else {
-      const ist = menue.split(/<div\b[^>]*\bclass="dp-menu__grp"/).slice(1).map((g) => {
-        const name = text((g.match(/<p class="dp-menu__h"[^>]*>([\s\S]*?)<\/p>/) || [])[1] ?? '');
-        return [name, lies(g).map((a) => [attr(a.tag, 'href'), a.text])];
-      });
-      prüfeMenue(ist, E, url, lang, 'Menue (Datenblatt, .dp-menu__cols)');
+    const artDs = 'Menue (Datenblatt, .dp-menu__cols)';
+    const menue = einzeln(sauber, RE.dsMenue, 'div', artDs, url);
+    if (menue) {
+      const [vor, ...gruppen] = menue.split(/<div\b[^>]*\bclass="dp-menu__grp"/);
+      if (lies(vor).length) leisteFalsch(artDs, url, 'Link ausserhalb der Gruppen');
+      else {
+        const ist = gruppen.map((g) => {
+          const name = text((g.match(/<p class="dp-menu__h"[^>]*>([\s\S]*?)<\/p>/) || [])[1] ?? '');
+          return [name, lies(g).map((a) => [attr(a.tag, 'href'), a.text])];
+        });
+        prüfeMenue(ist, E, url, lang, artDs);
+      }
     }
-    const lokalIst = element(sauber, RE.dsLokal, 'nav');
+    const lokalIst = einzeln(sauber, RE.dsLokal, 'nav', 'Lokale Leiste (Datenblatt, nav.dp-local)', url, true);
     prüfeLokal(lokalIst, url, lang, 'Lokale Leiste (Datenblatt, nav.dp-local)');
   }
   if (url === '/index.html' || url === '/de.html') {
@@ -475,6 +562,7 @@ function prüfeMenue(ist, E, url, lang, art) {
       let [iHref, iTxt] = iZeilen[k];
       if (sKey === 'feedback') {
         // A8: Feedback nimmt die Seite mit (?seite=), ausser auf sich selbst.
+        if (!iHref) return leisteFalsch(art, url, `Gruppe „${iName}“, Eintrag ${k + 1}: Feedback ohne href`);
         const [basis, q] = iHref.split('?');
         const seite = q && new URLSearchParams(q).get('seite');
         const selbst = grundform(url) === '/feedback.html';
@@ -571,17 +659,21 @@ else {
 }
 
 console.log(`\n[2] Leisten und Menues stimmen mit der Bereichsliste (src/lib/bereiche.ts)`);
-console.log(`    Seiten mit voller Navigation: ${zahl.sitenav}, mit Datenleiste: ${zahl.datashell} (Klinke ${KLINKE.rahmen} zusammen)`);
+console.log(`    Seiten mit voller Navigation: ${zahl.sitenav}, mit Datenleiste: ${zahl.datashell}, mit einem von beiden: ${zahl.mitRahmen} (Klinke ${KLINKE.rahmen})`);
 console.log(`    mit eigenem Rahmen, ohne diese Leisten: ${eigenerRahmen.length}`);
+// Eine Ausnahme nur fuer den Vorschau-Bau gilt im Live-Bau nicht: steht
+// dort eine solche Seite, ist sie unbenannt.
+const RAHMENLOS_AKTIV = RAHMENLOS.filter((r) => !r.nurVorschau || vorschau);
 for (const r of RAHMENLOS) {
-  const t = eigenerRahmen.filter((u) => r.muster.test(u));
-  console.log(`      ${r.muster}: ${t.length} Seite(n) — ${r.anlass}`);
-  if (!t.length && !(r.nurVorschau && !vorschau)) fail(`Ausnahme ohne Leisten ${r.muster} trifft keine Seite mehr — Anlass weg, Ausnahme streichen`);
+  const aktiv = RAHMENLOS_AKTIV.includes(r);
+  const t = aktiv ? eigenerRahmen.filter((u) => r.muster.test(u)) : [];
+  console.log(`      ${r.muster}: ${aktiv ? `${t.length} Seite(n)` : 'nur im Vorschau-Bau'} — ${r.anlass}`);
+  if (aktiv && !t.length) fail(`Ausnahme ohne Leisten ${r.muster} trifft keine Seite mehr — Anlass weg, Ausnahme streichen`);
 }
-const unbenannt = eigenerRahmen.filter((u) => !RAHMENLOS.some((r) => r.muster.test(u)));
+const unbenannt = eigenerRahmen.filter((u) => !RAHMENLOS_AKTIV.some((r) => r.muster.test(u)));
 if (unbenannt.length) fail(`${unbenannt.length} Seite(n) ohne volle Navigation und ohne Datenleiste: ${unbenannt.slice(0, 8).join(', ')} — Navigation einbauen oder als benannte Ausnahme mit Anlass eintragen`);
 console.log(`    geprueft: ${zahl.leisteSn + zahl.leisteDs} Bereichsleisten, ${zahl.menueSn + zahl.menueDs} Menues, ${zahl.lokal} lokale Leisten (Klinke ${KLINKE.lokal}), ${zahl.start} Startseiten, ${zahl.such} Suchregister`);
-const rahmen = zahl.sitenav + zahl.datashell;
+const rahmen = zahl.mitRahmen;
 if (rahmen < KLINKE.rahmen) fail(`nur ${rahmen} Seiten mit Navigation erkannt, erwartet mindestens ${KLINKE.rahmen} — hat sich das Markup der Leisten geaendert?`);
 if (zahl.start !== 2) fail(`Startseiten gefunden: ${zahl.start} statt 2`);
 if (zahl.lokal < KLINKE.lokal) fail(`nur ${zahl.lokal} lokale Leisten geprueft, erwartet mindestens ${KLINKE.lokal}`);
