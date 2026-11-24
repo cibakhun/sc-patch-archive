@@ -1,6 +1,6 @@
 -- Crew-Aufruf an Freunde (24.11.2026, UX-Audit Paket I, I7 Schritt 4).
--- Noch NICHT eingespielt; der Hauptstrang spielt sie nach Freigabe durch den
--- Betreiber ein.
+-- Eingespielt am 24.11.2026 um 13:10 UTC nach Freigabe durch den Betreiber
+-- (ohne begin/commit, die Anbindung legt selbst eine Transaktion an).
 --
 -- „Heute 20 Uhr Mining, 2 Plätze“: ein Pilot ruft seine Freunde zu einer
 -- Runde, Freunde sagen mit einem Klick zu. Sichtbar nur für den Rufenden und
