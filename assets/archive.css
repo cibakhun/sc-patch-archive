@@ -735,6 +735,10 @@ html:not([data-fx="on"]) .space__stars { display: none; }
      mit dem Sternenfeld darunter zu einem unvorhersehbaren Kontrast. */
   color: var(--dim);
 }
+.ribbon__wisch {
+  display: none;
+  color: var(--dim);
+}
 @media (max-width: 760px) {
   .ribbon__hint {
     display: none;
@@ -745,14 +749,61 @@ html:not([data-fx="on"]) .space__stars { display: none; }
     --plot-h: 82px;
     --axis-b: 18px;
   }
-  /* nineteen releases in ~350px: narrower hit areas so neighbouring targets
-     overlap less and a tap lands on the marker under the finger */
+  /* Zeitstrahl am Handy (UX-Audit H8): 22 Marken auf 350 px lagen bis zu
+     7 px auseinander, jede Marke war 16 px breit und ueberdeckte ihre
+     Nachbarn. Jetzt ist der Streifen so breit, dass die dichtesten Marken
+     25 px auseinander liegen (--plot-min rechnet PatchArchive.astro aus den
+     Daten), wird seitlich gewischt und startet beim neuesten Patch
+     (archive.js). Jede Marke ist 24 px breit.
+     Oben bekommt der Streifen Luft fuer die Jahreszahlen, die sonst am Rand
+     des Scrollkastens abgeschnitten wuerden; der negative Rand nimmt sie im
+     Fluss wieder zurueck. Seitlich haelt ein durchsichtiger Rand am Plot die
+     halbe Marke ganz links und ganz rechts frei: ein Innenabstand des
+     Scrollkastens zaehlt am rechten Ende nicht zuverlaessig mit. */
+  .ribbon__scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-top: 1.6rem;
+    margin: -1.6rem -14px 0;
+  }
+  .ribbon__scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .ribbon__plot {
+    box-sizing: content-box;
+    width: max(100% - 28px, var(--plot-min, 100%));
+    border-inline: 14px solid transparent;
+  }
   .ribbon__tick {
-    width: 16px;
-    margin-left: -8px;
+    width: 24px;
+    margin-left: -12px;
+  }
+  /* Das Etikett erscheint nur bei Hover und Tastaturfokus; am Handy gibt es
+     beides praktisch nicht, unsichtbar verlaengerte es aber den Streifen um
+     60 px Leere hinter dem neuesten Patch. */
+  .ribbon__tick::after {
+    display: none;
+  }
+  /* Rand blendet aus, solange dort noch Marken liegen */
+  .ribbon__scroll.mehr-links {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px);
+    mask-image: linear-gradient(to right, transparent, #000 36px);
+  }
+  .ribbon__scroll.mehr-rechts {
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 36px);
+    mask-image: linear-gradient(to left, transparent, #000 36px);
+  }
+  .ribbon__scroll.mehr-links.mehr-rechts {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
   }
   .ribbon__legend {
     display: none;
+  }
+  .ribbon__wisch {
+    display: inline;
   }
 }
 

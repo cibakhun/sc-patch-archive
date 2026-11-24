@@ -1210,6 +1210,22 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .fc-msg time{font-family:var(--font-mono);font-size:var(--fs-2);color:var(--muted);padding:0 4px}
 .fc-msg.is-cont time{display:none}
 .fc-msg:hover time{display:block}
+/* Links auf eigene Seiten im Chat und die Karte darunter (chat-cards.ts);
+   feste Höhe, damit das Protokoll nicht springt, wenn das Bild nachkommt. */
+.fc-msg p a{color:inherit;text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:2px}
+.fc-msg p a:hover{color:#fff}
+.fc-cards{display:flex;flex-direction:column;gap:4px;width:min(17rem,100%)}
+.dsr .fc-card{--kc:var(--accent);display:flex;align-items:center;gap:10px;height:62px;padding:5px 10px 5px 5px;border:1px solid var(--line-soft);border-radius:12px;background:var(--surface-2);color:var(--text);text-decoration:none;overflow:hidden;transition:border-color var(--dur-fast) var(--ease-ui)}
+.dsr .fc-card:hover,.dsr .fc-card:focus-visible{border-color:var(--kc)}
+.fc-card--item{--kc:#a855f7}
+.fc-card--loadout{--kc:var(--gold)}
+.fc-card__img{flex:none;width:52px;height:52px;display:grid;place-items:center;border-radius:8px;background:var(--bg-2) center/cover no-repeat;color:var(--kc)}
+.fc-card__img svg{width:22px;height:22px}
+.fc-card__txt{min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.25}
+.fc-card__k{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-2);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--kc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-card__n{font-weight:600;font-size:var(--fs-6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-card__s{font-size:var(--fs-4);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-card__s:empty{display:none}
 .fc-empty{margin:auto;padding:20px;text-align:center;color:var(--muted);font-size:var(--fs-7)}
 .fc-err{margin:0 12px 6px;font-size:var(--fs-5);color:var(--hot)}
 .fc-form{display:flex;align-items:flex-end;gap:8px;padding:8px 10px 10px;border-top:1px solid var(--line-soft)}
@@ -1472,6 +1488,19 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .sv-act--on{border-color:var(--gold);background:var(--gold);color:#1a1205}
 .dsr .sv-act--on:hover{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 82%,#fff);color:#1a1205}
 .dsr .sv-lo.is-pinned{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 22px -8px var(--gold)}
+/* „An Freund schicken": Freund wählen (Dialog außerhalb von .dsr) */
+.sv-share{max-width:420px}
+.sv-share__what{margin:0 0 .8rem;font-weight:600;color:var(--gold);overflow-wrap:anywhere}
+.sv-share__list{list-style:none;margin:0 0 .9rem;padding:0;display:flex;flex-direction:column;gap:4px;max-height:min(50svh,22rem);overflow-y:auto;overscroll-behavior:contain}
+.sv-share__f{width:100%;display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 10px;border:1px solid transparent;border-radius:10px;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.sv-share__f:hover,.sv-share__f:focus-visible{border-color:var(--accent);background:rgba(45,212,255,.08)}
+.sv-share__av{position:relative;flex:none;width:36px;height:36px;display:grid;place-items:center;border:2px solid var(--accent);border-radius:50%;color:var(--accent);font-family:var(--font-ui);font-weight:700}
+.sv-share__av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.sv-share__on{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:var(--ok);border:2px solid var(--surface)}
+.sv-share__t{min-width:0;display:flex;flex-direction:column}
+.sv-share__t b,.sv-share__t small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv-share__t small{color:var(--muted);font-family:var(--font-mono);font-size:var(--fs-4)}
+.sv-share .acx-actions{margin-top:1rem}
 .sv-pin{display:inline-block;margin-bottom:5px;padding:2px 8px;border-radius:999px;background:var(--gold);color:#1a1205;font-family:var(--font-ui);font-weight:800;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase}
 .sv-empty{min-height:18rem}
 .sv-empty p{line-height:1.5}

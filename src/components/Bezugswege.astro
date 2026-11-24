@@ -8,6 +8,7 @@
 import { href, type Locale } from '../i18n/ui';
 import { bwT } from '../i18n/bezugswegeText';
 import { fill, obtainLabel } from '../i18n/itemText';
+import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 import { auec, num, type Item } from '../lib/items';
 import { blueprintPath } from '../lib/crafting';
 import { bezugswege } from '../lib/bezugswege';
@@ -15,7 +16,7 @@ import { bezugswege } from '../lib/bezugswege';
 interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
 const t = bwT(lang);
-const w = bezugswege(item);
+const w = bezugswege(item, lang);
 
 // Wie viele Missionstitel offen stehen; der Rest steht auf der Bauplan-Seite.
 const MISSIONEN_OFFEN = 3;
@@ -94,8 +95,8 @@ const sonderNamen = [...new Set(w.sonderweg.map((o) => obtainLabel(o, lang)))];
               <ul class="bw-zeilen bw-zeilen--links">
                 {missionen.slice(0, MISSIONEN_OFFEN).map((m) => (
                   <li>{m.seite
-                    ? <a href={href(`/missionen/${m.slug}.html`, lang)} data-weg-mission>{m.label}</a>
-                    : <span>{m.label}</span>}</li>
+                    ? <a href={href(`/missionen/${m.slug}.html`, lang)} data-weg-mission><span lang={fremdLang(lang, MISSIONSTEXT_LANG)}>{m.titel}</span>{m.zusatz && ` (${m.zusatz})`}</a>
+                    : <span lang={fremdLang(lang, MISSIONSTEXT_LANG)}>{m.label}</span>}</li>
                 ))}
                 {missionen.length > MISSIONEN_OFFEN && (
                   <li><a href={`${href(blueprintPath(h.bp), lang)}#missionen`}>{fill(t('craftMore'), { n: num(missionen.length - MISSIONEN_OFFEN, lang) })}</a></li>

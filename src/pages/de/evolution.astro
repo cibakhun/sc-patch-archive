@@ -350,7 +350,7 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
                     ))}
                   </dl>
                 )}
-                {f.topicSlug && <a class="edet__link" href={`/de/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+                {f.topicSlug && <a class="edet__link" href={`/de/topics/${f.topicSlug}.html`}>Zur Themenseite →</a>}
               </article>
             ))}
           </div>
@@ -493,7 +493,7 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
     });
   }
   document.querySelectorAll('.evo__cell').forEach(function (btn) {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', function (e) {
       var id = btn.getAttribute('data-ed');
       var d = document.getElementById(id);
       if (!d) return;
@@ -505,6 +505,9 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
       btn.classList.add('sel');
       btn.setAttribute('aria-expanded', 'true');
       open = id;
+      // Messereignis treffer-offen (assets/ereignisse.js): die Zelle oeffnet
+      // ihren Eintrag; Schliessen zaehlt nicht.
+      if (e.isTrusted && window.vbEreignis) window.vbEreignis('treffer-offen');
       d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   });

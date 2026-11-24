@@ -72,7 +72,7 @@ import { join } from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 import { parseHTML } from 'linkedom';
-import { EREIGNISSE, WERKZEUG_SEITEN, EINMAL, FILTER, EXTERN, EXTERN_HOSTS, MERKEN, HILFE_ART } from './lib/ereignisse.mjs';
+import { EREIGNISSE, WERKZEUG_SEITEN, EINMAL, FILTER, EXTERN, EXTERN_HOSTS, MERKEN, HILFE_ART, DOWNLOAD, PLANER } from './lib/ereignisse.mjs';
 
 const DIST = 'dist';
 
@@ -103,12 +103,17 @@ const BLOCKER_MUSTER = [
 // 14 -> 22 mit der Review-Korrektur: in der Raffinerie sitzen sie an den
 // Feldern, die die Vorschau neu rechnen, statt am ganzen Formular, dazu der
 // Zuruecksetzen-Knopf im Precision-Jump-Rechner.
+// 24.11.2026 (Missionen, UX-Paket F5): 112 -> 108. Die drei Auswahlen
+// Auftraggeber, Fraktion und Gilde der Missionsliste sind eine geworden
+// („Für wen“, data-ev-filter="auftraggeber"); je Sprache fallen zwei Marken
+// weg, und die Filternamen fraktion und gilde sind aus der Liste gestrichen.
 const MIN_EREIGNIS_SEITEN = 17000;
-const MIN_EREIGNIS_MARKEN = 112;
+const MIN_EREIGNIS_MARKEN = 108;
 // 11.11.2026 (Ereignis extern): 8 Proben mehr, 32 Laeufe; Bedienung auf
 // der Seite: 13 Proben mehr, 45 Laeufe; Review: Pilotenprofil und mittlere
-// Taste, 3 Proben mehr, 48 Laeufe.
-const MIN_EREIGNIS_PROBEN = 48;
+// Taste, 3 Proben mehr, 48 Laeufe. 24.11.2026 (Messluecken K6): 4 Proben
+// mehr, 52 Laeufe.
+const MIN_EREIGNIS_PROBEN = 52;
 // Melde-Links (data-ev-melden, „Falschen Wert melden“ im Datenstand), Stand
 // 06.11.2026 (Build der Melde-Aenderung): 17.190 Detailseiten (Items,
 // Blueprints, Schiffe, Missionen, je DE und EN). Knapp darunter, ein Datenlauf
@@ -125,6 +130,12 @@ const MIN_HILFE_MARKEN = 44;
 const MIN_TREFFER_BEREICHE = 4;
 const MIN_VIDEO_FASSADEN = 340;
 const MIN_BILD_AUSLOESER = 900;
+// Messluecken (UX-Audit K6, 24.11.2026, Build der Aenderung): 4
+// Download-Bereiche (Onepager + Bilder je Sprache) um 2 x 291 Links mit
+// download-Attribut; 3 Stellen, die treffer-offen selbst melden
+// (assets/wikelo-bridge.js, Evolution DE und EN).
+const MIN_DOWNLOAD_BEREICHE = 4;
+const MIN_TREFFER_AUFRUFE = 3;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -225,6 +236,15 @@ let videoFassaden = 0, bildAusloeser = 0;
 // merken: was-Werte in den Aufrufen von vbEreignis('merken', { was: … }).
 const MERKEN_AUFRUF = /vbEreignis\(\s*['"]merken['"]\s*,\s*\{\s*was\s*:\s*['"]([^'"]*)['"]/g;
 const merkenAufrufe = [];
+// planer: aktion-Werte in den Aufrufen von vbEreignis('planer', { aktion: … }).
+const PLANER_AUFRUF = /vbEreignis\(\s*['"]planer['"]\s*,\s*\{\s*aktion\s*:\s*['"]([^'"]*)['"]/g;
+const planerAufrufe = [];
+// download: Bereiche data-ev-download="<art>" und die Links mit
+// download-Attribut, die assets/ereignisse.js darin zaehlt.
+const DOWNLOAD_MARKE = /\sdata-ev-download(?:="([^"]*)")?/g;
+const DOWNLOAD_LINK = /<a\b[^>]*\sdownload(?=[\s>=\/])/g;
+const downloadMarken = [];
+const downloadSeiten = []; // gezaehlte Seiten mit Download-Links: { seite, links }
 const externLinks = new Map(); // Host ohne www. -> Zahl der Links
 let externLinksGesamt = 0;
 let ereignisSeiten = 0;
@@ -265,6 +285,12 @@ for (const s of seiten) {
     bildAusloeser += (html.match(BILD_AUSLOESER) ?? []).length;
   }
   for (const m of html.matchAll(MERKEN_AUFRUF)) merkenAufrufe.push({ wo: s, was: m[1] });
+  for (const m of html.matchAll(PLANER_AUFRUF)) planerAufrufe.push({ wo: s, aktion: m[1] });
+  for (const m of html.matchAll(DOWNLOAD_MARKE)) downloadMarken.push({ seite: s, wert: m[1] ?? null, gezaehlt: tags.length > 0 });
+  if (tags.length) {
+    const dl = (html.match(DOWNLOAD_LINK) ?? []).length;
+    if (dl) downloadSeiten.push({ seite: s, links: dl });
+  }
   if (tags.length)
     for (const m of html.matchAll(EXTERN_LINK)) {
       const h = m[1].toLowerCase().replace(/^www\./, '');
@@ -566,6 +592,24 @@ for (const m of trefferMarken) {
 }
 console.log(`    Bedienung: Hilfe-Marken ${hilfeMarken.length} (${HILFE_ART.map((a) => `${a} ${hilfeMarken.filter((m) => m.wert === a).length}`).join(', ')})   Trefferbereiche ${trefferMarken.length}   Video-Fassaden ${videoFassaden}   Bild-Ausloeser ${bildAusloeser}   fehlerhafte Marken — Soll: 0   Ist: ${bedienFehler}`);
 console.log(`    Links nach draussen auf gezaehlten Seiten: ${externLinksGesamt} (${EXTERN.map((z) => `${z} ${proZiel[z] ?? 0}`).join(', ')})   Ziel-Marken data-ev-extern: ${externMarken.length}   Hosts ohne Link — Soll: 0   Ist: ${hostOhneLink.length}   fehlerhafte Marken — Soll: 0   Ist: ${externFehler}`);
+// 7.2e Downloads (seit 24.11.2026): Bereiche nur mit freigegebener Art und
+// nur auf gezaehlten Seiten, jede Art aus DOWNLOAD an einem Bereich (sonst
+// Eintrag ohne Anlass). Eine gezaehlte Seite mit Download-Links ohne
+// Bereich ist eine Messluecke: WARNUNG, denn ob ein solcher Link zaehlen
+// soll, entscheidet erst eine Freigabe.
+const downloadArt = new Set(DOWNLOAD);
+let downloadFehler = 0;
+for (const m of downloadMarken) {
+  if (!m.wert || !downloadArt.has(m.wert)) { downloadFehler++; if (downloadFehler <= 10) fail(`${m.seite}: data-ev-download="${m.wert ?? ''}" ist keine freigegebene Art (DOWNLOAD in scripts/lib/ereignisse.mjs) — das Ereignis wuerde verworfen`); continue; }
+  if (!m.gezaehlt) { downloadFehler++; if (downloadFehler <= 10) fail(`${m.seite}: data-ev-download auf einer Seite ohne Zaehler — die Marke waere tot`); }
+}
+for (const a of DOWNLOAD) if (!downloadMarken.some((m) => m.wert === a)) fail(`DOWNLOAD "${a}" steht in der Liste, aber an keinem Bereich — Eintrag ohne Anlass (Zombie) oder die Downloads-Seite hat die Marke verloren`);
+const markiertNach = new Set(downloadMarken.map((m) => m.seite));
+const downloadOhneBereich = downloadSeiten.filter((d) => !markiertNach.has(d.seite));
+const downloadLinks = downloadSeiten.reduce((n, d) => n + d.links, 0);
+console.log(`    Downloads: Bereiche ${downloadMarken.length} (${DOWNLOAD.map((a) => `${a} ${downloadMarken.filter((m) => m.wert === a).length}`).join(', ')})   Download-Links auf gezaehlten Seiten ${downloadLinks} auf ${downloadSeiten.length} Seiten   fehlerhafte Bereiche — Soll: 0   Ist: ${downloadFehler}   Seiten mit Download-Links ohne Bereich (WARNUNG): ${downloadOhneBereich.length}`);
+for (const d of downloadOhneBereich.slice(0, 10))
+  console.log(`    WARNUNG ${d.seite}: ${d.links} Link(s) mit download-Attribut ohne Bereich data-ev-download — zaehlen nicht; gewollt? Sonst mit Freigabe markieren`);
 // Jede Werkzeugseite gibt es (beide Sprachen) und sie zaehlt.
 for (const p of Object.keys(WERKZEUG_SEITEN)) {
   for (const s of [p.slice(1), `de${p}`]) {
@@ -584,6 +628,7 @@ for (const dir of ['assets', '_astro']) {
     const text = readFileSync(join(voll, f), 'utf8');
     for (const m of text.matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: `${dir}/${f}`, name: m[1] });
     for (const m of text.matchAll(MERKEN_AUFRUF)) merkenAufrufe.push({ wo: `${dir}/${f}`, was: m[1] });
+    for (const m of text.matchAll(PLANER_AUFRUF)) planerAufrufe.push({ wo: `${dir}/${f}`, aktion: m[1] });
   }
 }
 const fremdeAufrufe = ereignisAufrufe.filter((a) => !Object.prototype.hasOwnProperty.call(EREIGNISSE, a.name));
@@ -599,6 +644,20 @@ const merkenNamen = new Set(merkenAufrufe.map((a) => a.was));
 for (const w of MERKEN) if (!merkenNamen.has(w)) fail(`MERKEN "${w}": kein Aufruf vbEreignis('merken', { was: '${w}' }) im gebauten Stand — die App meldet es nicht mehr, oder der Eintrag ist ohne Anlass (Zombie)`);
 const merkenUngelesen = ereignisAufrufe.filter((a) => a.name === 'merken').length - merkenAufrufe.length;
 if (merkenUngelesen > 0) fail(`${merkenUngelesen} Aufruf(e) von vbEreignis('merken') ohne lesbares { was: '…' } — der Wert muss als fester Text im Aufruf stehen`);
+// planer: wie merken — jeder aktion-Wert hat einen Aufruf, jeder Aufruf nennt einen aus PLANER.
+const planerSet = new Set(PLANER);
+const planerFremd = planerAufrufe.filter((a) => !planerSet.has(a.aktion));
+for (const a of planerFremd.slice(0, 10)) fail(`${a.wo}: vbEreignis('planer', { aktion: '${a.aktion}' }) — kein Wert aus PLANER, das Ereignis wuerde verworfen`);
+for (const w of PLANER) if (!planerAufrufe.some((a) => a.aktion === w)) fail(`PLANER "${w}": kein Aufruf vbEreignis('planer', { aktion: '${w}' }) im gebauten Stand — der Crafting-Planer meldet es nicht mehr, oder der Eintrag ist ohne Anlass (Zombie)`);
+const planerUngelesen = ereignisAufrufe.filter((a) => a.name === 'planer').length - planerAufrufe.length;
+if (planerUngelesen > 0) fail(`${planerUngelesen} Aufruf(e) von vbEreignis('planer') ohne lesbares { aktion: '…' } — der Wert muss als fester Text im Aufruf stehen`);
+// treffer-offen per Aufruf (Wikelo-Fenster, Evolution-Zellen): auf einer
+// Seite im gebauten Stand nur, wenn sie ein Werkzeug ist — sonst verwirft
+// ereignisse.js das Ereignis (werkzeug fehlt), der Aufruf waere tot.
+const trefferAufrufe = ereignisAufrufe.filter((a) => a.name === 'treffer-offen');
+for (const a of trefferAufrufe.filter((a) => !/^(?:assets|_astro)\//.test(a.wo) && !seiteZuWerkzeug(a.wo)).slice(0, 10))
+  fail(`${a.wo}: vbEreignis('treffer-offen') auf einer Seite, die kein Werkzeug ist — das Ereignis wird verworfen (WERKZEUG_SEITEN)`);
+console.log(`    planer-Aufrufe: ${planerAufrufe.length} (${PLANER.map((w) => `${w} ${planerAufrufe.filter((a) => a.aktion === w).length}`).join(', ')})   fremde Werte — Soll: 0   Ist: ${planerFremd.length}   treffer-offen per Aufruf: ${trefferAufrufe.length} (${[...new Set(trefferAufrufe.map((a) => a.wo))].join(', ') || '—'})`);
 console.log(`    merken-Aufrufe: ${merkenAufrufe.length} (${MERKEN.map((w) => `${w} ${merkenAufrufe.filter((a) => a.was === w).length}`).join(', ')})   fremde Werte — Soll: 0   Ist: ${merkenFremd.length}`);
 
 // 7.4 Die ausgelieferte Datei, ausgefuehrt mit dem gepinnten Zaehler und dem Haken der Seite.
@@ -770,6 +829,33 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       (p) => { p.ereignis('auxclick', p.doc.getElementById('s1'), true, { button: 1 }); p.ereignis('auxclick', p.doc.getElementById('l1'), true, { button: 1 }); },
       [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }]],
     ['treffer-offen per Aufruf ausserhalb eines Werkzeugs', { pfad: '/support.html' }, (p) => p.ctx.vbEreignis('treffer-offen'), []],
+    // Messluecken (K6, 24.11.2026)
+    ['treffer-offen per Aufruf: Wikelo-Fenster und Evolution-Zelle', { pfad: '/de/topics/wikelo-emporium.html' }, (p) => p.ctx.vbEreignis('treffer-offen'),
+      [{ name: 'treffer-offen', data: { werkzeug: 'wikelo' }, url: '/de/topics/wikelo-emporium.html' }]],
+    ['treffer-offen per Aufruf auf der Evolution-Seite', { pfad: '/evolution.html' }, (p) => p.ctx.vbEreignis('treffer-offen'),
+      [{ name: 'treffer-offen', data: { werkzeug: 'evolution' }, url: '/evolution.html' }]],
+    ['merken besitz, dann planer menge, leeren, abbau; fremde Aktion und Zusatzfeld', { pfad: '/de/topics/crafting.html' },
+      (p) => {
+        p.ctx.vbEreignis('merken', { was: 'besitz' });
+        for (const a of ['menge', 'leeren', 'abbau', 'kopieren']) p.ctx.vbEreignis('planer', { aktion: a });
+        p.ctx.vbEreignis('planer', { aktion: 'menge', bauplan: 'probe' });
+      },
+      [{ name: 'merken', data: { was: 'besitz' }, url: '/de/topics/crafting.html' }, { name: 'planer', data: { aktion: 'menge' }, url: '/de/topics/crafting.html' },
+        { name: 'planer', data: { aktion: 'leeren' }, url: '/de/topics/crafting.html' }, { name: 'planer', data: { aktion: 'abbau' }, url: '/de/topics/crafting.html' }]],
+    ['Downloads: Onepager und Bild (auch mittlere Taste), Ansehen-Link, Bereich mit fremder Art, Download ohne Bereich', { pfad: '/de/downloads.html', html: MAIN(
+      '<div data-ev-download="onepager"><a id="o" href="/downloads/probe.html" download><span id="ot">Download</span></a><a id="v" href="/onepager/probe/index.html">Ansehen</a></div>' +
+      '<section data-ev-download="bild"><button id="c" type="button">Alle</button><a id="b" class="dl" href="/assets/probe.jpg" download data-name="probe"><span id="bt">Probe</span></a></section>' +
+      '<div data-ev-download="datei"><a id="f" href="/assets/x.jpg" download>X</a></div><a id="n" href="/assets/y.jpg" download>Y</a>') },
+      (p) => {
+        p.ereignis('click', p.doc.getElementById('ot'));
+        p.ereignis('click', p.doc.getElementById('v'));
+        p.ereignis('click', p.doc.getElementById('c'));
+        p.ereignis('auxclick', p.doc.getElementById('bt'), true, { button: 1 });
+        p.ereignis('click', p.doc.getElementById('f'));
+        p.ereignis('click', p.doc.getElementById('n'));
+        p.ereignis('click', p.doc.getElementById('b'), false);
+      },
+      [{ name: 'download', data: { art: 'onepager' }, url: '/de/downloads.html' }, { name: 'download', data: { art: 'bild' }, url: '/de/downloads.html' }]],
     ['Widerspruchs-Cookie', { pfad: '/items/probe-item.html', cookie: 'vb_noanalytics=1', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a><a id="d" href="https://discord.gg/abc">D</a>') },
       (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); p.ereignis('click', p.doc.getElementById('d')); }, []],
     ['fremder Hostname (Vorschau)', { pfad: '/items/probe-item.html', host: 'staging.verse-base.com', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a><a id="d" href="https://discord.gg/abc">D</a>') },
@@ -818,8 +904,11 @@ if (hakenGeprueft < MIN_HAKEN_FASSUNGEN)
 if (kopienGeprueft < MIN_ZAEHLER_KOPIEN)
   fail(`keine Zaehler-Kopie ausgefuehrt — ohne Lauf ist [6] nicht gelaufen`);
 console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})   Melde-Links: ${meldeSeiten.size} (Klinke ${MIN_MELDE_MARKEN})   Ziel-Marken extern: ${externMarken.length} (Klinke ${MIN_EXTERN_MARKEN})`);
+console.log(`    Download-Bereiche: ${downloadMarken.length} (Klinke ${MIN_DOWNLOAD_BEREICHE})   treffer-offen per Aufruf: ${trefferAufrufe.length} (Klinke ${MIN_TREFFER_AUFRUFE})`);
 console.log(`    Hilfe-Marken: ${hilfeMarken.length} (Klinke ${MIN_HILFE_MARKEN})   Trefferbereiche: ${trefferMarken.length} (Klinke ${MIN_TREFFER_BEREICHE})   Video-Fassaden: ${videoFassaden} (Klinke ${MIN_VIDEO_FASSADEN})   Bild-Ausloeser: ${bildAusloeser} (Klinke ${MIN_BILD_AUSLOESER})`);
 if (hilfeMarken.length < MIN_HILFE_MARKEN) fail(`nur ${hilfeMarken.length} Hilfe-Marken data-ev-hilfe, Klinke ${MIN_HILFE_MARKEN} — ToolHelp hat die Marke verloren oder Werkzeuge ihre Hilfe; Ursache klaeren, nicht die Klinke senken`);
+if (downloadMarken.length < MIN_DOWNLOAD_BEREICHE) fail(`nur ${downloadMarken.length} Download-Bereiche data-ev-download, Klinke ${MIN_DOWNLOAD_BEREICHE} — die Downloads-Seite hat die Marke verloren, Downloads zaehlen dann nicht; Ursache klaeren, nicht die Klinke senken`);
+if (trefferAufrufe.length < MIN_TREFFER_AUFRUFE) fail(`nur ${trefferAufrufe.length} Stellen mit vbEreignis('treffer-offen'), Klinke ${MIN_TREFFER_AUFRUFE} — das Wikelo-Fenster oder die Evolution-Zellen melden ihr Oeffnen nicht mehr; Ursache klaeren, nicht die Klinke senken`);
 if (trefferMarken.length < MIN_TREFFER_BEREICHE) fail(`nur ${trefferMarken.length} Trefferbereiche data-ev-treffer, Klinke ${MIN_TREFFER_BEREICHE} — Item Finder oder Crafting haben die Marke am Ergebnisraster verloren`);
 if (videoFassaden < MIN_VIDEO_FASSADEN) fail(`nur ${videoFassaden} Video-Fassaden auf gezaehlten Seiten, Klinke ${MIN_VIDEO_FASSADEN} — das Ereignis video erkennt sie an data-yt, data-lb="yt:…" und #holoytgo; haben sie ein neues Merkmal?`);
 if (bildAusloeser < MIN_BILD_AUSLOESER) fail(`nur ${bildAusloeser} Bild-Ausloeser auf gezaehlten Seiten, Klinke ${MIN_BILD_AUSLOESER} — das Ereignis bilder erkennt sie an data-lb und #btnimg; haben sie ein neues Merkmal?`);

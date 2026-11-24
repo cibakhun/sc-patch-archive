@@ -117,8 +117,10 @@ const ERSTER = [
 function netz(plan) {
   const offen = {};
   const abrufe = [];
-  const fetch = (url) => {
+  const caches = [];
+  const fetch = (url, init) => {
     abrufe.push(url);
+    caches.push(init && init.cache);
     const teil = /more/.test(url) ? 'more' : 'index';
     const daten = teil === 'more' ? ITEMS : ERSTER;
     const art = (Array.isArray(plan[teil]) ? plan[teil].shift() : plan[teil]) || 'ok';
@@ -129,7 +131,7 @@ function netz(plan) {
     if (art === 'warten') return new Promise((r) => { offen[teil] = () => r(antwort().then((x) => x)); });
     return antwort();
   };
-  return { fetch, abrufe, loese: (teil) => { offen[teil](); delete offen[teil]; } };
+  return { fetch, abrufe, caches, loese: (teil) => { offen[teil](); delete offen[teil]; } };
 }
 
 function boot(lang, plan, { feld = false } = {}) {
@@ -208,6 +210,16 @@ for (const lang of ['de', 'en']) {
       const arten = s.list.children.filter((c) => c.attrs.role === 'option').map((c) => c.className);
       assert.ok(arten.some((c) => c.includes('scs__hit--item')), `kein Item-Treffer nach dem Neuversuch: ${s.zeilen()}`);
       assert.equal(s.n.abrufe.length, 4, 'je Teil genau ein Neuversuch');
+    });
+
+    test('beide Teile fragen beim Laden nach (no-cache): nach einem Deploy kein Register vom Vortag', async () => {
+      const s = boot(lang, {});
+      s.win.__scsOpen();
+      await flush();
+      s.tippe('Panther');
+      await flush();
+      assert.equal(s.n.abrufe.length, 2, `zwei Teile erwartet: ${s.n.abrufe}`);
+      assert.deepEqual(s.n.caches, ['no-cache', 'no-cache'], `fetch ohne cache: 'no-cache' (nginx gibt JSON einen Tag): ${s.n.caches}`);
     });
 
     test('zweiter Teil noch unterwegs: Ladezeile statt leerer Liste, danach die Treffer', async () => {

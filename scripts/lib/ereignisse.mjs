@@ -2,7 +2,7 @@
 //
 // Freigabe: Krisz, 06.11.2026 11:48 („Beides wie empfohlen", Plan
 // „VerseBase: Produktphase Vernetzung, Messung, Datenvertrauen", Abschnitt
-// Messung). Fuenfzehn Ereignisse, jedes Feld nur mit festen Werten: kein
+// Messung). Siebzehn Ereignisse, jedes Feld nur mit festen Werten: kein
 // Suchbegriff, keine Item-Kennung, kein Name, keine Zahl aus einer Rechnung.
 // Acht davon aus dieser Freigabe; das neunte, wert-melden (Klick auf
 // „Falschen Wert melden“ einer Detailseite, nur die Seitenart), kam mit dem
@@ -17,6 +17,15 @@
 // Werkzeugs geoeffnet), merken (Schiff zur Flotte, Bauplan in den Planer,
 // Raffinerie-Auftrag gestartet), video (Video gestartet), bilder (Bilder
 // geoeffnet) und hilfe („Wie funktioniert …?" bzw. „Elemente erklaeren").
+//
+// Messluecken (UX-Audit Paket K6): Krisz, 24.11.2026 02:45 UTC, Karte
+// „Sollen neue Umami-Ereignisse die Messluecken schliessen?“ -> „Ja, alle in
+// einem Zug“. Dazu kamen merken „besitz“ (Bauplan als „Im Besitz“ markiert),
+// download (Onepager oder Bild von der Downloads-Seite, nur die Art) und
+// planer (im Crafting-Planer eine Menge geaendert, je Seitenaufruf einmal;
+// Planer geleert; von der Einkaufsliste zu den Fundorten gewechselt). Das
+// Material-Fenster der Wikelo-Seite und die Zellen der Evolution-Matrix
+// melden treffer-offen ueber vbEreignis, ohne neuen Wert.
 //
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
@@ -37,7 +46,7 @@ export const PLAETZE = ['1-3', '4-10', '11+'];
 // nie ihr Wert.
 export const FILTER = [
   'suche', 'sortierung', 'kategorie', 'groesse', 'verfuegbarkeit', 'gewicht', 'seltenheit', 'ansicht',
-  'typ', 'auftraggeber', 'fraktion', 'gilde', 'ort', 'bauplan', 'legal',
+  'typ', 'auftraggeber', 'ort', 'bauplan', 'legal',
   'hersteller', 'karriere', 'rolle', 'signatur', 'merkmal', 'komponente', 'komponentengroesse',
   'ressource', 'qualitaet', 'system', 'brechbar',
 ];
@@ -60,7 +69,12 @@ export const EXTERN_HOSTS = {
   'youtube.com': 'youtube',
 };
 export const VON = [...DETAIL, 'sonst', ...WERKZEUGE];
-export const MERKEN = ['flotte', 'planer', 'auftrag'];
+export const MERKEN = ['flotte', 'planer', 'auftrag', 'besitz'];
+// Downloads-Seite: Bereich mit data-ev-download="<art>" um die Links mit
+// download-Attribut (Onepager-Dateien, Bilder).
+export const DOWNLOAD = ['onepager', 'bild'];
+// Crafting-Planer: was mit dem Plan geschah, nie welcher Bauplan.
+export const PLANER = ['menge', 'leeren', 'abbau'];
 // Hilfe gibt es auch ausserhalb der Werkzeugseiten (Ruestungs-Sets, Werkbank,
 // Hangar im Vorschau-Bau): dort heisst das Werkzeug „sonst“.
 export const HILFE_WZ = [...WERKZEUGE, 'sonst'];
@@ -82,6 +96,8 @@ export const EREIGNISSE = {
   video: { seite: SEITEN },
   bilder: { seite: SEITEN },
   hilfe: { werkzeug: HILFE_WZ, art: HILFE_ART },
+  download: { art: DOWNLOAD },
+  planer: { aktion: PLANER },
 };
 
 // Seiten der Werkzeuge (ohne /de-Vorsatz) -> Wert im Feld werkzeug. Dieselben

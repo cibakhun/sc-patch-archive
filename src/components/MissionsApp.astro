@@ -14,6 +14,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { jsonForScript } from '../lib/safeJson';
+import { missionsSuchUrl } from '../lib/missionsSuche';
 import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 
 interface Props { lang: Locale }
@@ -29,9 +30,10 @@ const S = {
     title: 'Missionen',
     lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote, zu ${db.meta.counts.families.toLocaleString('de-DE')} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
     stMissions: 'Missionen', stVariants: 'Angebote', stBp: 'mit Blueprints', stRep: 'mit Reputationshürde',
-    search: 'Suchen', searchPh: 'Titel, Auftraggeber, Fraktion, Ort …',
+    search: 'Suchen', searchPh: 'Titel, Auftraggeber, Ort, Belohnung …',
     fType: 'Typ', fGiver: 'Auftraggeber', fFaction: 'Fraktion', fLoc: 'Region', fLegal: 'Rechtslage',
     fGuild: 'Gilde', fBp: 'Blueprints', bpOnly: 'nur mit Blueprints',
+    fFor: 'Für wen', fForAll: 'Alle Auftraggeber', more: 'Weitere %n% anzeigen', shown: '%a% von %b%',
     bp: 'Blueprints', bpT: 'Diese Mission kann Blueprints abwerfen — gezogen aus einem gewichteten Pool, also Zufall.',
     all: 'Alle', lawful: 'Legal', unlawful: 'Illegal',
     sort: 'Sortierung', sName: 'Name', sReward: 'Belohnung', sCount: 'Angebote',
@@ -55,9 +57,10 @@ const S = {
     title: 'Missions',
     lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers, grouped into ${db.meta.counts.families.toLocaleString('en-US')} missions — with rewards, reputation, contractors and locations.`,
     stMissions: 'missions', stVariants: 'offers', stBp: 'with blueprints', stRep: 'with rep gate',
-    search: 'Search', searchPh: 'Title, contractor, faction, location …',
+    search: 'Search', searchPh: 'Title, contractor, location, reward …',
     fType: 'Type', fGiver: 'Contractor', fFaction: 'Faction', fLoc: 'Region', fLegal: 'Legality',
     fGuild: 'Guild', fBp: 'Blueprints', bpOnly: 'with blueprints only',
+    fFor: 'Working for', fForAll: 'All contractors', more: 'Show %n% more', shown: '%a% of %b%',
     bp: 'Blueprints', bpT: 'This mission can drop blueprints — drawn from a weighted pool, so it is chance-based.',
     all: 'All', lawful: 'Lawful', unlawful: 'Unlawful',
     sort: 'Sort', sName: 'Name', sReward: 'Reward', sCount: 'Offers',
@@ -101,7 +104,9 @@ const cards = missions.map((m: Mission) => {
     // DataCore-Brief (bis ~2 KB) stand trotzdem im Markup und summierte sich
     // auf ~0,8 MB pro Sprachindex. clip() schneidet an der Wortgrenze und
     // zerreisst nie einen {Platzhalter} (Token enthalten keine Leerzeichen).
-    descParts: m.desc ? titleParts(clip(m.desc, 200)) : null,
+    // Zierlinien aus dem Auftragstext („———— BOUNTY CONTRACT ————") fuellten
+    // die zwei Zeilen der Karte mit Strichen; im Teaser fallen sie weg.
+    descParts: ((d) => (d ? titleParts(clip(d, 200)) : null))((m.desc ?? '').replace(/[-–—_=~*]{3,}/g, ' ').replace(/\s+/g, ' ').trim()),
     reward: belohnung(m, lang),
     rep: reps[0] ?? null,
     repMore: Math.max(0, reps.length - 1),
@@ -185,17 +190,21 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
         <label for="mx-type">{S.fType}</label>
         <select id="mx-type" data-ev-filter="typ"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
       </div>
-      <div class="mx__f" data-help={h('missions.ctl.select')}>
-        <label for="mx-giver">{S.fGiver}</label>
-        <select id="mx-giver" data-ev-filter="auftraggeber"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
-      </div>
-      <div class="mx__f" data-help={h('missions.ctl.select')}>
-        <label for="mx-faction">{S.fFaction}</label>
-        <select id="mx-faction" data-ev-filter="fraktion"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
-      </div>
-      <div class="mx__f" data-help={h('missions.ctl.select')}>
-        <label for="mx-guild">{S.fGuild}</label>
-        <select id="mx-guild" data-ev-filter="gilde"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+      {/* „Für wen" (UX-Audit F5): Auftraggeber, Fraktion und Gilde waren drei
+          Auswahlen fuer eine Frage — wer vergibt den Auftrag? Jetzt eine, in
+          Gruppen; der Wert traegt die Art vorn („giver:…"), die Adresse
+          bleibt ?giver= / ?faction= / ?guild= wie bisher (Links der
+          Missionsblaetter, die immer nur einen der drei setzen; vor F4
+          schrieb die Seite nichts in die Adresse). Ereignisname bleibt „auftraggeber" (Liste in
+          scripts/lib/ereignisse.mjs). */}
+      <div class="mx__f mx__f--for" data-help={h('missions.ctl.select')}>
+        <label for="mx-for">{S.fFor}</label>
+        <select id="mx-for" data-ev-filter="auftraggeber">
+          <option value="">{S.fForAll}</option>
+          <optgroup label={S.fGiver}>{db.givers.map((g) => <option value={`giver:${g.id}`}>{g.name}</option>)}</optgroup>
+          <optgroup label={S.fFaction}>{db.factions.map((f) => <option value={`faction:${f.id}`}>{f.name}</option>)}</optgroup>
+          <optgroup label={S.fGuild}>{db.guilds.map((g) => <option value={`guild:${g.id}`}>{g.name}</option>)}</optgroup>
+        </select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-loc">{S.fLoc}</label>
@@ -224,15 +233,20 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
           <option value="reward">{S.sReward}</option>
         </select>
       </div>
-      <button type="button" class="mx__reset" id="mx-reset">{S.reset}</button>
-      <output class="mx__count" id="mx-count" aria-live="polite"></output>
+      {/* In der Schublade klebt diese Zeile am unteren Rand: „Zurücksetzen"
+          lag dort unter dem sichtbaren Bereich (UX-Audit F6). Am Schreibtisch
+          ist die Huelle unsichtbar (display: contents). */}
+      <div class="mx__foot">
+        <button type="button" class="mx__reset" id="mx-reset">{S.reset}</button>
+        <output class="mx__count" id="mx-count" aria-live="polite"></output>
+      </div>
     </form>
 
     <!-- Karten -->
-    <div class="mx__grid vb-scrollbox" id="mx-grid" data-grp={GRP}>
+    <div class="mx__grid" id="mx-grid" data-grp={GRP}>
       {/* HTML-Diät: data-search (~500 unsichtbare Zeichen je Karte — Blueprint-
           Namen, Orte, Titel-Varianten) liegt jetzt als 1-Tag-cachebarer Index
-          unter /missions-search.json (siehe pages/missions-search.json.ts);
+          unter /missions-search.json (siehe lib/missionsSuche.ts);
           data-name liest missions-app.js aus dem sichtbaren <h3>. Zusammen
           ~0,75 MB weniger pro Sprachindex. */}
       {groups.map((grp) => (
@@ -252,7 +266,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
         >
           <a class="mc__link" href={L(`/missionen/${m.slug}.html`)}>
             <div class="mc__top">
-              <h3 class="mc__h">
+              <h3 class="mc__h" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
                 {parts.map((p) => (p.gen ? <i class="mc__gen">{p.t}</i> : <span>{p.t}</span>))}
               </h3>
               {m.count > 1 && <span class="mc__n">{m.count}&thinsp;×</span>}
@@ -292,6 +306,10 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       </div>
       ))}
     </div>
+    {/* „Weitere anzeigen" (UX-Audit F6): ohne eigenen Bildlaufkasten (schmal
+        oder flach) stand die ganze Liste untereinander, 645 Bildschirmhoehen.
+        Dort zeigt das Skript einen Block zu 60 Karten nach dem anderen. */}
+    <button type="button" class="mx__more" id="mx-more" hidden></button>
     <p class="mx__none" id="mx-none" hidden>{S.none}</p>
 
     <!-- Quelle / Vorbehalte -->
@@ -309,9 +327,9 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
   </div>
 </section>
 
-{/* searchUrl versioniert mit dem DB-Stand: neuer Datamine-Lauf -> neue URL ->
-    kein 1-Tag-alter Suchindex zu frischen Karten. */}
-<script is:inline set:html={`window.__MX=${jsonForScript({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results } })};`} />
+{/* searchUrl traegt einen Hash des Index-Inhalts (src/lib/missionsSuche.ts):
+    neuer Inhalt -> neue URL -> kein 1-Tag-alter Suchindex zu frischen Karten. */}
+<script is:inline set:html={`window.__MX=${jsonForScript({ lang, searchUrl: missionsSuchUrl, t: { results: S.results, more: S.more, shown: S.shown } })};`} />
 {/* Inhaltshash statt des frueheren festen ?v=2: das Skript muss zum Markup
     passen (erst Karten ohne data-search/data-name, jetzt Karten in Bloecken
     .mc-grp) — altes gecachtes JS (1 Tag) haelte die Bloecke fuer Karten.
@@ -383,10 +401,10 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-14); font-size: var(--fs-3); color: var(--muted);
   }
 
-  /* --vb-top hoeher als bei Crafting/Mining: .mx__bar ist zweizeilig gebaut
-     (Beschriftung ueber Feld) und traegt zusaetzlich margin-bottom: 1.6rem.
-     Startwert, wird spaeter nachgemessen. */
-  .mx__wrap { width: min(calc(var(--maxw) + var(--vb-breit, 0px)), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; --vb-top: calc(var(--nav-h, 68px) + 7.5rem); }
+  /* Kein eigener Bildlaufkasten (.vb-scrollbox) mehr: die Liste laeuft im
+     Seitenfluss, Blaetterung mit „Weitere anzeigen" darunter (UX-Audit F6,
+     Heuristik P11 — das Mausrad sprang zwischen Kasten und Seite). */
+  .mx__wrap { width: min(calc(var(--maxw) + var(--vb-breit, 0px)), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; }
 
   /* ---------- Filterleiste ---------- */
   /* Hoehe der fixen SiteNav (z-index 9100). Bei top:0 klebt die Leiste hinter
@@ -395,6 +413,11 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
      sie als --nav-h; die 68px bleiben nur als Rueckfallwert. */
   .mx__bar {
     position: sticky; top: var(--nav-h, 68px); z-index: 20; display: flex; flex-wrap: wrap; gap: .7rem 1rem; align-items: end;
+    /* Ein Link mit ?type= & Co. rollt die Leiste ins Bild (missions-app.js,
+       fromUrl). Ohne diesen Rand landete sie hinter der Kopfleiste, klebte
+       dann um deren Hoehe tiefer und lag auf den obersten Karten — seit F4
+       jede Auswahl in die Adresse schreibt, nach jedem Neuladen. */
+    scroll-margin-top: var(--nav-h, 68px);
     padding: .9rem 1rem; margin-bottom: 1.6rem; border: 1px solid var(--line); border-radius: 14px;
     background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px);
   }
@@ -414,6 +437,27 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
   }
   .mx__reset:hover { color: var(--accent); border-color: var(--accent); }
   .mx__count { font-family: var(--font-ui); font-size: var(--fs-5); color: var(--muted); margin-left: auto; }
+  .mx__foot { display: contents; }
+  .mx__f--for { min-width: 12rem; }
+  .mx__more {
+    display: block; margin: 1.4rem auto 0; font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-11);
+    font-size: var(--fs-5); color: var(--text); background: var(--surface); cursor: pointer;
+    border: 1px solid var(--accent); border-radius: 10px; padding: .8rem 1.4rem;
+  }
+  .mx__more[hidden] { display: none; }
+  .mx__more small { display: block; margin-top: .2rem; font-size: var(--fs-2); color: var(--muted); letter-spacing: var(--ls-10); }
+  .mx__more:hover { color: var(--accent); }
+  /* Ausweichen der klebenden Leiste (missions-app.js, leisteWeicht): nur wo
+     sie klebt; schmal oder flach ist sie Schublade mit eigenem transform.
+     Tastaturfokus in der Leiste holt sie zurueck. */
+  @media (min-width: 821px) and (min-height: 601px) {
+    /* Deckend: seit die Karten im Seitenfluss unter der Leiste durchlaufen,
+       schienen ihre Titel durch das 88-%-Glas und lagen auf den Feldern. */
+    .mx__bar { background: var(--surface); box-shadow: 0 14px 28px -18px #000; }
+    html.js .mx__bar { transition: transform var(--dur-slow) var(--ease-ui); }
+    .mx__bar.is-weg { transform: translateY(calc(-100% - var(--nav-h, 68px) - 1rem)); }
+    .mx__bar.is-weg:has(:focus-visible) { transform: none; }
+  }
 
   /* ---------- Karten ---------- */
   /* 17rem, nicht 19: die Wurzel steht auf 112,5 %, 1rem sind also 18px — bei
@@ -444,6 +488,8 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     overflow-clip-margin: 48px;
   }
   .mc-grp[hidden] { display: none; }
+  /* Hinter der Grenze von „Weitere anzeigen" (assets/missions-app.js) */
+  .mc[data-spaeter] { display: none; }
   .mc-grp:has(:focus-visible) { content-visibility: visible; }
   @supports not (overflow-clip-margin: 48px) { .mc-grp:has(.mc:hover) { content-visibility: visible; } }
   @media (min-width: 760px) { .mc-grp { contain-intrinsic-size: auto var(--mc-grp-h, 8900px); } }
@@ -570,5 +616,26 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     html.js .mx__bar { transition: transform var(--dur-slow) var(--ease-ui); }
     .mx__f { min-width: 100%; }
     .mx__count { margin-left: 0; }
+    .mx__foot {
+      display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+      position: sticky; bottom: 0; margin: auto -1rem -.9rem; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom, 0px));
+      background: var(--surface); border-top: 1px solid var(--line);
+    }
+  }
+
+  /* Kopf am Telefon (UX-Audit F6): der Hero fuellte bei 390 px den ganzen
+     ersten Bildschirm, die erste Karte stand im zweiten. Ohne Mindesthoehe,
+     mit kleinerem Titel und den Zahlen in einer Zeile. */
+  @media (max-width: 820px) {
+    .mx__hero { min-height: 0; padding: calc(var(--nav-h, 68px) + 1rem) 1rem 1.1rem; }
+    .mx__eyebrow { margin-bottom: .4rem; }
+    .mx__h1 { font-size: var(--fs-17); margin-bottom: .5rem; }
+    .mx__lead { font-size: var(--fs-7); line-height: 1.45; }
+    /* Breite nach Inhalt, Umbruch nach Bedarf: vier gleiche Spalten
+       schnitten „MIT REPUTATIONSHÜRDE" bei 390 px ab. */
+    .mx__stats { gap: .6rem 1.3rem; margin-top: .9rem; }
+    .mx__stats b { font-size: var(--fs-11); }
+    .mx__stats span { display: block; font-size: var(--fs-1); letter-spacing: var(--ls-10); line-height: 1.25; margin-top: .2rem; }
+    .mx__wrap { padding-top: 1.2rem; }
   }
 </style>

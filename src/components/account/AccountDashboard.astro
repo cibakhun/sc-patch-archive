@@ -438,6 +438,8 @@ const SV = {
     title: HAS_HANGAR ? 'Flotte & Loadouts' : 'Flotte', all: 'Alle', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Flotte', rest: 'Gemerkt', search: 'Suchen', filter: 'Filter',
     none: 'Nichts gefunden.', changes: '%n% Änderungen', change1: '1 Änderung', stock: 'Serie',
     open: 'Im Hangar öffnen', advanced: 'Advanced Loadout', copy: 'Link kopieren', copied: 'Link kopiert',
+    share: 'An Freund schicken', shareTitle: 'An Freund schicken', shareHint: 'Der Chat öffnet sich mit dem Link. Gesendet wird erst, wenn du auf Senden drückst.', cancel: 'Abbrechen',
+    shareTooBig: 'Dieses Loadout ist zu groß für eine Nachricht. „Link kopieren“ geht.',
     remove: 'Löschen', removed: '„%s" gelöscht', undo: 'Rückgängig', failed: 'Das hat nicht geklappt.',
     pin: 'Aufs öffentliche Profil heften', unpin: 'Vom Profil nehmen', pinned: 'Auf deinem Profil', unpinned: 'Vom Profil genommen', pinFull: 'Höchstens drei Loadouts auf dem Profil.', onProfile: 'Profil',
     syncErr: 'Noch nicht mit dem Konto abgeglichen', syncRetry: 'Jetzt abgleichen', syncBusy: 'Gleiche ab …',
@@ -450,6 +452,8 @@ const SV = {
     title: HAS_HANGAR ? 'Fleet & loadouts' : 'Fleet', all: 'All', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Fleet', rest: 'Bookmarked', search: 'Search', filter: 'Filter',
     none: 'Nothing found.', changes: '%n% changes', change1: '1 change', stock: 'Stock',
     open: 'Open in hangar', advanced: 'Advanced Loadout', copy: 'Copy link', copied: 'Link copied',
+    share: 'Send to a friend', shareTitle: 'Send to a friend', shareHint: 'The chat opens with the link. Nothing is sent until you press Send.', cancel: 'Cancel',
+    shareTooBig: 'This loadout is too big for a message. “Copy link” works.',
     remove: 'Delete', removed: '"%s" deleted', undo: 'Undo', failed: 'That did not work.',
     pin: 'Pin to public profile', unpin: 'Remove from profile', pinned: 'On your profile', unpinned: 'Removed from profile', pinFull: 'At most three loadouts on your profile.', onProfile: 'Profile',
     syncErr: 'Not synced with your account yet', syncRetry: 'Sync now', syncBusy: 'Syncing …',
@@ -1221,6 +1225,22 @@ const SEC = {
   </div>
 
   <!-- ===== Modals (außerhalb .dsr) ===== -->
+  <!-- „An Freund schicken“ (account-saved.ts): Freund wählen, dann öffnet
+       die Freundesleiste den Chat mit dem Loadout-Link als Entwurf. -->
+  {HAS_HANGAR && (
+    <dialog id="svShare" class="acx-modal sv-share" aria-labelledby="svShareH" aria-describedby="svShareHint">
+      <div class="acx-modal-head">
+        <span class="acx-modal-icon" aria-hidden="true">◆</span>
+        <h3 id="svShareH">{SV.shareTitle}</h3>
+      </div>
+      <p class="sv-share__what" id="svShareWhat"></p>
+      <ul class="sv-share__list" id="svShareList"></ul>
+      <p class="acx-hint" id="svShareHint">{SV.shareHint}</p>
+      <div class="acx-actions">
+        <button type="button" class="acx-submit acx-submit--ghost" id="svShareCancel">{SV.cancel}</button>
+      </div>
+    </dialog>
+  )}
   <!-- RSI Verification Wizard Modal -->
   <dialog id="rsiModal" class="acx-modal">
     <div class="acx-modal-content">

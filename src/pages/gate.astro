@@ -45,7 +45,8 @@
 // Gemintet und gespeichert wird dann die Sitzung mit Code. Der Admin-Zweig
 // von gate_verdict verlangt aal2 (20261030142000_admin_second_factor.sql).
 import { versioned } from '../lib/assetVersion';
-import { SUPABASE, DISCORD } from '../consts';
+import { SUPABASE, DISCORD, SITE } from '../consts';
+import { recht } from '../lib/bereiche';
 ---
 
 <!doctype html>
@@ -98,6 +99,9 @@ import { SUPABASE, DISCORD } from '../consts';
     .status a{color:var(--accent-2)}
     .role-link{font-size:var(--fs-6);color:var(--muted)}
     .role-link a{color:var(--accent-2)}
+    .legal{font-size:var(--fs-5);color:var(--muted)}
+    .legal a{color:var(--muted);text-underline-offset:3px}
+    .legal a:hover{color:var(--text)}
     /* D-01/D-11: Discord ist der Hauptweg -- gleiche Knopfform wie das
        E-Mail-Formular, volle Kartenbreite, oben platziert. */
     .discord-btn{
@@ -181,6 +185,14 @@ import { SUPABASE, DISCORD } from '../consts';
   </form>
 
   <p class="role-link">Not a Test Pilot yet? <a href={DISCORD.invite}>Get the role on Discord</a>.</p>
+
+  <!-- Rechtsfuss (Heuristik P13): Impressum und Datenschutz muessen auch
+       von hier erreichbar sein. Auf staging liegen beide selbst hinter
+       diesem Tor, ein Link dorthin fuehrte zurueck hierher; deshalb zeigen
+       sie auf die frei erreichbare Live-Seite (SITE.url), live ist das
+       dieselbe Adresse. verify:rechtsfuss prueft die Torseite seitdem wie
+       jede andere. -->
+  <p class="legal">{recht('en').map((z, i) => <>{i > 0 && ' · '}<a href={SITE.url + z.href}>{z.name}</a></>)}</p>
 
   <script define:vars={{ SB_URL: SUPABASE.url, SB_KEY: SUPABASE.publishableKey, STORE: SUPABASE.storageKey }}>
     (function () {
