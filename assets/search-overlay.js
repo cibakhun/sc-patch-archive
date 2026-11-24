@@ -493,8 +493,10 @@
     if (e.nt === whole || (ganzT === terms.length && alleGedeckt(e.wt, gedeckt))) total += 30;
     // Werkzeuge vor gleich gut passenden Daten: wer auf einer Item-Seite
     // "bruch" oder "raffinerie" tippt, sucht den Rechner, nicht jedes Teil mit
-    // "(Bruch)" im Namen.
-    if (e.k === 'werkzeug') total += 20;
+    // "(Bruch)" im Namen. +22: ein Suchwort des Werkzeugs (15) steht damit
+    // ueber jedem Namenstreffer, der nicht vorn steht (bis 36, „Monolith aus
+    // der Werkbank"), und unter einem Namensanfang (40).
+    if (e.k === 'werkzeug') total += 22;
     // Eine ganze Liste vor einzelnen Teilen: „Helme" zeigt erst die Liste.
     else if (e.k === 'liste' || e.k === 'bauplanliste') total += 10;
     // Anteil des Namens, den die Suche trifft — nur fuer die Reihenfolge

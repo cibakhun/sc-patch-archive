@@ -404,6 +404,9 @@ for (const lang of ['de', 'en']) {
    echte Skript, mit einem Register, das die Lage im Katalog nachstellt. */
 const WELT = [
   { k: 'werkzeug', b: '', t: 'Mining', s: 'Werkzeug', u: '/topics/mining.html', x: 'mining bergbau erz erze' },
+  { k: 'werkzeug', b: '', t: 'Crafting', s: 'Werkbank & Planer', u: '/topics/crafting.html', x: 'crafting werkbank workbench' },
+  // „Werkbank" als ganzes Wort mitten im Namen (36) darf das Werkzeug nicht ueberholen.
+  { k: 'feature', b: 'Alpha 4.10.2', t: 'Monolith aus der Werkbank', s: '', u: '/patches/4-10-2.html#monolith', x: '' },
   { k: 'erz', b: 'Erz', t: 'Quantainium', s: 'Erz · Stanton', u: '/topics/mining.html?mineral=Quantainium#db', x: 'erz erze ore', w: '/refinery.html?erz=Quantainium#ertrag', wl: 'Refinery' },
   { k: 'ort', b: 'Ort', t: 'Daymar', s: 'Mond · Stanton', u: '/topics/mining.html?fundort=Daymar#db', x: 'ort place', w: '/missionen.html?loc=stanton2b', wl: 'Missionen' },
   { k: 'liste', b: 'Liste', t: 'Helmets', s: 'Rüstung · 659 Items', u: '/items/category/armour-helmets.html', x: 'Armour / Helmets helm' },
@@ -566,6 +569,17 @@ for (const lang of ['de', 'en']) {
         await flush();
         assert.equal((await suche(s, 'arclight pistl'))[0], 'Arclight Pistol');
         assert.equal((await suche(s, 'pistl arclight'))[0], 'Arclight Pistol');
+      } finally { zurueck(); }
+    });
+
+    test('ein Suchwort des Werkzeugs schlaegt ein ganzes Wort mitten im Namen: „werkbank" zeigt Crafting zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'werkbank');
+        assert.equal(t[0], 'Crafting', t.join(' / '));
+        assert.ok(t.includes('Monolith aus der Werkbank'), t.join(' / '));
       } finally { zurueck(); }
     });
 
