@@ -25,6 +25,8 @@
 //      dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs.
 //   6  Fahrzeug-Itemblaetter verlinken sichtbar ihr Schiffsblatt (Krisz,
 //      24.11.2026: gleichrangig, kein Canonical, gegenseitige Links). Klinke.
+//      Ihr Abschnitt „Technische Daten" sagt, dass die Werte dort stehen, und
+//      verlinkt dasselbe Schiffsblatt (IA C8).
 //   Zweite Stufe (P2, gleicher Tag):
 //   7  D4 Pool statt „100 %": jede Zeile der Missionstabelle eines Bauplans
 //      nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %". Klinke.
@@ -389,6 +391,13 @@ const missionFehlt = [];
 const doppelt = [];
 const fahrzeugOhneSchiff = [];
 const fahrzeugFalschesSchiff = [];
+const fahrzeugOhneDaten = [];
+// Wortlaut des Hinweises je Sprache, aus derselben Quelle wie die Seite.
+const SPECS_ON_SHIP = (() => {
+  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(/^\s*specsOnShip: '((?:[^'\\]|\\.)*)',$/gm)].map((m) => m[1]);
+  if (t.length !== 2) { console.error(`verify:bezugswege: specsOnShip steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
+  return { de: t[0], en: t[1] };
+})();
 let ohneWeg = 0;
 let schiffsteile = 0;
 const schiffsteilOhneLink = [];
@@ -500,6 +509,18 @@ for (const rel of ['items', 'de/items']) {
         const schiffH1 = existsSync(zielDatei) ? h1Name(readFileSync(zielDatei, 'utf8')) : null;
         if (!schiffH1 || schiffH1 !== h1Name(html)) fahrzeugFalschesSchiff.push(`${pfad} -> ${ziel}`);
       }
+      // IA C8: der Abschnitt „Technische Daten" fehlt nicht, er sagt, dass
+      // die Werte auf dem Schiffsblatt stehen, und verlinkt dasselbe Ziel.
+      const sek = [...html.matchAll(/<section\b[^>]*>([\s\S]*?)<\/section>/g)].map((m) => m[1]).find((x) => x.includes('data-specs-schiff'));
+      const sekH2 = sichtbar(sek?.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/)?.[1] ?? '').trim();
+      // Das Ziel ist das href eines echten <a> mit data-specs-schiff, gelesen
+      // wie in [15]; ein span mit denselben Attributen ist kein Link (Review #465).
+      const datenAnker = sek ? [...sek.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g)].map((m) => attribute(m[1])).find((a) => a.has('data-specs-schiff')) : null;
+      const datenZiel = datenAnker?.get('href')?.match(/^((?:\/de)?\/schiffe\/[a-z0-9-]+\.html)$/)?.[1];
+      // Und der Hinweis davor sagt es im Wortlaut von src/i18n/itemText.ts (Review #465).
+      const hinweis = falte(sichtbar(sek?.match(/<p\b[^>]*\bclass="[^"]*\bdp-note\b[^"]*"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? ''));
+      const hinweisFehlt = !hinweis.startsWith(SPECS_ON_SHIP[pfad.startsWith('/de/') ? 'de' : 'en']);
+      if (!sek || !/^(Technische Daten|Technical data)$/.test(sekH2) || !datenZiel || datenZiel !== ziel || hinweisFehlt) fahrzeugOhneDaten.push(`${pfad}${datenZiel && datenZiel !== ziel ? ` -> ${datenZiel} statt ${ziel}` : ''}${sek && hinweisFehlt ? ' (Hinweis fehlt oder anders)' : ''}`);
     }
   }
 }
@@ -525,6 +546,8 @@ need(fahrzeuge >= KLINKEN.fahrzeugBlaetter, `nur ${fahrzeuge} Fahrzeug-Itemblaet
 need(!fahrzeugOhneSchiff.length, `${fahrzeugOhneSchiff.length} Fahrzeug-Itemblatt/-blaetter ohne sichtbaren Link zum Schiffsblatt — ${liste(fahrzeugOhneSchiff)}`);
 console.log(`    Link auf ein fremdes Schiffsblatt (Ueberschriften verschieden) — Soll: 0   Ist: ${fahrzeugFalschesSchiff.length}`);
 need(!fahrzeugFalschesSchiff.length, `${fahrzeugFalschesSchiff.length} Fahrzeug-Itemblatt/-blaetter zeigen auf ein anderes Schiffsblatt als ihr eigenes — ${liste(fahrzeugFalschesSchiff)}`);
+console.log(`    Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblatt (IA C8) fehlt — Soll: 0   Ist: ${fahrzeugOhneDaten.length}`);
+need(!fahrzeugOhneDaten.length, `${fahrzeugOhneDaten.length} Fahrzeug-Itemblatt/-blaetter ohne Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblatt — ${liste(fahrzeugOhneDaten)}`);
 
 console.log('\n[7] D4 Missionstabelle eines Bauplans nennt den Pool statt „100 %"');
 console.log(`    Tabellen: ${poolTabellen} (Klinke ${KLINKEN.poolTabellen})   ohne Pool oder mit nacktem „100 %" — Soll: 0   Ist: ${poolOhne.length}`);
