@@ -1299,6 +1299,9 @@ const CLIENT = {
   function load() {
     var v = null;
     try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    /* Ein von Hand veraenderter Eintrag kann ein Text oder eine Zahl sein;
+       dann zaehlt er nicht (Review PR #429). */
+    if (!v || typeof v !== 'object') v = null;
     var a = fromAddress();
     if (a) {
       v = v || {};
