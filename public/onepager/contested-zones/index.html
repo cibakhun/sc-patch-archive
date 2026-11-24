@@ -419,10 +419,21 @@
                 align-items: stretch;
             }
         }
+
+        /* Rueckweg zur Themenseite (UX-Audit P70): der Guide oeffnet in einem
+           neuen Tab und hatte keinen Weg zurueck. */
+        .op-back { display: flex; flex-wrap: wrap; gap: .35rem 1.4rem; align-items: center; padding: .7rem clamp(1rem, 4vw, 2.5rem); border-bottom: 1px solid var(--border); background: var(--surface); font-family: var(--font-mono); font-size: .9rem; letter-spacing: .04em; }
+        .op-back a { color: var(--text-main); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+        .op-back a:hover, .op-back a:focus-visible { color: var(--accent-blue); text-decoration: underline; }
     </style>
 </head>
 
 <body>
+
+    <nav class="op-back" aria-label="VerseBase">
+        <a href="/de/topics/4-0-0-contested-zones.html" hreflang="de" lang="de">← Zurück zur Themenseite</a>
+        <a href="/topics/4-0-0-contested-zones.html" hreflang="en">← Back to the topic page</a>
+    </nav>
 
     <div class="hero-banner">
         <div class="hero-content">

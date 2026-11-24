@@ -26,7 +26,6 @@ import { getCollection } from 'astro:content';
 import { href, useTranslations, type Locale } from '../i18n/ui';
 import { mergePatchEn, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
-import { missions, repSummary, uec } from './missions';
 import { patchesFor } from './patchSpine';
 import { patchSeiteHref } from './patchPages';
 import { altName, displayName, itemPath, leafCategory, pageItemIds, pageItems, rootCategory } from './items';
@@ -36,32 +35,32 @@ import {
 import { categoryLabel } from '../i18n/itemText';
 import { priceInfo, aUEC } from './shipExtras';
 import { shipIdForVehicleItem } from './vehicleItems';
+import { suchZiele } from './bereiche';
+import { TOOL_ALIASES, gattungsWoerter } from './searchAliases';
+import { weltEintraege } from './searchWelt';
+import { missionEintraege } from './searchMissionen';
 
-export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string; c?: string };
+// w/wl (seit 24.11.2026): ein zweiter Weg mit eigener Beschriftung, etwa
+// „Refinery" am Erz oder „Missionen" am Ort (src/lib/searchWelt.ts). Ein
+// Eintrag traegt hoechstens einen zweiten Weg: c oder w.
+export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string; c?: string; w?: string; wl?: string };
 
-// Werkzeuge: dieselben Ziele und Unterzeilen wie im Navigationsdeck
-// (src/components/SiteNav.astro), ohne Konto/Service. Der Hangar fehlt mit
-// Absicht: live gibt es ihn nicht (HAS_HANGAR), und neue Links dorthin
-// entstehen in dieser Phase keine. x traegt Suchwoerter beider Sprachen; es
-// wird nie angezeigt.
+// Die Suchwoerter aus src/lib/searchAliases.ts an die Werkzeuge mit derselben
+// Adresse haengen (Paket B; die Liste selbst kommt aus der Bereichsliste).
+function mitSuchwoertern(tools: SearchEntry[], lang: Locale): SearchEntry[] {
+  const nachUrl = new Map(Object.entries(TOOL_ALIASES).map(([pfad, w]) => [href(pfad, lang), w]));
+  return tools.map((e) => (nachUrl.has(e.u) ? { ...e, x: `${e.x} ${nachUrl.get(e.u)}`.trim() } : e));
+}
+
+// Werkzeuge: jede Seite der Bereichsliste (src/lib/bereiche.ts) mit
+// Suchwoertern, in Leistenreihenfolge, mit demselben Namen und derselben
+// Unterzeile wie im Menue. Seit 24.11.2026 (UX-Audit A1) stehen deshalb auch
+// Item- und Blueprint-Verzeichnis, Ruestungs-Sets und Downloads hier; Hangar
+// und Advanced Loadout nur im Vorschau-Bau (bereiche() filtert sie live
+// heraus, HAS_HANGAR). x traegt Suchwoerter beider Sprachen; es wird nie
+// angezeigt.
 function toolEntries(lang: Locale): SearchEntry[] {
-  const t = useTranslations(lang);
-  const tool = (title: string, sub: string, path: string, x: string): SearchEntry => ({
-    k: 'werkzeug', b: '', t: title, s: sub, u: href(path, lang), x,
-  });
-  return [
-    tool('Item Finder', t('nav.deck.sub.items'), '/item-finder.html', 'items finder preise prices shops loot fundorte kaufen buy'),
-    tool(t('nav.missions'), t('nav.deck.sub.missions'), '/missionen.html', 'missions missionen contracts auftraege reputation ruf belohnung reward'),
-    tool('Crafting', t('nav.deck.sub.crafting'), '/topics/crafting.html', 'crafting blueprints bauplaene blaupausen planner planer herstellen'),
-    tool('Fracturing', t('nav.deck.sub.fracturing'), '/fracturing.html', 'fracturing bruchrechner mining laser module gadgets brechen'),
-    tool('Refinery', t('nav.deck.sub.refinery'), '/refinery.html', 'refinery raffinerie jobs auftraege tracker'),
-    tool('Mining', t('nav.deck.sub.mining'), '/topics/mining.html', 'mining bergbau minerals mineralien erze ores scans'),
-    tool('Precision Jump', t('nav.deck.sub.jump'), '/precision-jump.html', 'aaron halo quantum quantensprung routen routes'),
-    tool("Wikelo's Emporium", t('nav.deck.sub.wikelo'), '/topics/wikelo-emporium.html', 'wikelo banu trades tausch handel'),
-    tool(t('nav.ships'), t('nav.deck.sub.ships'), '/schiffe.html', 'ships schiffe vergleich compare specs'),
-    tool(t('nav.archive'), t('nav.deck.sub.archive'), '/archiv.html', 'patches archiv archive versionen versions'),
-    tool(t('nav.evolution'), t('nav.deck.sub.evolution'), '/evolution.html', 'evolution systeme systems'),
-  ];
+  return suchZiele(lang).map((z) => ({ k: 'werkzeug', b: '', t: z.name, s: z.sub, u: z.href, x: z.such ?? '' }));
 }
 
 export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
@@ -72,9 +71,12 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
 
   // Werkzeuge zuerst: bei gleicher Punktzahl gewinnt die fruehere Zeile, und
   // wer "mining" tippt, sucht eher das Werkzeug als einen Patch-Abschnitt.
-  const tools = toolEntries(lang);
+  const tools = mitSuchwoertern(toolEntries(lang), lang);
   const toolUrls = new Set(tools.map((e) => e.u));
-  const out: SearchEntry[] = [...tools];
+  // Gleich danach Erze, Orte, Laeden und Kategorielisten (Paket B, B3): bei
+  // gleicher Punktzahl steht das Erz „Quantainium" vor der Mission, die es
+  // im Namen traegt. Was schon als Werkzeug dasteht, kommt nicht doppelt.
+  const out: SearchEntry[] = [...tools, ...weltEintraege(lang).filter((e) => !toolUrls.has(e.u))];
 
   for (const p of patches) {
     const d = mergePatchEn(p.id, p.data, lang);
@@ -135,30 +137,9 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
     });
   }
 
-  // mission families (DataCore snapshot) — one entry per mission, not per offer.
-  // Titel/Typen/Geber sind Spieldaten (englisch) und in beiden Sprachen
-  // identisch; lokalisiert werden Zahlenformat und Ziel-URL.
-  for (const m of missions) {
-    const rep = repSummary(m)[0];
-    // Platzhalter ohne Klammern indizieren: gesucht wird nach "Rank", nicht "{Rank}"
-    const title = m.title.replace(/\{([^}]*)\}/g, '$1');
-    out.push({
-      k: 'mission',
-      b: m.typeNames[0] ?? 'Mission',
-      t: title,
-      s: [
-        m.rewardMax ? `${uec(m.rewardMax, lang)} aUEC` : null,
-        rep?.factionName ?? null,
-        m.count > 1 ? `${m.count}×` : null,
-      ]
-        .filter(Boolean)
-        .join(' · '),
-      u: href(`/missionen/${m.slug}.html`, lang),
-      x: [...m.giverNames, ...m.factionNames, ...m.localityNames, ...m.typeNames]
-        .join(' ')
-        .slice(0, 160),
-    });
-  }
+  // Missionen: eigener Baustein (src/lib/searchMissionen.ts), damit
+  // tests/e2e/suche-treffer.test.js ihn ohne astro:content pruefen kann.
+  out.push(...missionEintraege(lang));
 
   return out;
 }
@@ -208,7 +189,11 @@ export async function buildSearchIndexMore(lang: Locale): Promise<SearchEntry[]>
       t: name,
       s: [g?.manufacturer, sizes.length ? sizes.map((n) => `S${n}`).join('/') : null].filter(Boolean).join(' · '),
       u: href(itemPath(it), lang),
-      x: [altName(it, lang), categoryLabel(root, lang), rezept && rezept !== name ? rezept : null].filter(Boolean).join(' '),
+      x: [
+        altName(it, lang), categoryLabel(root, lang), rezept && rezept !== name ? rezept : null,
+        // Gattungswoerter (Paket B, B2): „Karna Rifle" findet auch „karna gewehr".
+        gattungsWoerter(`${it.name} ${it.category}`),
+      ].filter(Boolean).join(' '),
       ...(bp ? { c: href(craftEntryPath(bp), lang) } : {}),
     });
   }
@@ -223,7 +208,10 @@ export async function buildSearchIndexMore(lang: Locale): Promise<SearchEntry[]>
       t: bpLabels[i],
       s: categoryLabel(craftRoot(bp.category), lang),
       u: href(blueprintPath(bp), lang),
-      x: it ? [displayName(it, lang), altName(it, lang)].filter((n) => n && n !== bp.name).join(' ') : '',
+      x: [
+        ...(it ? [displayName(it, lang), altName(it, lang)].filter((n) => n && n !== bp.name) : []),
+        gattungsWoerter(`${bp.name} ${bp.category}`),
+      ].filter(Boolean).join(' '),
       c: href(craftEntryPath(bp), lang),
     });
   });

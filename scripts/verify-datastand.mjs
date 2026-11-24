@@ -125,20 +125,22 @@ const HANDPFLEGE = [];
 // ersten gekennzeichneten Stand.
 // 10.11.2026, erster Lauf datamine:loot gegen sc-alpha-4.10.2 (Client CL
 // 12913470): Loot-Fundorte neu aufgenommen, Klinke auf diesem Stand.
+// 24.11.2026, Datenlauf auf den Hotfix 4.10.3 (Client CL 13220821): alle
+// dreizehn Staende gemeinsam von CL 13165946 auf 13220821 gehoben.
 const KLINKEN = {
-  'Loot-Fundorte': 13165946,
-  'Aaron-Halo': 13165946,
-  'Stanton-Anker': 13165946,
-  Missionen: 13165946,
-  Mining: 13165946,
-  Crafting: 13165946,
-  'Item-Katalog': 13165946,
-  Refinery: 13165946,
-  Zerlegung: 13165946,
-  Wikelo: 13165946,
-  Ausbeute: 13165946,
-  Fahrzeuge: 13165946,
-  Methoden: 13165946,
+  'Loot-Fundorte': 13220821,
+  'Aaron-Halo': 13220821,
+  'Stanton-Anker': 13220821,
+  Missionen: 13220821,
+  Mining: 13220821,
+  Crafting: 13220821,
+  'Item-Katalog': 13220821,
+  Refinery: 13220821,
+  Zerlegung: 13220821,
+  Wikelo: 13220821,
+  Ausbeute: 13220821,
+  Fahrzeuge: 13220821,
+  Methoden: 13220821,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine

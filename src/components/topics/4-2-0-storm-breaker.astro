@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -47,7 +48,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-2-0.html' : '/patches/sc-4-2-0.html'}>Alpha 4.2.0 · Storm Breaker</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Wetter wird zur Gefahr' : 'When Weather Becomes a Threat'}</span>Storm Breaker</h1>
       <p class="lead">{de ? 'Mit 4.2.0 schlägt das Wetter zurück: dynamischer Regen, Flug-Turbulenzen und eine brandneue Strahlungs-Gefahr verwandeln Planeten in tödliche Schauplätze — mittendrin die Storm-Breaker-Aktivität.' : 'With 4.2.0 the weather strikes back: dynamic rain, flight turbulence and a brand-new radiation hazard turn planets into deadly arenas — and at the heart of it all, the Storm Breaker activity.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Dynamisches Wetter' : 'Dynamic Weather'}</span><span class="tag">{de ? 'Strahlung' : 'Radiation'}</span><span class="tag">{de ? 'Turbulenz' : 'Turbulence'}</span><span class="tag">{de ? 'Regen-Krise' : 'Rain Crisis'}</span><span class="tag">Hazard</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Dynamisches Wetter' : 'Dynamic Weather'}</Schlagwort><Schlagwort>{de ? 'Strahlung' : 'Radiation'}</Schlagwort><Schlagwort>{de ? 'Turbulenz' : 'Turbulence'}</Schlagwort><Schlagwort>{de ? 'Regen-Krise' : 'Rain Crisis'}</Schlagwort><Schlagwort>Hazard</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>
@@ -178,15 +179,13 @@ const de = lang === 'de';
     </div>
   </section>
 
-  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — die EN-Seite
-      verlinkte ihn deshalb noch nie und soll das auch nicht anfangen. */}
-  {de && (
+  {/* Onepager (englisch, neuer Tab) und Weg zu den Downloads, in beiden
+      Fassungen (UX-Audit H3 und P70, 24.11.2026). */}
   <OnepagerLink
     href="/onepager/storm-breaker/index.html"
-    title="Storm Breaker — Visueller Guide"
-    note="Eigenständiger Onepager: Farro- & Lazarus-Karten, Wetter-Events und Loot im Überblick."
+    title={de ? 'Storm Breaker — Visueller Guide' : 'Storm Breaker — Visual guide'}
+    note={de ? 'Eigenständiger Onepager: Farro- & Lazarus-Karten, Wetter-Events und Loot im Überblick.' : 'Standalone one-pager: Farro and Lazarus maps, weather events and loot at a glance.'}
   />
-  )}
 
 </main>
 

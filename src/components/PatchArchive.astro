@@ -22,11 +22,16 @@ import { createHash } from 'node:crypto';
 import SiteNav from './SiteNav.astro';
 import { buildArchive } from '../lib/archive';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
+import { HAS_HANGAR } from '../lib/seo';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 
 const lang = localeFromPath(Astro.url.pathname);
 const t = useTranslations(lang);
+// Weitere Seiten zu einem Patch (UX-Audit P71): die Chronik zu 4.10.3 stand
+// nirgends verlinkt. Sie gibt es nur im Vorschau-Bau (scripts/lib/
+// vorschau-patches.mjs), deshalb haengt der Verweis an demselben Schalter.
+const CHRONIK: Record<string, string> = HAS_HANGAR ? { '4.10.3': href('/patches/4-10-3-film.html', lang) } : {};
 // Werkzeug-Hilfe (Phase 01.2) — siehe
 // .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md.
 const h = useHelp(lang);
@@ -101,6 +106,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
       <span class="mast__title-main">{t('arch.title')}</span>
     </h1>
     <p class="mast__lead">{tf('arch.lead', { latest: a.latest.codename })}</p>
+    <p class="mast__evo"><a href={L('/evolution.html')}>{t('arch.evo')} <span aria-hidden="true">→</span></a></p>
 
     {/* Telemetry — the ledger's own bookkeeping as a HUD readout row. */}
     <dl class="tele">
@@ -285,11 +291,12 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
                   <p class="node__tag">{e.tagline}</p>
                   <p class="node__foot">
                     {e.href && <span class="node__go">{t('arch.open')} <span class="ar" aria-hidden="true">→</span></span>}
-                    {e.topics.length > 0 && (
+                    {(e.topics.length > 0 || CHRONIK[e.version]) && (
                       <span class="node__dives">
                         {e.topics.map((tp) => (
                           <a class="dive" href={tp.href}>{tp.title}</a>
                         ))}
+                        {CHRONIK[e.version] && <a class="dive" href={CHRONIK[e.version]}>{t('arch.chronik')}</a>}
                       </span>
                     )}
                   </p>

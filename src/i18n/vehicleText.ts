@@ -282,3 +282,14 @@ export function vDesc(d: VehicleData, lang: Locale): string | null {
   if (lang === 'en') return cleanDesc(d.descriptionEn) ?? cleanDesc(d.descriptionDe);
   return cleanDesc(d.descriptionDe) ?? cleanDesc(d.descriptionEn);
 }
+/** In welcher Sprache steht der Text, den vDesc() liefert? Fuer lang="…" am
+ *  Absatz (src/i18n/spieltext.ts). Die deutsche Fassung der Spieltexte ist
+ *  bei 98 von 235 Schiffen woertlich der englische Text (gemessen
+ *  24.11.2026) — dann ist sie englisch, auch wenn sie im deutschen Feld
+ *  steht. */
+export function vDescLang(d: VehicleData, lang: Locale): Locale | null {
+  const de = cleanDesc(d.descriptionDe), en = cleanDesc(d.descriptionEn);
+  if (lang === 'en') return en ? 'en' : de ? 'de' : null;
+  if (de) return de === en ? 'en' : 'de';
+  return en ? 'en' : null;
+}

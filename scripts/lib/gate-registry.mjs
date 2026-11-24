@@ -245,6 +245,25 @@ export const CHECKS = [
       'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (24.11.2026, UX-Audit Paket C1): direkt nach den beiden
+    // Schaltern, weil der Fehler genau an ihren eingehaengten Seiten lag —
+    // DE/EN auf Hangar, Advanced Loadout, Patch 4.10.3 und Chronik 4.10.3
+    // fuehrte auf die Startseite der anderen Sprache (src/lib/routeTwins.ts
+    // kannte nur src/pages/). Kein env-Feld: nur dist/.
+    id: 'verify:sprachweiche',
+    npm: 'verify:sprachweiche',
+    script: 'scripts/verify-sprachweiche.mjs',
+    rail: 'A',
+    checks:
+      'jede Option des Sprachumschalters (Seitenkopf und Datenblatt) zeigt aufs Gegenstueck in der anderen Sprache, wenn es im Bau steht, sonst auf eine Seite der anderen Sprache, die es gibt; die hreflang-Paare im Kopf nennen genau Seite und Gegenstueck, beide im Bau; im Vorschau-Bau sind die eingehaengten Seiten (Hangar, Patch-Seiten vor der Abnahme) unter den geprueften; Klinken fuer Seiten mit Umschalter und eingehaengte Seiten',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Vorschau-Bau von origin/staging
+    // 6e984ac8 (vor der Reparatur): 16 FEHLER [1] — beide Umschalter
+    // (Kopfleiste und Menue) auf /hangar, /hangar-loadout, /patches/sc-4-10-3
+    // und /patches/4-10-3-film in beiden Sprachen zeigten auf /index.html
+    // bzw. /de.html. Ueber die anderen 18.650 Seiten kein Fund. Gruen nach
+    // der Reparatur derselben Lieferung (21.996 Optionen aufs Gegenstueck).
+  },
+  {
     // Neuzugang (22.11.2026): Items in 3D, derselbe STAGING-Schalter am
     // Artefakt, aber in beiden Bauten mit eigener Aussage — darum ohne
     // nurMitHangar. Kein env-Feld: nur dist/ und src/data/item-3d.json.
@@ -329,6 +348,16 @@ export const CHECKS = [
     script: 'scripts/verify-fx.mjs',
     rail: 'A',
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
+  },
+  {
+    // Neuzugang (24.11.2026, Heuristik P13), schnell: liest dist/ als Text.
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess.
+    id: 'verify:rechtsfuss',
+    npm: 'verify:rechtsfuss',
+    script: 'scripts/verify-rechtsfuss.mjs',
+    rail: 'A',
+    checks:
+      'jede gebaute Seite verlinkt Impressum und Datenschutz (Rechtsfuss aus Layout.astro, wo die Seite keinen eigenen Fuss mit beiden Links hat); ausgenommen nur benannte Seiten ohne Layout mit Anlass und Zombie-Waechter (Tor, Hangar-Bucht, Onepager), Klinke 17.000 Seiten',
   },
   {
     // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
@@ -657,6 +686,106 @@ export const CHECKS = [
     // Items je Item verglichen, 0 abweichend.
   },
   {
+    // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
+    // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
+    // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen
+    // still (Join bricht im Datenlauf, Block geht im Umbau verloren, altes
+    // Bauskript schreibt den Herstellerkopf zurueck).
+    // Kein git, kein Netz, kein Kindprozess: dist/ und committete JSON.
+    id: 'verify:bezugswege',
+    npm: 'verify:bezugswege',
+    script: 'scripts/verify-bezugswege.mjs',
+    rail: 'A',
+    checks:
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“, und jede Zahl der Spalte (auch jedes Ende einer Spanne) ist die Groesse eines Pools genau dieser Mission, gezaehlt als verschiedene Bauplaene (src/data/missions.json), nicht die Summe der Familie und nicht die Zahl ihrer Bauplan-Seiten, und Zeile fuer Zeile im Tabellenkoerper (jede traegt data-mission, auch ohne Link, und die Mission hat Pool-Daten; geprueft = Zeilen der Tabellen) sagt der sichtbare Text der Zelle („1 von 8“, „1 von 5–8“, „nur dieser“) dieselbe Zahl wie data-pool/data-pool-min, und eine Spanne steigt auf; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache; gleichnamige Seiten (aus der Ueberschrift ermittelt, nicht aus dem Hinweis) tragen alle den Hinweis data-zwilling und verlinken alle anderen, keine Seite ohne Zwilling traegt ihn; [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau dann, wenn die Zeilen mehr als ein System (oder „ohne“) nennen; [12] Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf, jeden fuer sich (als Weg data-mat-weg oder ausdrueckliches „nein“/„unbekannt“ data-mat-ohne; Zerlegen ersetzt keinen der beiden) und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
+    // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
+    // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
+    // /de/items/karna-rifle.html entfernt, die alte Vermutung in
+    // /crafting/p4-ar-rifle.html eingesetzt, data-hinweis auf
+    // /de/crafting/p4-ar-rifle.html entfernt, „Rate Of Fire: 120 rpm" in die
+    // Beschreibung von /de/items/a03-sniper-rifle.html gesetzt, den
+    // Schiffslink auf /items/100i.html entfernt und den Katalog vor der Regel
+    // nach dist/assets gelegt: 7 FEHLER, je einer pro Eingriff ([5]: 764
+    // doppelte Kopfzeilen). Gruen danach: 11.642 Item-Blaetter, 1.372 mit
+    // Missionslink (vorher 0), 3.252 Bauplan-Seiten (1.870 mit „Quelle
+    // unbekannt"), 1.030 Blaetter mit Kennzahl Feuerrate, 356
+    // Fahrzeug-Itemblaetter, 9.518 Katalog-Items.
+    // Nach dem Review (CodeRabbit, PR #423) drei Zusicherungen geschaerft und
+    // je einmal rot gefahren, zurueckgespielt und per sha256 geprueft: der
+    // Hinweis-Link auf /crafting/p4-ar-rifle.html zeigte auf die Karna, der
+    // Schiffslink von /items/100i.html auf die 125a, die Karna trug in
+    // dist/assets 500 statt 600 Schuss/min: 3 FEHLER, je einer pro Eingriff.
+    // Zweite Stufe [7]-[12] (P2, D4-D8 und D10), VORGEFUEHRT ROT am
+    // 24.11.2026 gegen den Bau der zweiten Lieferung, je Datei
+    // zurueckgespielt und per sha256 geprueft: eine Pool-Zelle auf
+    // /crafting/karna-rifle.html zu nacktem „100 %", der Titel von
+    // /items/lynx-legs-2.html auf den seines Zwillings /items/lynx-legs.html,
+    // data-weg-schiff auf /items/aegis-eclipse-torpedo-rack.html gestrichen,
+    // eine Ø-Preis-Spalte in /items/karna-rifle.html, die Materialliste von
+    // /crafting/p4-ar-rifle.html entfernt und /de/items/karna-rifle.html als
+    // Zerlege-Quelle auf /de/crafting/karna-rifle.html: 6 FEHLER, je einer
+    // pro Eingriff; getrennt ein zweiter Planer-Knopf auf
+    // /crafting/category/weapons-rifle.html: 1 FEHLER. Gruen danach: 1.382
+    // Pool-Tabellen, 0 doppelte Planer-Knoepfe (3.252 Bauplan-, 124
+    // Kategorieseiten), 14.894 Titel ohne Doppel (84 Zwillingsseiten), 218
+    // Schiffsteile, 278 Blaetter ohne Weg (Decke 290, vor D6 430), 10.994
+    // Bezugstabellen (7.072 mit Filter), 3.252 Material-Seiten.
+    // [11] „—“-Zellen: eine Loot-Zelle auf /items/karna-rifle.html wieder mit
+    // „—“ gefuellt: 1 FEHLER, zurueckgespielt.
+    // [13] und [14] (P52, P64), VORGEFUEHRT ROT am 24.11.2026 gegen den Bau
+    // vor dieser Aenderung: [13] 6 FEHLER (je Sprache Verzeichnis 1.634 gegen
+    // Werkbank 1.626 und „1.626 + 0 ohne Item“ gegen 1.634; „ cSCU“ zweimal
+    // in der Crafting-Datenbank und nur 1 Mengenanzeige in SCU), [14] alle
+    // 712 Handwaffen-Blaetter (Block ohne data-aehnlich). Gegen den neuen Bau
+    // drei Eingriffe, je Datei zurueckgespielt und per sha256 geprueft: die
+    // alte Liste auf /items/karna-rifle.html (sieben Devastator-
+    // Schrotflinten, kein Gewehr), eine vierte Devastator-Ausfuehrung auf
+    // /items/devastator-shotgun.html, die Karna an Stelle 2 von
+    // /de/items/arrowhead-sniper-rifle.html: 3 Befunde, je einer pro
+    // Eingriff. Gruen danach: je Sprache 1.626 / 1.626 / 1.626 + 8 ohne Item
+    // = 1.634, 3 Mengenanzeigen in SCU, 712 Handwaffen-Blaetter.
+    // Nach dem Review (CodeRabbit, PR #434) [7] [9] [11] [12] [14] geschaerft.
+    // [7] gegen den Bau davor: 3.596 Zeilen zu 83 Missionen mit mehreren Pools
+    // nannten mehr Bauplaene als deren groesster Pool („1 von 25“ bei 7 + 5 +
+    // 5 + 8). Gegen den neuen Bau vier Eingriffe, je Datei zurueckgespielt und
+    // per sha256 geprueft: Zwillingshinweis auf /items/lynx-legs.html
+    // entfernt, Wege des zweiten Materials auf /crafting/p4-ar-rifle.html
+    // geleert, data-item der ersten Karte auf /items/karna-rifle.html
+    // gestrichen, Systemfilter auf /de/items/coda-pistol.html entfernt: 4
+    // FEHLER, je einer pro Eingriff. Gruen danach: 84 gleichnamige Seiten mit
+    // Hinweis, 3.596 Pool-Zeilen unter ihrem groessten Pool.
+    // Zweite Review-Runde (CodeRabbit, PR #434): [7] prueft jede Zeile mit
+    // Pool-Daten gegen die Poolgroessen ihrer Mission (verschiedene
+    // Bauplaene). Gegen den Bau davor rot: 114 Zeilen, etwa
+    // /crafting/bendix.html (critical-fleet-refuel: 7, Pools 8; ein Pool, der
+    // Seitenindex kannte nur 7) und /crafting/bellator-jacket.html
+    // (bounty-assignment-hrt: 12, Pools 11/4; ein Bauplan doppelt im Pool).
+    // [12] prueft Abbau und Kauf getrennt (data-mat-weg / data-mat-ohne):
+    // auf /crafting/p4-ar-rifle.html nur den Abbau-Link von Aluminum
+    // entfernt -> „(Aluminum: abbauen)“, 1 FEHLER; zurueckgespielt, sha256
+    // fbf1645d… wie vorher. Gruen danach: 7.580 Pool-Zeilen (3.596 zu
+    // Missionen mit mehreren Pools), 3.252 Bauplan-Seiten mit Zutaten.
+    // Dritte Runde: [7] vergleicht den sichtbaren Zelltext mit den
+    // Attributen. Auf /crafting/10-series-greatsword-cannon.html nur den Text
+    // der ersten Zelle von „1 of 5–8“ auf „1 of 999“ gesetzt -> „1 Pool-
+    // Zelle(n) zeigen eine andere Zahl als ihre Attribute“, exit 1;
+    // zurueckgespielt, sha256 4663841b… wie vorher, 7.580 Zellen gruen.
+    // Vierte Runde: [7] geht Zeile fuer Zeile (data-mission an jeder Zeile),
+    // nicht mehr ueber Missionslinks. Gegen den Bau davor rot: „7580
+    // Zeile(n) ohne data-mission“. Gegen den neuen Bau auf
+    // /crafting/10-series-greatsword-cannon.html zwei Zeilen auf „1 of 999“
+    // gesetzt, die erste mit #details am Link, die zweite ohne Link -> 2
+    // Befunde, exit 1; zurueckgespielt, sha256 21af0c07… wie vorher, 7.580
+    // von 7.580 Zeilen gruen.
+    // Fuenfte Runde: Mission ohne Pool-Daten und absteigende Spanne sind
+    // Befunde, Zeilen kommen aus dem Tabellenkoerper. Im Vorschau-Bau auf
+    // derselben Seite data-mission der ersten Zeile auf „unbekannte-mission“
+    // und die zweite auf data-pool 5 / data-pool-min 8 („1 of 8–5“) gesetzt
+    // -> 2 Befunde + Zaehlschutz 7.579 von 7.580, exit 1; zurueckgespielt,
+    // sha256 99256da3… wie vorher, gruen.
+  },
+  {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
     // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
     // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:
@@ -773,7 +902,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), kein englischer Wertname des Craftings auf DE-Seiten (Katalog WERTE aus src/i18n/craftingWerte.ts), kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes lang-Attribut (Spieltext gekennzeichnet, eigener Text uebersetzt, docs/sprachregel.md; offene Stellen als benannte Ausnahmen mit Zombie-Waechter), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten und ein Anteil englischen Spieltexts auf DE-Seiten ueber der Decke als WARNUNG; Klinken fuer Seiten, Textstellen, Katalogtexte, Quelldateien und Absaetze',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -814,6 +943,16 @@ export const CHECKS = [
     // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
     // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
     // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
+    // Regel 12 und der Katalog WERTE kamen am 24.11.2026 mit der Sprachregel
+    // (UX-Audit Paket C, docs/sprachregel.md). VORGEFUEHRT ROT gegen den
+    // Vorschau-Bau von origin/staging 6e984ac8 mit der Sprachweiche (6cb3efc0):
+    // 7.976 Befunde — 4.785 englische Wertnamen auf den DE-Bauplanseiten
+    // ("Max Temp", "Damage Mitigation", "Recoil Smoothness"), 3.191
+    // englische Absaetze ohne lang="en" auf DE-Seiten (1.108 Missionsseiten,
+    // 1.034 Missionskarten, 952 Fundhinweise der Itemblaetter, 97
+    // Schiffsbeschreibungen). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Microid Battle Suit, Beschreibung als Name) ist in
+    // Gebrauch. Auf den EN-Seiten kein deutscher Absatz.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
@@ -882,6 +1021,27 @@ export const CHECKS = [
     // Kaufort: …", auch live. Teil 2 sah es nicht: die Karten entstehen erst
     // mit angekreuztem Material und geladener Rezept-DB, und keines der
     // Woerter traegt einen Umlaut. Gruen mit beiden Schluesseln im Katalog.
+  },
+  {
+    // Neuzugang 24.11.2026 (UX-Audit Paket F1, Missionen lesbar machen).
+    // Kein env-Feld: liest nur dist/.
+    // VORGEFUEHRT ROT am 24.11.2026 zweimal: (a) gegen den Bau vor F1
+    // (staging-Stand des Tages): [1] „Marke als Pille im Titel" auf den
+    // Vorlagen-Titeln („Active Bounty: Target (ERT)" u. a.), [3] und [4]
+    // je Sprache 260 Seiten bzw. Karten mit gleichem Namen (Klinke 8);
+    // (b) gegen den neuen Bau mit von Hand eingesetztem „{TargetName}" in
+    // einer Ueberschrift: [1] FEHLER 1. Gruen mit 8 Doppeln je Sprache —
+    // vier Paare ohne sichtbaren Unterschied in den Daten.
+    // [4] seit dem Review von #428 ueber die Kartenlinks: vorgefuehrt rot
+    // mit einer umgebogenen Karte (A Challenging Task -> Salvage
+    // Contractor): FEHLER 3 (Name passt nicht, ein Blatt ohne, eines mit
+    // zwei Karten).
+    id: 'verify:missionstitel',
+    npm: 'verify:missionstitel',
+    script: 'scripts/verify-missionstitel.mjs',
+    rail: 'A',
+    checks:
+      'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); jede Karte verlinkt genau ein Blatt und traegt dessen Namen samt Zusatz, jedes Blatt hat genau eine Karte; Klinke fuer gelesene Blaetter je Sprache',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

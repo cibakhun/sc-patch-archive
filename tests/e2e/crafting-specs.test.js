@@ -81,8 +81,11 @@ function cardsWithCategoryRoot(html, root) {
   const cards = [];
   let m;
   while ((m = articleRe.exec(html))) {
-    const catMatch = /<span class="cbp__cat">([^<]*)/.exec(m[0]);
-    if (catMatch && catMatch[1] === root) cards.push(m[0]);
+    // Seit der Sprachregel (24.11.2026, docs/sprachregel.md) ist die sichtbare
+    // Kategorie auf /de/ deutsch; der englische Schluessel steht in data-top.
+    const catMatch = /<span class="cbp__cat"([^>]*)>([^<]*)/.exec(m[0]);
+    const top = catMatch && (/data-top="([^"]*)"/.exec(catMatch[1])?.[1] ?? catMatch[2]);
+    if (top === root) cards.push(m[0]);
   }
   return cards;
 }
@@ -93,6 +96,7 @@ function specChips(card) {
   const lis = [...m[1].matchAll(/<li([^>]*)>([^<]*)<\/li>/g)];
   return lis.map(([, attrs, text]) => ({
     tone: /class="tone"/.test(attrs),
+    roh: /data-roh="([^"]*)"/.exec(attrs)?.[1] ?? null,
     text,
   }));
 }
@@ -131,6 +135,10 @@ const REFERENCE_CARDS = [
 // geschrieben (Gross-/Kleinschreibung ist fachlich, nicht kosmetisch).
 const LOCKED_GROUPS = ['BroadSpec', 'Main Powerplant'];
 
+// Sichtbarer Ton auf /de/ nach der Sprachregel (src/i18n/craftingWerte.ts,
+// KLASSEN_DE und PFADGLIEDER_DE); der englische Schluessel steht in data-roh.
+const TON_DE = { Civilian: 'Zivil', Stealth: 'Tarnung', Military: 'Militär', Ballistic: 'Ballistisch', Laser: 'Laser' };
+
 for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
   describe(`Crafting-Karten Groesse/Grade/Ton (${label})`, () => {
     for (const [name, size, grade, tone] of REFERENCE_CARDS) {
@@ -151,7 +159,8 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
           assert.strictEqual(chips[1].text, grade);
         }
         const last = chips[chips.length - 1];
-        assert.strictEqual(last.text, tone);
+        assert.strictEqual(last.roh, tone, `${name}: data-roh des Ton-Chips`);
+        assert.strictEqual(last.text, label === 'DE' ? TON_DE[tone] : tone);
         assert.strictEqual(last.tone, true, `${name}: Ton-Chip ohne class="tone"`);
       });
     }

@@ -174,10 +174,11 @@ export const HELP = {
     'wikelo.title': "Wie funktioniert Wikelo's Emporium?",
     'wikelo.purpose':
       'Zeigt alle Tauschgeschäfte des Banu-Händlers: was zu liefern ist und was es dafür gibt.',
-    'wikelo.step1': 'Nach Kategorie filtern — Schiffe, Waffen, Rüstung oder Sonstiges.',
+    'wikelo.step1': 'Nach Namen suchen oder nach Kategorie filtern — Schiffe, Waffen, Rüstung oder Sonstiges.',
     'wikelo.step2': 'Jede Karte zeigt links, was verlangt wird, rechts, was es gibt.',
-    'wikelo.step3': 'Unterstrichene Gegenstände zeigen ihre Bezugsquellen beim Anklicken.',
+    'wikelo.step3': 'Unterstrichene Gegenstände zeigen ihre Bezugsquellen beim Anklicken, „Zum Datenblatt“ öffnet ihre Seite.',
     'wikelo.step4': 'Weiter unten stehen die drei Stationen und der Patch-Verlauf.',
+    'wikelo.ctl.search': 'Findet Trades nach Item, Material oder Schiff; mehrere Wörter grenzen weiter ein.',
     'wikelo.ctl.filter': 'Schränkt die Handelskarten auf eine Kategorie ein.',
     'wikelo.ctl.grid': 'Das Raster aller Handelsgeschäfte des aktuellen Filters.',
 
@@ -396,10 +397,11 @@ export const HELP = {
     'wikelo.title': "How does Wikelo's Emporium work?",
     'wikelo.purpose':
       'Shows every trade the Banu merchant offers: what to deliver and what it pays out.',
-    'wikelo.step1': 'Filter by category — ships, weapons, armor or misc.',
+    'wikelo.step1': 'Search by name or filter by category — ships, weapons, armor or misc.',
     'wikelo.step2': 'Each card shows what is requested on the left, what it pays on the right.',
-    'wikelo.step3': 'Click an underlined item to see where to get it.',
+    'wikelo.step3': 'Click an underlined item to see where to get it; “Data sheet” opens its page.',
     'wikelo.step4': 'Further down are the three stations and the patch history.',
+    'wikelo.ctl.search': 'Finds trades by item, material or ship; more words narrow it down.',
     'wikelo.ctl.filter': 'Narrows the trade cards down to a category.',
     'wikelo.ctl.grid': 'The grid of all trades in the current filter.',
 

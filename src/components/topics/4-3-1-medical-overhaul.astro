@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -45,8 +46,8 @@ const de = lang === 'de';
     <div class="hero__in">
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-3-1.html' : '/patches/sc-4-3-1.html'}>Alpha 4.3.1 · Virtue's Descent</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Heilung, neu gedacht' : 'Healing, reimagined'}</span>Medical Overhaul</h1>
-      <p class="lead">{de ? '4.3.1 baut das Medizin-System um: Wunden, Heilung, Rettung und Wiederbelebung funktionieren neu — angefuehrt vom RSI Apollo und dem MedGel-System.' : '4.3.1 rebuilds the medical system: wounds, healing, rescue and revival work in new ways — led by the RSI Apollo and the MedGel system.'}</p>
-      <div class="tags"><span class="tag">Medical</span><span class="tag">MedGel</span><span class="tag">{de ? 'Bett-Stufen' : 'Bed tiers'}</span><span class="tag">RSI Apollo</span><span class="tag">Site B</span></div>
+      <p class="lead">{de ? '4.3.1 baut das Medizin-System um: Wunden, Heilung, Rettung und Wiederbelebung funktionieren neu — angeführt vom RSI Apollo und dem MedGel-System.' : '4.3.1 rebuilds the medical system: wounds, healing, rescue and revival work in new ways — led by the RSI Apollo and the MedGel system.'}</p>
+      <div class="tags"><Schlagwort>Medical</Schlagwort><Schlagwort>MedGel</Schlagwort><Schlagwort>{de ? 'Bett-Stufen' : 'Bed tiers'}</Schlagwort><Schlagwort>RSI Apollo</Schlagwort><Schlagwort>Site B</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>
@@ -68,7 +69,7 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">{de ? 'Ein System, von Grund auf neu' : 'A system rebuilt from the ground up'}</div>
       <div class="big outline">{de ? 'VITALWERTE.' : 'VITALS.'}</div>
-      <p>{de ? 'Alpha 4.3.1 ueberarbeitet das Medizin-System grundlegend — wie Wunden entstehen und heilen und wie Spieler gerettet und wiederbelebt werden. Aus einem Randthema wird eine eigene Schleife.' : 'Alpha 4.3.1 fundamentally reworks the medical system — how wounds occur and heal and how players are rescued and revived. What was once a side topic becomes a loop of its own.'}</p>
+      <p>{de ? 'Alpha 4.3.1 überarbeitet das Medizin-System grundlegend — wie Wunden entstehen und heilen und wie Spieler gerettet und wiederbelebt werden. Aus einem Randthema wird eine eigene Schleife.' : 'Alpha 4.3.1 fundamentally reworks the medical system — how wounds occur and heal and how players are rescued and revived. What was once a side topic becomes a loop of its own.'}</p>
     </div>
   </section>
 
@@ -92,10 +93,10 @@ const de = lang === 'de';
       <div class="frame" style="background-image:url('/assets/t-med-6.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Verwundung' : 'Wounding'}</h3><p>{de ? 'Wunden entstehen jetzt nach neuen Regeln — der erste Baustein des ueberarbeiteten Medizin-Systems bestimmt, wie ein Spieler ueberhaupt zu Schaden kommt.' : 'Wounds now follow new rules — the first building block of the reworked medical system determines how a player takes damage in the first place.'}</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>{de ? 'MedGel-Versorgung' : 'MedGel supply'}</h3><p>{de ? 'Medizin-Betten ziehen MedGel-Ladungen fuer ihre Funktionen. MedGel ist ein Verbrauchsmaterial — ist es leer, steht das Bett still.' : 'Medical beds draw MedGel charges for their functions. MedGel is a consumable — when it runs out, the bed goes idle.'}</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Verwundung' : 'Wounding'}</h3><p>{de ? 'Wunden entstehen jetzt nach neuen Regeln — der erste Baustein des überarbeiteten Medizin-Systems bestimmt, wie ein Spieler überhaupt zu Schaden kommt.' : 'Wounds now follow new rules — the first building block of the reworked medical system determines how a player takes damage in the first place.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'MedGel-Versorgung' : 'MedGel supply'}</h3><p>{de ? 'Medizin-Betten ziehen MedGel-Ladungen für ihre Funktionen. MedGel ist ein Verbrauchsmaterial — ist es leer, steht das Bett still.' : 'Medical beds draw MedGel charges for their functions. MedGel is a consumable — when it runs out, the bed goes idle.'}</p></div>
       <div class="sstep"><div class="sn">03</div><h3>{de ? 'Bett-Stufen T1-T3' : 'Bed tiers T1-T3'}</h3><p>{de ? 'Betten reichen von T1 bis T3 mit angepassten Respawn-Distanzen — T1 etwa das Krankenhaus in New Babbage mit Premium-Versorgung, T3 etwa die Cutlass Red.' : 'Beds range from T1 to T3 with adjusted respawn distances — T1 for instance the hospital in New Babbage with premium care, T3 for instance the Cutlass Red.'}</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Wiederbelebung' : 'Revival'}</h3><p>{de ? 'Rettung und Wiederbelebung funktionieren neu — der letzte Schritt der Schleife entscheidet, wo und wie ein Spieler zurueck ins Verse kommt.' : 'Rescue and revival work in new ways — the final step of the loop decides where and how a player returns to the \'verse.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Wiederbelebung' : 'Revival'}</h3><p>{de ? 'Rettung und Wiederbelebung funktionieren neu — der letzte Schritt der Schleife entscheidet, wo und wie ein Spieler zurück ins Verse kommt.' : 'Rescue and revival work in new ways — the final step of the loop decides where and how a player returns to the \'verse.'}</p></div>
     </div>
   </div>
 
@@ -106,8 +107,8 @@ const de = lang === 'de';
       <div class="split__text">
         <div class="kx">{de ? '02 · Das Schiff der Stunde' : '02 · The ship of the hour'}</div>
         <h3>RSI Apollo — Medivac &amp; Triage</h3>
-        <p>{de ? 'Mit dem Medizin-Umbau rueckt der ' : 'With the medical rework, the '}<b>RSI Apollo</b>{de ? ' ins Zentrum: ein dediziertes Sanitaetsschiff in zwei Ausrichtungen — ' : ' moves to center stage: a dedicated medical ship in two variants — '}<b>Medivac</b>{de ? ' fuer die Bergung, ' : ' for retrieval, '}<b>Triage</b>{de ? ' fuer die Versorgung.' : ' for care.'}</p>
-        <p>{de ? 'Seine Medizin-Betten erhalten ' : 'Its medical beds gain '}<b>{de ? 'Regenerations-Faehigkeiten' : 'regeneration capabilities'}</b>{de ? ' und machen den Apollo zum fliegenden Stuetzpunkt fuer Teams, die tief im Verse operieren — dort, wo das naechste Krankenhaus weit entfernt ist.' : ' and turn the Apollo into a flying base for teams operating deep in the \'verse — where the nearest hospital is far away.'}</p>
+        <p>{de ? 'Mit dem Medizin-Umbau rückt der ' : 'With the medical rework, the '}<b>RSI Apollo</b>{de ? ' ins Zentrum: ein dediziertes Sanitätsschiff in zwei Ausrichtungen — ' : ' moves to center stage: a dedicated medical ship in two variants — '}<b>Medivac</b>{de ? ' für die Bergung, ' : ' for retrieval, '}<b>Triage</b>{de ? ' für die Versorgung.' : ' for care.'}</p>
+        <p>{de ? 'Seine Medizin-Betten erhalten ' : 'Its medical beds gain '}<b>{de ? 'Regenerations-Fähigkeiten' : 'regeneration capabilities'}</b>{de ? ' und machen den Apollo zum fliegenden Stützpunkt für Teams, die tief im Verse operieren — dort, wo das nächste Krankenhaus weit entfernt ist.' : ' and turn the Apollo into a flying base for teams operating deep in the \'verse — where the nearest hospital is far away.'}</p>
       </div>
     </div>
   </section>
@@ -129,8 +130,8 @@ const de = lang === 'de';
         <h3>✚ Triage</h3>
         <ul>
           <li>{de ? 'Ausgelegt auf die Versorgung an Bord.' : 'Built for on-board care.'}</li>
-          <li>{de ? 'Medizin-Betten mit Regenerations-Faehigkeiten.' : 'Medical beds with regeneration capabilities.'}</li>
-          <li>{de ? 'Fliegender Stuetzpunkt fuer laufende Operationen.' : 'Flying base for ongoing operations.'}</li>
+          <li>{de ? 'Medizin-Betten mit Regenerations-Fähigkeiten.' : 'Medical beds with regeneration capabilities.'}</li>
+          <li>{de ? 'Fliegender Stützpunkt für laufende Operationen.' : 'Flying base for ongoing operations.'}</li>
           <li>{de ? 'Volle Versorgung an Bord — ohne Rückflug ins Hospital.' : 'Full care on board — no flight back to the hospital.'}</li>
         </ul>
       </div>
@@ -143,7 +144,7 @@ const de = lang === 'de';
     <div class="band__in reveal">
       <div class="kx">{de ? '03 · Bett-Stufen' : '03 · Bed tiers'}</div>
       <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">T1 → T3</div>
-      <p>{de ? 'Medizin-Betten haben Stufen von ' : 'Medical beds have tiers from '}<b style="color:var(--accent-2)">{de ? 'T1 bis T3' : 'T1 to T3'}</b>{de ? ' mit angepassten Respawn-Distanzen. ' : ' with adjusted respawn distances. '}<b style="color:var(--accent-2)">T1</b>{de ? ' steht etwa fuer das Krankenhaus in New Babbage mit Premium-Versorgung, ' : ' stands for instance for the hospital in New Babbage with premium care, '}<b style="color:var(--accent-2)">T3</b>{de ? ' etwa fuer die Cutlass Red — je hoeher die Stufe, desto naeher die Rueckkehr.' : ' for instance for the Cutlass Red — the higher the tier, the closer the return.'}</p>
+      <p>{de ? 'Medizin-Betten haben Stufen von ' : 'Medical beds have tiers from '}<b style="color:var(--accent-2)">{de ? 'T1 bis T3' : 'T1 to T3'}</b>{de ? ' mit angepassten Respawn-Distanzen. ' : ' with adjusted respawn distances. '}<b style="color:var(--accent-2)">T1</b>{de ? ' steht etwa für das Krankenhaus in New Babbage mit Premium-Versorgung, ' : ' stands for instance for the hospital in New Babbage with premium care, '}<b style="color:var(--accent-2)">T3</b>{de ? ' etwa für die Cutlass Red — je höher die Stufe, desto näher die Rückkehr.' : ' for instance for the Cutlass Red — the higher the tier, the closer the return.'}</p>
     </div>
   </section>
 

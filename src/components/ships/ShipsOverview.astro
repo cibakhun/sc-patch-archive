@@ -26,6 +26,9 @@ import { localeFromPath } from '../../i18n/ui';
 import { HAS_HANGAR } from '../../lib/seo';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
+import { hangarT } from '../../i18n/hangarText';
+import { versioned } from '../../lib/assetVersion';
+import { HANGAR_IDS } from '../../lib/hangar/catalog';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -34,6 +37,11 @@ const localeTag = de ? 'de' : 'en';
 // keine Sprachparitaets-Falle wie bei den beiden ehemals getrennten
 // Seitendateien: siehe .planning/phases/01.2-werkzeuge-erklaeren/01.2-04-PLAN.md.
 const h = useHelp(lang);
+// Schiffsvergleich (UX-Audit E7): die Woerter des Hangar-Vergleichs, damit
+// beide Oberflaechen gleich sprechen; Daten und Logik siehe
+// src/lib/shipVergleich.ts und assets/schiff-vergleich.js.
+const hv = hangarT(lang);
+const vergleichSrc = versioned('assets/schiff-vergleich.js', '/assets/schiff-vergleich.js');
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, localeTag)
@@ -183,7 +191,7 @@ a{color:inherit;text-decoration:none}
 .sdb__panel{max-width:calc(var(--maxw) + var(--vb-breit,0px));margin:0 auto;padding:1rem clamp(1rem,3vw,2.5rem) 4rem}
 
 /* ---------- Filter-Konsole ---------- */
-.sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
+.sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin:0 0 1.4rem;padding:.9rem 1rem;
   border:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--bg-2));position:relative}
 .sdb__filter::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
@@ -191,14 +199,24 @@ a{color:inherit;text-decoration:none}
   border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
 .sdb__filter input,.sdb__filter select{background:var(--veil);border:1px solid var(--line);color:var(--text);
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-9);padding:.5rem .7rem;min-width:150px}
-.sdb__filter input{flex:1;min-width:220px}
+.sdb__filter input{width:100%}
+/* Feld mit sichtbarer Beschriftung darueber (HE B30), Schrift wie die
+   Kennzeilen der Karten (.fcard__stat dt). */
+.sdb__f{display:flex;flex-direction:column;gap:.22rem;min-width:0}
+.sdb__f label{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-12);text-transform:uppercase;
+  color:var(--muted);line-height:1.2;white-space:nowrap}
+.sdb__f--q{flex:1;min-width:220px}
+.sdb__f select:disabled{opacity:.6;cursor:not-allowed}
 .sdb__filter input::placeholder{color:var(--muted);opacity:.7}
 .sdb__filter select:focus,.sdb__filter input:focus{border-color:var(--accent);outline:none}
-.sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);
+.sdb__count{margin-left:auto;align-self:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);
   text-transform:uppercase;color:var(--accent);white-space:nowrap}
 
 /* ---------- Flotten-Grid ---------- */
 .sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
+.sdb__empty-reset{margin-left:.35rem;padding:.35rem .7rem;border:1px solid var(--accent);background:transparent;color:var(--accent);
+  font:inherit;cursor:pointer}
+.sdb__empty-reset:hover,.sdb__empty-reset:focus-visible{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--text);outline:none}
 .sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
   font-family:var(--font-ui);font-weight:600;letter-spacing:var(--ls-9)}
 
@@ -321,12 +339,156 @@ a{color:inherit;text-decoration:none}
    768 px liegt ohnehin kein gängiges Gerät, also kostet die grosszügigere
    Grenze nichts und lässt 29 px Reserve statt 9. Gerechnet wird nicht
    mehr, es wird gemessen. */
+@media(max-width:640px){
+  .sdb__f--q{grid-column:1/-1;min-width:0}
+}
 @media(max-width:519px){
   .sdb__filter{grid-template-columns:1fr}
-  .sdb__filter input{grid-column:1/-1;min-width:0}
   .sdb__filter select{min-width:0}
   .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
+  /* Beschriftung LINKS neben dem Feld statt darueber: in einer Spalte haetten
+     zehn Beschriftungen ueber den Feldern rund 160 px zusaetzlichen Scrollweg
+     vor dem ersten Schiff gekostet. 6,4rem traegt das laengste Wort
+     ("Mindestgroesse"); dem Feld bleiben bei 390 px Fenster 216 px, bei
+     360 px 186 px — beides ueber den 173 px, die "All manufacturers" braucht
+     (Messung 30.08.2026 oben). */
+  .sdb__f{display:grid;grid-template-columns:6.4rem minmax(0,1fr);align-items:center;gap:.5rem}
 }
+/* Unter 390 px reicht die Breite fuer Beschriftung und Feld nebeneinander
+   nicht mehr (320 px: 146 px Feld); dort steht die Beschriftung wieder ueber
+   dem Feld. */
+@media(max-width:389px){
+  .sdb__f{display:flex;flex-direction:column;align-items:stretch;gap:.15rem}
+}
+
+/* ---------- Filter-Schublade (UX-Audit TF V26/M4) ----------
+   Am Schreibtisch unsichtbar: der Rahmen ist `display:contents`, seine Felder
+   stehen im Fluss der Konsole wie vorher; Knopf, Kopf und Fuss fehlen. */
+.sdb__ftoggle,.sdb__mehr-hd,.sdb__mehr-ft{display:none}
+.sdb__mehr{display:contents}
+/* Bis 820 px (die Zahl des Hauses, isDrawerMode in offcanvas.js): die
+   Konsole traegt nur noch Suche, Filterknopf, Sortierung und Trefferzahl.
+   Steht NACH den Regeln fuer 640/519/389 px, damit sie dort gewinnen. */
+@media(max-width:820px){
+  .sdb__filter{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.55rem .6rem;align-items:end}
+  .sdb__f--q{grid-column:1/-1;min-width:0}
+  .sdb__filter > .sdb__f:not(.sdb__f--q){display:flex;flex-direction:column;align-items:stretch;gap:.22rem;min-width:0}
+  .sdb__filter > .sdb__f select{min-width:0;width:100%}
+  .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
+  .sdb__ftoggle{display:inline-flex;align-items:center;gap:.45rem;height:2.55rem;padding:0 .85rem;border:1px solid var(--line);
+    background:var(--veil);color:var(--text);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);cursor:pointer;white-space:nowrap}
+  .sdb__ftoggle svg{fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round}
+  .sdb__ftoggle:hover,.sdb__ftoggle:focus-visible{border-color:var(--accent);outline:none}
+  /* Zahl der gesetzten Filter am Knopf: bei geschlossener Schublade saehe
+     man einer kurzen Liste sonst nicht an, warum sie kurz ist. */
+  .sdb__ftoggle[data-n]::after{content:attr(data-n);min-width:1.35rem;height:1.35rem;padding:0 .3rem;display:inline-grid;place-items:center;
+    background:var(--accent);color:var(--bg);font-size:var(--fs-4);font-weight:800;border-radius:999px}
+  /* z 9650 wie die Schubladen der Werkbank: ueber der Site-Nav (9600). */
+  .sdb__mehr{display:flex;flex-direction:column;gap:.75rem;position:fixed;top:0;left:0;bottom:0;z-index:9650;
+    width:min(340px,88vw);padding:0 1rem;background:var(--bg-2);border-right:1px solid var(--line);
+    overflow-y:auto;overscroll-behavior:contain;transform:translateX(-102%);visibility:hidden;
+    transition:transform var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+  .sdb__mehr.is-open{transform:none;visibility:visible;transition:transform var(--dur-slow) var(--ease-ui)}
+  @media(prefers-reduced-motion:reduce){.sdb__mehr,.sdb__mehr.is-open{transition:none}}
+  .sdb__mehr .sdb__f{display:flex;flex-direction:column;align-items:stretch;gap:.22rem}
+  .sdb__mehr select{min-width:0;width:100%}
+  .sdb__mehr-hd{display:flex;position:sticky;top:0;z-index:1;justify-content:space-between;align-items:center;
+    margin:0 -1rem;padding:calc(.85rem + env(safe-area-inset-top,0px)) 1rem .85rem;background:var(--bg-2);border-bottom:1px solid var(--line);
+    font-family:var(--font-display);font-weight:800;font-size:var(--fs-11);color:var(--text)}
+  .sdb__mehr-x{display:grid;place-items:center;width:2.2rem;height:2.2rem;flex:none;border:1px solid var(--line);background:var(--veil);
+    color:var(--text);font-size:var(--fs-9);cursor:pointer}
+  .sdb__mehr-x:hover,.sdb__mehr-x:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+  .sdb__mehr-ft{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:.5rem;position:sticky;bottom:0;margin:auto -1rem 0;
+    padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom,0px));background:var(--bg-2);border-top:1px solid var(--line);
+    box-shadow:0 -14px 24px -18px #000}
+  .sdb__reset,.sdb__show{height:2.6rem;padding:0 .6rem;font-family:var(--font-ui);font-weight:800;font-size:var(--fs-7);white-space:nowrap;cursor:pointer}
+  .sdb__reset{border:1px solid var(--line);background:transparent;color:var(--muted)}
+  .sdb__reset:hover,.sdb__reset:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+  .sdb__show{border:0;background:var(--accent);color:var(--bg)}
+  .sdb__show.is-leer{background:var(--surface);color:var(--muted);cursor:default}
+}
+
+/* ---------- Schiffsvergleich (UX-Audit E7) ----------
+   Knopf auf der Karte: ueber dem Kartenlink (z-index 1 aus .fcard__name a::after),
+   gedrueckt mit Haken und Akzentrahmen. Leiste unten fest, Tabelle als Dialog. */
+.fcard__cmp{position:relative;z-index:2;align-self:flex-start;display:inline-flex;align-items:center;gap:.45rem;margin-top:-.1rem;
+  padding:.3rem .6rem .3rem .45rem;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-8);text-transform:uppercase}
+.fcard__cmp:hover,.fcard__cmp:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+.fcard__cmp-box{width:.85rem;height:.85rem;border:1.5px solid currentColor;display:grid;place-items:center}
+.fcard__cmp[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.fcard__cmp[aria-pressed="true"] .fcard__cmp-box::after{content:"";width:.45rem;height:.25rem;margin-top:-.12rem;
+  border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg)}
+.fcard.is-cmp{border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+
+.sv-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sv-tray[hidden]{display:none}
+.sv-tray{position:fixed;left:50%;bottom:calc(.8rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9000;
+  display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .7rem;width:max-content;max-width:calc(100vw - 1.5rem);
+  padding:.5rem .55rem .5rem .8rem;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--bg-2);
+  box-shadow:0 14px 40px -12px #000;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--text)}
+.sv-tray__title{font-weight:800;letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--accent)}
+.sv-tray__list{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
+.sv-tray__list li{display:inline-flex;align-items:center;gap:.35rem;padding:.1rem .15rem .1rem .55rem;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+.sv-tray__hint{color:var(--muted)}
+.sv-tray__hint[hidden]{display:none}
+.sv-tray__acts{display:inline-flex;gap:.4rem;margin-left:auto}
+.sv-tray__clear,.sv-tray__open,.sv-dlg__close{height:2.2rem;padding:0 .8rem;font-family:var(--font-ui);font-weight:800;font-size:var(--fs-7);cursor:pointer;white-space:nowrap}
+.sv-tray__clear,.sv-dlg__close{border:1px solid var(--line);background:transparent;color:var(--muted)}
+.sv-tray__clear:hover,.sv-tray__clear:focus-visible,.sv-dlg__close:hover,.sv-dlg__close:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+.sv-tray__open{border:0;background:var(--accent);color:var(--bg)}
+.sv-tray__open[hidden]{display:none}
+.sv-x{appearance:none;border:1px solid var(--line);background:none;color:var(--muted);font:inherit;line-height:1;padding:.15rem .42rem;cursor:pointer}
+.sv-x:hover,.sv-x:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+body.has-sv-tray .sdb__fleet{padding-bottom:5.5rem}
+
+.sv-dlg{width:min(1000px,calc(100% - 2rem));max-width:none;max-height:calc(100dvh - 2rem);margin:1rem auto;padding:0;overflow:hidden;
+  border:1px solid var(--line);background:var(--bg-2);color:var(--text)}
+.sv-dlg[open]{display:flex;flex-direction:column}
+.sv-dlg::backdrop{background:rgba(0,0,0,.78)}
+.sv-dlg__head{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;padding:.9rem 1.1rem .7rem;border-bottom:1px solid var(--line)}
+.sv-dlg__head h2{margin:0;font-family:var(--font-display);font-weight:800;font-size:var(--fs-11);color:var(--text)}
+.sv-dlg__note{flex:1 1 18rem;margin:0;font-size:var(--fs-6);color:var(--muted)}
+.sv-dlg__jump{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.25rem 1.1rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6)}
+.sv-dlg__jump a{color:var(--muted);text-decoration:none}
+.sv-dlg__jump a:hover,.sv-dlg__jump a:focus-visible{color:var(--accent)}
+.sv-dlg__scroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.sv-dlg__wait{margin:1.2rem;color:var(--muted)}
+.sv-dlg__table{width:100%;border-collapse:collapse;font-size:var(--fs-7);font-variant-numeric:tabular-nums}
+.sv-dlg__table th,.sv-dlg__table td{padding:.5rem .8rem;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+.sv-dlg__table tbody th{text-align:left;font-weight:400;color:var(--muted)}
+.sv-dlg__table thead th{position:sticky;top:0;z-index:1;background:var(--bg-2);vertical-align:bottom;font-weight:400}
+.sv-dlg__table .is-base{background:color-mix(in srgb,var(--accent) 7%,var(--bg-2))}
+.sv-dlg__table .sv-sec th{padding:.95rem .8rem .35rem;text-align:left;color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-6);
+  font-weight:800;letter-spacing:var(--ls-10);text-transform:uppercase;white-space:nowrap;background:var(--bg-2)}
+.sv-name{appearance:none;border:0;background:none;padding:0;color:var(--text);font:inherit;font-family:var(--font-ui);font-size:var(--fs-9);
+  font-weight:800;text-align:right;cursor:pointer}
+.sv-name:hover,.sv-name:focus-visible,.sv-name[aria-pressed="true"]{color:var(--accent)}
+.sv-maker{display:block;color:var(--muted);font-size:var(--fs-5)}
+.sv-badge{display:inline-block;margin-top:.25rem;padding:0 .45rem;border:1px solid var(--accent);color:var(--accent);font-size:var(--fs-5)}
+.sv-badge.is-leer{visibility:hidden}
+.sv-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.3rem .6rem;margin-top:.4rem;font-size:var(--fs-6)}
+.sv-acts a{color:var(--accent-2)}
+.sv-v{display:block;font-weight:600;white-space:nowrap}
+.sv-delta{display:block;font-size:var(--fs-5);white-space:nowrap}
+.sv-delta.is-up{color:#5ad19a}
+.sv-delta.is-down{color:#f4708a}
+.sv-delta.is-flat{color:var(--muted)}
+.sv-hp{display:block;line-height:1.35}
+.sv-hp+.sv-hp{margin-top:.2rem}
+.sv-hp b{font-weight:600;white-space:nowrap}
+.sv-hp span{color:var(--muted)}
+@media(max-width:640px){
+  .sv-tray{left:.5rem;right:.5rem;transform:none;width:auto;max-width:none}
+  .sv-tray__acts{flex:1 1 100%;justify-content:flex-end}
+  .sv-dlg{width:100%;height:100dvh;max-height:none;margin:0;border:0}
+  .sv-dlg__table{font-size:var(--fs-6)}
+  .sv-dlg__table th,.sv-dlg__table td{padding:.45rem .5rem}
+  .sv-dlg__table tbody th,.sv-v,.sv-delta{white-space:normal}
+  .sv-dlg__table tbody th,.sv-dlg__table td{hyphens:auto;overflow-wrap:anywhere}
+  body.has-sv-tray .sdb__fleet{padding-bottom:7.5rem}
+}
+@media(prefers-reduced-motion:reduce){.sv-dlg__scroll{scroll-behavior:auto}}
 </style>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Schiffe' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Ships' }]} hasEn={true} />
@@ -337,7 +499,11 @@ a{color:inherit;text-decoration:none}
     <div class="sdb__heroin">
       <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
       <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
-      {HAS_HANGAR && <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de ? 'Alle Schiffe im 3D-Hangar ansehen →' : 'See every ship in the 3D hangar →'}</a>}
+      {/* Heuristik P52: die Liste zaehlt 235 Schiffe, der Hangar 231 — er kennt
+          nur Schiffe mit 3D-Modell. Der Weg dorthin nennt die Zahl und den Grund. */}
+      {HAS_HANGAR && <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de
+        ? `Die ${HANGAR_IDS.length} Schiffe mit 3D-Modell im Hangar ansehen →`
+        : `See the ${HANGAR_IDS.length} ships with a 3D model in the hangar →`}</a>}
     </div>
   </section>
 
@@ -346,62 +512,136 @@ a{color:inherit;text-decoration:none}
       (D-08). Ein Schluessel (ships.ctl.select) erklaert ALLE Auswahllisten
       als EINE ART (D-03), analog zum Missions-Muster aus Plan 03. */}
   <ToolHelp tool="ships" lang={lang} steps={4} />
+  {/* Sichtbare Beschriftung je Feld (UX-Audit 24.11.2026, HE B30): bis
+      dahin trug die Konsole nur Platzhalter und aria-label. Wer eine Auswahl
+      getroffen hatte, sah danach nur noch den Wert ("Anvil Aerospace") und
+      nicht mehr, wofuer er stand. Die Felder heissen jetzt wie bei den
+      Missionen; das aria-label entfaellt, weil die sichtbare Beschriftung den
+      Namen traegt (Name = sichtbarer Text). */}
   <div class="sdb__filter">
     {/* Kurzer Platzhalter: seit der Hero-Verflachung teilt sich die erste Zeile
         mit vier Menues, das Feld bekommt ~230 px — der lange Text wurde dort
         mitten im Wort abgeschnitten. */}
-    <input id="sf-q" data-ev-filter="suche" type="search" placeholder={de ? 'Schiff oder Hersteller…' : 'Ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" data-help={h('ships.ctl.search')} />
-    <select id="sf-maker" data-ev-filter="hersteller" aria-label={de ? 'Hersteller' : 'Manufacturer'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
-      {makers.map((m) => <option value={m}>{m}</option>)}
-    </select>
-    <select id="sf-career" data-ev-filter="karriere" aria-label={de ? 'Beruf' : 'Career'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
-      {careers.map((c) => <option value={c.key}>{c.label}</option>)}
-    </select>
-    <select id="sf-rolefam" data-ev-filter="rolle" aria-label={de ? 'Rolle' : 'Role'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
-      {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
-    </select>
+    <div class="sdb__f sdb__f--q">
+      <label for="sf-q">{de ? 'Suche' : 'Search'}</label>
+      <input id="sf-q" data-ev-filter="suche" type="search" placeholder={de ? 'Schiff oder Hersteller…' : 'Ship or manufacturer…'} autocomplete="off" data-help={h('ships.ctl.search')} />
+    </div>
+    {/* Filter-Schublade (UX-Audit TF V26/M4): bis 820 px stehen Suche,
+        Sortierung und Trefferzahl in der Konsole, die acht Auswahlfelder
+        fahren als Schublade von links aus — nach dem Muster der
+        Crafting-Werkbank, mit derselben Ankopplung (data-offcanvas:
+        Verdunkler, Scroll-Sperre, Esc, Wischen, inert kommen aus
+        assets/offcanvas.js). Vorher lag das erste Schiff auf dem Telefon
+        1,7 Bildschirme tief, unter zehn Feldern untereinander.
+        Am Schreibtisch ist der Rahmen `display:contents`: die Felder stehen
+        wie bisher in der Konsole, Kopf und Fuss der Schublade fehlen. */}
+    <button type="button" class="sdb__ftoggle" id="sf-toggle" aria-expanded="false" aria-controls="sf-mehr" data-offcanvas-toggle="sf-mehr">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 5h14M6 10h8M8.5 15h3" /></svg>
+      <span>{de ? 'Filter' : 'Filters'}</span>
+    </button>
+    <div class="sdb__mehr" id="sf-mehr" data-offcanvas role="group" aria-label={de ? 'Filter' : 'Filters'}>
+    <div class="sdb__mehr-hd">
+      <span>{de ? 'Filter' : 'Filters'}</span>
+      <button type="button" class="sdb__mehr-x" id="sf-close" aria-label={de ? 'Filter schließen' : 'Close filters'}>✕</button>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-maker">{de ? 'Hersteller' : 'Manufacturer'}</label>
+      <select id="sf-maker" data-ev-filter="hersteller" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
+        {makers.map((m) => <option value={m}>{m}</option>)}
+      </select>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-career">{de ? 'Beruf' : 'Career'}</label>
+      <select id="sf-career" data-ev-filter="karriere" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
+        {careers.map((c) => <option value={c.key}>{c.label}</option>)}
+      </select>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-rolefam">{de ? 'Rolle' : 'Role'}</label>
+      <select id="sf-rolefam" data-ev-filter="rolle" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
+        {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
+      </select>
+    </div>
     {/* Die Erklaerung zur Groessenklasse stand bis 03.08. als eigener Absatz
         ueber der Konsole und kostete dort 71 px Hoehe ueber der Falz. Sie sitzt
         jetzt als title/aria-description am Menue selbst — Information erhalten,
         Platz zurueck. `Schiffsgroesse` statt `Groesse`, weil daneben die
         Bauteil-Mindestgroesse (sf-compsize) steht. */}
-    <select id="sf-size" data-ev-filter="groesse" aria-label={de ? 'Schiffsgröße' : 'Ship size'} title={sizeHint} data-help={sizeHint}>
-      <option value="">{de ? 'Alle Schiffsgrößen' : 'All ship sizes'}</option>
-      {sizeClasses.map((s) => <option value={s.n}>{s.label} ({s.count})</option>)}
-    </select>
-    <select id="sf-sig" data-ev-filter="signatur" aria-label={de ? 'Signatur' : 'Signature'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
-      {SIG_STEPS.map((s) => <option value={s.value}>{de ? s.de : s.en}</option>)}
-    </select>
-    <select id="sf-feat" data-ev-filter="merkmal" aria-label={de ? 'Merkmal' : 'Feature'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Merkmale' : 'All features'}</option>
-      <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
-      <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
-    </select>
-    <select id="sf-comp" data-ev-filter="komponente" aria-label={de ? 'Bauteil' : 'Component'} data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Alle Bauteile' : 'All components'}</option>
-      <option value="w">{de ? 'Waffe' : 'Weapon'}</option>
-      <option value="t">{de ? 'Turm' : 'Turret'}</option>
-      <option value="m">{de ? 'Rakete' : 'Missile'}</option>
-      <option value="s">{de ? 'Schild' : 'Shield'}</option>
-      <option value="c">{de ? 'Kühler' : 'Cooler'}</option>
-      <option value="p">{de ? 'Kraftwerk' : 'Power plant'}</option>
-      <option value="q">{de ? 'Quantenantrieb' : 'Quantum drive'}</option>
-      <option value="r">Radar</option>
-    </select>
-    <select id="sf-compsize" data-ev-filter="komponentengroesse" aria-label={de ? 'Mindestgröße des Bauteils' : 'Minimum component size'} disabled data-help={h('ships.ctl.select')}>
-      <option value="">{de ? 'Beliebige Größe' : 'Any size'}</option>
-    </select>
-    <select id="sf-sort" data-ev-filter="sortierung" aria-label={de ? 'Sortierung' : 'Sort'} data-help={h('ships.ctl.sort')}>
-      <option value="name">Name A–Z</option>
-      <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
-      <option value="game">{de ? 'Ingame-Preis ↓' : 'In-game price ↓'}</option>
-      <option value="cargo">{de ? 'Fracht ↓' : 'Cargo ↓'}</option>
-      <option value="crew">Crew ↓</option>
-    </select>
+    <div class="sdb__f">
+      <label for="sf-size">{de ? 'Schiffsgröße' : 'Ship size'}</label>
+      <select id="sf-size" data-ev-filter="groesse" title={sizeHint} data-help={sizeHint}>
+        <option value="">{de ? 'Alle Schiffsgrößen' : 'All ship sizes'}</option>
+        {sizeClasses.map((s) => <option value={s.n}>{s.label} ({s.count})</option>)}
+      </select>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-sig">{de ? 'Signatur' : 'Signature'}</label>
+      <select id="sf-sig" data-ev-filter="signatur" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
+        {SIG_STEPS.map((s) => <option value={s.value}>{de ? s.de : s.en}</option>)}
+      </select>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-feat">{de ? 'Merkmal' : 'Feature'}</label>
+      <select id="sf-feat" data-ev-filter="merkmal" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Merkmale' : 'All features'}</option>
+        <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
+        <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
+      </select>
+    </div>
+    <div class="sdb__f">
+      <label for="sf-comp">{de ? 'Bauteil' : 'Component'}</label>
+      <select id="sf-comp" data-ev-filter="komponente" data-help={h('ships.ctl.select')}>
+        <option value="">{de ? 'Alle Bauteile' : 'All components'}</option>
+        <option value="w">{de ? 'Waffe' : 'Weapon'}</option>
+        <option value="t">{de ? 'Turm' : 'Turret'}</option>
+        <option value="m">{de ? 'Rakete' : 'Missile'}</option>
+        <option value="s">{de ? 'Schild' : 'Shield'}</option>
+        <option value="c">{de ? 'Kühler' : 'Cooler'}</option>
+        <option value="p">{de ? 'Kraftwerk' : 'Power plant'}</option>
+        <option value="q">{de ? 'Quantenantrieb' : 'Quantum drive'}</option>
+        <option value="r">Radar</option>
+      </select>
+    </div>
+    {/* Ausgegraut stand hier "Beliebige Groesse" ohne Grund (HE B30). Der
+        Leereintrag nennt den Grund jetzt selbst, solange das Feld gesperrt
+        ist; das Skript tauscht den Text beim Freischalten (data-any/data-off). */}
+    <div class="sdb__f">
+      <label for="sf-compsize">{de ? 'Mindestgröße' : 'Minimum size'}</label>
+      <select id="sf-compsize" data-ev-filter="komponentengroesse" disabled data-help={h('ships.ctl.select')}
+        data-any={de ? 'Beliebige Größe' : 'Any size'} data-off={de ? 'Erst Bauteil wählen' : 'Pick a component first'}>
+        <option value="">{de ? 'Erst Bauteil wählen' : 'Pick a component first'}</option>
+      </select>
+    </div>
+    {/* Fuss der Schublade: Zuruecksetzen nimmt die acht Felder zurueck
+        (Suche und Sortierung stehen ausserhalb und bleiben), der zweite Knopf
+        schliesst wie das ✕ und nennt, was man danach sieht. */}
+    <div class="sdb__mehr-ft">
+      <button type="button" class="sdb__reset" id="sf-reset">{de ? 'Zurücksetzen' : 'Reset'}</button>
+      <button type="button" class="sdb__show" id="sf-show"
+        data-tpl={de ? '{n} Treffer anzeigen' : 'Show {n} results'} data-none={de ? 'Keine Treffer' : 'No matches'}>
+        {de ? `${vehicles.length} Treffer anzeigen` : `Show ${vehicles.length} results`}
+      </button>
+    </div>
+    </div>
+    {/* Preise in beide Richtungen (UX-Audit TF B02): "guenstigstes Schiff
+        zuerst" ging nur ueber das Listenende. Woerter statt Pfeile, weil die
+        Richtung eines Pfeils bei Preisen nicht jeder gleich liest. */}
+    <div class="sdb__f">
+      <label for="sf-sort">{de ? 'Sortierung' : 'Sort by'}</label>
+      <select id="sf-sort" data-ev-filter="sortierung" data-help={h('ships.ctl.sort')}>
+        <option value="name">Name A–Z</option>
+        <option value="pledge">{de ? 'Pledge-Preis: höchster zuerst' : 'Pledge price: highest first'}</option>
+        <option value="pledge-asc">{de ? 'Pledge-Preis: niedrigster zuerst' : 'Pledge price: lowest first'}</option>
+        <option value="game">{de ? 'Ingame-Preis: höchster zuerst' : 'In-game price: highest first'}</option>
+        <option value="game-asc">{de ? 'Ingame-Preis: niedrigster zuerst' : 'In-game price: lowest first'}</option>
+        <option value="cargo">{de ? 'Fracht: meiste zuerst' : 'Cargo: most first'}</option>
+        <option value="crew">{de ? 'Crew: größte zuerst' : 'Crew: largest first'}</option>
+      </select>
+    </div>
     <span class="sdb__count" id="sf-count">{vehicles.length} {de ? 'Treffer' : 'results'}</span>
   </div>
 
@@ -411,6 +651,7 @@ a{color:inherit;text-decoration:none}
     {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size, debut }) => (
       <article
         class="fcard"
+        data-id={id}
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
         data-maker={d.manufacturer ?? ''}
         data-type={vType(d, lang) ?? ''}
@@ -472,7 +713,11 @@ a{color:inherit;text-decoration:none}
           )}
           <dl class="fcard__stats">
             <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
-            <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${zahl(d.cargoSCU)} SCU` : '—'}</dd></div>
+            {/* Ohne Frachtraum, aber mit Erzbehaelter (Prospector, Golem): das
+                Erz statt "Fracht 0 SCU" (Heuristik P54), wie auf dem Datenblatt. */}
+            {!d.cargoSCU && d.oreSCU
+              ? <div class="fcard__stat"><dt>{de ? 'Erz' : 'Ore'}</dt><dd>{`${zahl(d.oreSCU)} SCU`}</dd></div>
+              : <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${zahl(d.cargoSCU)} SCU` : '—'}</dd></div>}
             <div class="fcard__stat"><dt>{de ? 'Länge' : 'Length'}</dt><dd>{d.lengthM != null ? `${zahl(d.lengthM)} m` : '—'}</dd></div>
           </dl>
           <dl class="fcard__prices">
@@ -485,10 +730,57 @@ a{color:inherit;text-decoration:none}
               <dd class={`v${buy == null ? ' none' : ''}`}>{buy != null ? <>{auecShort(buy)}<span class="fprice__u">aUEC</span></> : '—'}</dd>
             </div>
           </dl>
+          <button type="button" class="fcard__cmp" aria-pressed="false" aria-label={`${d.name}: ${de ? 'vergleichen' : 'compare'}`}>
+            <span class="fcard__cmp-box" aria-hidden="true"></span>{de ? 'Vergleichen' : 'Compare'}
+          </button>
         </div>
       </article>
     ))}
-    <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer — Filter zurücksetzen.' : 'No matches — reset the filters.'}</p>
+    {/* Ein echter Knopf statt der Bitte im Text (Heuristik P18: „Filter
+        zurücksetzen“ stand da, ein Klick tat nichts). Er nimmt auch die Suche
+        zurueck, denn oft ist sie es, die nichts mehr trifft. */}
+    <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer.' : 'No matches.'} <button type="button" class="sdb__empty-reset" id="sf-empty-reset">{de ? 'Filter und Suche zurücksetzen' : 'Reset filters and search'}</button></p>
+  </div>
+
+  {/* Schiffsvergleich (UX-Audit E7, TF B08): bis zu drei Karten markieren,
+      die Leiste unten sammelt sie, ab zwei oeffnet die Tabelle. Tabelle und
+      Sprungmarken baut assets/schiff-vergleich.js aus /schiffe-vergleich.json. */}
+  <div class="sv" id="sv"
+    data-src={de ? '/de/schiffe-vergleich.json' : '/schiffe-vergleich.json'}
+    data-open={hv('msg.cmp.open')}
+    data-remove={hv('msg.cmp.remove')}
+    data-hint={hv('cmp.hint')}
+    data-full={hv('cmp.full')}
+    data-base={hv('cmp.base')}
+    data-makebase={hv('cmp.makeBase')}
+    data-better={hv('cmp.better')}
+    data-worse={hv('cmp.worse')}
+    data-stat={hv('cmp.stat')}
+    data-loading={hv('cmp.loading')}
+    data-sheet={de ? 'Datenblatt' : 'Data sheet'}
+    data-error={de ? 'Der Vergleich ließ sich nicht laden. Bitte die Seite neu laden.' : 'The comparison could not be loaded. Please reload the page.'}
+  >
+    <div class="sv-tray" id="sv-tray" role="region" aria-label={hv('cmp.tray')} hidden>
+      <span class="sv-tray__title">{hv('cmp.tray')}</span>
+      <ul class="sv-tray__list" id="sv-tray-list"></ul>
+      <span class="sv-tray__hint" id="sv-tray-hint" aria-live="polite"></span>
+      <span class="sv-tray__acts">
+        <button type="button" class="sv-tray__clear" id="sv-clear">{de ? 'Leeren' : 'Clear'}</button>
+        <button type="button" class="sv-tray__open" id="sv-open" hidden></button>
+      </span>
+    </div>
+    <dialog class="sv-dlg" id="sv-dlg" aria-labelledby="sv-title">
+      <div class="sv-dlg__head">
+        <h2 id="sv-title">{hv('cmp.title')}</h2>
+        <p class="sv-dlg__note">{hv('cmp.note')}</p>
+        <button type="button" class="sv-dlg__close" id="sv-close">{hv('cmp.close')}</button>
+        <nav class="sv-dlg__jump" id="sv-jump" aria-label={hv('cmp.jump')}></nav>
+      </div>
+      <div class="sv-dlg__scroll" id="sv-scroll">
+        <p class="sv-dlg__wait" id="sv-wait" hidden></p>
+        <table class="sv-dlg__table" id="sv-table"></table>
+      </div>
+    </dialog>
   </div>
 
   <Datenstand lang={lang} zeilen={standFlotte(lang, vehicles.map((v) => v.data.gameVersion))} />
@@ -556,8 +848,11 @@ a{color:inherit;text-decoration:none}
   }
 
   // Baut sf-compsize fuer die gewaehlte Bauteilart neu und schaltet das Feld
-  // frei bzw. wieder ab (D-11: die Bauteilart allein filtert noch nicht, sie
-  // ist nur Vorauswahl fuer das Groessenfeld).
+  // frei bzw. wieder ab. Der Leereintrag nennt im gesperrten Zustand den
+  // Grund ("Erst Bauteil waehlen", data-off), freigeschaltet heisst er
+  // "Beliebige Groesse" (data-any) — UX-Audit HE B30.
+  var ANY_LABEL = selCompSize.getAttribute('data-any');
+  var OFF_LABEL = selCompSize.getAttribute('data-off');
   function rebuildSizeOptions() {
     var letter = selComp.value;
     while (selCompSize.options.length > 1) selCompSize.remove(1);
@@ -572,6 +867,9 @@ a{color:inherit;text-decoration:none}
     } else {
       selCompSize.disabled = true;
     }
+    var leer = selCompSize.options[0];
+    var leerText = letter ? ANY_LABEL : OFF_LABEL;
+    if (leer && leerText) leer.textContent = leerText;
     selCompSize.value = '';
   }
 
@@ -580,9 +878,13 @@ a{color:inherit;text-decoration:none}
     var m = selMaker.value;
     var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
     var compLetter = selComp.value;
-    var compSize = selCompSize.value ? parseInt(selCompSize.value, 10) : null;
-    // D-11: Bauteilart ohne Groesse filtert noch NICHT.
-    var compActive = !!(compLetter && compSize != null);
+    // Die Bauteilart allein filtert (UX-Audit 24.11.2026, TF B03): "Turm" heisst
+    // "hat einen Turm", also jede Groesse ab S1. Bis dahin galt D-11 aus
+    // Phase 06 (die Art war nur Vorauswahl fuer das Groessenfeld) — die Wahl
+    // "Turm" liess alle 235 Schiffe stehen, und wer nur Schiffe mit Turm
+    // suchte, sah keinen Unterschied.
+    var compSize = selCompSize.value ? parseInt(selCompSize.value, 10) : 1;
+    var compActive = !!compLetter;
     var n = 0, noData = 0;
     cards.forEach(function (c) {
       var ok =
@@ -615,36 +917,189 @@ a{color:inherit;text-decoration:none}
       ? (n + ' ' + RESULTS_LABEL + ' · ' + noData + ' ' + NODATA_LABEL)
       : (n + ' ' + RESULTS_LABEL);
     empty.hidden = n !== 0;
+    schubladeZeigen(n);
   }
 
+  // ---- Filter-Schublade (bis 820 px, UX-Audit TF V26/M4) -------------------
+  // Oeffnen und Schliessen schaltet nur `is-open`; Verdunkler, Sperre, Esc,
+  // Wischen und inert ergaenzt assets/offcanvas.js (data-offcanvas am Rahmen).
+  // Am Schreibtisch sind Knopf, Kopf und Fuss unsichtbar, die Zahlen werden
+  // trotzdem gepflegt — ein Drehen des Tablets macht aus der Zeile die
+  // Schublade, ohne neu zu laden.
+  var mehr = document.getElementById('sf-mehr');
+  var toggle = document.getElementById('sf-toggle');
+  var zu = document.getElementById('sf-close');
+  var zeigen = document.getElementById('sf-show');
+  var zurueck = document.getElementById('sf-reset');
+  var SCHUBLADE = [selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selComp, selCompSize];
+  var SHOW_TPL = zeigen ? zeigen.getAttribute('data-tpl') : null;
+  var SHOW_NONE = zeigen ? zeigen.getAttribute('data-none') : null;
+  function schubladeZeigen(n) {
+    if (toggle) {
+      // Die Mindestgroesse zaehlt nicht eigens: sie verfeinert das Bauteil.
+      var gesetzt = SCHUBLADE.filter(function (el) { return el !== selCompSize && el.value; }).length;
+      if (gesetzt) toggle.setAttribute('data-n', String(gesetzt)); else toggle.removeAttribute('data-n');
+    }
+    if (zeigen && SHOW_TPL) {
+      zeigen.textContent = n ? SHOW_TPL.replace('{n}', String(n)) : (SHOW_NONE || '0');
+      if (n) zeigen.classList.remove('is-leer'); else zeigen.classList.add('is-leer');
+      // Ohne Treffer gibt es nichts anzuzeigen: der Knopf nennt das und ist aus
+      // (schliessen bleibt ueber X, Esc, Wischen und den Verdunkler).
+      zeigen.disabled = !n;
+    }
+  }
+  function schubladeZu() {
+    if (!mehr) return;
+    mehr.classList.remove('is-open');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+  if (mehr && toggle) {
+    toggle.addEventListener('click', function () {
+      var offen = !mehr.classList.contains('is-open');
+      if (offen) mehr.classList.add('is-open'); else mehr.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', offen ? 'true' : 'false');
+    });
+    if (zu) zu.addEventListener('click', schubladeZu);
+    if (zeigen) zeigen.addEventListener('click', schubladeZu);
+  }
+  if (zurueck) zurueck.addEventListener('click', function () {
+    SCHUBLADE.forEach(function (el) { if (el !== selCompSize) el.value = ''; });
+    rebuildSizeOptions();
+    apply();
+    schreibeAdresse();
+  });
+  // Leere Liste (Heuristik P18): alles zurueck, auch die Suche. Der Knopf
+  // verschwindet mit der leeren Liste; der Fokus geht ins Suchfeld.
+  var leerZurueck = document.getElementById('sf-empty-reset');
+  if (leerZurueck) leerZurueck.addEventListener('click', function () {
+    q.value = '';
+    SCHUBLADE.forEach(function (el) { if (el !== selCompSize) el.value = ''; });
+    rebuildSizeOptions();
+    apply();
+    schreibeAdresse();
+    if (q.focus) q.focus();
+  });
+
+  // Sortierschluessel -> [Attribut, Richtung]. "-asc" sortiert aufsteigend
+  // (UX-Audit TF B02: "guenstigstes zuerst"); Karten ohne Wert (-1) stehen in
+  // BEIDEN Richtungen am Ende, sonst fuehrten aufsteigend die Schiffe ohne Preis.
+  var SORTS = {
+    pledge: ['data-pledge', -1], 'pledge-asc': ['data-pledge', 1],
+    game: ['data-game', -1], 'game-asc': ['data-game', 1],
+    cargo: ['data-cargo', -1], crew: ['data-crew', -1]
+  };
   function sort() {
-    var key = selSort.value;
+    var spec = SORTS[selSort.value];
     var ordered;
-    if (key === 'name') {
-      ordered = cards; // serverseitig bereits alphabetisch
+    if (!spec) {
+      ordered = cards; // Name A-Z: serverseitig bereits alphabetisch
     } else {
-      var attr = { pledge: 'data-pledge', game: 'data-game', cargo: 'data-cargo', crew: 'data-crew' }[key];
-      ordered = cards.slice().sort(function (a, b) { return numAttr(b, attr) - numAttr(a, attr); });
+      var attr = spec[0], dir = spec[1];
+      ordered = cards.slice().sort(function (a, b) {
+        var va = numAttr(a, attr), vb = numAttr(b, attr);
+        if (va < 0 || vb < 0) return (va < 0) - (vb < 0); // ohne Wert ans Ende
+        return dir * (va - vb);
+      });
     }
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selCompSize].forEach(function (el) {
-    el.addEventListener('input', apply);
-    el.addEventListener('change', apply);
+  // ---- Zustand in der Adresse (UX-Audit 24.11.2026, HE B05 / TF T2) --------
+  // Filter und Sortierung stehen in der Adresse (?maker=Anvil+Aerospace&sort=
+  // game-asc). Damit laesst sich eine Auswahl teilen, Neuladen behaelt sie, und
+  // Zurueck von einem Schiffsblatt zeigt dieselbe Liste wie vorher — auch ohne
+  // Zurueck-Cache. Dort stellte der Browser bis dahin nur die Auswahlfelder
+  // wieder her ("Anvil Aerospace"), die Liste zeigte aber alle 235 Schiffe.
+  // replaceState statt pushState: ein Filterwechsel ist kein neuer Schritt
+  // im Verlauf, Zurueck fuehrt weiter auf die vorige Seite.
+  // Die Schluessel sind sprachneutral, ein Link gilt auf /schiffe.html und
+  // /de/schiffe.html gleich.
+  var STATE = [
+    ['q', q], ['maker', selMaker], ['career', selCareer], ['role', selRolefam],
+    ['size', selSize], ['sig', selSig], ['feat', selFeat], ['comp', selComp],
+    ['compsize', selCompSize], ['sort', selSort]
+  ];
+  var DEFAULTS = { sort: 'name' };
+  var hasUrl = typeof URLSearchParams === 'function' && typeof location !== 'undefined';
+  function hatOption(sel, v) {
+    var o = sel.options || [];
+    for (var i = 0; i < o.length; i++) if (o[i].value === v) return true;
+    return false;
+  }
+  // Setzt ein Feld auf den Wert aus der Adresse; unbekannte Werte (alter
+  // Link, umbenannter Hersteller) fallen auf den Ausgangswert zurueck.
+  function setzeFeld(el, key, v) {
+    var start = DEFAULTS[key] || '';
+    if (el === q) { el.value = v || ''; return; }
+    el.value = v && hatOption(el, v) ? v : start;
+  }
+  // Die Adresse ist beim Laden die einzige Quelle: jedes Feld bekommt ihren
+  // Wert oder seinen Ausgangswert, auch wenn der Browser beim Zuruecknavigieren
+  // etwas anderes hineingeschrieben hat — sichtbare Auswahl und Liste koennen
+  // so nicht mehr auseinanderlaufen.
+  function leseAdresse() {
+    var p = hasUrl ? new URLSearchParams(location.search || '') : null;
+    var get = function (k) { return p ? p.get(k) : null; };
+    STATE.forEach(function (e) {
+      if (e[1] === selCompSize) return; // erst nach dem Neuaufbau unten
+      setzeFeld(e[1], e[0], get(e[0]));
+    });
+    rebuildSizeOptions();
+    setzeFeld(selCompSize, 'compsize', get('compsize'));
+  }
+  function schreibeAdresse() {
+    if (!hasUrl || typeof history === 'undefined' || !history.replaceState) return;
+    var p = new URLSearchParams(location.search || '');
+    STATE.forEach(function (e) {
+      var key = e[0], el = e[1];
+      var v = el === q ? el.value.trim() : el.value;
+      if (!v || el.disabled || v === (DEFAULTS[key] || '')) p.delete(key);
+      else p.set(key, v);
+    });
+    var qs = p.toString();
+    try {
+      history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + (location.hash || ''));
+    } catch (e) { /* Safari drosselt replaceState bei sehr schnellem Tippen */ }
+  }
+  // Tippen schreibt verzoegert (Safari erlaubt nur rund 100 Aufrufe je 10 s),
+  // Auswahlfelder sofort.
+  var adressTimer = null;
+  function adresseSpaeter() {
+    if (typeof setTimeout !== 'function') { schreibeAdresse(); return; }
+    clearTimeout(adressTimer);
+    adressTimer = setTimeout(schreibeAdresse, 300);
+  }
+
+  leseAdresse();
+  // Nur anfassen, was die Adresse verlangt: ohne Filter steht die Liste
+  // serverseitig schon richtig (alle Karten, A-Z), und 235 Karten umzuhaengen
+  // kostet beim Laden eine Stilrechnung ohne jeden Gewinn.
+  var gefiltert = STATE.some(function (e) {
+    return e[1] !== selSort && e[1].value && e[1].value !== (DEFAULTS[e[0]] || '');
   });
+  if (gefiltert) apply();
+  if (selSort.value !== 'name') sort();
+
+  // Lauscher erst NACH dem Lesen der Adresse: das Setzen der Felder dort ist
+  // kein Nutzerwechsel und soll weder filtern noch die Adresse umschreiben.
+  [selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selCompSize].forEach(function (el) {
+    el.addEventListener('input', apply);
+    el.addEventListener('change', function () { apply(); schreibeAdresse(); });
+  });
+  q.addEventListener('input', function () { apply(); adresseSpaeter(); });
+  q.addEventListener('change', function () { apply(); schreibeAdresse(); });
   // Die Bauteilart baut erst das Groessenfeld neu und filtert dann -- sonst
   // stuende dort noch die Groessenliste der vorher gewaehlten Kategorie.
-  selComp.addEventListener('change', function () { rebuildSizeOptions(); apply(); });
-  rebuildSizeOptions();
-  selSort.addEventListener('change', sort);
+  selComp.addEventListener('change', function () { rebuildSizeOptions(); apply(); schreibeAdresse(); });
+  selSort.addEventListener('change', function () { sort(); schreibeAdresse(); });
 
   // ganze Karte klickbar (innere Links funktionieren weiter)
   cards.forEach(function (c) {
     c.addEventListener('click', function (e) {
-      if (e.target.closest('a')) return;
+      if (e.target.closest('a, button')) return;
       location.href = c.getAttribute('data-href');
     });
   });
 })();
 </script>
+<script type="module" is:inline set:html={`import { start } from '${vergleichSrc}'; start(document);`}></script>

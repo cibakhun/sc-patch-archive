@@ -148,3 +148,130 @@ for (const tr of WIKELO as unknown as WikeloTrade[]) {
 export function wikeloTrades(item: Item): { material: number; reward: number } | null {
   return wikeloUse.get(item.name) ?? null;
 }
+
+/* ---------- Sternsystem einer Verkaufsstelle ---------- */
+
+// Paket D (UX-Audit 24.11.2026, „So bekommst du es" und Bezugsquellen nach
+// System): Die Kaufzeilen tragen keinen Systemschluessel, nur den Ortsnamen.
+// Der Preisabruf haengt an Orte ausserhalb von Stanton den Systemnamen in
+// Klammern an ("Guns - Checkmate (Pyro)"), Zeilen aus dem eigenen
+// Shop-Schnappschuss tragen ihn immer. Ohne Zusatz ist eine Zeile nur dann
+// Stanton, wenn ihr Ort sicher in Stanton liegt (Landezonen, Stationen,
+// Lagrange-Punkte); Ausnahmen ohne Zusatz, die sicher woanders liegen, stehen
+// in ANDERSWO. Alles Uebrige bleibt `null` = "ohne Systemangabe" — lieber
+// eine ehrliche Luecke als ein geratenes System (Astor's Clearing, Dunboro …).
+export type SternSystem = 'Stanton' | 'Pyro' | 'Nyx';
+export const SYSTEME: readonly SternSystem[] = ['Stanton', 'Pyro', 'Nyx'];
+const SYS_ZUSATZ = /\((Stanton|Pyro|Nyx)\)\s*$/;
+const ANDERSWO: ReadonlyArray<readonly [RegExp, SternSystem]> = [
+  [/\bLevski\b|\bNyx\b/, 'Nyx'],
+  [/\b(?:Checkmate|Orbituary|Ruin Station|Gaslight|Patch City|Endgame|Rat's Nest|Starlight Service|Megumi|Dudley|Rod's Fuel)\b/, 'Pyro'],
+];
+const STANTON_ORT =
+  /\b(?:Area ?18|Lorville|New Babbage|Orison|GrimHEX|Everus Harbor|Port Tressler|Baijini Point|Seraphim|(?:ARC|CRU|HUR|MIC)-L\d|Crusader|Hurston|microTech|ArcCorp)\b/i;
+
+/** System einer Kauf- oder Haendlerzeile; null = ohne sichere Angabe. */
+export function shopSystem(loc: string): SternSystem | null {
+  const z = loc.match(SYS_ZUSATZ);
+  if (z) return z[1] as SternSystem;
+  for (const [re, sys] of ANDERSWO) if (re.test(loc)) return sys;
+  return STANTON_ORT.test(loc) ? 'Stanton' : null;
+}
+
+/* ---------- Wikelo gibt einen Bauplan ---------- */
+
+// Ein Tauschgeschaeft kann statt eines Items auch einen Bauplan geben
+// ('Killshot "Dominion Camo" Rifle Blueprint'). Schluessel: der Bauplan-Name
+// in Kleinbuchstaben, wie crafting.ts `blueprintByName`.
+const wikeloBp = new Map<string, number>();
+for (const tr of WIKELO as unknown as WikeloTrade[]) {
+  const roh = (tr.get ?? tr.name).trim();
+  const m = roh.match(/^(.*\S)\s+Blueprint$/i);
+  if (!m) continue;
+  const k = m[1].toLowerCase();
+  wikeloBp.set(k, (wikeloBp.get(k) ?? 0) + 1);
+}
+/** Wie viele Wikelo-Tauschgeschaefte diesen Bauplan geben (0 = keins). */
+export const wikeloBlueprintTrades = (bpName: string): number => wikeloBp.get(bpName.toLowerCase()) ?? 0;
+
+/* ---------- Schiffsteile: Item -> sein Schiff (UX-Audit D6) ---------- */
+
+// 215 Item-Blaetter zeigten im Block „So bekommst du es" keinen einzigen Weg,
+// die meisten davon Teile, die nur mit ihrem Schiff kommen: Raketenhalter,
+// Tuerme, Module, Bodykits, schiffseigene Taeuschkoerperwerfer. Kaufen kann
+// man sie nicht, finden auch nicht — der Weg ist das Schiff. Zwei Quellen,
+// beide vorsichtig („lieber kein Link als der falsche"):
+//   1. Serienbelegung der Taeuschkoerperwerfer (oben ausgelassen, weil sie an
+//      fast jedem Schiff sitzen): nur wo der Werfer an hoechstens
+//      SCHIFFSTEIL_MAX Schiffen sitzt, also wirklich zu wenigen gehoert.
+//   2. Der Name nennt das Schiff („Aegis Eclipse Torpedo Rack"), nur in den
+//      Kategorien schiffsgebundener Teile. Einwortnamen („Liberator",
+//      „Galaxy") zaehlen nur, wenn auch der Hersteller passt — die
+//      Liberator-Raketen von Thermyte sind kein Teil der Anvil Liberator.
+const SCHIFFSTEIL_MAX = 8;
+const TEIL_KATEGORIEN = /^Vehiclegear \/ (?:Weapons \/ (?:Missile Racks|Turrets)|Module|Salvage|Tool Arm|Countermeasures)$/;
+const SCHIFFSPANZER = /\bShip Armou?r\b/i;
+
+type Fahrzeug = { id: string; name: string; manufacturer?: string; makerCode?: string; isSpaceship?: boolean };
+const FAHRZEUGE = (VEHICLES as unknown as { vehicles: Fahrzeug[] }).vehicles;
+const worte = (s: string) => ` ${s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()} `;
+const ersterTeil = (s: string | null | undefined) => worte(s ?? '').trim().split(' ')[0] ?? '';
+
+// Je Fahrzeug die Schreibweisen, unter denen ein Teil es nennt:
+// „Gladius", „Aegis Gladius", „AEGS Gladius"; „MISC Reliant Tana" auch ohne „MISC".
+const nennungen = FAHRZEUGE.filter((v) => vehicleInfo.has(v.id)).map((v) => {
+  const name = worte(v.name);
+  const marke = ersterTeil(v.manufacturer);
+  const formen = new Set([name, worte(`${marke} ${v.name}`)]);
+  const erstes = name.trim().split(' ')[0];
+  if (erstes === marke || erstes === (v.makerCode ?? '').toLowerCase()) formen.add(` ${name.trim().split(' ').slice(1).join(' ')} `);
+  return { id: v.id, marke, mehrwortig: name.trim().includes(' '), formen: [...formen].filter((f) => f.trim()) };
+});
+
+const cmSchiffe = new Map<string, Set<string>>();
+for (const [shipId, ports] of Object.entries(shipLoadouts)) {
+  if (!vehicleInfo.has(shipId)) continue;
+  for (const leaves of Object.values(ports)) {
+    for (const leaf of leaves) {
+      if (leaf.cat !== 'countermeasure') continue;
+      const it = itemForPart(leaf.name, leaf.size);
+      if (!it) continue;
+      const set = cmSchiffe.get(it.id);
+      if (set) set.add(shipId);
+      else cmSchiffe.set(it.id, new Set([shipId]));
+    }
+  }
+}
+
+const alsSchiffe = (ids: Iterable<string>): StockShip[] =>
+  [...ids].map((id) => ({ id, ...vehicleInfo.get(id)! })).sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+function schiffAusName(item: Item): string[] {
+  if (!TEIL_KATEGORIEN.test(item.category ?? '') && !SCHIFFSPANZER.test(item.name)) return [];
+  const w = worte(item.name);
+  const marke = ersterTeil(item.game?.manufacturer ?? item.game?.variants?.[0]?.manufacturer);
+  let best: string[] = [];
+  let laenge = 0;
+  for (const n of nennungen) {
+    const form = n.formen.filter((f) => w.includes(f)).sort((a, b) => b.length - a.length)[0];
+    if (!form) continue;
+    const mitMarke = form.trim().startsWith(n.marke) && n.marke !== '';
+    if (!mitMarke && !n.mehrwortig && marke !== n.marke && !w.startsWith(` ${n.marke} `)) continue;
+    if (form.length > laenge) { laenge = form.length; best = [n.id]; }
+    else if (form.length === laenge) best.push(n.id);
+  }
+  return best;
+}
+
+/**
+ * Schiffe, zu denen ein schiffsgebundenes Teil gehoert — nur fuer Teile, die
+ * nicht ohnehin als Serienteil gefuehrt sind (stockShips). Leer, wenn die
+ * Zuordnung nicht eindeutig genug ist.
+ */
+export function schiffeZumTeil(item: Item): StockShip[] {
+  if (stockByItem.has(item.id) || item.category === 'Vehicle') return [];
+  const cm = cmSchiffe.get(item.id);
+  if (cm && cm.size <= SCHIFFSTEIL_MAX) return alsSchiffe(cm);
+  const ausName = schiffAusName(item);
+  return ausName.length && ausName.length <= SCHIFFSTEIL_MAX ? alsSchiffe(ausName) : [];
+}

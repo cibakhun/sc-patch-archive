@@ -176,6 +176,14 @@ const t = useTranslations(lang);
     }
   }
 
+  /* Schmal: der Tastenhinweis nimmt dem Platzhalter die halbe Breite
+     (Heuristik P75/P78; Touch blendet ihn schon die Startseite selbst aus). */
+  @media (max-width: 520px) {
+    .hero__search .k {
+      display: none;
+    }
+  }
+
   /* Telefon: solange gesucht wird, weicht die Kopfleiste, und das Feld steht
      ganz oben (assets/search-overlay.js, dockTop). So bleibt zwischen Feld
      und Tastatur Platz fuer die Treffer. */

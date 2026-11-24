@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -199,7 +200,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Resource <span>Drive</span></div>
       <div class="tagline">{de ? 'Konvoi-Event, Ship-Escort-Missionen und die RSI Meteor.' : 'Convoy event, ship escort missions and the RSI Meteor.'}</div>
       <div class="tags">
-        <span class="tag">Resource Drive</span><span class="tag">{de ? 'Konvoi' : 'Convoy'}</span><span class="tag">Escort</span><span class="tag hot">RSI Meteor</span>
+        <Schlagwort>Resource Drive</Schlagwort><Schlagwort>{de ? 'Konvoi' : 'Convoy'}</Schlagwort><Schlagwort>Escort</Schlagwort><Schlagwort hot>RSI Meteor</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
@@ -221,12 +222,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Meteor</div><div class="sub">{de ? 'neu' : 'new'}</div></div>
-        <a class="tile word hot" href={de ? '/de/topics/4-2-1-resource-drive.html' : '/topics/4-2-1-resource-drive.html'}><span class="zoomic">→</span><b>RESOURCE<br>DRIVE</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
-        <div class="tile word" data-info data-title="Ship Escort" data-text={de ? 'Neuer Missions-Archetyp: Spieler verteidigen befreundete Schiffe gegen Angreifer, eskortieren sie in die Hangars der Asteroiden-Mining-Basen und wieder hinaus, bis sie per Quantum Travel entkommen. Sechs Schwierigkeitsstufen der Foxwell-Gruppe in Stanton und Pyro, belohnt mit Scrip.' : 'A new mission archetype: players defend friendly ships against attackers, escort them into and out of the hangars of the asteroid mining bases until they escape via Quantum Travel. Six difficulty tiers from the Foxwell group across Stanton and Pyro, rewarded with Scrip.'}><span class="zoomic">+</span><b>SHIP<br>ESCORT</b><small>{de ? '6 Stufen' : '6 tiers'}</small></div>
-        <div class="tile word" data-info data-title={de ? 'Konvoi' : 'Convoy'} data-text={de ? 'Im Zentrum des Resource Drive stehen Konvois rund um die Mining-Basen in Stanton und Pyro — eskortierte Frachtzüge, die gegen feindliche Schiffe verteidigt werden müssen.' : 'At the heart of Resource Drive are convoys around the mining bases in Stanton and Pyro — escorted freight trains that must be defended against enemy ships.'} data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>{de ? 'KONVOI' : 'CONVOY'}</b><small>Stanton &amp; Pyro</small></div>
-        <div class="tile word" data-info data-title={de ? 'Wikelo-Rezepte' : 'Wikelo Recipes'} data-text={de ? 'Die Rezepte des Händlers Wikelo wurden überarbeitet und in drei Zutaten-Stufen gegliedert: garantierte Core-Drops, sehr seltene Rare-Items und content-gebundene Items. Zufalls-Belohnungen entfallen — klar erkennbar, was sich zu horten lohnt.' : 'The recipes of the trader Wikelo have been reworked and grouped into three ingredient tiers: guaranteed core drops, very rare items and content-locked items. Random rewards are gone — it is now clear what is worth hoarding.'}><span class="zoomic">+</span><b>WIKELO</b><small>{de ? 'Rezepte' : 'Recipes'}</small></div>
-        <div class="tile stat" data-info data-title="Flight Tuning" data-text={de ? '4.2.1 bringt Anpassungen am Flugmodell — Feinschliff am Flugverhalten der Schiffe, der das Handling über das reine Event-Update hinaus verändert.' : '4.2.1 brings adjustments to the flight model — fine-tuning of ship flight behavior that changes handling beyond the pure event update.'}><span class="zoomic">+</span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
+        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><div class="lbl">RSI Meteor</div><div class="sub">{de ? 'neu' : 'new'}</div></div>
+        <a class="tile word hot" href={de ? '/de/topics/4-2-1-resource-drive.html' : '/topics/4-2-1-resource-drive.html'}><span class="zoomic"><span aria-hidden="true">→</span><span class="zoomic__t">{de ? 'Öffnen' : 'Open'}</span></span><b>RESOURCE<br>DRIVE</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
+        <div class="tile word" data-info data-title="Ship Escort" data-text={de ? 'Neuer Missions-Archetyp: Spieler verteidigen befreundete Schiffe gegen Angreifer, eskortieren sie in die Hangars der Asteroiden-Mining-Basen und wieder hinaus, bis sie per Quantum Travel entkommen. Sechs Schwierigkeitsstufen der Foxwell-Gruppe in Stanton und Pyro, belohnt mit Scrip.' : 'A new mission archetype: players defend friendly ships against attackers, escort them into and out of the hangars of the asteroid mining bases until they escape via Quantum Travel. Six difficulty tiers from the Foxwell group across Stanton and Pyro, rewarded with Scrip.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>SHIP<br>ESCORT</b><small>{de ? '6 Stufen' : '6 tiers'}</small></div>
+        <div class="tile word" data-info data-title={de ? 'Konvoi' : 'Convoy'} data-text={de ? 'Im Zentrum des Resource Drive stehen Konvois rund um die Mining-Basen in Stanton und Pyro — eskortierte Frachtzüge, die gegen feindliche Schiffe verteidigt werden müssen.' : 'At the heart of Resource Drive are convoys around the mining bases in Stanton and Pyro — escorted freight trains that must be defended against enemy ships.'} data-img="/assets/t-supply-2.jpg"><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>{de ? 'KONVOI' : 'CONVOY'}</b><small>Stanton &amp; Pyro</small></div>
+        <div class="tile word" data-info data-title={de ? 'Wikelo-Rezepte' : 'Wikelo Recipes'} data-text={de ? 'Die Rezepte des Händlers Wikelo wurden überarbeitet und in drei Zutaten-Stufen gegliedert: garantierte Core-Drops, sehr seltene Rare-Items und content-gebundene Items. Zufalls-Belohnungen entfallen — klar erkennbar, was sich zu horten lohnt.' : 'The recipes of the trader Wikelo have been reworked and grouped into three ingredient tiers: guaranteed core drops, very rare items and content-locked items. Random rewards are gone — it is now clear what is worth hoarding.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>WIKELO</b><small>{de ? 'Rezepte' : 'Recipes'}</small></div>
+        <div class="tile stat" data-info data-title="Flight Tuning" data-text={de ? '4.2.1 bringt Anpassungen am Flugmodell — Feinschliff am Flugverhalten der Schiffe, der das Handling über das reine Event-Update hinaus verändert.' : '4.2.1 brings adjustments to the flight model — fine-tuning of ship flight behavior that changes handling beyond the pure event update.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
       </div>
     </div>
   </section>
@@ -246,7 +247,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Schiffe' : 'Ships'}</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">{de ? 'RSI · neu' : 'RSI · new'}</span><h3>RSI Meteor</h3></div></article>
+        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic"><span aria-hidden="true">▶</span><span class="zoomic__t">Video</span></span><div class="ship__in"><span class="role">{de ? 'RSI · neu' : 'RSI · new'}</span><h3>RSI Meteor</h3></div></article>
       </div>
     </div>
   </section>
@@ -267,8 +268,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Galerie' : 'Gallery'}</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt={de ? 'Frachter werden am Container-Depot beladen' : 'Freighters being loaded at the container depot'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Konvoi · Frachtdepot' : 'Convoy · Freight depot'}</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt={de ? 'RSI-Schiff im Gefecht im Asteroidenfeld' : 'RSI ship in combat in the asteroid field'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Eskorte · Asteroidenfeld' : 'Escort · Asteroid field'}</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt={de ? 'Frachter werden am Container-Depot beladen' : 'Freighters being loaded at the container depot'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Konvoi · Frachtdepot' : 'Convoy · Freight depot'}</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt={de ? 'RSI-Schiff im Gefecht im Asteroidenfeld' : 'RSI ship in combat in the asteroid field'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Eskorte · Asteroidenfeld' : 'Escort · Asteroid field'}</figcaption></figure>
       </div>
     </div>
   </section>

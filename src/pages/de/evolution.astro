@@ -7,7 +7,7 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
-import { patchSeiteHref } from '../../lib/patchPages';
+import { patchSeiteHref, systemAnker, zellenAnker } from '../../lib/patchPages';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -110,27 +110,26 @@ a{color:inherit;text-decoration:none}
   width:56px;border-radius:0 13px 13px 0;pointer-events:none;opacity:0;transition:opacity var(--dur-base) var(--ease-ui);
   background:linear-gradient(270deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
 .evo__matrix.is-more .evo__scrollwrap::after{opacity:1}
+/* Links dieselbe Kante, sobald dort aeltere Patches liegen: die Matrix startet
+   beim neuesten Patch (UX-Audit H4). Sie beginnt hinter der festen
+   Systemspalte, deren Breite das Skript als --evo-sys setzt. */
+.evo__scrollwrap::before{content:"";position:absolute;z-index:4;top:1px;bottom:1px;left:var(--evo-sys,1px);
+  width:56px;pointer-events:none;opacity:0;transition:opacity var(--dur-base) var(--ease-ui);
+  background:linear-gradient(90deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
+.evo__matrix.is-less .evo__scrollwrap::before{opacity:1}
 
-/* Eigene Hoehe, damit die Matrix senkrecht IN SICH scrollt. Nur so bleiben
-   die Patch-Nummern beim Lesen der unteren Zeilen stehen: `position:sticky`
-   richtet sich immer am naechsten Scrollbereich aus, und der ist hier durch
-   `overflow-x:auto` ohnehin dieser Kasten — an den Seiten-Scrollbereich kommt
-   ein Kopf darin nicht heran (mit `overflow-y:clip` geprueft: der Kopf klebt
-   dann bloss am oberen Rand des Kastens statt am Fenster).
-   9rem lassen Platz fuer die feste Leiste (65 px) und etwas Luft. */
-.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
-  max-height:calc(100vh - 9rem);max-height:calc(100dvh - 9rem)}
-/* ⚠ NACHGEMESSEN 30.08.2026: die Deckelung ist auf einem FLACHEN Fenster
-   selbst das Problem. 100dvh - 9rem ergab bei 844x390 (Telefon quer) nur
-   228 px fuer eine Matrix mit 1138 px Inhalt — drei Zeilen von 23, in einem
-   Kasten, der zusaetzlich seitwaerts scrollt. Zwei Bildlaufrichtungen auf
-   228 px sind keine Tabelle mehr, sondern ein Sehschlitz.
-   Unterhalb von 620 px Fensterhoehe faellt der Deckel weg und die Matrix
-   steht in voller Hoehe im Seitenfluss; gescrollt wird dann die Seite.
-   Dieselbe Lehre wie bei .vb-scrollbox in mobile-ux.css 5d. */
-@media (max-height:620px){
-  .evo__scroll{max-height:none}
-}
+/* Volle Hoehe (UX-Audit P48): bis 24.11.2026 hatte die Matrix eine eigene
+   Hoehe und scrollte senkrecht in sich, damit die Patch-Nummern stehen
+   blieben. Der Kasten fing dabei das Mausrad und verdeckte rund elf Zeilen.
+   Jetzt steht sie im Seitenfluss, gescrollt wird die Seite; die Kopfzeile
+   faehrt per Skript unter der festen Leiste mit (siehe kopf() unten).
+   `position:sticky` allein reicht dafuer nicht: es richtet sich am naechsten
+   Scrollbereich aus, und der ist durch `overflow-x:auto` dieser Kasten. */
+.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
+/* --kopf-deck: der Streifen zwischen Unterkante der Leiste und --nav-h
+   (gut 3 px, mit Zurueck-Marke knapp 40). Ohne die Abdeckung schienen
+   dort die Zeilen durch, die gerade unter der Kopfzeile wegrollen. */
+.evo__matrix.is-kopf thead th{box-shadow:0 calc(-1px * var(--kopf-deck,0)) 0 var(--bg-2),0 8px 14px -8px rgba(0,0,0,.7)}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
@@ -188,6 +187,11 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 42%,transparent);font-size:var(--fs-10)}
 .evo__cell:hover{background:color-mix(in srgb,var(--c) 55%,transparent);border-color:var(--c);transform:translateY(-1px)}
 .evo__cell.sel{background:var(--c);color:var(--ink);border-color:var(--c)}
+/* Ziel eines Verweises (#sys-…, aus dem Dossier einer Patchseite): die Zeile
+   des Systems und die Zelle des Patches, von dem man kam. */
+tbody tr.is-ziel .evo__sys{color:var(--accent);background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.evo__td.is-ziel .evo__cell{outline:2px solid var(--text);outline-offset:2px}
 .evo__dot{color:var(--muted);opacity:.22}
 .evo__detail{margin-top:1.4rem}
 .edet{border:1px solid var(--line);border-top:2px solid var(--c);border-radius:12px;background:var(--surface);padding:1.4rem 1.6rem 1.5rem}
@@ -261,7 +265,9 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
     <span>Intensität = Aktivität</span>
     <span class="evo__legdot" aria-hidden="true">·</span>
     <span>Zahl = Einträge · Klick = Details</span>
-    <span class="evo__legmore" data-evo-hint>Seitwärts scrollen für die neueren Patches →</span>
+    <span class="evo__legmore" data-evo-hint="links">← Seitwärts scrollen für ältere Patches</span>
+    <span class="evo__legmore" data-evo-hint="beide">← Ältere · neuere Patches →</span>
+    <span class="evo__legmore" data-evo-hint="rechts">Seitwärts scrollen für die neueren Patches →</span>
   </div>
 
   <div class="evo__scrollwrap">
@@ -285,12 +291,12 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
       </thead>
       <tbody>
         {systems.map((sys, si) => (
-          <tr>
+          <tr id={systemAnker(sys)}>
             <th scope="row" class="evo__sys">{sys}</th>
             {patches.map((p, pi) => {
               const feats = cell(sys, p);
               return (
-                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`}>
+                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} id={feats.length > 0 ? zellenAnker(sys, p.data.version) : undefined}>
                   {feats.length > 0 ? (
                     <button
                       class="evo__cell"
@@ -362,18 +368,116 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
   var shell = document.querySelector('[data-evo-matrix]');
   var scroller = shell && shell.querySelector('.evo__scroll');
   if (scroller) {
-    var hint = document.querySelector('[data-evo-hint]');
+    var hints = shell.querySelectorAll('[data-evo-hint]');
+    var sysHead = shell.querySelector('.evo__syshead');
     var syncEdge = function () {
       var more = scroller.scrollWidth - scroller.clientWidth - scroller.scrollLeft > 2;
+      var less = scroller.scrollLeft > 2;
       shell.classList.toggle('is-more', more);
-      if (hint) hint.classList.toggle('is-on', more);
+      shell.classList.toggle('is-less', less);
+      if (sysHead) shell.style.setProperty('--evo-sys', (sysHead.offsetWidth + 1) + 'px');
+      var welcher = less && more ? 'beide' : less ? 'links' : more ? 'rechts' : '';
+      hints.forEach(function (h) { h.classList.toggle('is-on', h.getAttribute('data-evo-hint') === welcher); });
+    };
+    // Start beim neuesten Patch (UX-Audit H4): die Matrix bleibt rechts
+    // stehen, bis jemand sie selbst bewegt oder ein Anker ein Ziel nennt,
+    // auch wenn nachladende Schriften die Tabelle noch verbreitern.
+    var halten = (location.hash || '').indexOf('#sys-') !== 0;
+    var loslassen = function () { halten = false; };
+    ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (t) {
+      scroller.addEventListener(t, loslassen, { passive: true });
+    });
+    var neu = function () {
+      if (halten) scroller.scrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      syncEdge();
     };
     scroller.addEventListener('scroll', syncEdge, { passive: true });
-    window.addEventListener('resize', syncEdge);
-    if (window.ResizeObserver) new ResizeObserver(syncEdge).observe(scroller);
+    window.addEventListener('resize', neu);
+    // Auch die Tabelle: laedt eine Schrift nach, wird sie breiter, der Kasten nicht.
+    if (window.ResizeObserver) {
+      var beobachter = new ResizeObserver(neu);
+      beobachter.observe(scroller);
+      var tabelle = scroller.querySelector('.evo__table');
+      if (tabelle) beobachter.observe(tabelle);
+    }
     // Die Anzeigeschriften laden nach und ändern die Tabellenbreite.
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncEdge);
-    syncEdge();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(neu);
+    neu();
+
+    // Kopfzeile faehrt mit (UX-Audit P48): Liegt der obere Rand der Matrix
+    // unter der festen Leiste, schieben sich die Kopfzellen um genau so viel
+    // nach unten, bis kurz vor das Tabellenende. Waagrecht bleiben sie Teil
+    // des Kastens und scrollen deshalb ohne Abgleich mit.
+    var kopfZellen = scroller.querySelectorAll('thead th');
+    var kopfJetzt = '';
+    var leiste = document.getElementById('topbar');
+    var kopf = function () {
+      var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+      var r = scroller.getBoundingClientRect();
+      var h = kopfZellen.length ? kopfZellen[0].offsetHeight : 0;
+      var off = Math.round(Math.max(0, Math.min(navH - r.top, r.height - h - 48)));
+      var t = off > 0 ? 'translateY(' + off + 'px)' : '';
+      // 4 px Ueberlappung unter die Leiste: deren Unterkante ist nicht ganz deckend.
+      var deck = off > 0 && leiste ? Math.max(0, Math.ceil(navH - leiste.getBoundingClientRect().bottom)) + 4 : 0;
+      if (t + deck === kopfJetzt) return;
+      kopfJetzt = t + deck;
+      shell.classList.toggle('is-kopf', off > 0);
+      shell.style.setProperty('--kopf-deck', String(deck));
+      kopfZellen.forEach(function (c) { c.style.transform = t; });
+    };
+    var kopfGeplant = false;
+    var kopfTakt = function () {
+      if (kopfGeplant) return;
+      kopfGeplant = true;
+      requestAnimationFrame(function () { kopfGeplant = false; kopf(); });
+    };
+    window.addEventListener('scroll', kopfTakt, { passive: true });
+    window.addEventListener('resize', kopfTakt);
+    kopf();
+
+    // Verweis auf eine Zeile oder Zelle (#sys-mining, #sys-mining--4-1-0,
+    // UX-Audit H3): Zeile und Zelle markieren, die Matrix in sich so
+    // verschieben, dass beide mittig stehen, und die Matrix ins Bild holen.
+    // Ohne Skript springt der Browser nur zum Anker.
+    var zumZiel = function () {
+      var id = '';
+      try { id = decodeURIComponent((location.hash || '').slice(1)); } catch (e) { return; }
+      if (id.indexOf('sys-') !== 0) return;
+      halten = false;
+      var el = document.getElementById(id);
+      var row = el && el.closest('tr');
+      if (!row || !scroller.contains(row)) return;
+      document.querySelectorAll('.is-ziel').forEach(function (x) { x.classList.remove('is-ziel'); });
+      row.classList.add('is-ziel');
+      if (el !== row) el.classList.add('is-ziel');
+      // Waagrecht mittig in der sichtbaren Flaeche RECHTS der festen
+      // Systemspalte; bei schmalem Fenster laege die Zelle sonst darunter.
+      var sys = row.querySelector('.evo__sys');
+      var sysW = sys ? sys.getBoundingClientRect().width : 0;
+      var sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect();
+      if (el !== row) scroller.scrollLeft += er.left - (sr.left + sysW) - (sr.width - sysW - er.width) / 2;
+      // Hinweis und Kante jetzt setzen: der Hinweistext kann die Legende umbrechen
+      // und damit die Hoehen verschieben, die unten gemessen werden.
+      syncEdge();
+      // Senkrecht: Hat die Matrix eine eigene Hoehe, scrollt sie in sich und
+      // die Seite holt die Matrix ins Bild. Ohne Deckel (flache Fenster,
+      // max-height:none) scrollt nur die Seite, und zwar auf das Ziel selbst.
+      if (scroller.scrollHeight - scroller.clientHeight > 2) {
+        scroller.scrollTop += er.top - sr.top - (sr.height - er.height) / 2;
+        // Passt der Scrollrahmen mit Legende nicht ins Fenster (schmale
+        // Fenster, Legende umbricht), richtet sich die Seite am Rahmen aus.
+        var top = shell.getBoundingClientRect().top + window.scrollY - 80;
+        var rahmen = scroller.getBoundingClientRect();
+        if (rahmen.bottom + window.scrollY - top > window.innerHeight) top = rahmen.top + window.scrollY - 80;
+        window.scrollTo(0, Math.max(0, top));
+      } else {
+        var ziel = el.getBoundingClientRect();
+        window.scrollTo(0, Math.max(0, ziel.top + window.scrollY - (window.innerHeight - ziel.height) / 2));
+      }
+      syncEdge();
+    };
+    window.addEventListener('hashchange', zumZiel);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(zumZiel); else zumZiel();
   }
 
   var detail = document.getElementById('evo-detail');

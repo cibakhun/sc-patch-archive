@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -200,7 +201,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename"><Fragment set:html={de ? 'Stabilität &amp; ' : 'Stability &amp; '} /><span>Save Stanton II</span></div>
       <div class="tagline">{de ? 'Stabilität, Streaming-Fixes und Save Stanton — Kapitel 2.' : 'Stability, streaming fixes and Save Stanton — Chapter 2.'}</div>
       <div class="tags">
-        <span class="tag">{de ? 'Stabilität' : 'Stability'}</span><span class="tag">Save Stanton</span><span class="tag">Entity Density</span><span class="tag hot">Ripper SMG</span>
+        <Schlagwort>{de ? 'Stabilität' : 'Stability'}</Schlagwort><Schlagwort>Save Stanton</Schlagwort><Schlagwort>Entity Density</Schlagwort><Schlagwort hot>Ripper SMG</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
@@ -222,12 +223,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-pyro-2.jpg"><div class="tbg" style="background-image:url('/assets/t-pyro-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Pyro</div><div class="sub">{de ? 'Schauplatz Ch.2' : 'Setting Ch.2'}</div></div>
-        <a class="tile word hot" href={de ? '/de/topics/4-0-1-fight-for-pyro.html' : '/topics/4-0-1-fight-for-pyro.html'}><span class="zoomic">→</span><b>SAVE<br>STANTON</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
-        <div class="tile word" data-info data-title="Entity Density" data-text={de ? 'Optimierung der Entity-Aufräum-Logik: zurückgelassene Objekte und angesammelte Spielobjekte werden besser bereinigt, was Performance und Server-Stabilität in dicht bevölkerten Zonen verbessert.' : 'Optimized entity cleanup logic: abandoned objects and accumulated game objects are cleaned up more effectively, improving performance and server stability in densely populated zones.'}><span class="zoomic">+</span><b>ENTITY<br>DENSITY</b><small>{de ? 'Aufräum-Logik' : 'Cleanup logic'}</small></div>
-        <div class="tile word" data-info data-title={de ? 'Streaming-Fixes' : 'Streaming Fixes'} data-text={de ? 'Verbesserungen am Persistent Entity Streaming: Aufzüge, Hangars und Innenräume laden zuverlässiger nach, weniger fehlende Geometrie und Hänger beim Betreten.' : 'Improvements to Persistent Entity Streaming: elevators, hangars and interiors load in more reliably, with less missing geometry and fewer hitches when entering.'}><span class="zoomic">+</span><b>STREAMING</b><small><Fragment set:html={de ? 'Aufzüge &amp; Hangars' : 'Elevators &amp; hangars'} /></small></div>
-        <div class="tile stat" data-info data-title={de ? 'Top-10 Crash-Fixes' : 'Top 10 Crash Fixes'} data-text={de ? '4.0.1 war ein Stabilitäts-Point-Release: gezielt wurden die häufigsten Client- und Server-Abstürze des 4.0-Starts behoben.' : '4.0.1 was a stability point release: it specifically targeted the most common client and server crashes from the 4.0 launch.'}><span class="zoomic">+</span><div class="num">Top-10</div><div class="cap">{de ? 'Crash-Fixes' : 'Crash Fixes'}</div></div>
-        <div class="tile word hot" data-info data-title="Ripper SMG" data-text={de ? 'Eine selbstgebaute Pyro-Laser-MP (Strahlenwaffe), zusammengeschraubt aus Greycat-Teilen — Abschluss-Belohnung für das Beenden von Save Stanton Kapitel 2, mit markantem Pyro-Design.' : 'A homemade Pyro laser SMG (energy weapon), cobbled together from Greycat parts — the completion reward for finishing Save Stanton Chapter 2, with a distinctive Pyro design.'}><span class="zoomic">+</span><b>RIPPER<br>SMG</b><small>{de ? 'Belohnung' : 'Reward'}</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-pyro-2.jpg"><div class="tbg" style="background-image:url('/assets/t-pyro-2.jpg')"></div><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><div class="lbl">Pyro</div><div class="sub">{de ? 'Schauplatz Ch.2' : 'Setting Ch.2'}</div></div>
+        <a class="tile word hot" href={de ? '/de/topics/4-0-1-fight-for-pyro.html' : '/topics/4-0-1-fight-for-pyro.html'}><span class="zoomic"><span aria-hidden="true">→</span><span class="zoomic__t">{de ? 'Öffnen' : 'Open'}</span></span><b>SAVE<br>STANTON</b><small>{de ? 'Detailseite ansehen' : 'View detail page'}</small></a>
+        <div class="tile word" data-info data-title="Entity Density" data-text={de ? 'Optimierung der Entity-Aufräum-Logik: zurückgelassene Objekte und angesammelte Spielobjekte werden besser bereinigt, was Performance und Server-Stabilität in dicht bevölkerten Zonen verbessert.' : 'Optimized entity cleanup logic: abandoned objects and accumulated game objects are cleaned up more effectively, improving performance and server stability in densely populated zones.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>ENTITY<br>DENSITY</b><small>{de ? 'Aufräum-Logik' : 'Cleanup logic'}</small></div>
+        <div class="tile word" data-info data-title={de ? 'Streaming-Fixes' : 'Streaming Fixes'} data-text={de ? 'Verbesserungen am Persistent Entity Streaming: Aufzüge, Hangars und Innenräume laden zuverlässiger nach, weniger fehlende Geometrie und Hänger beim Betreten.' : 'Improvements to Persistent Entity Streaming: elevators, hangars and interiors load in more reliably, with less missing geometry and fewer hitches when entering.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>STREAMING</b><small><Fragment set:html={de ? 'Aufzüge &amp; Hangars' : 'Elevators &amp; hangars'} /></small></div>
+        <div class="tile stat" data-info data-title={de ? 'Top-10 Crash-Fixes' : 'Top 10 Crash Fixes'} data-text={de ? '4.0.1 war ein Stabilitäts-Point-Release: gezielt wurden die häufigsten Client- und Server-Abstürze des 4.0-Starts behoben.' : '4.0.1 was a stability point release: it specifically targeted the most common client and server crashes from the 4.0 launch.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><div class="num">Top-10</div><div class="cap">{de ? 'Crash-Fixes' : 'Crash Fixes'}</div></div>
+        <div class="tile word hot" data-info data-title="Ripper SMG" data-text={de ? 'Eine selbstgebaute Pyro-Laser-MP (Strahlenwaffe), zusammengeschraubt aus Greycat-Teilen — Abschluss-Belohnung für das Beenden von Save Stanton Kapitel 2, mit markantem Pyro-Design.' : 'A homemade Pyro laser SMG (energy weapon), cobbled together from Greycat parts — the completion reward for finishing Save Stanton Chapter 2, with a distinctive Pyro design.'}><span class="zoomic"><span aria-hidden="true">+</span><span class="zoomic__t">Details</span></span><b>RIPPER<br>SMG</b><small>{de ? 'Belohnung' : 'Reward'}</small></div>
       </div>
     </div>
   </section>
@@ -247,7 +248,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Schiff' : 'Ship'}</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:aI4nAuwO1fE"><div class="sbg" style="background-image:url('/assets/vid-superhornet.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">{de ? 'Anvil · Jäger' : 'Anvil · Fighter'}</span><h3>F7C-M Super Hornet Mk II</h3></div></article>
+        <article class="ship reveal" data-lb="yt:aI4nAuwO1fE"><div class="sbg" style="background-image:url('/assets/vid-superhornet.jpg')"></div><span class="zoomic"><span aria-hidden="true">▶</span><span class="zoomic__t">Video</span></span><div class="ship__in"><span class="role">{de ? 'Anvil · Jäger' : 'Anvil · Fighter'}</span><h3>F7C-M Super Hornet Mk II</h3></div></article>
       </div>
     </div>
   </section>
@@ -257,8 +258,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Galerie' : 'Gallery'}</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-ffp-2.jpg"><img src="/assets/t-ffp-2.jpg" alt={de ? 'Save Stanton — Fraktionen' : 'Save Stanton — factions'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Save Stanton — Fraktionen' : 'Save Stanton — factions'}</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro" loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>Pyro</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-ffp-2.jpg"><img src="/assets/t-ffp-2.jpg" alt={de ? 'Save Stanton — Fraktionen' : 'Save Stanton — factions'} loading="lazy"><span class="zoomic"><span aria-hidden="true">⤢</span><span class="zoomic__t">{de ? 'Bild' : 'Image'}</span></span><figcaption>{de ? 'Save Stanton — Fraktionen' : 'Save Stanton — factions'}</figcaption></figure>
       </div>
     </div>
   </section>

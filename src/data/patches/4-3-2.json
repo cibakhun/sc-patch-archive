@@ -65,7 +65,7 @@
     },
     {
       "name": "Salvage-Überarbeitung & Refining",
-      "system": "Mining & Industrie",
+      "system": "Salvage",
       "kind": "gameplay",
       "desc": "Strukturelle Überarbeitung des Salvage-Systems mit erhöhten Materialwerten und ausgebauter Refining-Ökonomie. Bergung wird wirtschaftlich attraktiver; Spieler profitieren von verbessertem Loot-zu-Kredit-Verhältnis.",
       "facts": [

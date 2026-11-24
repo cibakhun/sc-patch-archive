@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, fits, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER, figure, activeShields } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -74,8 +74,8 @@ const rackName = (k) => {
 // Lackierungen heissen im Spiel "<Schiff> <Name> Livery". Sie stehen hier schon
 // unter "Lackierung" beim Schiff: Schiffsname und "Livery" wiederholten sich
 // nur (13-mal "Gladius … Livery"). Bleibt nichts uebrig, der volle Name.
-const paintLabel = (name) => {
-  const first = shipName(draft.ship).split(/\s+/)[0] ?? '';
+const paintLabel = (name, ship = draft.ship) => {
+  const first = shipName(ship).split(/\s+/)[0] ?? '';
   let s = String(name ?? '').replace(/ Livery(?= \(|$)/, '');
   if (first && s.toLowerCase().startsWith(`${first.toLowerCase()} `)) s = s.slice(first.length + 1);
   return s.trim() || String(name ?? '');
@@ -201,21 +201,24 @@ function specs(k) {
 }
 
 // Summen des ganzen Layouts: Feuerkraft, Salve, Raketen, Schild, Strom, Kuehlung, Quantum.
-// list: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
-function tally(pick, list = slots) {
+// list/ship: die Plaetze eines anderen Schiffs (Meine Layouts), sonst die des offenen.
+// Schild und Aufladung nur aus den Generatoren, die zugleich arbeiten (activeShields).
+function tally(pick, list = slots, ship = draft.ship) {
   const t = { fire: 0, alpha: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
+  const gens = [];
   for (const s of list) {
     const [k, n] = pick(s);
     const it = data.items[k];
     if (!it) continue;
     const x = it[8] ?? {};
-    if (it[2] === 'gun') { t.fire += it[7] * n; t.alpha += alphaOf(x) * n; }
+    if (it[2] === 'gun') { t.fire += figure(it) * n; t.alpha += alphaOf(x) * n; }
     else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
-    else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
+    else if (it[2] === 'shield') for (let i = 0; i < n; i++) gens.push([it[7], x.regen ?? 0]);
     else if (it[2] === 'power') t.power += it[7] * n;
     else if (it[2] === 'cooler') t.cool += it[7] * n;
     else if (it[2] === 'quantum') t.qt = Math.max(t.qt, it[7]);
   }
+  [t.shield, t.regen] = activeShields(gens, data.shieldAct?.[ship]);
   return t;
 }
 const TOT = [['fire', 'tot.fire', 'DPS'], ['alpha', 'tot.alpha', ''], ['ord', 'tot.ord', ''], ['ordn', 'tot.ordn', ''],
@@ -287,7 +290,14 @@ function adopt(ship, lo) {
 
 const shipSel = $('lo-shipsel');
 const nameIn = $('lo-name');
-shipSel.replaceChildren(...SHIPS.map((s) => el('option', { value: s.id }, s.maker ? `${s.name} · ${s.maker}` : s.name)));
+// Nach Hersteller gruppiert, die Option traegt nur den Namen: "Name · Hersteller"
+// schnitt in der geschlossenen Auswahl gerade das Ende ab, das Varianten trennt.
+const byMaker = new Map();
+for (const s of SHIPS) byMaker.set(s.maker || '', [...(byMaker.get(s.maker || '') ?? []), s]);
+shipSel.replaceChildren(...[...byMaker].sort(([a], [b]) => a.localeCompare(b, loc)).flatMap(([mk, list]) => {
+  const opts = list.map((s) => el('option', { value: s.id }, s.name));
+  return mk ? [el('optgroup', { label: mk }, opts)] : opts;
+}));
 
 function paintTop() {
   shipSel.value = draft.ship;
@@ -320,6 +330,16 @@ function paintSum() {
         deltaEl(Math.round(now[k] - stock[k]), false, nf),
         el('span', { class: `lo-st__bar${now[k] < stock[k] ? ' is-low' : now[k] > stock[k] ? ' is-up' : ' is-even'}`, 'aria-hidden': 'true', style: `--w:${(now[k] / top) * 100}%;--s:${(stock[k] / top) * 100}%` }));
     });
+    // Punktverteidigung: fest verbaut, eigene Zeile unter der Feuerkraft,
+    // nicht in ihrer Summe (Krisz 24.11.2026). Ohne Balken und ohne ▲/▼,
+    // weil kein Tausch sie aendert.
+    const pdc = gk === 'lo.sumAtk' ? data.pdc?.[draft.ship] : null;
+    if (pdc) {
+      rows.splice(rows.length ? 1 : 0, 0, el('div', { class: 'lo-st lo-st--pdc', title: fill(m('ex.pdc'), { n: nf.format(pdc[0]) }) },
+        el('span', { class: 'lo-st__l' }, m('tot.pdc')),
+        el('b', { class: 'lo-st__v' }, f1.format(Math.round(pdc[1] * 10) / 10), el('small', {}, ' DPS')),
+        el('span', { class: 'lo-d' })));
+    }
     return rows.length ? el('section', { class: 'lo-sumg' }, el('h3', {}, m(gk)), ...rows) : null;
   }).filter(Boolean));
 }
@@ -757,12 +777,15 @@ function savedFacts(e) {
   const rows = data?.ships?.[e.ship];
   if (!rows) return null;
   const list = shipSlots(rows);
-  const t = tally((s) => [e.slots?.[s.key] ?? s.stock, rackSlot(s, e.racks?.[s.key], data.racks).count], list);
+  const t = tally((s) => [e.slots?.[s.key] ?? s.stock, rackSlot(s, e.racks?.[s.key], data.racks).count], list, e.ship);
   const nums = [t.fire ? `${m('tot.fire')} ${nf.format(Math.round(t.fire))} DPS` : '', t.shield ? `${m('tot.shield')} ${nf.format(Math.round(t.shield))} HP` : ''].filter(Boolean).join(' · ');
   const used = new Map();
   for (const k of Object.values(e.slots ?? {})) used.set(k, (used.get(k) ?? 0) + 1);
   const named = [...used].map(([k, c]) => `${c > 1 ? `${nf.format(c)}×\u00a0` : ''}${itemName(k)}`);
-  const parts = named.length ? `${named.slice(0, 3).join(', ')}${named.length > 3 ? ', …' : ''}` : '';
+  // Die Lackierung zaehlt in "n Slots geaendert" mit; sie steht darum hier auch,
+  // hinter den Teilen und ausserhalb der Kappung auf drei.
+  const paint = e.paint ? data.paints?.[e.ship]?.list.find((r) => r[0] === e.paint)?.[1] : null;
+  const parts = [named.length ? `${named.slice(0, 3).join(', ')}${named.length > 3 ? ', …' : ''}` : '', paint ? `${m('cat.paint')} ${paintLabel(paint, e.ship)}`.replace(/ /g, '\u00a0') : ''].filter(Boolean).join(' · ');
   return nums || parts ? { nums, parts } : null;
 }
 function paintSaved() {

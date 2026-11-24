@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, uec, cmpSign, standingLabel, bpCount, clip, phLabel } from '../lib/missions';
+import { db, missions, repSummary, cmpSign, standingLabel, bpCount, clip, phLabel, missionName, missionZusatz, belohnung, regionenHinweis, regionFolge } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -14,6 +14,7 @@ import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { jsonForScript } from '../lib/safeJson';
+import { fremdLang, MISSIONSTEXT_LANG } from '../i18n/spieltext';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -26,7 +27,7 @@ const S = {
   de: {
     eyebrow: 'Missionsdatenbank',
     title: 'Missionen',
-    lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote, zu ${db.meta.counts.families} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
+    lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote, zu ${db.meta.counts.families.toLocaleString('de-DE')} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
     stMissions: 'Missionen', stVariants: 'Angebote', stBp: 'mit Blueprints', stRep: 'mit Reputationshürde',
     search: 'Suchen', searchPh: 'Titel, Auftraggeber, Fraktion, Ort …',
     fType: 'Typ', fGiver: 'Auftraggeber', fFaction: 'Fraktion', fLoc: 'Region', fLegal: 'Rechtslage',
@@ -38,9 +39,8 @@ const S = {
     filterBtn: 'Filter', close: 'Schließen',
     variants: 'Angebote', variant: 'Angebot',
     reward: 'Belohnung', rep: 'Reputation', region: 'Region', giver: 'Auftraggeber',
-    internal: 'Interner Name', internalT: 'Diese Mission hat im Spiel keinen Titel — angezeigt wird ihr interner Name.',
-    dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
-    noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
+    internal: 'Name abgeleitet', internalT: 'Diese Mission hat im Spiel keinen festen Titel — der Name hier ist aus ihrem Arbeitsnamen abgeleitet.',
+    dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; kursive Wörter stehen für Werte wie Ort oder Ziel.',
     srcH: 'Gut zu wissen',
    
     srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
@@ -53,7 +53,7 @@ const S = {
   en: {
     eyebrow: 'Mission database',
     title: 'Missions',
-    lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers, grouped into ${db.meta.counts.families} missions — with rewards, reputation, contractors and locations.`,
+    lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers, grouped into ${db.meta.counts.families.toLocaleString('en-US')} missions — with rewards, reputation, contractors and locations.`,
     stMissions: 'missions', stVariants: 'offers', stBp: 'with blueprints', stRep: 'with rep gate',
     search: 'Search', searchPh: 'Title, contractor, faction, location …',
     fType: 'Type', fGiver: 'Contractor', fFaction: 'Faction', fLoc: 'Region', fLegal: 'Legality',
@@ -65,9 +65,8 @@ const S = {
     filterBtn: 'Filters', close: 'Close',
     variants: 'offers', variant: 'offer',
     reward: 'Reward', rep: 'Reputation', region: 'Region', giver: 'Contractor',
-    internal: 'Internal name', internalT: 'This mission has no title in the game — its internal name is shown instead.',
-    dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
-    noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
+    internal: 'Derived name', internalT: 'This mission has no fixed title in the game — the name shown is derived from its working name.',
+    dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; italic words stand for values like location or target.',
     srcH: 'Good to know',
    
     srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
@@ -91,15 +90,19 @@ function titleParts(t: string): { t: string; ph: boolean }[] {
 const nf = lang === 'de' ? 'de-DE' : 'en-US';
 const cards = missions.map((m: Mission) => {
   const reps = repSummary(m);
+  const name = missionName(m);
   return {
     m,
-    parts: titleParts(m.title),
+    // Lesbarer Titel (UX-Audit F1): Platzhalter als kursives allgemeines
+    // Wort, darunter der Zusatz, der gleichnamige Missionen unterscheidet.
+    parts: name.teile,
+    zusatz: missionZusatz(m, lang),
     // Teaser statt Volltext: .mc__desc clampt auf 2 Zeilen — der volle
     // DataCore-Brief (bis ~2 KB) stand trotzdem im Markup und summierte sich
     // auf ~0,8 MB pro Sprachindex. clip() schneidet an der Wortgrenze und
     // zerreisst nie einen {Platzhalter} (Token enthalten keine Leerzeichen).
     descParts: m.desc ? titleParts(clip(m.desc, 200)) : null,
-    reward: rewardLabel(m, lang),
+    reward: belohnung(m, lang),
     rep: reps[0] ?? null,
     repMore: Math.max(0, reps.length - 1),
     legal: m.lawful && m.unlawful ? 'both' : m.lawful ? 'lawful' : 'unlawful',
@@ -137,7 +140,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       <h1 class="mx__h1">{S.title}</h1>
       <p class="mx__lead">{S.lead}</p>
       <div class="mx__stats">
-        <div><b>{db.meta.counts.families}</b><span>{S.stMissions}</span></div>
+        <div><b>{db.meta.counts.families.toLocaleString(nf)}</b><span>{S.stMissions}</span></div>
         <div><b>{db.meta.counts.live.toLocaleString(nf)}</b><span>{S.stVariants}</span></div>
         <div><b>{db.meta.counts.withBlueprints.toLocaleString(nf)}</b><span>{S.stBp}</span></div>
         <div><b>{db.meta.counts.withRep.toLocaleString(nf)}</b><span>{S.stRep}</span></div>
@@ -234,7 +237,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
           ~0,75 MB weniger pro Sprachindex. */}
       {groups.map((grp) => (
       <div class="mc-grp">
-      {grp.map(({ m, parts, descParts, reward, rep, repMore, legal, bps }) => (
+      {grp.map(({ m, parts, zusatz, descParts, reward, rep, repMore, legal, bps }) => (
         <article
           class="mc"
           data-type={m.types.join(' ')}
@@ -250,10 +253,11 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
           <a class="mc__link" href={L(`/missionen/${m.slug}.html`)}>
             <div class="mc__top">
               <h3 class="mc__h">
-                {parts.map((p) => (p.ph ? <i class="mc__ph">{p.t}</i> : <span>{p.t}</span>))}
+                {parts.map((p) => (p.gen ? <i class="mc__gen">{p.t}</i> : <span>{p.t}</span>))}
               </h3>
               {m.count > 1 && <span class="mc__n">{m.count}&thinsp;×</span>}
             </div>
+            {zusatz && <p class="mc__sub">{zusatz}</p>}
             <div class="mc__chips">
               {bps > 0 && (
                 <span class="mc__chip mc__chip--bp" title={S.bpT}>
@@ -268,19 +272,19 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
               {m.titleDynamic && !m.noTitle && <span class="mc__chip mc__chip--dyn" title={S.dynamicT}>{S.dynamic}</span>}
             </div>
             {descParts && (
-              <p class="mc__desc">
+              <p class="mc__desc" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
                 {descParts.map((p) => (p.ph ? <i class="mc__ph">{p.t}</i> : <span>{p.t}</span>))}
               </p>
             )}
             <dl class="mc__facts">
               <div><dt>{S.reward}</dt><dd
-                class={reward ? 'mc__uec' : 'mc__dim'}
-                title={!reward && m.calcReward ? S.calcRewardT : undefined}
-              >{reward ? `${reward} aUEC` : (m.calcReward ? S.calcReward : S.noReward)}</dd></div>
+                class={reward.zahl ? 'mc__uec' : 'mc__dim'}
+                title={reward.hinweis ?? undefined}
+              >{reward.text}</dd></div>
               <div><dt>{S.rep}</dt><dd>{rep
                 ? <>{rep.factionName}{rep.standing && <>{' '}<span class="mc__dim">{cmpSign(rep.comparison)} {standingLabel(rep, lang)}</span></>}{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
                 : <span class="mc__dim">—</span>}</dd></div>
-              <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.slice(0, 3).join(', ') : <span class="mc__dim">—</span>}</dd></div>
+              <div><dt>{S.region}</dt><dd title={regionenHinweis(m.localityNames, lang) ?? undefined}>{m.localityNames.length ? regionFolge(m.localityNames).slice(0, 3).join(', ') : <span class="mc__dim">—</span>}</dd></div>
             </dl>
           </a>
         </article>
@@ -461,6 +465,12 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
     border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
   }
+  /* Allgemeines Wort fuer einen Laufzeit-Platzhalter („Location"): kursiv
+     und gedaempft statt als Kaestchen — lesbar, aber als Stellvertreter
+     erkennbar (UX-Audit F1). */
+  .mc__gen { font-style: italic; font-weight: 600; color: color-mix(in srgb, var(--accent-2) 70%, var(--muted)); }
+  /* Was gleichnamige Missionen unterscheidet: Fracht, Route, Auftraggeber … */
+  .mc__sub { margin-top: -.25rem; font-size: var(--fs-6); color: var(--accent-2); line-height: 1.35; }
   .mc__n { font-family: var(--font-display); font-size: var(--fs-6); font-weight: 700; color: var(--accent); }
   .mc__chips { display: flex; flex-wrap: wrap; gap: .3rem; }
   .mc__chip {
