@@ -184,6 +184,14 @@ export const CHECKS = [
     checks: 'WCAG-AA-Kontrast an jeder Stelle, an der eine dekorative Schicht am Hintergrund von Text beteiligt ist — aus echten Bildpunkten gerechnet, nicht aus CSS abgeleitet',
   },
   {
+    // Ausnahme X-zwilling-je-sprache am 24.11.2026 entfernt: seit Paket C4
+    // heissen Items in beiden Sprachen englisch, der Zwillingshinweis steht
+    // auf EN und DE gleich (ohne die Ausnahme 0 unerklaerte Paare).
+    // VORGEFUEHRT ROT am selben Tag: p.dp-zwilling aus
+    // dist/de/items/deadrig-noxious-shotgun-2.html entfernt -> „Unerklaerter
+    // Rest (Soll 0): 1", EN p.dp-note.dp-zwilling gegen DE ul.dp-keys;
+    // mit der alten Ausnahme blieb derselbe Bruch gruen (79 Paare
+    // geschnitten). Datei zurueck, sha256 150c1023… wie vorher.
     id: 'verify:sync',
     npm: 'verify:sync',
     script: 'scripts/verify-sync.mjs',
@@ -273,6 +281,19 @@ export const CHECKS = [
     rail: 'A',
     checks:
       '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+  },
+  {
+    // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
+    // dem Baecker unbekannter Schalter (%DECALS) machte die Prism
+    // "Irradiated" zu Chrom, und kein Tor sah es. Kein env-Feld: kein git,
+    // kein Netz, kein Kindprozess — liest nur src/data/item-3d.json, den
+    // Befundbericht daneben und die Merkmal-Tabelle.
+    id: 'verify:item3d-befunde',
+    npm: 'verify:item3d-befunde',
+    script: 'scripts/verify-item3d-befunde.mjs',
+    rail: 'A',
+    checks:
+      'jedes Modell der 3D-Liste hat Befunde aus dem Massenlauf (src/data/item-3d-befunde.json) und keins steht zugleich unter „angehalten“; kein gelistetes Item traegt ein Spielmaterial-Merkmal, das die Tabelle scripts/lib/item3d-merkmale.mjs nicht kennt oder als Fehler fuehrt; jedes Merkmal ist heute so eingeordnet wie beim Lauf (sonst neu backen); jede benannte Ausnahme haengt an mindestens einem gelisteten Item; Klinke fuer gepruefte Modelle',
   },
   {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach

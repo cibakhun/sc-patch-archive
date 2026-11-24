@@ -211,6 +211,10 @@ diese Schnappschüsse nach einem Patch erneuern, laufen lokal auf dem
 Betreiber-Rechner und stehen als Skripte in `package.json`; danach gehört
 `npm run gate:data` dazu.
 
+Die 3D-Modelle der Items (nur Vorschau) backt ein eigener Lauf; Ablauf und
+die Merkmal-Tabelle, die über jedes Modell entscheidet, stehen in
+[`scripts/item3d/README.md`](../scripts/item3d/README.md).
+
 Fremdquellen werden auf der Seite genannt: Preise von UEX Corp,
 Hologramm-Dateien, Lacke und Varianten von FleetYards, Wiki-Texte von
 starcitizen.tools (CC BY-SA 4.0).

@@ -110,6 +110,7 @@ export function openP4k(path = DEFAULT_P4K) {
     while (p + 46 <= cdSize) {
       if (cd.readUInt32LE(p) !== 0x02014b50) break;
       const method = cd.readUInt16LE(p + 10);
+      const crc = cd.readUInt32LE(p + 16);
       let csize = cd.readUInt32LE(p + 20);
       let usize = cd.readUInt32LE(p + 24);
       const nameLen = cd.readUInt16LE(p + 28);
@@ -133,7 +134,7 @@ export function openP4k(path = DEFAULT_P4K) {
           }
           ep += 4 + sz;
         }
-        out.push({ name, method, csize, usize, lho });
+        out.push({ name, method, crc, csize, usize, lho });
       }
       p += 46 + nameLen + extraLen + commentLen;
     }

@@ -77,26 +77,4 @@ export const EXCLUSIONS = [
       'abgedeckt — es war unbelegte Drift und wurde in Task 2 durch ein deutsches Gegenstueck in ' +
       'src/pages/de/impressum.astro behoben (04-02-SUMMARY.md), nicht ausgenommen.',
   },
-  {
-    id: 'X-zwilling-je-sprache',
-    mode: 'cut-region',
-    /* Item- und Bauplan-Blaetter: nur dort steht der Zwillingshinweis. */
-    match: (enPath) => /^dist\/(?:items|crafting)\/[^/]+\.html$/.test(enPath),
-    /* Beide Seiten: ob ein Blatt einen Zwilling hat, haengt am Namen IN
-       DIESER SPRACHE — der Hinweis steht mal nur deutsch, mal nur englisch. */
-    side: 'both',
-    openTagPattern: () => /<p class="dp-note dp-zwilling"[^>]*>/,
-    tagName: 'p',
-    reason:
-      'UX-Audit D7 (24.11.2026), src/lib/itemSeo.ts itemZwillinge()/bauplanZwillinge(): ' +
-      'gleichnamige Seiten verlinken einander, und „gleichnamig" heisst gleicher Anzeigename ' +
-      'in der Sprache der Seite. Zwei Items koennen englisch verschieden heissen und deutsch ' +
-      'gleich (GCD-Army Arms: der Hinweis steht nur auf /de/), oder englisch gleich und ' +
-      'deutsch verschieden (Hellion Scattergun: nur auf /items/). Ein Hinweis auf einen ' +
-      'Zwilling, den es in der eigenen Sprache nicht gibt, waere falsch; deshalb faellt ' +
-      'p.dp-zwilling auf BEIDEN Fassungen aus dem Strukturvergleich. Was darin steht, ' +
-      'bewacht verify:bezugswege [9] (Titel je Sprache eindeutig, Zwillinge verlinkt). ' +
-      'Verschwindet die Klasse, trifft die Ausnahme nichts mehr und der Zombie-Waechter ' +
-      '(Zusicherung 5) meldet sie.',
-  },
 ];
