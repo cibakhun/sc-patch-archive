@@ -386,6 +386,13 @@ describe('Pagination (70 Einträge)', () => {
     assert.strictEqual(dom.elements['uif-stats-count'].textContent, '61–70 von 70 Einträgen');
   });
 
+  test('30b. Seitenwechsel rollt die Trefferliste nach oben', () => {
+    const grid = dom.elements['uif-results-grid'];
+    grid.scrollTop = 900; // Liste zuvor bis ans Ende gerollt
+    pag().querySelector('#uif-next-btn').click();
+    assert.strictEqual(grid.scrollTop, 0);
+  });
+
   test('31. Seiteninfo und Endzustand: „Weiter“ ist auf letzter Seite deaktiviert', () => {
     pag().querySelector('#uif-page-last').click();
     assert.ok(pag().querySelector('#uif-page-info').textContent.includes('Seite 2 von 2'));

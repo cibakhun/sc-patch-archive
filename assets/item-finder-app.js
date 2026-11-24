@@ -678,6 +678,10 @@
       if (viewMode === 'sets') renderSetsGrid(); else renderItemsGrid();
       renderStatsHeader();
       renderPagination();
+      // Die Trefferliste rollt in einem eigenen Kasten: ohne das stuende
+      // die neue Seite dort, wo die alte aufhoerte, also am Ende.
+      var grid = document.getElementById('uif-results-grid');
+      if (grid) grid.scrollTop = 0;
       var app = document.getElementById('uif-app');
       if (app && app.scrollIntoView) app.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
