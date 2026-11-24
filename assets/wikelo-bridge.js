@@ -77,14 +77,21 @@
     if (el.tagName === 'A' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
     e.preventDefault();
     openFor(el);
+    zaehlen(e, el);
   });
   // Links loesen mit Enter selbst einen Klick aus; nur die Namen ohne Seite
   // (role="button") brauchen Enter und Leertaste von hier.
   grid.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var el = e.target.closest('[data-item]');
-    if (el && el.tagName !== 'A') { e.preventDefault(); openFor(el); }
+    if (el && el.tagName !== 'A') { e.preventDefault(); openFor(el); zaehlen(e, el); }
   });
+  // Messereignis treffer-offen (assets/ereignisse.js) fuer die Namen ohne
+  // eigene Seite (role="button"): Namen mit Seite sind Links, die zaehlt
+  // ereignisse.js schon wie jeden Treffer-Link einer Werkzeugseite.
+  function zaehlen(e, el) {
+    if (e.isTrusted && el.tagName !== 'A' && window.vbEreignis) window.vbEreignis('treffer-offen');
+  }
 
   // ---- Popup (kompakter Item-Finder-Ausschnitt) ----
   var modal = document.getElementById('wkb-modal');

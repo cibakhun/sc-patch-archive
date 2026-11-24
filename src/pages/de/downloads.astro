@@ -299,7 +299,8 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
             Eine einzige HTML-Datei pro Guide, auf Englisch — <b>alle Bilder eingebettet</b>. Herunterladen, doppelklicken,
             offline lesen. Nichts zu entpacken.
           </p>
-          <div class="ops">
+          {/* data-ev-download: Messereignis download (assets/ereignisse.js), nur die Art. */}
+          <div class="ops" data-ev-download="onepager">
             {ONEPAGERS.map((o) => (
               <article class="op reveal">
                 <span class="op__kx">Onepager · Offline-HTML</span>
@@ -322,7 +323,8 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       </section>
     )}
 
-    <section id="medien">
+    {/* data-ev-download: Messereignis download fuer jeden Bild-Link darin. */}
+    <section id="medien" data-ev-download="bild">
       <div class="wrap">
         <div class="sec-head reveal">
           <span class="num">02</span>

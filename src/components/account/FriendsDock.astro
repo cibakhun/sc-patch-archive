@@ -16,6 +16,12 @@
 // Neue Nachrichten kommen per Realtime; steht die Verbindung nicht, fragt
 // die Leiste in Abständen nach. Auf dem Handy liegt der Chat als volle Fläche
 // über der Seite.
+//
+// Links auf eigene Seiten (Schiff, Item, mit Hangar auch Loadouts) werden im
+// Chat zu Links mit einer Karte darunter (src/scripts/chat-cards.ts); fremde
+// Adressen bleiben Text. 'vb:chat-open' nimmt eine Freundes-ID oder
+// { id, draft }: dann steht der Entwurf schon im Feld, gesendet wird erst
+// auf Knopfdruck („An Freund schicken“ im Bereich Flotte & Loadouts).
 interface Props {
   lang: 'de' | 'en';
 }
@@ -29,6 +35,7 @@ const COPY = {
     today: 'Heute', yesterday: 'Gestern', unread: 'ungelesen', you: 'Du',
     errSend: 'Nicht gesendet. Nochmal versuchen?', errFlood: 'Kurz durchatmen: zu viele Nachrichten auf einmal.',
     errLoad: 'Chat gerade nicht erreichbar.',
+    cards: { ship: 'Schiff', item: 'Item', loadout: 'Loadout', stock: 'Serie', change1: '1 Änderung', changes: '%n% Änderungen' },
   },
   en: {
     title: 'Friends', add: 'Add friend', online: 'Online', offline: 'Offline', hidden: 'Status hidden',
@@ -38,6 +45,7 @@ const COPY = {
     today: 'Today', yesterday: 'Yesterday', unread: 'unread', you: 'You',
     errSend: 'Not sent. Try again?', errFlood: 'Slow down: too many messages at once.',
     errLoad: 'Chat is unavailable right now.',
+    cards: { ship: 'Ship', item: 'Item', loadout: 'Loadout', stock: 'Stock', change1: '1 change', changes: '%n% changes' },
   },
 }[lang];
 const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
@@ -59,6 +67,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   data-l-err-send={COPY.errSend}
   data-l-err-flood={COPY.errFlood}
   data-l-err-load={COPY.errLoad}
+  data-cards={JSON.stringify(COPY.cards)}
 >
   <div class="fd-head">
     <h2>{COPY.title} <span class="fd-count" id="fdCount"></span></h2>
@@ -101,12 +110,15 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   import { resolveStatusKey, formatActivity } from '../../lib/presence';
   import { supabase } from '../../lib/supabase';
   import { rankBadge } from '../../lib/rankBadge';
+  import { renderChatBody, previewText, type CardCopy } from '../../scripts/chat-cards';
 
   const root = document.getElementById('friendsDock') as HTMLElement | null;
   if (root) {
     const D = root.dataset;
     const lang = D.lang === 'de' ? 'de' : 'en';
     const loc = lang === 'de' ? 'de-DE' : 'en-GB';
+    let cardCopy: CardCopy = { ship: 'Ship', item: 'Item', loadout: 'Loadout', stock: 'Stock', change1: '1 change', changes: '%n% changes' };
+    try { cardCopy = { ...cardCopy, ...JSON.parse(D.cards || '{}') }; } catch { /* Vorgabe */ }
     const $ = (id: string) => document.getElementById(id);
     const list = $('fdList')!;
     const empty = $('fdEmpty')!;
@@ -229,7 +241,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         tm.dateTime = m.created_at;
         tm.textContent = stampOf(m.created_at);
         nmRow.appendChild(tm);
-        sub.textContent = (m.sender_id === me ? (D.lYou || '') + ': ' : '') + m.body.replace(/\s+/g, ' ');
+        sub.textContent = (m.sender_id === me ? (D.lYou || '') + ': ' : '') + previewText(m.body, cardCopy).replace(/\s+/g, ' ');
         sub.classList.toggle('is-new', n > 0);
       } else {
         const so = subOf(p);
@@ -359,12 +371,11 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       b.dataset.from = m.sender_id;
       b.dataset.t = String(new Date(m.created_at).getTime());
       b.dataset.day = dayKey(m.created_at);
-      const p = document.createElement('p');
-      p.textContent = m.body;
+      const { text, cards } = renderChatBody(m.body, lang, cardCopy);
       const t = document.createElement('time');
       t.dateTime = m.created_at;
       t.textContent = timeOf(m.created_at);
-      b.append(p, t);
+      b.append(text, ...(cards ? [cards] : []), t);
       log.appendChild(b);
       if (m.id > lastId) lastId = m.id;
     };
@@ -391,7 +402,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       try { await supabase.rpc('mark_messages_read', { friend: other }); } catch { /* nächstes Öffnen */ }
     };
 
-    const openChat = async (id: string) => {
+    const openChat = async (id: string, draft = '') => {
       const p = friends.find((f) => f.id === id);
       if (!p || !me) return;
       chatWith = p;
@@ -403,9 +414,13 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       root.classList.add('is-chat');
       dock?.classList.add('is-chat');
       renderList();
-      input.value = '';
+      input.value = draft;
       autoGrow();
-      if (matchMedia('(pointer:fine)').matches) input.focus();
+      // Mit Entwurf immer ins Feld (Schreibmarke ans Ende), sonst nur mit Maus.
+      if (draft || matchMedia('(pointer:fine)').matches) {
+        input.focus({ preventScroll: true });
+        input.setSelectionRange(draft.length, draft.length);
+      }
       try {
         const { data, error } = await supabase.from('direct_messages')
           .select('id,sender_id,receiver_id,body,created_at,read_at')
@@ -440,7 +455,11 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     $('fcBack')!.addEventListener('click', closeChat);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && chatWith) closeChat(); });
     // Andere Stellen (Freunde-Bereich: „Nachricht") öffnen den Chat hier.
-    document.addEventListener('vb:chat-open', (e) => openChat(String((e as CustomEvent).detail || '')));
+    document.addEventListener('vb:chat-open', (e) => {
+      const d = (e as CustomEvent).detail as string | { id?: unknown; draft?: unknown } | null;
+      if (d && typeof d === 'object') openChat(String(d.id || ''), typeof d.draft === 'string' ? d.draft.slice(0, 2000) : '');
+      else openChat(String(d || ''));
+    });
 
     // Eingabefeld wächst mit bis zu fünf Zeilen; Enter sendet, Shift+Enter bricht um.
     const autoGrow = () => {
@@ -455,7 +474,8 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     let sending = false;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const body = input.value.trim();
+      const typed = input.value;
+      const body = typed.trim();
       if (!body || !chatWith || sending) return;
       sending = true;
       say('');
@@ -467,8 +487,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
           .single();
         if (error) throw error;
         if (chatWith?.id === to) {
-          input.value = '';
-          autoGrow();
+          // Nur leeren, was gesendet wurde: ein inzwischen eingesetzter
+          // Entwurf („An Freund schicken“) bleibt stehen.
+          if (input.value === typed) { input.value = ''; autoGrow(); }
           append(data as Msg);
           toBottom();
         }

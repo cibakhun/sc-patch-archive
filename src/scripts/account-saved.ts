@@ -12,6 +12,11 @@
 // Zeitstempeln zurück, und der Abgleich trägt beides ins Konto. Favoriten
 // liegen in der Tabelle favorites; Rückgängig legt die Zeile neu an.
 // Nach jeder Änderung: 'vb:saved' (Zahlen im Dashboard, Kacheln im Cockpit).
+//
+// „An Freund schicken“ (nur Loadouts, nur mit Freunden): Auswahl im Dialog
+// #svShare, dann öffnet die Freundesleiste den Chat mit dem Link als Entwurf
+// ('vb:chat-open' mit { id, draft }). Gesendet wird erst dort, auf Knopfdruck;
+// im Chat wird der Link zur Karte (src/scripts/chat-cards.ts).
 import { supabase } from '../lib/supabase';
 import { cssUrl } from '../lib/cssUrl';
 import { changeCount } from '../../assets/hangar-layouts.js';
@@ -109,6 +114,74 @@ function boot(root: HTMLElement) {
   // Nur IDs, die es noch gibt (ein gelöschtes Loadout belegt sonst einen Platz).
   const livePins = () => (pinned || []).filter((id) => layoutList().some((l) => l.id === id));
 
+  /* ----------------------------------------------- An Freund schicken --- */
+  // Freunde meldet FriendsManager per 'vb:friends'. Neu gemalt wird nur, wenn
+  // sich „hat Freunde“ ändert (davon hängt der Knopf ab), nicht bei jedem
+  // Präsenz-Takt.
+  type Friend = { id: string; name: string; handle: string; avatar: string; icon: string; color: string; online: boolean };
+  let friendsOf: Friend[] = [];
+  document.addEventListener('vb:friends', (ev) => {
+    const d = (ev as CustomEvent).detail as { friends?: Array<{ p?: Record<string, unknown> | null }> } | null;
+    const next: Friend[] = [];
+    for (const f of d?.friends || []) {
+      const p = f?.p;
+      if (!p || typeof p.id !== 'string') continue;
+      const handle = typeof p.handle === 'string' ? p.handle : '';
+      next.push({
+        id: p.id, handle,
+        name: (typeof p.display_name === 'string' && p.display_name) || handle || '?',
+        avatar: typeof p.avatar_url === 'string' ? p.avatar_url : '',
+        icon: typeof p.avatar_icon === 'string' ? p.avatar_icon : '',
+        color: typeof p.avatar_color === 'string' ? p.avatar_color : '',
+        online: p.presence === 'online' || p.presence === 'away',
+      });
+    }
+    next.sort((a, b) => Number(b.online) - Number(a.online) || a.name.localeCompare(b.name, loc));
+    const had = friendsOf.length > 0;
+    friendsOf = next;
+    if (had !== next.length > 0) render();
+  });
+  // Die Datenbank nimmt Nachrichten bis 2000 Zeichen; ein Loadout mit sehr
+  // vielen Änderungen passt als Link nicht hinein.
+  const MSG_MAX = 2000;
+  const shareDlg = document.getElementById('svShare') as HTMLDialogElement | null;
+  if (shareDlg) {
+    document.getElementById('svShareCancel')?.addEventListener('click', () => shareDlg.close());
+    // Klick neben den Kasten schließt wie Esc.
+    shareDlg.addEventListener('click', (ev) => { if (ev.target === shareDlg) shareDlg.close(); });
+  }
+  const share = (e: LayoutEntry, name: string) => {
+    if (!shareDlg || !friendsOf.length) return;
+    // Pfad ohne Sprache: der Chat zeigt jedem Leser das Ziel in seiner Sprache.
+    const draft = hangarLink(e, 'en');
+    if (draft.length > MSG_MAX) { toast(C.shareTooBig); return; }
+    $('svShareWhat').textContent = name;
+    $('svShareList').replaceChildren(...friendsOf.map((f) => {
+      const li = el('li');
+      const b = el('button', 'sv-share__f') as HTMLButtonElement;
+      b.type = 'button';
+      const av = el('span', 'sv-share__av');
+      if (f.color) { av.style.color = f.color; av.style.borderColor = f.color; }
+      if (f.avatar) {
+        const img = el('img');
+        img.src = f.avatar; img.alt = ''; img.loading = 'lazy';
+        av.appendChild(img);
+      } else av.textContent = f.icon || f.name.charAt(0).toUpperCase();
+      if (f.online) av.appendChild(el('i', 'sv-share__on'));
+      const txt = el('span', 'sv-share__t');
+      txt.append(el('b', '', f.name));
+      if (f.handle) txt.append(el('small', '', '@' + f.handle));
+      b.append(av, txt);
+      b.addEventListener('click', () => {
+        shareDlg.close();
+        document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: { id: f.id, draft } }));
+      });
+      li.appendChild(b);
+      return li;
+    }));
+    shareDlg.showModal();
+  };
+
   /* ------------------------------------------------------ Kartenbauer --- */
   const poster = (li: HTMLElement, img: string, ic: string, c: string) => {
     li.style.setProperty('--kc', c);
@@ -180,7 +253,13 @@ function boot(root: HTMLElement) {
         announce();
       });
     });
-    acts.append(adv, copy, rm);
+    acts.append(adv, copy);
+    if (friendsOf.length && shareDlg) {
+      const send = actBtn('ic-chat', C.share);
+      send.addEventListener('click', () => share(e, name));
+      acts.append(send);
+    }
+    acts.append(rm);
     if (pinned) {
       const on = pinned.includes(e.id);
       li.classList.toggle('is-pinned', on);
