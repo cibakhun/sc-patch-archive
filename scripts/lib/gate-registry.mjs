@@ -707,6 +707,34 @@ export const CHECKS = [
     // Items je Item verglichen, 0 abweichend.
   },
   {
+    // IA C8 (24.11.2026, Krisz: „Zusammenlegen mit 301“): 56 Items standen
+    // doppelt, unter einem alten Namen mit Bezugswegen und unter dem
+    // Spielnamen mit Spielwerten. Die Paare stehen in
+    // scripts/lib/item-namen-aliase.mjs. Still kaputt gehen kann: ein
+    // Datenlauf mit altem Bauskript legt die Doppel wieder an, eine Quelle
+    // benennt um und das Paar laeuft leer, eine alte Adresse verliert ihre
+    // Weiterleitung. Kein git, kein Netz, kein Kindprozess: committete JSON,
+    // nginx/umzuege.conf und dist/assets.
+    id: 'verify:namen-aliase',
+    npm: 'verify:namen-aliase',
+    script: 'scripts/verify-namen-aliase.mjs',
+    rail: 'A',
+    checks:
+      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; Klinken fuer Paare und gelesene Quellennamen',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau dieser Lieferung, vier
+    // Eingriffe, je Datei zurueckgespielt und per sha256 geprueft:
+    // „Xanthule Helmet“ als eigenes Item in dist/assets/universal-items.json
+    // -> [2] 1 FEHLER (nur dist, assets/ blieb 0); ein Paar „Gibt Es Nicht
+    // Helmet“ -> Xanthule Flight Helmet -> [3] 1 Paar ohne Quelle und [4]
+    // 2 Adressen ohne Weiterleitung; das Paar „Xanthule Helmet“ doppelt ->
+    // [1] 1 Widerspruch; die DE-Weiterleitung von xanthule-helmet entfernt
+    // -> [4] 2 (Zielseite empfaengt keine, alte Adresse fuehrt nirgends hin).
+    // Je exit 1. Gegen den Bau VOR dem Zusammenlegen: [2] 56 alte Namen als
+    // eigenes Item. Gruen danach: 56 Paare, 9.462 Items in assets/ und
+    // dist/assets/, 4.111 Quellennamen, 318 Weiterleitungen, 112 Paare x
+    // Sprachen mit Weg zur Zielseite.
+  },
+  {
     // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
     // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
     // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen

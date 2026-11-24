@@ -78,9 +78,13 @@ const DIST = resolve(ROOT, 'dist');
 // Klinken (Grundsatz 5): nur nach OBEN; nach unten nur per Commit, dessen
 // Botschaft die Ursache nennt. Erster Lauf 24.11.2026 (Katalog 4.10.3) —
 // Werte im Registry-Eintrag; die Klinken knapp darunter.
+// bezugsTabellen 10900 -> 10850 am 24.11.2026 (IA C8): 56 Doppel-Items sind
+// in ihr Spiel-Item aufgegangen; bei 49 hatten beide Seiten eine Tabelle,
+// jetzt hat sie nur noch die Seite mit dem Spielnamen (10.994 -> 10.896,
+// alle 110 Zielseiten mit Tabelle).
 const KLINKEN = {
   itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000,
-  poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10900,
+  poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10850,
   waffenBlaetter: 700, missionsNamen: 10700,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
