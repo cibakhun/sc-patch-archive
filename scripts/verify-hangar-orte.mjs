@@ -1142,10 +1142,12 @@ say(`    ${fitProben} Stellungen in ${hallen} Halle(n) nachgerechnet (Klinke ${M
 say('[6] Naht: Buehne, Controller und Terminal rufen einander, ?ort=leit in der Adresse');
 let naht = 0, kontoSeiten = 0, startProben = 0;
 {
-  const vSrc = existsSync(join(DIST, 'assets/hangar-viewer.js')) ? readFileSync(join(DIST, 'assets/hangar-viewer.js'), 'utf8') : '';
-  const cSrc = existsSync(join(DIST, 'assets/hangar-overview.js')) ? readFileSync(join(DIST, 'assets/hangar-overview.js'), 'utf8') : '';
-  const tSrc = String(termSrc ?? '');
-  const themeCss = existsSync(join(DIST, 'assets/theme.css')) ? readFileSync(join(DIST, 'assets/theme.css'), 'utf8') : '';
+  // auf LF: Unter Windows (core.autocrlf) kommt dist/ mit CRLF, die Muster unten erwarten \n
+  const aufLf = (t) => t.replace(/\r\n/g, '\n');
+  const vSrc = existsSync(join(DIST, 'assets/hangar-viewer.js')) ? aufLf(readFileSync(join(DIST, 'assets/hangar-viewer.js'), 'utf8')) : '';
+  const cSrc = existsSync(join(DIST, 'assets/hangar-overview.js')) ? aufLf(readFileSync(join(DIST, 'assets/hangar-overview.js'), 'utf8')) : '';
+  const tSrc = aufLf(String(termSrc ?? ''));
+  const themeCss = existsSync(join(DIST, 'assets/theme.css')) ? aufLf(readFileSync(join(DIST, 'assets/theme.css'), 'utf8')) : '';
   const NAHT = [
     [vSrc, /\n\s+place: \(name, sitz = false\) =>/, 'die Buehne liefert place nicht mehr'],
     [vSrc, /\n\s+canPlace: \(name\) =>/, 'die Buehne liefert canPlace nicht mehr'],
