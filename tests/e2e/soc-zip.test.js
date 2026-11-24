@@ -11,7 +11,8 @@ import { readZip } from '../../scripts/lib/soc-objects.mjs';
 // zentraler Name getrennt waehlbar.
 function zip(localName, centralName, body) {
   const data = Buffer.from(body);
-  const ln = Buffer.from(localName), cn = Buffer.from(centralName);
+  const ln = Buffer.isBuffer(localName) ? localName : Buffer.from(localName);
+  const cn = Buffer.isBuffer(centralName) ? centralName : Buffer.from(centralName);
   const local = Buffer.alloc(30);
   local.writeUInt32LE(0x04034b50, 0);
   local.writeUInt16LE(0, 8);
@@ -48,4 +49,13 @@ test('readZip liest weiter gleiche Namen', () => {
 
 test('readZip wirft, wenn der lokale Kopf zu einer anderen Datei gehoert', () => {
   assert.throws(() => readZip(zip('global\\entdata\\2.entxml', 'global/entdata/1.entxml', 'x')), /lokaler Kopf bei 0 gehoert zu/);
+});
+
+test('readZip vergleicht die Namen byteweise: ungueltige UTF-8-Bytes bleiben verschieden', () => {
+  // 0x82 und 0x84 sind beide kein gueltiges UTF-8 und fielen beim Dekodieren
+  // auf dasselbe Ersatzzeichen. Nur "\\" und "/" duerfen gleich gelten.
+  const name = (b) => Buffer.concat([Buffer.from('global\\'), Buffer.from([b]), Buffer.from('.entxml')]);
+  assert.throws(() => readZip(zip(name(0x82), name(0x84), 'x')), /lokaler Kopf bei 0 gehoert zu/);
+  const gleich = Buffer.concat([Buffer.from('global/'), Buffer.from([0x82]), Buffer.from('.entxml')]);
+  assert.equal(readZip(zip(name(0x82), gleich, 'x')).size, 1);
 });

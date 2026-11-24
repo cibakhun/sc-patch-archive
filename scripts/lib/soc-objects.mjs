@@ -71,8 +71,9 @@ export function readZip(buf) {
       // Verglichen wird der Name bis auf die Trenner: seit 4.10.3 (CL 13220821)
       // schreibt das Spiel im lokalen Kopf "\" und im Verzeichnis "/", vorher
       // standen beide gleich. Ohne diese Gleichsetzung brach datamine:loot mit
-      // 6.183 Lesefehlern bei 9.718 socpaks ab.
-      const trenner = (b) => b.toString('utf8').replace(/\\/g, '/');
+      // 6.183 Lesefehlern bei 9.718 socpaks ab. latin1 bildet jedes Byte auf
+      // genau ein Zeichen ab: verglichen werden die Bytes, nur 0x5c gilt als 0x2f.
+      const trenner = (b) => b.toString('latin1').replace(/\\/g, '/');
       if (local + 30 + lnl > cdAb || trenner(buf.subarray(local + 30, local + 30 + lnl)) !== trenner(buf.subarray(p + 46, p + 46 + nl))) {
         kaputt(`${name}: lokaler Kopf bei ${local} gehoert zu „${buf.toString('utf8', local + 30, Math.min(local + 30 + lnl, cdAb))}“`);
       }
