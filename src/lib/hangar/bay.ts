@@ -19,6 +19,8 @@ import { statRows } from '../itemStats';
 import { formatStat, percentile, shipData, shipFacts, type ShipId, type StatKey } from './catalog';
 import { vSize, vStatus } from '../../i18n/vehicleText';
 import { shipGeometry, type PortName, type StockItem, type Vec3 } from './ports';
+import { isMiningLaser } from '../shipFacts';
+import { layoutData } from './layouts';
 
 /** Die eine Tab-Liste. Die Seite rendert daraus die Tab-Knoepfe, ShipBay je Tab ein Panel. */
 export const TABS = ['overview', 'weapons', 'systems', 'cargo'] as const;
@@ -28,12 +30,12 @@ export const SLOT_TABS: readonly SlotTabKey[] = ['weapons', 'systems', 'cargo'];
 
 /** Was eine Zeile IST, abgeleitet aus dem Loadout-Item. Die Tabelle KIND ordnet ihr alles Weitere zu. */
 export type SlotKind =
-  | 'gun' | 'mannedTurret' | 'remoteTurret' | 'pdcTurret' | 'missile' | 'bomb' | 'cm'
+  | 'gun' | 'mannedTurret' | 'remoteTurret' | 'pdcTurret' | 'miningLaser' | 'missile' | 'bomb' | 'cm'
   | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar'
   | 'h2tank' | 'qttank' | 'orepod';
 
 export type GroupKey =
-  | 'pilot' | 'manned' | 'remote' | 'pdc' | 'missile' | 'bomb' | 'cm'
+  | 'pilot' | 'manned' | 'remote' | 'pdc' | 'mining' | 'missile' | 'bomb' | 'cm'
   | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar' | 'fuel' | 'ore';
 
 /**
@@ -65,6 +67,10 @@ const KIND: Readonly<Record<SlotKind, KindRule>> = {
   mannedTurret: { tab: 'weapons', group: 'manned', join: 'item', figure: 'dps', sub: 'maker' },
   remoteTurret: { tab: 'weapons', group: 'remote', join: 'item', figure: 'dps', sub: 'maker' },
   pdcTurret: { tab: 'weapons', group: 'pdc', join: 'item', figure: 'dps', sub: 'maker' },
+  // Bergbaulaser: eigene Gruppe ohne DPS, am Bug wie im Turm (UX-Pruefung P20,
+  // dieselbe Erkennung wie im Datenblatt). Der Katalog fuehrt fuer sie keine
+  // Bergbauwerte, deshalb keine Kennzahl statt einer falschen.
+  miningLaser: { tab: 'weapons', group: 'mining', join: 'item', figure: null, sub: 'maker' },
   missile: { tab: 'weapons', group: 'missile', join: 'item', figure: 'damage', sub: 'maker' },
   bomb: { tab: 'weapons', group: 'bomb', join: 'item', figure: 'damage', sub: 'maker' },
   cm: { tab: 'weapons', group: 'cm', join: 'item', figure: 'magazine', sub: 'maker' },
@@ -79,7 +85,7 @@ const KIND: Readonly<Record<SlotKind, KindRule>> = {
 };
 
 const GROUP_ORDER: Readonly<Record<SlotTabKey, readonly GroupKey[]>> = {
-  weapons: ['pilot', 'manned', 'remote', 'pdc', 'missile', 'bomb', 'cm'],
+  weapons: ['pilot', 'manned', 'remote', 'pdc', 'mining', 'missile', 'bomb', 'cm'],
   systems: ['power', 'cooler', 'shield', 'quantum', 'radar', 'fuel'],
   cargo: ['ore'],
 };
@@ -100,7 +106,7 @@ export const COMPARE: readonly {
   { key: 'specs', text: ['role', 'size'], stats: ['len', 'wid', 'hgt', 'mass', 'cargo', 'crew', 'pledge', 'price'], groups: [] },
   { key: 'flight', text: [], stats: ['scm', 'max', 'boost', 'pitch', 'yaw', 'roll', 'qtSpeed', 'qtRange', 'h2'], groups: [] },
   { key: 'combat', text: [], stats: ['hull', 'shield', 'dps', 'tdps', 'missiles'], groups: [] },
-  { key: 'weapons', text: [], stats: [], groups: ['pilot', 'manned', 'remote', 'pdc', 'missile', 'bomb', 'cm'] },
+  { key: 'weapons', text: [], stats: [], groups: ['pilot', 'manned', 'remote', 'pdc', 'mining', 'missile', 'bomb', 'cm'] },
   { key: 'systems', text: [], stats: [], groups: ['power', 'cooler', 'shield', 'quantum', 'radar'] },
 ];
 
@@ -111,7 +117,9 @@ const TURRET_KIND: Readonly<Record<NonNullable<StockItem['turretKind']>, SlotKin
 
 function kindOf(it: StockItem): SlotKind {
   switch (it.cat) {
-    case 'weapon': return it.carrier === 'turret' ? TURRET_KIND[it.turretKind ?? 'manned'] : 'gun';
+    case 'weapon':
+      if (isMiningLaser({ name: it.name ?? '', cls: it.cls })) return 'miningLaser';
+      return it.carrier === 'turret' ? TURRET_KIND[it.turretKind ?? 'manned'] : 'gun';
     case 'missile': return it.cls.startsWith('BOMB_') ? 'bomb' : 'missile';
     case 'countermeasure': return 'cm';
     case 'h2fueltank': return 'h2tank';
@@ -188,6 +196,8 @@ export interface SlotGroup {
   readonly title: string;
   /** Gruppensumme aus vehicles.json: '1,944.5 DPS', '6', 'H2 1.6 SCU · QT 0.6 SCU'. */
   readonly total: string | null;
+  /** Zusatz zur Summe: beim Schild mit mehr Generatoren, als laufen, '2 von 3 laufen'. */
+  readonly note: string | null;
   readonly rows: readonly SlotRow[];
 }
 
@@ -300,6 +310,7 @@ const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => strin
   manned: (v, lang) => formatStat('dps', pos(turretDps(v, 'Bemannte Türme')), lang),
   remote: (v, lang) => formatStat('dps', pos(turretDps(v, 'Ferngesteuerte Türme')), lang),
   pdc: (v, lang) => formatStat('dps', pos(turretDps(v, 'Punktverteidigung (PDC)')), lang),
+  mining: () => null,
   missile: (v, lang) => countText(v.missileCount, lang),
   bomb: () => null,
   cm: (v, lang) => countText(v.cmLaunchers, lang),
@@ -447,7 +458,13 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
         rowOf.set(dk, row);
         return row;
       });
-      return [{ key: g, title: t(`grp.${g}`), total: GROUP_TOTAL[g](v, lang), rows }];
+      // Mehr Schildgeneratoren, als laufen: Die Summe ist die der stärksten,
+      // nicht Stückzahl mal HP (UX-Prüfung P19). Wie viele laufen, sagt
+      // dieselbe Zahl, mit der Werkstatt und Loadout rechnen (shieldAct).
+      const act = g === 'shield' ? layoutData().shieldAct[id] ?? 0 : 0;
+      const gens = act ? mine.reduce((a, [, d]) => a + d.count, 0) : 0;
+      const note = gens > act ? t('grp.shield.aktiv', { n: num(act, lang), m: num(gens, lang) }) : null;
+      return [{ key: g, title: t(`grp.${g}`), total: GROUP_TOTAL[g](v, lang), note, rows }];
     });
   };
 
