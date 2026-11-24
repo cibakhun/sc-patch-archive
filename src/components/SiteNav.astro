@@ -668,9 +668,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav__areas { grid-column: 2; grid-row: 1; justify-self: center; display: flex; align-items: center; gap: 0.1rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
     .snav__left { grid-column: 3; }
     .snav__right { grid-column: 4; }
-    .snav__left > :global(.fxsw) { display: none; }
+    /* Klasse am Huellen-Span (FxToggle place="bar"), nicht am Knopf; und der
+       Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
+       .snav__menu-txt (gleiche Spezifitaet) und beides stuende weiter da. */
+    .snav__left > :global(.fxsw-wrap--bar) { display: none; }
     .snav__search kbd { display: none; }
-    .snav__menu-txt--open { display: none; }
+    .snav__menu-btn .snav__menu-txt--open { display: none; }
   }
   .snav__areas a {
     position: relative;
@@ -701,6 +704,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     height: 2px;
     background: currentColor;
     opacity: 0.55;
+  }
+  /* Bis 1400 px sind es nur rund 20 px Luft je Seite: die Bereichslinks
+     ruecken etwas enger. */
+  @media (min-width: 1280px) and (max-width: 1399px) {
+    .snav__areas a { padding: 0 0.42rem; }
+    .snav__areas a[aria-current]::after { left: 0.42rem; right: 0.42rem; }
   }
   .snav__search {
     display: inline-flex;
