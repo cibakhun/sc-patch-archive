@@ -52,7 +52,8 @@ async function loadTs(rel) {
   return import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 }
 const L = await loadTs('src/lib/im-terminal.ts');
-const read = (p) => fs.readFileSync(path.resolve(p), 'utf8');
+// auf LF: unter Windows (core.autocrlf) kommen die Quellen mit CRLF, die Muster erwarten \n
+const read = (p) => fs.readFileSync(path.resolve(p), 'utf8').replace(/\r\n/g, '\n');
 
 const ORIGIN = 'https://verse-base.com';
 const LOGIN = '/de/account/login.html';
