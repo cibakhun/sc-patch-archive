@@ -61,6 +61,11 @@
 //      dazu — das meldet die Bilanz, blockt aber nicht, weil neue Spieldaten
 //      (ein Patch mit neuen Missionen) den Anteil heben, ohne dass hier
 //      etwas falsch waere (Grundsatz 3).
+//  13  Eigennamen wie im Client: Die Ueberschrift eines Itemblatts ist auf
+//      /de/items/<id>.html dieselbe wie auf /items/<id>.html, der englische
+//      Name aus dem Spiel. Der deutsche Name der Spieldaten steht als
+//      Zweitname (p.dp-alt) daneben (Sprachregel, Paket C4). Selbstauskunft
+//      mit Klinke fuer die verglichenen Paare.
 //   Die Wertnamen des Craftings (src/i18n/craftingWerte.ts) laufen seit dem
 //   24.11.2026 als eigener Katalog WERTE durch Regel 1: "Recoil Smoothness"
 //   auf einer DE-Seite ist ein Katalogtext der anderen Sprache.
@@ -108,6 +113,8 @@ const MIN_ABSAETZE = Number(argWert('--klinke-absaetze') ?? 60_000);
 // Wandert nur nach unten (Grundsatz 5), nach oben nur per Commit, der den
 // neuen Spieltext nennt.
 const ANTEIL_DECKE = Number(argWert('--decke-spieltext') ?? 0.22);
+// Regel 13, gemessen am 24.11.2026: 5.821 Itemblaetter je Sprache.
+const MIN_NAMENSPAARE = Number(argWert('--klinke-namen') ?? 5_500);
 
 // Benannte Ausnahmen fuer Regel 2 (Grundsatz 6): deutsche Katalogwoerter,
 // die zugleich englische Woerter sind. Trifft eine nichts mehr, reisst das
@@ -163,6 +170,15 @@ const absatzOffen = new Map(ABSATZ_AUSNAHMEN.map((a) => [a, 0]));
 const fAbsatz = new Map(); // Bereich + Element -> { n, bsp }
 let absaetzeGeprueft = 0, absaetzeDe = 0, spieltextDe = 0;
 const seitenMitSpieltext = new Set();
+/* Regel 13: Ueberschrift je Itemblatt und Sprache, Schluessel = Item-Id. */
+const ITEMBLATT_RE = /^\/(de\/)?items\/([^/]+)\.html$/;
+// Verglichen wird das Markup der Ueberschrift, wie es im Bau steht: beide
+// Sprachen rendert dieselbe Vorlage, also muss es zeichengleich sein.
+const h1Text = (html) => {
+  const m = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
+  return m ? m[1].replace(/\s+/g, ' ').trim() : null;
+};
+const h1De = new Map(), h1En = new Map();
 const bereichVon = (page) => {
   const g = page.split('/').filter(Boolean);
   const de = g[0] === 'de' || page === '/de.html';
@@ -220,6 +236,8 @@ for (const f of seiten) {
   const fremd = de ? 'en' : 'de';
   // Blattelemente, die ausdruecklich die andere Sprache tragen, sind erlaubt.
   const roh = readFileSync(f, 'utf8');
+  const blatt = ITEMBLATT_RE.exec(page);
+  if (blatt) (blatt[1] ? h1De : h1En).set(blatt[2], h1Text(roh));
   for (const a of absaetze(roh, de ? 'de' : 'en')) {
     absaetzeGeprueft++;
     if (de) {
@@ -329,6 +347,15 @@ if (quellenMitSprache < MIN_QUELLEN) fehler.push(`nur ${quellenMitSprache} Quell
 for (const a of [...WORT_AUSNAHMEN, ...UMLAUT_AUSNAHMEN]) if (!benutzt.has(a)) fehler.push(`Zombie-Ausnahme „${a.wort}": trifft nichts mehr — raus damit`);
 for (const [a, n] of internOffen) if (!n) fehler.push(`Zombie-Ausnahme „${a.name}" (Regel 11): trifft nichts mehr — raus damit`);
 for (const [a, n] of absatzOffen) if (!n) fehler.push(`Zombie-Ausnahme „${a.name}" (Regel 12): trifft nichts mehr — raus damit`);
+const fName = [];
+let namenspaare = 0;
+for (const [id, de] of h1De) {
+  if (!h1En.has(id)) continue;
+  namenspaare++;
+  if (de !== h1En.get(id)) fName.push(`/de/items/${id}.html: „${de}" statt „${h1En.get(id)}"`);
+}
+console.log(`Namen (Regel 13): ${namenspaare.toLocaleString('de-DE')} Itemblaetter in beiden Sprachen verglichen (Klinke ${MIN_NAMENSPAARE.toLocaleString('de-DE')})`);
+if (namenspaare < MIN_NAMENSPAARE) fehler.push(`nur ${namenspaare} Itemblatt-Paare verglichen (Klinke ${MIN_NAMENSPAARE}) — stimmt der Pfad /items/<id>.html noch?`);
 if (absaetzeGeprueft < MIN_ABSAETZE) fehler.push(`nur ${absaetzeGeprueft} Absaetze mit eindeutiger Sprache (Klinke ${MIN_ABSAETZE}) — erkennt absatzSprache() noch etwas?`);
 
 zeige(fMehrwort, '1 Katalogtext der anderen Sprache');
@@ -345,6 +372,7 @@ zeige(fDatum, '8 Datum im Format der anderen Sprache');
 zeige(fDezimal, '9 Dezimalzahl im Format der anderen Sprache (toLocaleString / num(v, lang))');
 zeige(fDeWort, '10 deutsches Wort auf EN-Seite (Umlaut oder Bedienwort)');
 zeige(fIntern, '11 interner Bezeichner im sichtbaren Text (Anzeigenamen statt Spieldaten-Schluessel)');
+zeige(fName, '13 Itemblatt auf /de/ mit anderem Namen als auf EN (Eigenname wie im Client, deutscher Name als Zweitname: displayName/altName in src/lib/items.ts)');
 console.log(`\n11 interne Bezeichner, offen und benannt (keine FEHLER, Schulden): ${[...internOffen].map(([a, n]) => `${a.name} ${n.toLocaleString('de-DE')}`).join(' · ')}`);
 const absatzFehler = [...fAbsatz.values()].reduce((s, e) => s + e.n, 0);
 if (absatzFehler) {
@@ -356,7 +384,7 @@ console.log(`12 Absaetze, offen und benannt (keine FEHLER, Schulden): ${[...absa
 if (anteil > ANTEIL_DECKE) console.log(`\n== WARNUNG 12 englischer Spieltext auf DE-Seiten: ${pz(anteil)} ueber der Decke ${pz(ANTEIL_DECKE)} — neuer Spieltext ohne deutsche Fassung? Uebersetzen, oder die Decke per Commit mit Anlass heben ==`);
 for (const f of fehler) console.log(`\n== FEHLER ${f} ==`);
 
-const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fIntern.length + absatzFehler + fehler.length;
+const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fIntern.length + fName.length + absatzFehler + fehler.length;
 if (summe) {
   console.log(`\nverify:sprache ROT — ${summe} Befund(e).`);
   process.exit(1);

@@ -824,7 +824,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), kein englischer Wertname des Craftings auf DE-Seiten (Katalog WERTE aus src/i18n/craftingWerte.ts), kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes lang-Attribut (Spieltext gekennzeichnet, eigener Text uebersetzt, docs/sprachregel.md; offene Stellen als benannte Ausnahmen mit Zombie-Waechter), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten und ein Anteil englischen Spieltexts auf DE-Seiten ueber der Decke als WARNUNG; Klinken fuer Seiten, Textstellen, Katalogtexte, Quelldateien und Absaetze',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), kein englischer Wertname des Craftings auf DE-Seiten (Katalog WERTE aus src/i18n/craftingWerte.ts), kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes lang-Attribut (Spieltext gekennzeichnet, eigener Text uebersetzt, docs/sprachregel.md; offene Stellen als benannte Ausnahmen mit Zombie-Waechter), die Ueberschrift eines Itemblatts auf /de/items/<id>.html zeichengleich mit /items/<id>.html (Eigenname englisch wie im Spiel, Klinke fuer die Namenspaare), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten und ein Anteil englischen Spieltexts auf DE-Seiten ueber der Decke als WARNUNG; Klinken fuer Seiten, Textstellen, Katalogtexte, Quelldateien und Absaetze',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -875,6 +875,12 @@ export const CHECKS = [
     // Schiffsbeschreibungen). Gruen nach der Korrektur derselben Lieferung;
     // die eine Ausnahme (Microid Battle Suit, Beschreibung als Name) ist in
     // Gebrauch. Auf den EN-Seiten kein deutscher Absatz.
+    // Regel 13 (Itemblatt traegt auf DE dieselbe Ueberschrift wie auf EN, den
+    // englischen Namen aus dem Client) kam am 24.11.2026 mit Paket C4.
+    // VORGEFUEHRT ROT gegen den Vorschau-Bau von ead9ecfb: 2.571 von 5.821
+    // DE-Itemblaettern mit deutschem Namen ("10er-Serie-Greatsword-Kanone"
+    // statt "10-Series Greatsword Cannon", "Origin Jumpworks 300i:
+    // Schiffspanzerung" statt "300i Ship Armor"). Gruen nach der Korrektur.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer

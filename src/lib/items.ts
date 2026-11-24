@@ -507,17 +507,26 @@ export const num = (n: number, lang: Locale, maxFrac?: number) =>
   n.toLocaleString(NUM[lang], maxFrac == null ? undefined : { maximumFractionDigits: maxFrac });
 export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 
-/** Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen unterscheidet. */
-export function altName(i: Item, lang: Locale): string | null {
+/**
+ * Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen
+ * unterscheidet — auf beiden Sprachen der Zweitname, und die Suche findet das
+ * Item unter beiden Namen. Seit der Sprachregel (Paket C4, docs/sprachregel.md)
+ * ist der englische Name der Anzeigename, auch auf /de/.
+ */
+export function altName(i: Item, _lang?: Locale): string | null {
   const de = i.game?.nameDe?.trim();
   if (!de || de === i.name) return null;
-  return lang === 'de' ? i.name : de;
+  return de;
 }
 
-/** Anzeigename in der Sprache der Seite (DE nutzt den Spieldaten-Namen). */
-export function displayName(i: Item, lang: Locale): string {
-  const de = i.game?.nameDe?.trim();
-  return lang === 'de' && de ? de : i.name;
+/**
+ * Anzeigename: der englische Name, wie ihn der Client zeigt, in beiden
+ * Sprachen (Sprachregel, Entscheidung E-Sprache 24.11.2026: Eigennamen aus
+ * dem Spiel englisch; Spieler suchen mit dem Namen aus dem Spiel). Der
+ * deutsche Name steht als Zweitname daneben (altName).
+ */
+export function displayName(i: Item, _lang?: Locale): string {
+  return i.name;
 }
 
 /**
