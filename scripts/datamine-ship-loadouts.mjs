@@ -163,6 +163,16 @@ function turretKind(r) {
 // je Schiff zurueckgesetzt) zaehlt die Turm-STAENDE selbst mit — auch wenn
 // ein Stand im Stock-Loadout keine Waffe traegt, bleibt er ein Stand.
 let turretStationAcc = [];
+// Standardbelegung eines Item-Records (SEntityComponentDefaultLoadoutParams), gecacht.
+const ownLoadoutCache = new Map();
+function ownLoadoutEntries(r) {
+  if (!r) return [];
+  if (ownLoadoutCache.has(r.id)) return ownLoadoutCache.get(r.id);
+  const o = db.readRecord(r, { maxDepth: 14, typed: true });
+  const list = entriesOf(findType(o, /SEntityComponentDefaultLoadoutParams/i));
+  ownLoadoutCache.set(r.id, list);
+  return list;
+}
 const entriesOf = (x) => Array.isArray(x?.loadout?.entries) ? x.loadout.entries : [];
 const carrierKind = (info, r) =>
   info && info.cat === 'mount' && /\/turrets?\//.test(info.file)
@@ -180,7 +190,14 @@ function subtreeItems(entry, acc = [], depth = 0, carrier = null) {
   // denselben Port "hardpoint_class_2" zweimal mit derselben Waffe — ohne
   // diese Sperre zaehlte das als zwei Kanonen (doppelte DPS).
   const seenPorts = new Set();
-  for (const n of entriesOf(entry)) {
+  // Ein Traeger (Turm, Halterung, Gimbal) ohne eigene Belegung im
+  // Schiffs-Loadout bringt seine Standardbelegung aus dem eigenen Record mit,
+  // wie im Spiel. Belegt an den Punktverteidigungs-Tuermen: Polaris
+  // `hardpoint_pdc_top_01` = Turret_PDC_BEHR_A ohne Kinder, die Kanone steht
+  // nur im Turm-Record. Ohne diesen Rueckfall fehlten alle PDC-Waffen.
+  const kids = entriesOf(entry);
+  const list = kids.length || !info || info.cat !== 'mount' ? kids : ownLoadoutEntries(r);
+  for (const n of list) {
     const p = n?.itemPortName;
     if (p) { if (seenPorts.has(p)) continue; seenPorts.add(p); }
     subtreeItems(n, acc, depth + 1, next);

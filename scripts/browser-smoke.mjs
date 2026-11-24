@@ -145,11 +145,11 @@ const SEITEN = [
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
   { id: 'downloads', en: '/downloads.html', de: '/de/downloads.html', leit: 'main' },
   // Zwei unabhaengige ToolHelp-Instanzen auf EINER Seite (Phase 1.2, Plan 02).
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2 },
+  // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
   // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: (page) => probeZurueckMarke(page, 'Mining-Thema') },
-  // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
-  { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true },
+  { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true, probe: (page) => probeZurueckMarke(page, 'Patchseite') },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
   { id: 'item-detail', en: '/items/hardy-boots.html', de: '/de/items/hardy-boots.html', leit: 'main' },
   // Der 3D-Hangar, als tiefer Link auf ein Schiff, das nicht das Startschiff
@@ -1789,9 +1789,11 @@ async function probeRezeptDialog(p, wo) {
    der Crafting-Seite weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC
    „Kann weg“). Auf jeder anderen Blattseite bleibt sie stehen: sichtbar, mit
    Ziel und Text. Kippt die Vorgabe des Schalters, verloeren gut hundert
-   Seiten ihren Rueckweg, und kein anderes Tor saehe es. Gemessen wird an der
-   Mining-Themenseite; bis zur Abnahme der Werkbank (13.11.2026) stand die
-   Probe an der bisherigen Crafting-Seite.
+   Seiten ihren Rueckweg, und kein anderes Tor saehe es. Gemessen wird an einer
+   Patchseite („← Patch-Archiv“). Bis zur Abnahme der Werkbank (13.11.2026)
+   stand die Probe an der bisherigen Crafting-Seite, bis zum 24.11.2026 an der
+   Mining-Themenseite: seit UX-Audit A3 ist die der Kopf des Bereichs Mining
+   und keine Blattseite eines Patches mehr, ihr Rueckweg ist die Bereichsleiste.
    Sichtbar heisst hier wie ueberall im Skript SICHTBAR (oben): eine Marke
    mit visibility:hidden oder opacity:0 hat noch ihren Kasten und gaelte
    sonst als da (Hinweis von CodeRabbit an #349). */

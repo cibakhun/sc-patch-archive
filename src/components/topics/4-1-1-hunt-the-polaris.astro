@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-1-1.html' : '/patches/sc-4-1-1.html'}>Alpha 4.1.1 · Balancing &amp; Fleet Week</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Server-Event' : ' &nbsp;·&nbsp; Server Event'} /></div>
       <h1><span class="thin">Fleet Week 2955</span>Hunt The Polaris</h1>
       <p class="lead">{de ? 'Waehrend der Fleet Week stehlen die Frontier Fighters eine RSI Polaris — und der ganze Server jagt sie quer durch Stanton bis zum letzten Gefecht an einem fluechtigen Wurmloch.' : 'During Fleet Week the Frontier Fighters steal an RSI Polaris — and the whole server hunts it across Stanton to a final showdown at a fleeting wormhole.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Server-weites Event' : 'Server-wide event'}</span><span class="tag">Fleet Week</span><span class="tag">RSI Polaris</span><span class="tag">Frontier Fighters</span><span class="tag">{de ? 'Geteilte Belohnung' : 'Shared reward'}</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Server-weites Event' : 'Server-wide event'}</Schlagwort><Schlagwort>Fleet Week</Schlagwort><Schlagwort>RSI Polaris</Schlagwort><Schlagwort>Frontier Fighters</Schlagwort><Schlagwort>{de ? 'Geteilte Belohnung' : 'Shared reward'}</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

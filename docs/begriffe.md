@@ -42,7 +42,7 @@ Die Leiste zeigt die sieben Bereiche; ein Bereich führt auf seine erste Seite.
 | | `blueprints` | `/crafting.html` | Blueprint-Verzeichnis | Blueprint directory | Alle Blueprints nach Kategorie / Every blueprint by category |
 | Schiffe / Ships | `schiffe` | `/schiffe.html` | Schiffe | Ships | Datenblätter & Specs / Data sheets & specs |
 | | `hangar` (nur Vorschau) | `/hangar.html` | Hangar | Hangar | Jedes Schiff in 3D / Every ship in 3D |
-| | `loadout` (nur Vorschau) | `/hangar-loadout.html` | Advanced Loadout | Advanced Loadout | Ausstattung mit allen Werten / Components with every stat |
+| | `loadout` (nur Vorschau) | `/hangar-loadout.html` | Advanced Loadout | Advanced loadout | Ausstattung mit allen Werten / Components with every stat |
 | Missionen / Missions | `missionen` | `/missionen.html` | Missionen | Missions | Belohnungen & Ruf / Rewards & reputation |
 | Mining | `mining` | `/topics/mining.html` | Mining | Mining | Mineralien & Scans / Minerals & scans |
 | | `fracturing` | `/fracturing.html` | Fracturing | Fracturing | Bricht der Brocken? / Will the rock break? |

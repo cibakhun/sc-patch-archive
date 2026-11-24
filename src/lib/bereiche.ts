@@ -94,8 +94,9 @@ const ICON = {
 };
 
 // Reihenfolge = Reihenfolge in jeder Leiste. Bilder: dieselben kuratierten
-// Motive wie die Startseite; Discord, Unterstuetzen, Precision Jump und die
-// Themen tragen BEWUSST keines (kein ehrliches Motiv, das Glyph traegt).
+// Motive wie die Startseite; Discord, Unterstuetzen und die Themen tragen
+// BEWUSST keines (kein ehrliches Motiv, das Glyph traegt). Precision Jump
+// bekam mit seiner Kachel auf der Startseite (A5) den Sprungpunkt.
 export const BEREICHE: BereichQuelle[] = [
   {
     key: 'items',
@@ -118,7 +119,7 @@ export const BEREICHE: BereichQuelle[] = [
         pre: ['/item-finder.html'],
         such: 'items finder preise prices shops loot fundorte kaufen buy',
         icon: ICON.finder,
-        bild: 'cz-loot',
+        bild: 't-supply-1',
       },
       {
         key: 'sets',
@@ -177,7 +178,7 @@ export const BEREICHE: BereichQuelle[] = [
         sub: { de: 'Jedes Schiff in 3D', en: 'Every ship in 3D' },
         pre: ['/hangar.html', '/hangar-bay/'],
         vorschau: true,
-        such: 'hangar 3d halle hall modell model',
+        such: 'hangar 3d halle hall schiffshalle modell model',
         icon: ICON.hangar,
         // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
         bild: 'img-hammerhead',
@@ -185,11 +186,11 @@ export const BEREICHE: BereichQuelle[] = [
       {
         key: 'loadout',
         path: '/hangar-loadout.html',
-        name: { de: 'Advanced Loadout', en: 'Advanced Loadout' },
+        name: { de: 'Advanced Loadout', en: 'Advanced loadout' },
         sub: { de: 'Ausstattung mit allen Werten', en: 'Components with every stat' },
         pre: ['/hangar-loadout.html'],
         vorschau: true,
-        such: 'loadout ausstattung ausruestung komponenten components waffen weapons fitting',
+        such: 'loadout advanced ausstattung ausruestung komponenten components waffen weapons fitting',
         icon: ICON.loadout,
       },
     ],
@@ -241,7 +242,7 @@ export const BEREICHE: BereichQuelle[] = [
         pre: ['/refinery.html'],
         such: 'refinery raffinerie jobs auftraege tracker ertrag yield',
         icon: ICON.refinery,
-        bild: 't-align-8',
+        bild: 'img-refinery',
       },
       {
         key: 'sprung',
@@ -251,6 +252,7 @@ export const BEREICHE: BereichQuelle[] = [
         pre: ['/precision-jump.html'],
         such: 'aaron halo quantum quantensprung routen routes',
         icon: ICON.sprung,
+        bild: 't-mesh-2',
       },
     ],
   },
@@ -475,4 +477,114 @@ export function bereichVon(pathname: string): { bereich: string; seite: string }
  *  Vorschau-Ziele. */
 export function suchZiele(lang: Locale, vorschau?: boolean): Ziel[] {
   return bereiche(lang, vorschau).flatMap((b) => b.seiten).filter((s) => s.such && !s.path.includes('#'));
+}
+
+/* ---------- Brotkrumen (UX-Audit A3) ---------- */
+
+export interface Krume {
+  label: string;
+  /** Adresse in der Sprache der Seite; fehlt = aktuelle Seite */
+  href?: string;
+}
+
+const HEIMAT = new Set(['/index.html', '/']);
+
+/** Die Spur einer Seite nach der Bereichsliste, OHNE die Startseite (die
+ *  setzt jeder Rahmen selbst davor: als Logo sichtbar, als erste Krume im
+ *  Datenblock fuer Google).
+ *
+ *  Warum hier und nicht in jeder Seite: die Seiten reichen ihre Krumen aus
+ *  ihrer Geschichte durch. Werkzeuge hingen unter einem Patch („Archiv ›
+ *  Alpha 4.10.3 › Crafting“), die Startseite hiess auf Schiffs- und
+ *  Missionsseiten „Archiv“, Service und Recht standen unter „Archiv“ (IA B4).
+ *  Statt ~100 Aufrufer anzufassen, ordnet diese Funktion jede Spur am Baum
+ *  der Bereichsliste: Bereich › Seite des Bereichs › was die Seite selbst
+ *  darunter nennt (Kategorie, Patch, Name). Gehoert der Pfad zu keinem
+ *  Bereich (Feedback, Impressum, Konto), bleibt die Spur der Seite, nur ohne
+ *  Startseiten-Krumen. Keine URL aendert sich.
+ *
+ *  `seite` sind die Krumen, die die Seite uebergibt; ihre href duerfen
+ *  lokalisiert (/de/…) oder in Basisform sein. Die letzte Krume ohne href
+ *  ist die Seite selbst und behaelt ihren Namen, ausser die Seite IST ein
+ *  Ziel der Liste: dann traegt sie den Namen aus der Begriffsliste. */
+export function krumen(pathname: string, seite: Krume[], lang: Locale): Krume[] {
+  const p = ohneDe(pathname);
+  const basis = (h?: string) => (h ? ohneDe(h.split(/[?#]/)[0]) : undefined);
+  // Adresse in der Sprache der Seite, Abfrage und Sprungmarke bleiben.
+  const lok = (h: string) => (h.startsWith('/de/') || h === '/de.html' || /^https?:/.test(h) ? h : href(h, lang));
+  const istHeim = (k: Krume) => {
+    const h = basis(k.href);
+    return h !== undefined && (HEIMAT.has(h) || h === '/de.html');
+  };
+  const eigene = seite.filter((k) => !istHeim(k));
+  const letzte = eigene.length && !eigene[eigene.length - 1].href ? eigene[eigene.length - 1] : null;
+  const mitte = letzte ? eigene.slice(0, -1) : eigene;
+
+  const wo = bereichVon(p);
+  if (!wo) {
+    // Service und Recht sind kein Archiv: deren Seiten nannten es als Eltern.
+    const rest = mitte.filter((k) => basis(k.href) !== '/archiv.html').map((k) => ({ label: k.label, href: k.href ? lok(k.href) : undefined }));
+    const z = ALLE.find((x) => !x.extern && x.path === p);
+    return letzte ? [...rest, z ? { label: z.name[lang] } : letzte] : rest;
+  }
+  const b = BEREICHE.find((x) => x.key === wo.bereich)!;
+  const sichtbar = b.seiten.filter((s) => mitHangar() || !s.vorschau);
+  const einstieg = sichtbar[0];
+  const ziel_ = b.seiten.find((s) => s.key === wo.seite)!;
+  const out: Krume[] = [];
+  if (p === einstieg.path) return [{ label: einstieg.name[lang] }];
+  out.push({ label: b.name[lang], href: href(einstieg.path, lang) });
+  if (ziel_.key !== einstieg.key) {
+    if (p === ziel_.path) return [...out, { label: ziel_.name[lang] }];
+    out.push({ label: ziel_.name[lang], href: href(ziel_.path, lang) });
+  }
+  // Was die Seite darunter nennt: alles, was nicht schon als Bereich, Seite
+  // oder Archiv dasteht (die Werkzeuge nannten ihr Patch als Elternteil —
+  // das faellt weg, Patches haengen nur im Patch-Archiv).
+  const schon = new Set([einstieg.path, ziel_.path, '/archiv.html']);
+  const imArchiv = b.key === 'archiv';
+  for (const k of mitte) {
+    const h = basis(k.href);
+    if (h && schon.has(h)) continue;
+    if (!imArchiv && h?.startsWith('/patches/')) continue;
+    out.push({ label: k.label, href: k.href ? lok(k.href) : undefined });
+  }
+  out.push(letzte ?? { label: ziel_.name[lang] });
+  return out;
+}
+
+/**
+ * Startseite (UX-Audit A5): die Kacheln unter „Werkzeuge“, nach Nachfrage
+ * geordnet (Umami, Besuche je Seitenart im November 2026: Item-Blaetter
+ * vor Bauplaenen vor Missionen vor Schiffen, dann Precision Jump und
+ * Mining). Das Patch-Archiv war die grosse Leitkachel und steht jetzt in
+ * der kleinen Reihe; Precision Jump kam dazu. `groesse` ist das Raster der
+ * Startseite: xl zwei Zeilen hoch, w halbe Breite, t ein Drittel.
+ */
+const START: ReadonlyArray<readonly [string, 'xl' | 'w' | 't']> = [
+  ['finder', 'xl'],
+  ['crafting', 'w'],
+  ['missionen', 'w'],
+  ['schiffe', 't'],
+  ['sprung', 't'],
+  ['mining', 't'],
+  ['refinery', 't'],
+  ['wikelo', 't'],
+  ['archiv', 't'],
+];
+
+export interface Kachel extends Ziel {
+  groesse: 'xl' | 'w' | 't';
+}
+
+/** Die Kacheln der Startseite in der Sprache der Seite. */
+export function startKacheln(lang: Locale): Kachel[] {
+  return START.map(([key, groesse]) => ({ ...ziel(key, lang), groesse }));
+}
+
+/** Was nicht als Kachel dasteht, in der Reihenfolge der Bereiche — die Zeile
+ *  unter den Kacheln. Vorschau-Seiten nur im Vorschau-Bau (bereiche()). */
+export function startWeitere(lang: Locale, vorschau?: boolean): Ziel[] {
+  const kachel = new Set(START.map(([key]) => key));
+  return bereiche(lang, vorschau).flatMap((b) => b.seiten).filter((z) => !kachel.has(z.key));
 }

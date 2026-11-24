@@ -2,17 +2,29 @@
 // Onepager-Link: prominenter Button, der einen eigenständigen visuellen
 // Guide (statisches HTML unter /onepager/<slug>/) in einem neuen Tab öffnet.
 // Themt sich über die Palette-Variablen der jeweiligen Themenseite.
+//
+// Darunter steht seit 24.11.2026 ein Weg zu den Downloads (UX-Audit H3): die
+// Seite hatte keinen einzigen Inhaltslink, und die Onepager als Datei gibt es
+// nur dort. Den Onepager selbst gibt es nur auf Deutsch (public/onepager/) —
+// die EN-Seite verlinkte ihn deshalb nie und soll das auch nicht anfangen;
+// sie zeigt nur den Weg zu den Downloads (Bilder und Onepager als Datei).
+import { localeFromPath, href as hrefLang } from '../i18n/ui';
 interface Props {
   href: string;        // z.B. "/onepager/contested-zones/index.html"
   title?: string;      // Überschrift des Guides
   note?: string;       // kurze Beschreibung
 }
+const de = localeFromPath(Astro.url.pathname) === 'de';
+// Der Onepager-Block (section.opl-wrap) steht nur in der DE-Fassung; die
+// Downloads-Zeile in beiden. verify:sync schneidet den DE-Block per
+// Ausnahme X-onepager-de-only, danach muessen beide Fassungen gleich sein.
 const {
   href,
   title = 'Visueller Guide',
   note = 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.',
 } = Astro.props;
 ---
+{de && (
 <section class="opl-wrap reveal">
   <a class="opl" href={href} target="_blank" rel="noopener">
     <span class="opl__ic" aria-hidden="true">
@@ -26,6 +38,12 @@ const {
     <span class="opl__arrow" aria-hidden="true">↗</span>
   </a>
 </section>
+)}
+<div class="opl-dl">
+  <p class="opl-more">
+    <a href={hrefLang('/downloads.html', de ? 'de' : 'en')}>{de ? 'Onepager als Datei und weitere Bilder: Downloads' : 'One-pager guides (German) and images: Downloads'} →</a>
+  </p>
+</div>
 
 <style>
   .opl-wrap {
@@ -91,4 +109,31 @@ const {
     .opl__note {
       display: none;
     }
-  }</style>
+  }
+  .opl-dl {
+    max-width: var(--maxw, 1180px);
+    margin-inline: auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem) 2rem;
+  }
+  .opl-wrap + .opl-dl {
+    margin-top: -1.2rem;
+  }
+  .opl-more {
+    margin: 0;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-8);
+  }
+  .opl-more a {
+    color: var(--accent, #2dd4ff);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
+    padding-bottom: 0.1rem;
+    text-decoration: none;
+  }
+  .opl-more a:hover,
+  .opl-more a:focus-visible {
+    color: var(--text, #f3e9df);
+    border-bottom-color: currentColor;
+  }
+</style>

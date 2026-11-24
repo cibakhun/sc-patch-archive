@@ -245,6 +245,25 @@ export const CHECKS = [
       'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (24.11.2026, UX-Audit Paket C1): direkt nach den beiden
+    // Schaltern, weil der Fehler genau an ihren eingehaengten Seiten lag —
+    // DE/EN auf Hangar, Advanced Loadout, Patch 4.10.3 und Chronik 4.10.3
+    // fuehrte auf die Startseite der anderen Sprache (src/lib/routeTwins.ts
+    // kannte nur src/pages/). Kein env-Feld: nur dist/.
+    id: 'verify:sprachweiche',
+    npm: 'verify:sprachweiche',
+    script: 'scripts/verify-sprachweiche.mjs',
+    rail: 'A',
+    checks:
+      'jede Option des Sprachumschalters (Seitenkopf und Datenblatt) zeigt aufs Gegenstueck in der anderen Sprache, wenn es im Bau steht, sonst auf eine Seite der anderen Sprache, die es gibt; die hreflang-Paare im Kopf nennen genau Seite und Gegenstueck, beide im Bau; im Vorschau-Bau sind die eingehaengten Seiten (Hangar, Patch-Seiten vor der Abnahme) unter den geprueften; Klinken fuer Seiten mit Umschalter und eingehaengte Seiten',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Vorschau-Bau von origin/staging
+    // 6e984ac8 (vor der Reparatur): 16 FEHLER [1] — beide Umschalter
+    // (Kopfleiste und Menue) auf /hangar, /hangar-loadout, /patches/sc-4-10-3
+    // und /patches/4-10-3-film in beiden Sprachen zeigten auf /index.html
+    // bzw. /de.html. Ueber die anderen 18.650 Seiten kein Fund. Gruen nach
+    // der Reparatur derselben Lieferung (21.996 Optionen aufs Gegenstueck).
+  },
+  {
     // Neuzugang (22.11.2026): Items in 3D, derselbe STAGING-Schalter am
     // Artefakt, aber in beiden Bauten mit eigener Aussage — darum ohne
     // nurMitHangar. Kein env-Feld: nur dist/ und src/data/item-3d.json.
@@ -805,7 +824,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), kein englischer Wertname des Craftings auf DE-Seiten (Katalog WERTE aus src/i18n/craftingWerte.ts), kein Absatz (p, li, td, dd) in der anderen Sprache ohne passendes lang-Attribut (Spieltext gekennzeichnet, eigener Text uebersetzt, docs/sprachregel.md; offene Stellen als benannte Ausnahmen mit Zombie-Waechter), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten und ein Anteil englischen Spieltexts auf DE-Seiten ueber der Decke als WARNUNG; Klinken fuer Seiten, Textstellen, Katalogtexte, Quelldateien und Absaetze',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -846,6 +865,16 @@ export const CHECKS = [
     // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
     // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
     // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
+    // Regel 12 und der Katalog WERTE kamen am 24.11.2026 mit der Sprachregel
+    // (UX-Audit Paket C, docs/sprachregel.md). VORGEFUEHRT ROT gegen den
+    // Vorschau-Bau von origin/staging 6e984ac8 mit der Sprachweiche (6cb3efc0):
+    // 7.976 Befunde — 4.785 englische Wertnamen auf den DE-Bauplanseiten
+    // ("Max Temp", "Damage Mitigation", "Recoil Smoothness"), 3.191
+    // englische Absaetze ohne lang="en" auf DE-Seiten (1.108 Missionsseiten,
+    // 1.034 Missionskarten, 952 Fundhinweise der Itemblaetter, 97
+    // Schiffsbeschreibungen). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Microid Battle Suit, Beschreibung als Name) ist in
+    // Gebrauch. Auf den EN-Seiten kein deutscher Absatz.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
@@ -914,6 +943,27 @@ export const CHECKS = [
     // Kaufort: …", auch live. Teil 2 sah es nicht: die Karten entstehen erst
     // mit angekreuztem Material und geladener Rezept-DB, und keines der
     // Woerter traegt einen Umlaut. Gruen mit beiden Schluesseln im Katalog.
+  },
+  {
+    // Neuzugang 24.11.2026 (UX-Audit Paket F1, Missionen lesbar machen).
+    // Kein env-Feld: liest nur dist/.
+    // VORGEFUEHRT ROT am 24.11.2026 zweimal: (a) gegen den Bau vor F1
+    // (staging-Stand des Tages): [1] „Marke als Pille im Titel" auf den
+    // Vorlagen-Titeln („Active Bounty: Target (ERT)" u. a.), [3] und [4]
+    // je Sprache 260 Seiten bzw. Karten mit gleichem Namen (Klinke 8);
+    // (b) gegen den neuen Bau mit von Hand eingesetztem „{TargetName}" in
+    // einer Ueberschrift: [1] FEHLER 1. Gruen mit 8 Doppeln je Sprache —
+    // vier Paare ohne sichtbaren Unterschied in den Daten.
+    // [4] seit dem Review von #428 ueber die Kartenlinks: vorgefuehrt rot
+    // mit einer umgebogenen Karte (A Challenging Task -> Salvage
+    // Contractor): FEHLER 3 (Name passt nicht, ein Blatt ohne, eines mit
+    // zwei Karten).
+    id: 'verify:missionstitel',
+    npm: 'verify:missionstitel',
+    script: 'scripts/verify-missionstitel.mjs',
+    rail: 'A',
+    checks:
+      'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); jede Karte verlinkt genau ein Blatt und traegt dessen Namen samt Zusatz, jedes Blatt hat genau eine Karte; Klinke fuer gelesene Blaetter je Sprache',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

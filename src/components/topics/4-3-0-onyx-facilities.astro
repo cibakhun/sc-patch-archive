@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -47,7 +48,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-3-0.html' : '/patches/sc-4-3-0.html'}>Alpha 4.3.0 · Dark Territory</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Verlassene ASD-Forschungsstationen' : 'Abandoned ASD research stations'}</span>Onyx Facilities</h1>
       <p class="lead">{de ? 'Rund 100 verlassene Forschungsanlagen der Associated Sciences and Development, über Stanton verstreut — gefaehrliche Ruinen voller Datenspuren, Audiologs und der dunklen Wahrheit hinter der Regen-Krise.' : 'Around 100 abandoned research facilities of Associated Sciences and Development, scattered across Stanton — dangerous ruins full of data traces, audio logs and the dark truth behind the regen crisis.'}</p>
-      <div class="tags"><span class="tag hot">Investigation</span><span class="tag case">ASD</span><span class="tag">Personal Hangars</span><span class="tag hot">{de ? 'Regen-Krise' : 'Regen Crisis'}</span><span class="tag">Loot</span></div>
+      <div class="tags"><Schlagwort hot>Investigation</Schlagwort><Schlagwort klasse="case">ASD</Schlagwort><Schlagwort>Personal Hangars</Schlagwort><Schlagwort hot>{de ? 'Regen-Krise' : 'Regen Crisis'}</Schlagwort><Schlagwort>Loot</Schlagwort></div>
       <div class="hero__play" data-lb="yt:MCJlD2Meuek"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
