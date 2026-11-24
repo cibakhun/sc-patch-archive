@@ -6,8 +6,9 @@
 // laufen auseinander.
 //
 // API (Hangar und Datenblatt verlassen sich darauf):
-//   VBFleet.ids() / ships() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
+//   VBFleet.ids() / ships() / owner() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
 //   ships() = Kopien [{id,label}] für Listen (/account/fleet.html „Meine Flotte“).
+//   owner() = Konto-ID der Flotte oder '' (Gast): „Rückgängig“ gilt nur für sie.
 //   snapshot = { ids, mode: 'guest'|'account', sync: 'local'|'syncing'|'synced'|'error',
 //                error: null|'offline'|'auth'|'write'|'read', merged }
 //   <button data-fleet-ship="<id>" data-fleet-label="<Name>">: aria-pressed setzt
@@ -613,6 +614,7 @@
   window.VBFleet = {
     ids: function () { return ships.map(function (s) { return s.id; }); },
     ships: function () { return ships.map(function (s) { return { id: s.id, label: s.label }; }); },
+    owner: function () { return uid || ''; },
     has: has,
     toggle: toggle,
     subscribe: function (fn) {

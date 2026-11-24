@@ -159,6 +159,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
   type Fleet = {
     ids(): string[];
     ships?(): Ship[];
+    owner?(): string;
     toggle(id: string, label: string): Promise<boolean>;
     subscribe(fn: (s: Snap) => void): () => void;
     retry(): Promise<unknown>;
@@ -195,6 +196,7 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     const card = (s: Ship) => {
       const li = document.createElement('li');
       li.className = 'flt-card';
+      li.dataset.ship = s.id;
       const a = document.createElement('a');
       a.className = 'flt-card__link';
       a.href = base + encodeURIComponent(s.id) + '.html';
@@ -231,19 +233,31 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
 
     // Entfernen mit Rückgängig: ein zweiter toggle nimmt das Schiff wieder auf.
+    // Rückgängig gilt nur für die Flotte, aus der das Schiff kam: meldet sich
+    // in einem anderen Tab jemand ab oder ein anderes Konto an, verfällt es.
     let undoShip: Ship | null = null;
+    let undoFrom = '';
+    let focusShip = '';
+    const whose = (snap: Snap | null) => (snap ? snap.mode + ':' + (fleet?.owner?.() || '') : '');
+    const dropUndo = () => { undoShip = null; undoFrom = ''; $('fltUndo').hidden = true; };
     const remove = (s: Ship) => {
       if (!fleet) return;
       void fleet.toggle(s.id, s.label);
       undoShip = s;
+      undoFrom = whose(last);
       $('fltUndoTxt').textContent = fill(C.removed, { name: s.label });
       $('fltUndo').hidden = false;
       ($('fltUndoBtn') as HTMLButtonElement).focus();
     };
     $('fltUndoBtn').addEventListener('click', () => {
-      if (fleet && undoShip && !fleet.ids().includes(undoShip.id)) void fleet.toggle(undoShip.id, undoShip.label);
-      undoShip = null;
-      $('fltUndo').hidden = true;
+      const s = undoShip;
+      if (fleet && s && whose(last) === undoFrom && !fleet.ids().includes(s.id)) {
+        // Der Fokus geht an die Karte, sobald sie wieder dasteht (paint).
+        focusShip = s.id;
+        void fleet.toggle(s.id, s.label);
+      }
+      dropUndo();
+      if (focusShip && last) paint(last);
     });
 
     const shipsNow = (): Ship[] => {
@@ -253,9 +267,30 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     };
 
     const paint = (snap: Snap) => {
+      if (undoShip && whose(snap) !== undoFrom) dropUndo();
       last = snap;
       const list = shipsNow().slice().sort((a, b) => coll.compare(a.label, b.label));
+      // Neu zeichnen ohne Positionsverlust: lag der Fokus auf einer Karte (Link
+      // oder ×), liegt er danach auf derselben Stelle der neuen Karte.
+      const act = document.activeElement as HTMLElement | null;
+      const was = act?.closest<HTMLElement>('#fltList .flt-card');
+      const keep = was ? { id: was.dataset.ship || '', x: act!.classList.contains('flt-card__x') } : null;
       $('fltList').replaceChildren(...list.map(card));
+      const back = (id: string, x: boolean) => {
+        const li = Array.from($('fltList').children).find((n) => (n as HTMLElement).dataset.ship === id);
+        const el = li?.querySelector<HTMLElement>(x ? '.flt-card__x' : '.flt-card__link');
+        if (el) el.focus({ preventScroll: !!keep && !focusShip });
+        return !!el;
+      };
+      if (focusShip) {
+        // Nach Rückgängig: an die wiederhergestellte Karte, sonst an die
+        // erste Karte oder den Weg zu den Schiffen.
+        if (back(focusShip, false)) focusShip = '';
+        else if (!fleet || !fleet.ids().includes(focusShip)) {
+          focusShip = '';
+          ($('fltList').querySelector<HTMLElement>('.flt-card__link') || $('fltEmpty').querySelector<HTMLElement>('a'))?.focus();
+        }
+      } else if (keep) back(keep.id, keep.x);
       $('fltEmpty').hidden = list.length > 0;
       $('fltCount').textContent = list.length ? (list.length === 1 ? C.count1 : fill(C.countN, { n: list.length })) : '';
       const guest = snap.mode === 'guest';
