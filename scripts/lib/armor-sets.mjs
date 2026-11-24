@@ -173,12 +173,17 @@ export function resolveArmorSets(parts, shortByStem) {
       // Fuer die Anzeige gewinnt daher das Item, der Tag ist Rueckfallebene.
       // Gezaehlt wird erst nach setHersteller(): ein „Unknown" am Item ist kein
       // Hersteller und darf den Rueckfall auf den Tag nicht versperren.
+      // Rueckfall zuerst auf den Tag DIESES Clusters (cTop): teilt sich ein
+      // Stamm in mehrere Namen mit eigenen Tags, gehoert der haeufigste Tag
+      // der Gruppe womoeglich einem anderen Cluster. Erst ohne eigenen Tag
+      // gilt der Tag der Gruppe (gleicher Dateistamm, bisheriges Verhalten).
       let mfr = null;
       const c = new Map();
       for (const p of cparts) { const m = setHersteller(p.manufacturer); if (m) c.set(m, (c.get(m) || 0) + 1); }
       let best = 0;
       for (const [m, n] of c) if (n > best) { mfr = m; best = n; }
-      if (!mfr) mfr = setHersteller(tagMfr);
+      const cTagTeile = cTop ? cTop.slice(SET_TAG_PREFIX.length).split('.') : [];
+      if (!mfr) mfr = setHersteller(cTagTeile.length > 1 ? cTagTeile[0] : null) || setHersteller(tagMfr);
       clusters.push({ name, source, mfr: mfr || null, stem: g.stem || null, parts: cparts, tag: cTop });
     }
   }

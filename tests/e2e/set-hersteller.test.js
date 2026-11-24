@@ -41,3 +41,22 @@ test('„Unknown“ am Item versperrt den Hersteller aus dem Set-Tag nicht', asy
   const gemischt = resolveArmorSets([teil('Beispiel Helmet', 'Char_Armor_Helmet', 'Clark Defense Systems'), teil('Beispiel Arms', 'Char_Armor_Arms', 'Unknown'), teil('Beispiel Legs', 'Char_Armor_Legs', 'Unknown')], new Map());
   assert.strictEqual(gemischt.sets[0].manufacturer, 'Clark Defense Systems');
 });
+
+test('Rueckfall nimmt den Tag des eigenen Clusters, nicht den haeufigsten der Gruppe', async () => {
+  const { resolveArmorSets } = await import('../../scripts/lib/armor-sets.mjs');
+  // Ein Dateistamm (beispiel_helmet_01 …), zwei Namen mit eigenen Tags, alle „Unknown“.
+  const teil = (name, slot, nr, tag) => ({
+    key: name, name, gameType: 'Char_Armor_' + slot, file: `beispiel_${slot.toLowerCase()}_01_0${nr}`, manufacturer: 'Unknown',
+    tagPaths: [tag],
+  });
+  const r = resolveArmorSets([
+    teil('Alpha Helmet', 'Helmet', 1, 'Armor.FPS.Set.RSI.Alpha'),
+    teil('Alpha Arms', 'Arms', 2, 'Armor.FPS.Set.RSI.Alpha'),
+    teil('Alpha Legs', 'Legs', 3, 'Armor.FPS.Set.RSI.Alpha'),
+    teil('Beta Helmet', 'Helmet', 4, 'Armor.FPS.Set.CCsConversions.Beta'),
+    teil('Beta Arms', 'Arms', 5, 'Armor.FPS.Set.CCsConversions.Beta'),
+  ], new Map());
+  const nach = Object.fromEntries(r.sets.map((x) => [x.name, x.manufacturer]));
+  assert.strictEqual(nach.Alpha, 'Roberts Space Industries');
+  assert.strictEqual(nach.Beta, "CC's Conversions");
+});
