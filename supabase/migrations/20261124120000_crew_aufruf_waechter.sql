@@ -1,5 +1,6 @@
 -- Crew-Aufruf: Wächter robuster (24.11.2026, UX-Audit Paket I, I7 Schritt 4).
--- Noch nicht eingespielt: wartet auf die Freigabe durch den Betreiber.
+-- Eingespielt am 24.11.2026 um 15:58 UTC nach Freigabe durch den Betreiber
+-- (ohne begin/commit, die Anbindung legt selbst eine Transaktion an).
 --
 -- WAS SICH AENDERT (nur die beiden Triggerfunktionen aus 20261124110000;
 -- Tabellen, Policies, Rechte und Trigger bleiben, wie sie sind)
