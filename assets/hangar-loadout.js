@@ -320,6 +320,16 @@ function paintSum() {
         deltaEl(Math.round(now[k] - stock[k]), false, nf),
         el('span', { class: `lo-st__bar${now[k] < stock[k] ? ' is-low' : now[k] > stock[k] ? ' is-up' : ' is-even'}`, 'aria-hidden': 'true', style: `--w:${(now[k] / top) * 100}%;--s:${(stock[k] / top) * 100}%` }));
     });
+    // Punktverteidigung: fest verbaut, eigene Zeile unter der Feuerkraft,
+    // nicht in ihrer Summe (Krisz 24.11.2026). Ohne Balken und ohne ▲/▼,
+    // weil kein Tausch sie aendert.
+    const pdc = gk === 'lo.sumAtk' ? data.pdc?.[draft.ship] : null;
+    if (pdc) {
+      rows.splice(rows.length ? 1 : 0, 0, el('div', { class: 'lo-st lo-st--pdc', title: fill(m('ex.pdc'), { n: nf.format(pdc[0]) }) },
+        el('span', { class: 'lo-st__l' }, m('tot.pdc')),
+        el('b', { class: 'lo-st__v' }, f1.format(Math.round(pdc[1] * 10) / 10), el('small', {}, ' DPS')),
+        el('span', { class: 'lo-d' })));
+    }
     return rows.length ? el('section', { class: 'lo-sumg' }, el('h3', {}, m(gk)), ...rows) : null;
   }).filter(Boolean));
 }
