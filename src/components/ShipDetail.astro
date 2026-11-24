@@ -1894,7 +1894,7 @@ span.sd__ref{color:var(--muted)}
           Vollbild-Bereich bezogen) -- deshalb Kind von .holo__wrap, dessen
           eigene position:relative sie exakt dort haelt. */}
       <div class="holo__frame" aria-hidden="true"></div>
-      <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
+      <div class="holo__hud">{ziel('schiffe', lang).name}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
       {dims && <div class="holo__dims">{dims}</div>}
       <div class="holo__grid" aria-hidden="true"></div>
       <div class="holo__pad" aria-hidden="true"></div>

@@ -301,7 +301,6 @@ const UI = {
     'fleet.resync': 'Nicht abgeglichen · erneut versuchen',
     'ship.hangar3d': 'Im 3D-Hangar ansehen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
-    'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
     'ship.code.trade': 'HANDEL',
     'ship.code.rank': 'RANG',
@@ -710,7 +709,6 @@ const UI = {
     'fleet.resync': 'Not synced · try again',
     'ship.hangar3d': 'View in the 3D hangar',
     // stylized mono codes (in-universe “register” tags)
-    'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',
     'ship.code.trade': 'TRADE',
     'ship.code.rank': 'RANK',
