@@ -167,3 +167,53 @@ for (const lang of ['de', 'en']) {
     });
   });
 }
+
+// Missionen (Paket B5 mit Paket F, src/lib/searchMissionen.ts): der Name wie
+// auf der Missionsseite, gleichnamige Missionen am Zusatz in der Unterzeile
+// unterscheidbar. Vorher standen 260 Treffer unter einem Titel, der mit
+// anderen gleich lautete, ohne Unterschied in der Zeile.
+const { missionEintraege } = await bundle('src/lib/searchMissionen.ts');
+const { missions, missionName } = await bundle('src/lib/missions.ts');
+
+for (const lang of ['de', 'en']) {
+  describe(`Missionen in der Kopfsuche (${lang})`, () => {
+    const alle = missionEintraege(lang);
+
+    test('eine Zeile je Mission, Name wie auf der Seite, ohne Vorlagen-Klammern', () => {
+      assert.equal(alle.length, missions.length);
+      assert.ok(alle.length >= 1300, `nur ${alle.length} Missionen`);
+      missions.forEach((m, i) => {
+        assert.equal(alle[i].t, missionName(m).titel, m.slug);
+        assert.doesNotMatch(alle[i].t, /[{}]/, m.slug);
+        assert.ok(alle[i].u.endsWith(`/missionen/${m.slug}.html`), alle[i].u);
+      });
+    });
+
+    test('gleich lautende Zeilen (Titel und Unterzeile) unter der Klinke', () => {
+      const n = new Map();
+      for (const e of alle) n.set(`${e.t}|${e.s}`, (n.get(`${e.t}|${e.s}`) ?? 0) + 1);
+      const gleich = [...n.entries()].filter(([, c]) => c > 1);
+      const zeilen = gleich.reduce((s, [, c]) => s + c, 0);
+      const titel = new Map();
+      for (const e of alle) titel.set(e.t, (titel.get(e.t) ?? 0) + 1);
+      const gleicherTitel = [...titel.values()].filter((c) => c > 1).reduce((s, c) => s + c, 0);
+      console.log(`    ${lang}: ${alle.length} Missionen, ${gleicherTitel} mit gleichem Titel, davon ${zeilen} auch in der Unterzeile gleich`);
+      // Klinke: Stand 24.11.2026 sind es 4, zwei Paare „Delivery …", bei
+      // denen auch Zusatz, Belohnung und Fraktion gleich sind (die Seite
+      // selbst zaehlt 8 Missionen mit gleichem Namen und Zusatz,
+      // missionNamenRestDoppelt).
+      assert.ok(zeilen <= 4, `${zeilen} Zeilen gleich: ${gleich.map(([k]) => k).slice(0, 5).join(' / ')}`);
+    });
+
+    test('Vorlage und Zusatz beider Sprachen bleiben Suchwoerter, ohne Wiederholung', () => {
+      assert.ok(alle.some((e) => /\babholort/i.test(e.x)), '„abholort" findet keine Mission');
+      assert.ok(alle.some((e) => /\brank\b/i.test(e.x)), '„rank" (aus der Vorlage) findet keine Mission');
+      for (const e of alle) {
+        const w = e.x.toLowerCase().split(/\s+/).filter(Boolean);
+        assert.equal(new Set(w).size, w.length, `${e.t}: Wort doppelt in x`);
+        const imTitel = new Set(e.t.toLowerCase().split(/\s+/));
+        assert.ok(!w.some((x) => imTitel.has(x)), `${e.t}: x wiederholt den Titel`);
+      }
+    });
+  });
+}

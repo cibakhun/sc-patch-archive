@@ -12,6 +12,7 @@
 import DB from '../../assets/universal-items.json';
 import type { Locale } from '../i18n/ui';
 import { fassung } from './fassung';
+import { AUSFUEHRUNGEN_JE_MODELL, modellName, waffenArt } from '../../scripts/lib/waffen-art.mjs';
 
 /* ---------- Typen (Spiegel von scripts/build-universal-db.mjs) ---------- */
 
@@ -507,17 +508,26 @@ export const num = (n: number, lang: Locale, maxFrac?: number) =>
   n.toLocaleString(NUM[lang], maxFrac == null ? undefined : { maximumFractionDigits: maxFrac });
 export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 
-/** Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen unterscheidet. */
-export function altName(i: Item, lang: Locale): string | null {
+/**
+ * Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen
+ * unterscheidet — auf beiden Sprachen der Zweitname, und die Suche findet das
+ * Item unter beiden Namen. Seit der Sprachregel (Paket C4, docs/sprachregel.md)
+ * ist der englische Name der Anzeigename, auch auf /de/.
+ */
+export function altName(i: Item, _lang?: Locale): string | null {
   const de = i.game?.nameDe?.trim();
   if (!de || de === i.name) return null;
-  return lang === 'de' ? i.name : de;
+  return de;
 }
 
-/** Anzeigename in der Sprache der Seite (DE nutzt den Spieldaten-Namen). */
-export function displayName(i: Item, lang: Locale): string {
-  const de = i.game?.nameDe?.trim();
-  return lang === 'de' && de ? de : i.name;
+/**
+ * Anzeigename: der englische Name, wie ihn der Client zeigt, in beiden
+ * Sprachen (Sprachregel, Entscheidung E-Sprache 24.11.2026: Eigennamen aus
+ * dem Spiel englisch; Spieler suchen mit dem Namen aus dem Spiel). Der
+ * deutsche Name steht als Zweitname daneben (altName).
+ */
+export function displayName(i: Item, _lang?: Locale): string {
+  return i.name;
 }
 
 /**
@@ -643,12 +653,21 @@ export function sizeLabel(i: Item): string | null {
  * gleicher Hersteller zuerst, dann gleiche Kategorie, dann gleicher Hersteller.
  * Rein deterministisch (Build-Reproduzierbarkeit) und immer aus pageItems, damit
  * kein Link auf eine nicht existierende Seite zeigt.
+ *
+ * Handwaffen ordnen zuerst nach ihrer Art (scripts/lib/waffen-art.mjs): die
+ * gleiche Art wiegt mehr als Kategorie-Rest, Hersteller, Groesse und Preis
+ * zusammen, also steht unter einem Gewehr kein fremdes Stueck vor einem
+ * anderen Gewehr. Damit die Liste Alternativen zeigt statt zwoelf Lackierungen
+ * derselben Waffe, kommt jedes Modell hoechstens AUSFUEHRUNGEN_JE_MODELL mal
+ * vor (P64, 24.11.2026; geprueft von verify:bezugswege [14]).
  */
 export function relatedItems(i: Item, limit = 12): Item[] {
   const mfr = i.game?.manufacturer;
+  const art = waffenArt(i);
   const sameCat = categoryBySlug.get(categorySlug(i.category))?.items ?? [];
   const score = (o: Item) => {
     let s = 0;
+    if (art && waffenArt(o) === art) s += 10;
     if (o.category === i.category) s += 4;
     if (mfr && o.game?.manufacturer === mfr) s += 3;
     if (i.game?.size != null && o.game?.size === i.game.size) s += 1;
@@ -664,9 +683,21 @@ export function relatedItems(i: Item, limit = 12): Item[] {
       if (pool.size >= limit * 4) break;
     }
   }
-  return [...pool.values()]
-    .sort((a, b) => score(b) - score(a) || a.name.localeCompare(b.name, 'en'))
-    .slice(0, limit);
+  const sortiert = [...pool.values()].sort(
+    (a, b) => score(b) - score(a) || a.name.localeCompare(b.name, 'en'),
+  );
+  if (!art) return sortiert.slice(0, limit);
+  const jeModell = new Map<string, number>();
+  const auswahl: Item[] = [];
+  for (const o of sortiert) {
+    if (auswahl.length >= limit) break;
+    const modell = modellName(o.name);
+    const n = jeModell.get(modell) ?? 0;
+    if (n >= AUSFUEHRUNGEN_JE_MODELL) continue;
+    jeModell.set(modell, n + 1);
+    auswahl.push(o);
+  }
+  return auswahl;
 }
 
 /* ---------- Text-Helfer ---------- */

@@ -1,11 +1,12 @@
 ---
-// Blueprint-Verzeichnis — krabbelbarer Einstieg in die 1.594 Rezepte.
+// Blueprint-Verzeichnis — krabbelbarer Einstieg in alle Rezepte mit Seite.
 import DataShell from './DataShell.astro';
 import { standCrafting, STAND } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import { bwT } from '../i18n/bezugswegeText';
 import {
-  craftCategoryPath, craftDb, craftHubPath, craftLeaf, craftPatch, craftRoots,
+  blueprints, blueprintsOhneItem, craftCategoryPath, craftDb, craftHubPath, craftLeaf, craftPatch, craftRoots,
 } from '../lib/crafting';
 import { itemsHubPath, midCategory, num } from '../lib/items';
 
@@ -13,7 +14,11 @@ interface Props { lang: Locale }
 const { lang } = Astro.props;
 
 const t = itemT(lang);
-const total = craftDb.counts.blueprints;
+// UX-Audit P52 (24.11.2026): gezaehlt wird, was hier steht — dieselbe Zahl
+// wie die Werkbank (1.626), nicht der Spielbestand (1.634). Der Unterschied
+// steht als Satz darunter, statt still zwei Zahlen zu zeigen.
+const total = blueprints.length;
+const ohneItem = fill(bwT(lang)('hubOhneItem'), { all: num(craftDb.blueprints.length, lang), n: num(blueprintsOhneItem, lang) });
 const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch });
 ---
 <DataShell
@@ -38,6 +43,7 @@ const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch }
     <li class="dp-key"><b>{t('craftMaterials')}</b><span>{num(craftDb.counts.resources, lang)}</span></li>
     <li class="dp-key"><b>{t('gameVersion')}</b><span>{STAND.crafting}</span></li>
   </ul>
+  {blueprintsOhneItem > 0 && <p class="dp-note" slot="hero" data-ohne-item={blueprintsOhneItem}>{ohneItem}</p>}
 
   {craftRoots.map((r) => (
     <section class="dp-sec">

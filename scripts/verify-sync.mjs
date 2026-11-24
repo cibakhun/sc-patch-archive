@@ -33,7 +33,7 @@
             als MENGE ({cur:1, opt:1, sep:1}); der Behaelter div.langsw
             selbst bleibt in der Folge. Eng, kein Seitenausschluss — ein
             fehlendes Kind faellt weiterhin auf.
-          - X-onepager-de-only, X-impressum-mstv (cut-region): cutRegion()
+          - X-impressum-mstv (cut-region): cutRegion()
             schneidet VOR dem Tokenisieren eine per Quellstelle verankerte
             Region aus EINER Seite des Paars (Plan 02, Task 2).
      4  Vollstaendigkeit: jede Abweichung, die keine benannte Ausnahme
@@ -162,7 +162,8 @@ export function splitLangsw(tokens, { container = 'langsw', childPrefix = 'langs
    Schneidet ab dem Treffer von openTagPattern bis zum ZUGEHOERIGEN
    schliessenden Tag heraus (zaehlt gleichnamige Tags dazwischen mit, damit
    Verschachtelung nicht zu frueh schliesst). Seit Plan 02 von zwei
-   cut-region-Ausnahmen benutzt (X-onepager-de-only, X-impressum-mstv, siehe
+   cut-region-Ausnahmen benutzt (bis 24.11.2026 auch X-onepager-de-only, seither
+   nur noch X-impressum-mstv, siehe
    scripts/lib/sync-exclusions.mjs und applyCutRegionExclusions() unten) —
    fuer X-impressum-mstv absichtlich mit tagName 'p' UND einem openTagPattern,
    das schon am <h2> startet: cutRegion() depth-trackt dann NUR <p>-Tags ab

@@ -1,4 +1,4 @@
-// ereignisse.js — fuenfzehn Messereignisse mit festen Werten (Umami).
+// ereignisse.js — siebzehn Messereignisse mit festen Werten (Umami).
 //
 // Laedt auf jeder Seite, die auch den Zaehler laedt (src/layouts/Layout.astro,
 // direkt nach ihm), und schickt ueber umami.track — also durch denselben
@@ -48,7 +48,18 @@
 //      den Umschalter „Bilder“ der Schiffsseite (#btnimg, nur wenn er nicht
 //      schon an ist).
 //    merken: ruft die App selbst ueber vbEreignis, wenn wirklich etwas
-//      dazukommt (assets/fleet.js, assets/crafting-app.js, Refinery-Tracker).
+//      dazukommt (assets/fleet.js, assets/crafting-app.js, Refinery-Tracker);
+//      „besitz“ seit 24.11.2026, wenn ein Bauplan „Im Besitz“ wird.
+//    Seit 24.11.2026 (UX-Audit K6, Messluecken):
+//    treffer-offen auch per vbEreignis, wo ein Eintrag ein Fenster oeffnet,
+//      das keine Karte und kein Link ist: Material ohne eigene Seite auf der
+//      Wikelo-Seite (assets/wikelo-bridge.js; Namen mit Seite sind Links und
+//      zaehlen hier wie jeder Treffer-Link), Zelle der Evolution-Matrix.
+//    download: Klick auf einen Link mit download-Attribut in einem Bereich
+//      mit data-ev-download="<art>" (Downloads-Seite), auch mit der
+//      mittleren Taste; nur die Art.
+//    planer: ruft assets/crafting-app.js (Menge geaendert, je Seitenaufruf
+//      einmal; Planer geleert; Einkaufsliste -> Fundorte).
 //  - Erste Bedienung eines Elements mit data-ev-filter="<name>" (filter) bzw.
 //    in einem Bereich mit data-ev-rechnung (rechnung) je Seitenaufruf, Klick
 //    auf data-ev-kopieren (kopieren-teilen). Nur echte Bedienung
@@ -77,10 +88,12 @@
     'wert-melden': { seite: DETAIL },
     extern: { seite: SEITE, ziel: 'discord spende wiki uex rsi fleetyards youtube sonst' },
     'treffer-offen': { werkzeug: WZ },
-    merken: { was: 'flotte planer auftrag' },
+    merken: { was: 'flotte planer auftrag besitz' },
     video: { seite: SEITE },
     bilder: { seite: SEITE },
     hilfe: { werkzeug: WZ + ' sonst', art: 'anleitung elemente' },
+    download: { art: 'onepager bild' },
+    planer: { aktion: 'menge leeren abbau' },
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
@@ -205,6 +218,14 @@
     var mx = mitte ? null : t.closest('[data-ev-extern]');
     if (mx) {
       senden('extern', { seite: hierArt, ziel: mx.getAttribute('data-ev-extern') });
+      return;
+    }
+    // Download: der Link mit download-Attribut im markierten Bereich; die
+    // mittlere Taste holt die Datei ebenso (neuer Tab).
+    var dl = t.closest('a[download]');
+    var da = dl ? dl.closest('[data-ev-download]') : null;
+    if (da) {
+      senden('download', { art: da.getAttribute('data-ev-download') });
       return;
     }
     var hx = mitte ? null : t.closest('[data-ev-hilfe]');

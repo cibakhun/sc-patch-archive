@@ -5,7 +5,8 @@
 // <script is:inline>) so the bespoke design ports over verbatim.
 import Attribution from '../components/Attribution.astro';
 import { SITE, SUPABASE } from '../consts';
-import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
+import { localeFromPath, pathForLocale, useTranslations, HTML_LANG, OG_LOCALE } from '../i18n/ui';
+import { feedbackHref, recht } from '../lib/bereiche';
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
 import { NEUESTER_PATCH } from '../lib/patchPages';
@@ -91,6 +92,19 @@ const description = descriptionProp ?? SITE.defaultDescription[lang](NEUESTER_PA
 // die Sitemap auswertet. Oder-Verknüpfung, damit ein gesetztes Prop nie durch
 // die Liste entwertet wird.
 const noindexEff = noindex || isNoindex(Astro.url.pathname);
+
+// Rechtsfuss (Heuristik P13, 24.11.2026): Impressum und Datenschutz muessen
+// von jeder Seite aus erreichbar sein. Die meisten Seiten tragen sie in
+// ihrem eigenen Fuss (Attribution, Datenblatt-Fuss, Startseite); die
+// Patchseiten, die Film-Seite und 404 hatten keinen. Statt jede Seite
+// einzeln anzufassen, sieht das Layout im fertigen Inhalt nach: fehlt einer
+// der beiden Links, haengt es einen schlichten Fuss an. Seiten mit eigenem
+// Fuss bleiben unberuehrt. verify:rechtsfuss prueft es fuer jede gebaute
+// Seite.
+const inhalt = await Astro.slots.render('default');
+const RECHT_LINK = (pfad: string) => new RegExp(`href="(?:/de)?${pfad.replace('.', '\\.')}"`);
+const hatRecht = footer || recht(lang).every((z) => RECHT_LINK(z.path).test(inhalt));
+const tL = useTranslations(lang);
 
 // og:image mit Site-Fallback: twitter:card "summary_large_image" ohne Bild ist
 // wirkungslos — Seiten ohne eigenes Motiv bekommen das VerseBase-Standardbild.
@@ -450,8 +464,15 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:var(--ls-10);padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
     >VORSCHAU — NICHT LIVE</div>
   )}
-  <slot />
+  <Fragment set:html={inhalt} />
   {footer && <Attribution sources={footerSources} />}
+  {!hatRecht && (
+    <footer class="vb-recht">
+      <style is:inline>.vb-recht{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.6rem;margin:0;padding:1.6rem 1rem 2.2rem;border-top:1px solid var(--line-soft,rgba(232,238,252,.1));background:var(--bg,#05070d);font-family:var(--font-ui,system-ui,sans-serif);font-size:var(--fs-6);letter-spacing:var(--ls-4)}.vb-recht a{color:var(--muted,#8a99b8);text-decoration:none}.vb-recht a:hover,.vb-recht a:focus-visible{color:var(--accent,#2dd4ff)}</style>
+      {recht(lang).map((z) => <a href={z.href}>{z.name}</a>)}
+      <a href={feedbackHref(Astro.url.pathname, lang)}>{tL('footer.feedback')}</a>
+    </footer>
+  )}
   {/* Ausfahrende Panels (Filterspalten, Planer): Verdunkler, Scroll-Sperre,
       Esc, Tippen-daneben, Wischen — einmal fuer die ganze Seite. `defer`,
       weil das Skript nur auf spaetere Klassenwechsel reagiert und nichts

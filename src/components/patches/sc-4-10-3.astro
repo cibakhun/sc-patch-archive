@@ -10,6 +10,7 @@ import { getEntry } from 'astro:content';
 import { mergePatchEn } from '../../i18n/patchText';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath, href } from '../../i18n/ui';
+import { HAS_HANGAR } from '../../lib/seo';
 import { patchInhalt } from '../../lib/patch-4-10-3/inhalt';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -17,6 +18,8 @@ const de = lang === 'de';
 const L = (path: string) => href(path, lang);
 const T = (d: string, e: string) => (de ? d : e);
 const n = (x: number) => x.toLocaleString(de ? 'de-DE' : 'en-US');
+// Änderung mit eigenem Vorzeichen: +3, −21 (echtes Minus), ±0 (UX-Audit P89, vorher „+-21“).
+const delta = (d: number) => (d > 0 ? `+${n(d)}` : d < 0 ? `−${n(-d)}` : '±0');
 const entry = await getEntry('patches', '4-10-3');
 if (!entry) throw new Error('Patch-Daten 4-10-3 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-10-3', entry.data, lang);
@@ -60,6 +63,9 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 .hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:var(--ls-1);margin:.6rem 0 .2rem;font-size:clamp(3.4rem,15vw,12rem);background:linear-gradient(180deg,var(--title-hi),var(--accent) 75%,#6b4f1e);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 36px rgba(224,86,63,.45))}
 .hero .codename{font-family:var(--font-display);font-weight:700;font-size:clamp(1.2rem,3.6vw,2.4rem);color:var(--on-media);line-height:1.15}
 .hero .codename span{color:var(--accent-2)}
+.hero .chronik{margin-top:1rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-6)}
+.hero .chronik a{display:inline-flex;align-items:center;gap:.4rem;min-height:44px;color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}
+.hero .chronik a:hover,.hero .chronik a:focus-visible{border-bottom-color:currentColor}
 .hero .tagline{max-width:62ch;font-size:clamp(1rem,1.6vw,1.2rem);line-height:1.5;color:var(--on-media-dim);margin-top:.9rem;text-shadow:0 2px 14px var(--on-media-shadow)}
 .jump{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1.6rem;list-style:none}
 .jump a{display:inline-block;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-5);padding:.42rem .85rem;border:1px solid var(--line-ice);background:var(--veil);color:var(--on-media);transition:border-color var(--dur-base) var(--ease-ui),background var(--dur-base) var(--ease-ui)}
@@ -236,6 +242,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <h1>{I.kopf.titel}</h1>
       <div class="codename">{I.kopf.codename[0]}<span>{I.kopf.codename[1]}</span></div>
       <p class="tagline">{I.kopf.satz}</p>
+      {/* Chronik zu diesem Patch (UX-Audit P71), wie diese Seite nur im Vorschau-Bau. */}
+      {HAS_HANGAR && (<p class="chronik"><a href={L('/patches/4-10-3-film.html')}>{T('Chronik: 4.10.3 Schritt für Schritt', 'Chronicle: 4.10.3 step by step')} <span aria-hidden="true">→</span></a></p>)}
       <nav aria-label={T('Abschnitte', 'Sections')}>
         <ul class="jump">
           {I.abschnitte.map((j) => <li><a href={`#${j.id}`}>{j.t}</a></li>)}
@@ -487,7 +495,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
                   <td><a href={L(c.was.h)}>{c.was.t}</a></td>
                   <td class="was num">{n(c.vorher)}</td>
                   <td class="ist num">{n(c.nachher)}</td>
-                  <td class="num">+{n(c.nachher - c.vorher)}</td>
+                  <td class="num">{delta(c.nachher - c.vorher)}</td>
                 </tr>
               ))}
             </tbody>

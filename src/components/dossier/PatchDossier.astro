@@ -735,3 +735,50 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
     display: none;
   }
 </style>
+<style is:global>
+  /* Highlight-Kacheln der Patchseiten (UX-Audit P91): gleich aussehende
+     Kacheln oeffnen Details, ein Bild, ein Video oder fuehren weiter, und nur
+     ein blasses Zeichen in der Ecke verriet, was. Jetzt steht das Wort daneben.
+     Die Zeichen-Regel jeder Patchseite (.zoomic, Kreis 34 px) bleibt die Basis;
+     hier wird daraus eine Pille, die Hover-Regel der Seite gilt weiter.
+     Die Schiffskarten (13 Patchseiten) tragen ihr Wort ebenso und brauchen
+     sie auch, sonst rutscht es im Raster unter den Kreis. */
+  .tile .zoomic,
+  .ship .zoomic,
+  .mosaic figure .zoomic {
+    width: auto;
+    min-width: 34px;
+    padding: 0 0.7rem 0 0.6rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0.92;
+  }
+  .zoomic__t {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-8);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  /* Am Handy stehen die Kacheln zu zweit, Wort- und Zahlkacheln einer
+     Spalte sind dann gut 160 px breit: die Pille laege auf dem grossen
+     Schlagwort. Dort bleibt der Kreis, das Wort nur fuer Vorleser. */
+  @media (max-width: 820px) {
+    .tile:is(.word, .stat):not(.w2):not(.b2) .zoomic {
+      width: 34px;
+      padding: 0;
+      justify-content: center;
+    }
+    .tile:is(.word, .stat):not(.w2):not(.b2) .zoomic__t {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+</style>

@@ -53,6 +53,9 @@ export interface ZielQuelle {
   icon?: string;
   /** Vorschaubild-Name unter /assets/thumb/<name>.webp (Menue-Buehne) */
   bild?: string;
+  /** Diese Seite zeigt die lokale Leiste ihres Bereichs NICHT (steht aber in
+   *  der Leiste der anderen Seiten). Nur mit Anlass, siehe lokaleLeiste(). */
+  ohneLeiste?: string;
 }
 
 export interface BereichQuelle {
@@ -120,6 +123,10 @@ export const BEREICHE: BereichQuelle[] = [
         such: 'items finder preise prices shops loot fundorte kaufen buy',
         icon: ICON.finder,
         bild: 't-supply-1',
+        // Klebende Seitenleiste und Trefferkopf haengen an einer festen Hoehe
+        // unter der Kopfleiste (--uif-stick), nicht an --nav-h; die Seite
+        // geht ohnehin im neuen Item-Verzeichnis auf (Items-Thread).
+        ohneLeiste: 'Item Finder: feste Klebehoehe, wird mit dem Verzeichnis zusammengelegt',
       },
       {
         key: 'sets',
@@ -145,6 +152,9 @@ export const BEREICHE: BereichQuelle[] = [
         such: 'crafting blueprints bauplaene blaupausen planner planer herstellen werkbank workbench fabricator',
         icon: ICON.crafting,
         bild: 't-craft-1',
+        // Die Werkbank fuellt die Seite direkt unter der Kopfleiste; die
+        // Zeile darunter ist weg (Krisz 11.11.2026 „Kann weg“, backMark).
+        ohneLeiste: 'Werkbank: keine Zeile unter der Kopfleiste (Krisz 11.11.2026)',
       },
       {
         key: 'blueprints',
@@ -182,6 +192,8 @@ export const BEREICHE: BereichQuelle[] = [
         icon: ICON.hangar,
         // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
         bild: 'img-hammerhead',
+        // Die Halle ist ein Vollbild-3D-Raum mit eigener Bedienung oben.
+        ohneLeiste: 'Hangar: Vollbild-Halle mit eigener Leiste',
       },
       {
         key: 'loadout',
@@ -392,6 +404,7 @@ export interface Ziel {
   icon?: string;
   bild?: string;
   such?: string;
+  ohneLeiste?: string;
 }
 
 export interface Bereich {
@@ -418,6 +431,7 @@ function lokal(z: ZielQuelle, lang: Locale): Ziel {
     icon: z.icon,
     bild: z.bild,
     such: z.such,
+    ohneLeiste: z.ohneLeiste,
   };
 }
 
@@ -587,4 +601,43 @@ export function startKacheln(lang: Locale): Kachel[] {
 export function startWeitere(lang: Locale, vorschau?: boolean): Ziel[] {
   const kachel = new Set(START.map(([key]) => key));
   return bereiche(lang, vorschau).flatMap((b) => b.seiten).filter((z) => !kachel.has(z.key));
+}
+
+/* ---------- Feedback mit Seite (UX-Audit A8) ---------- */
+
+/** Adresse des Feedback-Formulars, die die Seite mitnimmt (?seite=<Pfad>),
+ *  wie „Falschen Wert melden“ auf den Datenblaettern (?wert=). Fuer Menue
+ *  und Fuss beider Rahmen. Ein einziger Parameter: ein zweiter braeuchte ein
+ *  & im href, das Astro als &#38; schreibt. Auf der Feedback-Seite selbst
+ *  ohne Parameter. Das Formular (FeedbackForm.astro) nimmt nur eigene Pfade
+ *  an und setzt sie nur als Text. */
+export function feedbackHref(pathname: string, lang: Locale): string {
+  const z = ziel('feedback', lang);
+  if (ohneDe(pathname) === z.path) return z.href;
+  return `${z.href}?seite=${encodeURIComponent(pathname).replace(/%2F/g, '/')}`;
+}
+
+/* ---------- Lokale Leiste (UX-Audit A6) ---------- */
+
+export interface Lokal {
+  bereich: Bereich;
+  /** Schluessel der Seite, auf der man steht */
+  aktiv: string;
+}
+
+/** Die Seiten des eigenen Bereichs als Abfolge, z. B. Mining › Fracturing ›
+ *  Refinery › Precision Jump. Nur auf den Seiten des Bereichs selbst (nicht
+ *  auf ihren Unterseiten wie Datenblaettern) und nur, wenn der Bereich
+ *  mindestens zwei eigene Seiten hat (Sprungmarken wie „Themen“ zaehlen
+ *  nicht mit, stehen aber in der Leiste). Seiten mit `ohneLeiste` zeigen
+ *  sie nicht, stehen aber in der Leiste der anderen. Sonst null. */
+export function lokaleLeiste(pathname: string, lang: Locale, vorschau?: boolean): Lokal | null {
+  const p = ohneDe(pathname);
+  for (const b of bereiche(lang, vorschau)) {
+    const echt = b.seiten.filter((s) => !s.extern && !s.path.includes('#'));
+    if (echt.length < 2) continue;
+    const hit = echt.find((s) => s.path === p);
+    if (hit) return hit.ohneLeiste ? null : { bereich: b, aktiv: hit.key };
+  }
+  return null;
 }

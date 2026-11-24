@@ -289,7 +289,8 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
             A single HTML file per guide — <b>every image embedded</b>. Download, double-click, read offline.
             Nothing to unzip.
           </p>
-          <div class="ops">
+          {/* data-ev-download: Messereignis download (assets/ereignisse.js), nur die Art. */}
+          <div class="ops" data-ev-download="onepager">
             {ONEPAGERS.map((o) => (
               <article class="op reveal">
                 <span class="op__kx">One-pager · offline HTML</span>
@@ -312,7 +313,8 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
       </section>
     )}
 
-    <section id="media">
+    {/* data-ev-download: Messereignis download fuer jeden Bild-Link darin. */}
+    <section id="media" data-ev-download="bild">
       <div class="wrap">
         <div class="sec-head reveal">
           <span class="num">02</span>

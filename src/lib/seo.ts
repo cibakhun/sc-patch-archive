@@ -78,6 +78,13 @@ export const IS_STAGING: boolean =
  */
 export const HAS_HANGAR: boolean = IS_STAGING;
 
+/**
+ * Die Items-Werkbank (Items und Item Finder als ein Werkzeug) steht nur im
+ * Vorschau-Bau, bis Krisz sie abnimmt (24.11.2026). Links dorthin fragen
+ * diesen Wert; Seiten und Pruefung: scripts/lib/vorschau-seiten.mjs.
+ */
+export const HAS_ITEMS_WERKBANK: boolean = IS_STAGING;
+
 /** true, wenn dieser Pfad (DE oder EN) auf noindex stehen soll. */
 export function isNoindex(pathname: string): boolean {
   if (IS_STAGING) return true;
