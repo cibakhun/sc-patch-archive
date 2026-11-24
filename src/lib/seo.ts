@@ -39,6 +39,9 @@ function toBaseForm(pathname: string): string {
  */
 export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account.html',
+  // „Meine Flotte“: zeigt nur, was im Browser oder im Konto liegt; für
+  // Suchmaschinen steht dort nichts.
+  '/account/fleet.html',
   '/account/reset.html',
   '/account/update-password.html',
   '/pilot.html',
