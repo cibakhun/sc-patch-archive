@@ -156,6 +156,8 @@ const poolGroessen = new Map(
 let poolGeprueft = 0;
 let poolGeprueftMehrere = 0;
 const poolFremd = [];
+let poolTexte = 0;
+const poolTextFalsch = [];
 const planerDoppelt = [];
 let materialSeiten = 0;
 let materialMitItem = 0;
@@ -212,8 +214,15 @@ function pruefeBauplanP2(pfad, html) {
     const mitPool = zellen.filter((z) => /data-pool="\d+"/.test(z[1])).length;
     if (!zeilen || mitPool !== zeilen || zellen.some((z) => /^\s*100\s?%\s*$/.test(z[2]))) poolOhne.push(pfad);
     // Jede Zahl (und jedes Ende einer Spanne) ist die Groesse eines Pools
-    // genau dieser Mission.
-    for (const [, slug, pool, poolMin] of tabelle.matchAll(/href="(?:\/de)?\/missionen\/([a-z0-9-]+)\.html"[\s\S]*?data-pool="(\d+)"(?:\s+data-pool-min="(\d+)")?/g)) {
+    // genau dieser Mission, und der sichtbare Text sagt dieselbe Zahl wie die
+    // Attribute („1 von 8“, „1 von 5–8“, „nur dieser“ = 1; Review #434).
+    for (const [, slug, pool, poolMin, text] of tabelle.matchAll(/href="(?:\/de)?\/missionen\/([a-z0-9-]+)\.html"[\s\S]*?data-pool="(\d+)"(?:\s+data-pool-min="(\d+)")?[^>]*>([^<]*)<\/td>/g)) {
+      poolTexte++;
+      const soll = { min: Number(poolMin ?? pool), max: Number(pool) };
+      const zahl = (x) => Number(x.replace(/[.,\u00a0\u202f]/g, ''));
+      const r = text.match(/(?:von|of)\s+([\d.,\u00a0\u202f]+)(?:\s*–\s*([\d.,\u00a0\u202f]+))?\s*$/);
+      const ist = /(?:nur dieser|only this one)\s*$/.test(text) ? { min: 1, max: 1 } : r ? { min: zahl(r[1]), max: zahl(r[2] ?? r[1]) } : null;
+      if (!ist || ist.min !== soll.min || ist.max !== soll.max) poolTextFalsch.push(`${pfad} (${slug}: „${text.trim()}“, Attribute ${soll.min === soll.max ? soll.max : `${soll.min}–${soll.max}`})`);
       const m = poolGroessen.get(slug);
       if (!m) continue;
       poolGeprueft++;
@@ -444,6 +453,9 @@ need(!poolOhne.length, `${poolOhne.length} Missionstabelle(n) ohne Pool je Zeile
 console.log(`    Zeilen mit Pool-Daten: ${poolGeprueft} (davon zu Missionen mit mehreren Pools: ${poolGeprueftMehrere}; Missionen: ${poolGroessen.size})   Zahl ist keine Poolgroesse der Mission — Soll: 0   Ist: ${poolFremd.length}`);
 need(poolGeprueft > 0 && poolGeprueftMehrere > 0, 'keine Zeile mit Pool-Daten (oder keine zu einer Mission mit mehreren Pools) geprueft — Daten oder Muster veraltet?');
 need(!poolFremd.length, `${poolFremd.length} Zeile(n) nennen eine Zahl, die keine Poolgroesse ihrer Mission ist — ${liste(poolFremd)}`);
+console.log(`    sichtbarer Text gegen data-pool/data-pool-min: ${poolTexte} Zellen   abweichend — Soll: 0   Ist: ${poolTextFalsch.length}`);
+need(poolTexte >= poolGeprueft && poolTexte > 0, `nur ${poolTexte} Pool-Zellen mit lesbarem Text, ${poolGeprueft} Zeilen mit Pool-Daten — Muster veraltet?`);
+need(!poolTextFalsch.length, `${poolTextFalsch.length} Pool-Zelle(n) zeigen eine andere Zahl als ihre Attribute — ${liste(poolTextFalsch)}`);
 
 // Die Crafting-Kategorieseiten liegen eine Ebene tiefer.
 let kategorieSeiten = 0;
