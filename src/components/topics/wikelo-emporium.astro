@@ -22,6 +22,7 @@ import ToolHelp from '../ToolHelp.astro';
 import Datenstand from '../../components/Datenstand.astro';
 import { standWikelo } from '../../lib/datenstand';
 import { pageItems } from '../../lib/items';
+import { miningLink } from '../../lib/miningLinks';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -55,6 +56,13 @@ const itemHref = (canon: string | null) => {
   return id ? href(`/items/${id}.html`, lang) : null;
 };
 const quellenTitel = de ? 'Bezugsquellen anzeigen' : 'Show where to get it';
+// Erze ohne Shop (UX-Audit P41): "30× Carinite", "20× Jaclium (Ore)" fuehren im
+// Fenster zusaetzlich zur Mining-Datenbank. Der Zusatz (Ore)/(Pure)/(Raw)
+// faellt fuer den Vergleich weg; ohne passendes Mineral bleibt es bei null.
+const mineFor = (raw: string) => {
+  const n = raw.replace(/^\d+\s*[×x]\s*/, '');
+  return miningLink(n, lang) ?? miningLink(n.replace(/\s*\((ore|pure|raw)\)$/i, ''), lang);
+};
 // Je Karte vorab: Material- und Belohnungs-Ziele. Belohnungen, die ein Schiff
 // sind, fuehren zum Schiffsblatt und nicht zum Fahrzeug-Itemblatt (das
 // Schiffsblatt fuehrt, siehe UX-Audit D9).
@@ -63,7 +71,7 @@ const KARTEN = TRADES.map((t) => {
   const schiff = schiffHref(g, t.cls);
   const gCanon = matchItemName(g);
   return {
-    mats: t.mats.map((m) => { const c = matchItemName(m); return { text: m, canon: c, href: itemHref(c) }; }),
+    mats: t.mats.map((m) => { const c = matchItemName(m); return { text: m, canon: c, href: itemHref(c), mine: mineFor(m) }; }),
     get: { text: g, canon: gCanon, href: schiff ? null : itemHref(gCanon) },
     schiff,
   };
@@ -94,7 +102,7 @@ const TCATS = [
 const CAT_LABEL = de ? { conv: 'Favor-Umtausch', ship: 'Schiff', weapon: 'Waffe', armor: 'Rüstung', misc: 'Sonstiges' } : { conv: 'Favor exchange', ship: 'Ship', weapon: 'Weapon', armor: 'Armor', misc: 'Misc' };
 const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor', misc: 'component' } as const;
 // Component types (ship loadout)
-const COMP_LABEL = de ? { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'Kühler', weapon: 'Waffen' } : { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
+const COMP_LABEL = de ? { pwr: 'Generator', shield: 'Schild', qd: 'Quantum', cooler: 'Kühler', weapon: 'Waffen' } : { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
 // Kategorie und Komponentenart kommen aus den Daten (build-wikelo-trades.mjs).
 // Ein Wert ohne Label bricht den Bau ab, statt "undefined" auf die Karte zu
 // schreiben; zugleich kennt tsc danach den Schluesseltyp (TS7053). Eigene
@@ -338,9 +346,9 @@ a.wk-get-name{display:block;color:var(--text)}
               <div class="wk-side-h">{de ? 'Gib' : 'Give'}</div>
               <ul class="wk-mats">{KARTEN[ti].mats.map((m) => (
                 <li>{m.href
-                  ? (<a class="wk-linkable" href={m.href} data-item={m.canon} aria-haspopup="dialog" title={quellenTitel}>{m.text}</a>)
+                  ? (<a class="wk-linkable" href={m.href} data-item={m.canon} data-mine={m.mine} aria-haspopup="dialog" title={quellenTitel}>{m.text}</a>)
                   : m.canon
-                    ? (<span class="wk-linkable" {...linkAttrs(m.text)}>{m.text}</span>)
+                    ? (<span class="wk-linkable" {...linkAttrs(m.text)} data-mine={m.mine}>{m.text}</span>)
                     : m.text}</li>
               ))}</ul>
               {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}

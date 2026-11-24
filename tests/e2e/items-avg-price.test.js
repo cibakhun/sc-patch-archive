@@ -1,4 +1,4 @@
-// Ø-UEX-Spalte: Datenregel + Beweis im gebauten dist/ (DE+EN) + Mock-DOM.
+// Ø-Preis: Datenregel + Beweis im gebauten dist/ (DE+EN) + Mock-DOM.
 // Erwartungswerte werden zur Laufzeit aus der echten DB abgeleitet — es steht
 // keine feste Zahl im Test, damit der naechste Preis-Snapshot ihn nicht bricht.
 // Fest verdrahtet werden nur die stabilen Item-IDs (Fixture-Wachhund, Test 3).
@@ -66,52 +66,61 @@ describe('avgPrice — Datenregel gegen die echte DB', () => {
   });
 });
 
-// ---- Helfer: eine <table class="dp-table">…</table> aus gebautem HTML schneiden ----
-function extractDpTable(html) {
-  const m = html.match(/<table class="dp-table">[\s\S]*?<\/table>/);
+// ---- Helfer: die Bezugsquellen-Tabelle und die Ø-Zeile darueber ----
+// UX-Audit D5 (24.11.2026): der Mittelwert steht EINMAL ueber der Tabelle
+// („Ø Preis über alle Verkaufsstellen"), nicht mehr als Spalte in jeder Zeile;
+// eine Preisspalte gibt es nur, wenn eine Zeile einen Preis hat.
+function extractBezugTable(html) {
+  const m = html.match(/<table class="dp-table dp-bezug"[\s\S]*?<\/table>/);
   return m ? m[0] : null;
 }
-function extractTbodyRows(tableHtml) {
-  const m = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/);
-  if (!m) return [];
-  return m[1].match(/<tr[^>]*>[\s\S]*?<\/tr>/g) || [];
+function extractAvgLine(html) {
+  const m = html.match(/<p class="dp-avg"[^>]*>([\s\S]*?)<\/p>/);
+  return m ? sichtbarerText(m[1]) : null;
+}
+// Sichtbarer Text eines Schnipsels: Zeichen fuer Zeichen, alles zwischen < und >
+// faellt weg. Kein Regex-Ersetzen, das verschachtelte Reste stehen liesse.
+function sichtbarerText(schnipsel) {
+  let text = '';
+  let imTag = false;
+  for (const c of schnipsel) {
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    text += c;
+  }
+  return text;
+}
+function extractBodyRows(tableHtml) {
+  return (tableHtml.match(/<tr\b[^>]*>[\s\S]*?<\/tr>/g) || [])
+    .filter((r) => !/<th\b/.test(r));
 }
 
-describe('Ø-Spalte im Datenblatt — gebautes dist/ (DE+EN)', () => {
+describe('Ø-Preis im Datenblatt — gebautes dist/ (DE+EN)', () => {
   const distEnPath = path.resolve('dist/items/10-series-greatsword-cannon.html');
   const distDePath = path.resolve('dist/de/items/10-series-greatsword-cannon.html');
 
-  test('4. EN: Spaltenkopf + Mittelwert in dist/items/10-series-greatsword-cannon.html', () => {
-    assert.ok(fs.existsSync(distEnPath), 'dist fehlt — npm run build ausfuehren');
-    const html = fs.readFileSync(distEnPath, 'utf8');
-    const table = extractDpTable(html);
-    assert.ok(table, 'dp-table nicht gefunden');
-    assert.ok(table.includes('Avg price'), 'EN-Spaltenkopf fehlt');
+  for (const [nr, sprache, p, label, locale] of [
+    ['4', 'EN', distEnPath, 'Avg price across all vendors:', 'en-US'],
+    ['5', 'DE', distDePath, 'Ø Preis über alle Verkaufsstellen:', 'de-DE'],
+  ]) {
+    test(`${nr}. ${sprache}: Ø einmal über der Tabelle, keine Ø-Spalte in den Zeilen`, () => {
+      assert.ok(fs.existsSync(p), 'dist fehlt — npm run build ausfuehren');
+      const html = fs.readFileSync(p, 'utf8');
+      const table = extractBezugTable(html);
+      assert.ok(table, 'Bezugsquellen-Tabelle nicht gefunden');
+      assert.ok(!/>(?:Avg price|Ø Preis)<\/th>/.test(table), 'Ø-Spalte steht wieder in der Tabelle');
 
-    const it = itemById.get('10-series-greatsword-cannon');
-    const avg = refAvg(it);
-    const formatted = avg.toLocaleString('en-US');
-    const obtainCount = it.obtain.length;
-    const occurrences = table.split(formatted).length - 1;
-    assert.ok(occurrences >= obtainCount, `Ø-Wert ${formatted} kommt nur ${occurrences}x vor, erwartet >= ${obtainCount}`);
-  });
+      const it = itemById.get('10-series-greatsword-cannon');
+      const avg = refAvg(it);
+      const zeile = extractAvgLine(html);
+      assert.ok(zeile, 'Ø-Zeile über der Tabelle fehlt');
+      assert.ok(zeile.includes(label), `Ø-Zeile ohne „${label}": ${zeile}`);
+      assert.ok(zeile.includes(`${avg.toLocaleString(locale)} aUEC`), `Ø-Wert ${avg.toLocaleString(locale)} fehlt in: ${zeile}`);
+      assert.strictEqual((html.match(/class="dp-avg"/g) || []).length, 1, 'Ø-Zeile mehr als einmal');
+    });
+  }
 
-  test('5. DE: deutscher Spaltenkopf + deutsche Zahlenformatierung in der DE-Fassung', () => {
-    assert.ok(fs.existsSync(distDePath), 'dist/de fehlt — npm run build ausfuehren');
-    const html = fs.readFileSync(distDePath, 'utf8');
-    const table = extractDpTable(html);
-    assert.ok(table, 'dp-table nicht gefunden');
-    assert.ok(table.includes('Ø Preis'), 'DE-Spaltenkopf fehlt');
-
-    const it = itemById.get('10-series-greatsword-cannon');
-    const avg = refAvg(it);
-    const formatted = avg.toLocaleString('de-DE');
-    const obtainCount = it.obtain.length;
-    const occurrences = table.split(formatted).length - 1;
-    assert.ok(occurrences >= obtainCount, `Ø-Wert ${formatted} kommt nur ${occurrences}x vor, erwartet >= ${obtainCount}`);
-  });
-
-  test('6. adp-mk4-arms-justified (DE+EN): vier <td> je Zeile, Spaltenkopf da, aber NIRGENDS ein Betrag', () => {
+  test('6. adp-mk4-arms-justified (DE+EN): ohne Preis keine Preisspalte, keine Ø-Zeile, kein Betrag, kein „—"', () => {
     const currencyRe = /\d[\d.,]*\s*aUEC/;
     for (const p of [
       path.resolve('dist/items/adp-mk4-arms-justified.html'),
@@ -119,15 +128,17 @@ describe('Ø-Spalte im Datenblatt — gebautes dist/ (DE+EN)', () => {
     ]) {
       assert.ok(fs.existsSync(p), `${p} fehlt — npm run build ausfuehren`);
       const html = fs.readFileSync(p, 'utf8');
-      const table = extractDpTable(html);
-      assert.ok(table, `dp-table fehlt in ${p}`);
-      assert.ok(table.includes('Avg price') || table.includes('Ø Preis'), `Spaltenkopf fehlt in ${p}`);
-      const rows = extractTbodyRows(table);
+      const table = extractBezugTable(html);
+      assert.ok(table, `Bezugsquellen-Tabelle fehlt in ${p}`);
+      assert.ok(!/>(?:Price|Preis|Avg price|Ø Preis)<\/th>/.test(table), `Preisspalte ohne Preis in ${p}`);
+      assert.strictEqual(extractAvgLine(html), null, `Ø-Zeile ohne Preis in ${p}`);
+      const rows = extractBodyRows(table);
       assert.ok(rows.length > 0, `keine Zeilen in ${p}`);
       for (const row of rows) {
-        const tdCount = (row.match(/<td/g) || []).length;
-        assert.strictEqual(tdCount, 4, `Zeile ohne 4 <td> in ${p}: ${row}`);
+        const tdCount = (row.match(/<td\b/g) || []).length;
+        assert.strictEqual(tdCount, 2, `Zeile ohne 2 <td> (Ort, Art) in ${p}: ${row}`);
         assert.ok(!currencyRe.test(row), `Betrag in preisfreier Zeile gefunden (${p}): ${row}`);
+        assert.ok(!row.includes('—'), `Leerwert „—" in preisfreier Zeile (${p}): ${row}`);
       }
     }
   });
