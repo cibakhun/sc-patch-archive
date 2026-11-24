@@ -33,13 +33,17 @@ const yieldStand = ausbeuteStand();
 
 const COPY = {
   de: {
-    title: 'Raffinerie',
-    lead: 'Ertrag aller %s Raffinerien je Erz, die %m Methoden und dein Tracker.',
+    // Werkzeugname wie im Spiel und in der Begriffsliste (UX-Audit 24.11.2026,
+    // G6): „Refinery" in beiden Sprachen; „Raffinerie" bleibt das Wort fuer
+    // die einzelne Station im Fliesstext.
+    title: 'Refinery',
+    lead: 'Ertrag aller %s Raffinerien je Erz, die %m Methoden und dein %t.',
+    leadTracker: 'Tracker',
     leadData: 'Spielstand %v, Preise von %u vom %d.',
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
     retry: 'Neu laden',
-    outTitle: 'Dein Refinery-Tracker',
+    outTitle: 'Dein Tracker',
     outText: 'Melde dich an, um Aufträge mit Countdown zu verfolgen. Der Wert erscheint auch in deinem Konto.',
     login: 'Anmelden', register: 'Konto erstellen',
     stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen', stPipe: 'SCU in Arbeit', stValue: 'Refinery-Wert',
@@ -84,8 +88,8 @@ const COPY = {
     save: 'Speichern', cancel: 'Abbrechen',
     scu: 'SCU',
     oresTitle: 'Raffinierbare Erze',
-    oresNote: 'Ø Verkaufspreis laut UEX, Stand %d. Der Erzname führt zur Mining-Datenbank.',
-    thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
+    oresNote: 'Ø Verkaufspreis und bester Verkaufsort laut UEX, Stand %d. Der Erzname führt zur Mining-Datenbank.',
+    thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thSell: 'Bester Verkaufsort', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
     kind: { Metal: 'Metall', Mineral: 'Mineral', Ice: 'Eis' } as Record<string, string>,
     rarity: { common: 'häufig', uncommon: 'ungewöhnlich', rare: 'selten', epic: 'episch', legendary: 'legendär' } as Record<string, string>,
     noBonus: 'überall ±0 %',
@@ -101,12 +105,13 @@ const COPY = {
   },
   en: {
     title: 'Refinery',
-    lead: 'Yield of all %s refineries per ore, the %m methods, and your tracker.',
+    lead: 'Yield of all %s refineries per ore, the %m methods, and your %t.',
+    leadTracker: 'tracker',
     leadData: 'Game version %v, prices from %u as of %d.',
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders. Please check your connection.',
     retry: 'Reload',
-    outTitle: 'Your refinery tracker',
+    outTitle: 'Your tracker',
     outText: 'Sign in to track orders with a countdown. The value also shows up in your account.',
     login: 'Sign in', register: 'Create account',
     stActive: 'Active orders', stReady: 'Ready to collect', stPipe: 'SCU refining', stValue: 'Refinery value',
@@ -151,8 +156,8 @@ const COPY = {
     save: 'Save', cancel: 'Cancel',
     scu: 'SCU',
     oresTitle: 'Refinable ores',
-    oresNote: 'Average sell price from UEX, as of %d. The ore name links to the mining database.',
-    thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thBest: 'Best refinery', thSystems: 'Found in',
+    oresNote: 'Average sell price and best place to sell from UEX, as of %d. The ore name links to the mining database.',
+    thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thSell: 'Best place to sell', thBest: 'Best refinery', thSystems: 'Found in',
     kind: { Metal: 'Metal', Mineral: 'Mineral', Ice: 'Ice' } as Record<string, string>,
     rarity: { common: 'common', uncommon: 'uncommon', rare: 'rare', epic: 'epic', legendary: 'legendary' } as Record<string, string>,
     noBonus: '±0 % everywhere',
@@ -197,6 +202,9 @@ const defaultOre = oreRows.find((r) => r.top > 0)?.o.name ?? ores[0]?.name;
 const SYSTEM_TOPIC: Record<string, string> = { Pyro: '/topics/4-0-0-pyro-system.html', Nyx: '/topics/4-4-0-nyx-system.html' };
 const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang) : null);
 const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
+// Vorspann: Text um den Sprung zum Tracker herum (fuer Gaeste steht der seit
+// 24.11.2026 am Ende der Seite, s. Gast-Riegel unten).
+const leadKopf = COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length)).split('%t');
 // leadData: Text um die beiden Links (Spielstand, UEX) herum.
 const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDate).split('%v'); const [b, c] = rest.split('%u'); return [a, b, c]; })();
 ---
@@ -218,7 +226,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     <header class="rf-head">
       <h1>{COPY.title}</h1>
       <p>
-        {COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length))}
+        {leadKopf[0]}<a href="#tracker">{COPY.leadTracker}</a>{leadKopf[1]}
         {' '}{leadData[0]}{patch ? (patch.path ? <a href={href(patch.path, lang)}>{patch.label}</a> : patch.label) : '—'}{leadData[1]}<a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">UEX</a>{leadData[2]}
       </p>
     </header>
@@ -363,15 +371,22 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     <section id="erze" class="ck-col rf-sec" aria-labelledby="rf-ores-h">
       <h2 class="ck-h" id="rf-ores-h">{COPY.oresTitle}<span class="rf-n">{ores.length}</span></h2>
       <div class="rf-scroll">
-        <table class="rf-table">
-          <thead><tr><th scope="col">{COPY.thOre}</th><th scope="col">{COPY.thKind}</th><th scope="col">{COPY.thRarity}</th><th scope="col" class="num">{COPY.thPrice}</th><th scope="col">{COPY.thBest}</th><th scope="col">{COPY.thSystems}</th></tr></thead>
+        {/* Spaltenfolge seit dem UX-Audit 24.11.2026 (G10, G7): der Preis steht
+            direkt hinter dem Namen und der Name klebt links. Vorher begann die
+            Spalte Ø aUEC am Telefon bei 359 px, also rechts neben dem 334 px
+            breiten Ausschnitt, und war ohne Wischen unsichtbar. Daneben der
+            beste Verkaufsort mit seinem Preis, damit der Weg nach dem
+            Raffinieren nicht auf einer anderen Seite weitergeht. */}
+        <table class="rf-table rf-table--ores">
+          <thead><tr><th scope="col">{COPY.thOre}</th><th scope="col" class="num">{COPY.thPrice}</th><th scope="col">{COPY.thSell}</th><th scope="col">{COPY.thKind}</th><th scope="col">{COPY.thRarity}</th><th scope="col">{COPY.thBest}</th><th scope="col">{COPY.thSystems}</th></tr></thead>
           <tbody>
             {oreRows.map(({ o, top, best, link }) => (
               <tr>
                 <th scope="row">{link ? <a href={link}>{o.name}</a> : o.name}{o.code && <small>{o.code}</small>}</th>
+                <td class="num tnum">{fmtPrice(o.sell)}</td>
+                <td class="rf-sell">{o.sellLoc && o.sellMax ? <><b class="tnum">{fmtPrice(o.sellMax)}</b> <span>{o.sellLoc}</span></> : '—'}</td>
                 <td>{(o.kind && COPY.kind[o.kind]) || o.kind || '—'}</td>
                 <td>{o.rarity ? <span class={`rf-rar rf-rar--${o.rarity}`}>{COPY.rarity[o.rarity] || o.rarity}</span> : '—'}</td>
-                <td class="num tnum">{fmtPrice(o.sell)}</td>
                 <td>
                   {best.length
                     ? <button type="button" class="rf-pick" data-ore={o.name}><b class="rf-pos">{pct(top)}</b> {best.map((s) => s.short).join(', ')}</button>
@@ -453,6 +468,29 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         </table>
       </div>
     </section>
+    {/* GAST-RIEGEL (UX-Audit 24.11.2026, Heuristik B18, Task-Flow T8/F06):
+        ohne Anmeldung stand oben ein gesperrtes Tracker-Feld, und die
+        oeffentliche Ertragstafel begann 2,2 Bildschirme tiefer. Fuer Gaeste
+        rueckt der Tracker deshalb ans Ende, hinter Erze, Ertrag und Methoden.
+        Entschieden wird VOR dem ersten Bild (Skript direkt hinter den
+        Abschnitten, ohne defer), sonst sprang die Seite nach dem Laden um
+        zwei Bildschirme. Gast heisst: kein Sitzungsschluessel des
+        Kontodienstes im Speicher. Ist einer da, der sich spaeter als
+        abgelaufen erweist, bleibt der Tracker oben und zeigt die Anmeldung
+        (der seltene Fall, kein Sprung). Ohne Speicherzugriff gilt Gast. */}
+    <script is:inline>
+      (function () {
+        var gast = true;
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            if (/^sb-[a-z0-9]+-auth-token$/.test(localStorage.key(i) || '')) { gast = false; break; }
+          }
+        } catch (e) { /* kein Speicher: Gast */ }
+        if (!gast) return;
+        var t = document.getElementById('tracker'), m = document.getElementById('methoden');
+        if (t && m && m.parentNode) m.parentNode.insertBefore(t, m.nextSibling);
+      })();
+    </script>
     {/* Datenstand am Ende des Inhalts, in der Inhaltsspalte .rf-in, die Breite
         und Rinne mitbringt (src/lib/datenstand.ts). */}
     <Datenstand lang={lang} zeilen={standRefinery(lang)} innen />
@@ -610,6 +648,13 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-table--matrix { font-size: var(--fs-6); }
   .rf-table--matrix th, .rf-table--matrix td { padding: 6px 9px; }
   .rf-table--matrix tbody th, .rf-table--matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  /* Erztafel: Name klebt links wie in der Matrix, der Verkaufsort darf
+     umbrechen (Ortsnamen bis 46 Zeichen), der Preis davor nicht. */
+  .rf-table--ores tbody th, .rf-table--ores thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .rf-table--ores thead th:first-child { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); }
+  .rf-table--ores .rf-sell { white-space: normal; min-width: 13rem; max-width: 18rem; }
+  .rf-table--ores .rf-sell b { display: block; font-family: var(--font-ui); font-weight: 700; color: var(--text); }
+  .rf-table--ores .rf-sell span { display: block; font-size: var(--fs-5); line-height: 1.3; color: var(--muted); }
   .rf-sys th { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5); color: var(--accent) !important; text-transform: uppercase; letter-spacing: var(--ls-10); background: color-mix(in srgb, var(--surface-2) 80%, var(--surface)) !important; }
   .rf-sys th a { color: inherit !important; border: 0 !important; }
 
