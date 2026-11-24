@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -199,7 +200,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Welcome to the <span>Rock</span></div>
       <div class="tagline">{de ? 'Crafting, Operation Breaker Stations und die Aurora Mk II.' : 'Crafting, Operation Breaker Stations and the Aurora Mk II.'}</div>
       <div class="tags">
-        <span class="tag">Crafting</span><span class="tag hot">Breaker Stations</span><span class="tag">Keeger Belt</span><span class="tag">Aurora Mk II</span>
+        <Schlagwort>Crafting</Schlagwort><Schlagwort hot>Breaker Stations</Schlagwort><Schlagwort>Keeger Belt</Schlagwort><Schlagwort>Aurora Mk II</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

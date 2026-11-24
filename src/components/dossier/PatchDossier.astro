@@ -62,7 +62,7 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
 const evoTitel = (sys: string) => t('do.evoChip').replace('%s%', sys);
 const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`;
 ---
-<section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)}>
+<section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)} data-mehr={t('do.more')} data-weniger={t('do.less')}>
   <div class="do__in">
     <header class="do__head">
       <span class="do__title">
@@ -216,6 +216,73 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
   </div>
 </section>
 
+
+<script>
+  // Am Handy erzaehlen die Beschreibungen die Highlights von oben ausfuehrlich
+  // nach und machten das Dossier fuenf bis achtzehn Bildschirme lang (UX-Audit
+  // H6). Dort zeigt jede Karte vier Zeilen; "Weiterlesen" klappt den Rest auf.
+  // Gekuerzt wird nur, wo wirklich etwas fehlt; ohne Skript steht alles da.
+  const dossier = document.querySelector<HTMLElement>('section.do[data-mehr]');
+  if (dossier) {
+    const mehr = dossier.dataset.mehr ?? '';
+    const weniger = dossier.dataset.weniger ?? '';
+    const schmal = window.matchMedia('(max-width: 720px)');
+    const karten = [...dossier.querySelectorAll<HTMLElement>('.do__feat')];
+    const pruefen = () => {
+      for (const karte of karten) {
+        const text = karte.querySelector<HTMLElement>('.do__desc');
+        if (!text) continue;
+        let knopf = karte.querySelector<HTMLButtonElement>('.do__mehr');
+        if (!schmal.matches) {
+          karte.classList.remove('is-kurz');
+          knopf?.setAttribute('hidden', '');
+          continue;
+        }
+        if (karte.dataset.offen === '1') {
+          // offen geblieben (etwa nach einem Abstecher in die breite Ansicht): Knopf zum Einklappen zeigen
+          knopf?.removeAttribute('hidden');
+          continue;
+        }
+        karte.classList.add('is-kurz');
+        if (text.scrollHeight - text.clientHeight <= 2) {
+          karte.classList.remove('is-kurz');
+          knopf?.setAttribute('hidden', '');
+          continue;
+        }
+        if (!knopf) {
+          const k = document.createElement('button');
+          k.type = 'button';
+          k.className = 'do__mehr';
+          k.setAttribute('aria-expanded', 'false');
+          k.textContent = mehr;
+          k.addEventListener('click', () => {
+            const offen = !karte.classList.toggle('is-kurz');
+            karte.dataset.offen = offen ? '1' : '';
+            k.setAttribute('aria-expanded', String(offen));
+            k.textContent = offen ? weniger : mehr;
+          });
+          text.after(k);
+          knopf = k;
+        }
+        knopf.removeAttribute('hidden');
+      }
+    };
+    pruefen();
+    schmal.addEventListener('change', pruefen);
+    document.fonts?.ready.then(pruefen);
+    // Auch innerhalb der schmalen Ansicht aendert sich die Textbreite (Drehen,
+    // Fenster ziehen): dann passt eine Beschreibung ploetzlich nicht mehr in
+    // vier Zeilen oder umgekehrt. Nur Breitenwechsel zaehlen, gebuendelt.
+    let breite = window.innerWidth;
+    let takt = 0;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth === breite) return;
+      breite = window.innerWidth;
+      window.clearTimeout(takt);
+      takt = window.setTimeout(pruefen, 150);
+    });
+  }
+</script>
 <style>
   .do__links {
     list-style: none;
@@ -631,5 +698,40 @@ const archivHref = `${L('/archiv.html')}#p-${patch.version.replace(/\./g, '-')}`
       overflow-wrap: anywhere;
       min-width: 0;
     }
+  }
+  /* Handy: Beschreibungen auf vier Zeilen (Skript oben) und weniger
+     verschachtelter Rand, damit die Textspalte breiter und kuerzer wird. */
+  @media (max-width: 720px) {
+    .do__in {
+      padding-inline: 0.9rem;
+    }
+    .do__feat {
+      padding-inline: 0.8rem;
+    }
+    .do__feat.is-kurz .do__desc {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+      line-clamp: 4;
+      overflow: hidden;
+    }
+  }
+  .do :global(.do__mehr) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 0.1rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-8);
+    color: var(--accent, #2dd4ff);
+    cursor: pointer;
+  }
+  .do :global(.do__mehr[hidden]) {
+    display: none;
   }
 </style>

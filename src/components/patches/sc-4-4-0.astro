@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -200,7 +201,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Welcome to <span>Nyx</span></div>
       <div class="tagline">{de ? 'Drittes System Nyx, erste Vanduul und die IAE 2955.' : 'The third system Nyx, the first Vanduul and IAE 2955.'}</div>
       <div class="tags">
-        <span class="tag">Nyx</span><span class="tag hot">Vanduul</span><span class="tag">Levski</span><span class="tag">Interstellar Hauling</span><span class="tag">IAE 2955</span>
+        <Schlagwort>Nyx</Schlagwort><Schlagwort hot>Vanduul</Schlagwort><Schlagwort>Levski</Schlagwort><Schlagwort>Interstellar Hauling</Schlagwort><Schlagwort>IAE 2955</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

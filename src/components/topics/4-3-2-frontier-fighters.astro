@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-3-2.html' : '/patches/sc-4-3-2.html'}>Alpha 4.3.2 · Fractured Frontiers</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Finale-Event' : ' &nbsp;·&nbsp; Finale event'} /></div>
       <h1><span class="thin">{de ? 'Das Finale · Pyro Must Burn' : 'The Finale · Pyro Must Burn'}</span>Frontier Fighters</h1>
       <p class="lead">{de ? 'Das grosse Finale von 4.3.2: Headhunters und Citizens for Prosperity verbuenden sich, um Amelia Boyds Frontier Fighters ueber drei Phasen quer durch Stanton und Pyro zur Strecke zu bringen.' : 'The grand finale of 4.3.2: Headhunters and Citizens for Prosperity join forces to bring down Amelia Boyd\'s Frontier Fighters across three phases, all the way through Stanton and Pyro.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Finale-Event' : 'Finale event'}</span><span class="tag">{de ? '3 Phasen' : '3 phases'}</span><span class="tag">Headhunters + CFP</span><span class="tag">Amelia Boyd</span><span class="tag">{de ? 'Polaris-Takedown' : 'Polaris takedown'}</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Finale-Event' : 'Finale event'}</Schlagwort><Schlagwort>{de ? '3 Phasen' : '3 phases'}</Schlagwort><Schlagwort>Headhunters + CFP</Schlagwort><Schlagwort>Amelia Boyd</Schlagwort><Schlagwort>{de ? 'Polaris-Takedown' : 'Polaris takedown'}</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

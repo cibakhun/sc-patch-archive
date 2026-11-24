@@ -22,10 +22,10 @@
 // --tone-1/--tone-2 in data-page.css.
 import Layout from '../layouts/Layout.astro';
 import { versioned } from '../lib/assetVersion';
-import { SITE } from '../consts';
+import { SITE, DISCORD } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
-import { recht, ziel } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, krumen, recht, ziel } from '../lib/bereiche';
 import Datenstand from './Datenstand.astro';
 import type { StandZeile } from '../lib/datenstand';
 
@@ -97,7 +97,12 @@ const otherHref = pathForLocale(Astro.url.pathname, other);
 // Listen sind bis zu 7 Bildschirme lang, ein normaler Klick landet wieder
 // ganz oben. Beschriftungen werden dabei NIE umgeschrieben, nur breiter
 // markiert. Gemessen: 4200 px vorher, 4200 px nachher.
-const backLinkSrc = crumbs.some((c) => c.href) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+//
+// Seit UX-Audit A2 laedt die Huelle back-link.js immer: es schliesst auch das
+// Menue (Esc, Klick daneben) und stellt „Anmelden“ auf „Konto“, wenn eine
+// Sitzung im Browser liegt — ohne account-lite.js (40 KB) auf jede der
+// ~17.000 Seiten zu legen.
+const backLinkSrc = versioned('assets/back-link.js', '/assets/back-link.js');
 
 // Suche (seit 06.11.2026): ein Knopf in der Kopfleiste, sonst nichts im HTML.
 // assets/data-search.js (klein, gecacht) baut das Overlay erst beim Antippen
@@ -117,21 +122,42 @@ const searchUi = href('/search-ui.json', lang);
 const fussZiele = ['finder', 'items', 'blueprints', 'schiffe', 'missionen'].map((k) => ziel(k, lang));
 const fussRecht = [...recht(lang), ziel('feedback', lang), ziel('support', lang)];
 
+// Brotkrumen nach der Bereichsliste (UX-Audit A3, krumen() in
+// src/lib/bereiche.ts): Bereich › Seite › was die Seite darunter nennt. Die
+// Seiten reichen ihre Krumen unveraendert durch (Basisform, EN-Pfad); die
+// Spur kommt mit fertigen Adressen in der Sprache der Seite zurueck.
+const trail = krumen(Astro.url.pathname, crumbs, lang);
+
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
-// URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
+// URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar. Dieselbe
+// Wurzel wie auf den Seiten mit voller Navigation (SiteNav).
 const crumbLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { name: t('nav.home'), href: '/index.html' },
-    ...crumbs.map((c) => ({ name: c.label, href: c.href })),
+    { name: t('nav.home'), href: lang === 'en' ? '/' : href('/index.html', lang) },
+    ...trail.map((c) => ({ name: c.label, href: c.href })),
   ].map((c, idx) => ({
     '@type': 'ListItem',
     position: idx + 1,
     name: c.name,
-    ...(c.href ? { item: base + (c.href === '/index.html' ? '/' : href(c.href, lang)) } : {}),
+    ...(c.href ? { item: base + c.href } : {}),
   })),
 };
+
+// Bereichsleiste und Menue (UX-Audit A2): dieselben Bereiche und Namen wie
+// die volle Navigation, aus der einen Liste. Die Leiste zeigt ab 1200 px je
+// Bereich einen Eintrag; das Menue (alle Breiten) jede Seite je Bereich,
+// dazu Konto & Service und die Sprache. Bewusst nur Namen, keine Unterzeilen
+// und Glyphen: die Huelle rendert ~17.000 Mal.
+const hier = bereichVon(Astro.url.pathname);
+const alleBereiche = bereiche(lang);
+const leiste = alleBereiche.map((b) => ({ key: b.key, href: b.href, label: b.kurz, current: hier?.bereich === b.key }));
+const dienstZiele = dienste(lang);
+const SPRACHE: Record<Locale, string> = { de: 'Deutsch', en: 'English' };
+const loginHref = href('/account/login.html', lang);
+// Mit Sitzung im Browser zeigt back-link.js „Konto“ und fuehrt nach
+// /account.html (bzw. /de/account.html); das Ziel steht dort fest.
 ---
 <Layout
   title={title}
@@ -156,20 +182,16 @@ const crumbLd = {
   <div class="dp" data-tone={tone} data-breit={breit ? '' : undefined}>
     <header class="dp-bar">
       <a class="dp-home" href={href('/index.html', lang)} aria-label={t('nav.home.aria')}>VerseBase</a>
-      <nav class="dp-crumbs" aria-label={t('nav.path')} data-back-self={crumbs[crumbs.length - 1]?.label}>
-        {crumbs.map((c, idx) => (
-          <>
-            {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
-            {c.href ? (
-              <a
-                href={href(c.href, lang)}
-                data-backlink
-                data-back-path={href(c.href, lang).split(/[?#]/)[0]}
-              >{c.label}</a>
-            ) : <span aria-current="page">{c.label}</span>}
-          </>
+      {/* Reihenfolge im DOM = Tab-Reihenfolge: Wortmarke, Bereiche, Suche,
+          Sprache, Konto, Discord, Menue, dann der Pfad. Startlink, Suchknopf,
+          Sprachschalter und Pfad bleiben DIREKTE Kinder der Leiste: das
+          Hangar-Terminal blendet sie ueber `.dp-bar>…` aus (TERM_CSS,
+          verify:hangar-orte [4]). Alles Neue blendet data-page.css dort aus. */}
+      <ul class="dp-areas" role="list" aria-label={t('nav.areas')}>
+        {leiste.map((b) => (
+          <li><a href={b.href} data-area={b.key} aria-current={b.current ? 'true' : undefined}>{b.label}</a></li>
         ))}
-      </nav>
+      </ul>
       <button
         type="button"
         class="dp-search"
@@ -181,6 +203,50 @@ const crumbLd = {
         aria-keyshortcuts="Control+K"
       ><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></button>
       <a class="dp-lang" href={otherHref} hreflang={HTML_LANG[other]} rel="alternate">{LOCALE_SHORT[other]}</a>
+      <a class="dp-acct" href={loginHref} data-dp-acct data-l-in={t('nav.account')}>{t('nav.account.login')}</a>
+      <a class="dp-discord" href={DISCORD.invite} target="_blank" rel="noopener noreferrer" aria-label={t('nav.discord.aria')}></a>
+      <details class="dp-menu">
+        <summary aria-label={t('nav.menu.open')}><span class="dp-menu__icon" aria-hidden="true"></span><span class="dp-menu__txt">{t('nav.menu')}</span></summary>
+        <nav class="dp-menu__panel" aria-label={t('nav.main')}><div class="dp-menu__cols">
+          {alleBereiche.map((b) => (
+            <div class="dp-menu__grp">
+              <p class="dp-menu__h">{b.name}</p>
+              <ul role="list">
+                {b.seiten.map((z) => (
+                  <li><a href={z.href} aria-current={hier?.seite === z.key ? 'true' : undefined}>{z.name}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div class="dp-menu__grp">
+            <p class="dp-menu__h">{t('nav.deck.grp.account')}</p>
+            <ul role="list">
+              {dienstZiele.map((z) => (
+                z.key === 'konto'
+                  ? <li><a href={loginHref} data-dp-acct data-l-in={t('nav.account')}>{z.name}</a></li>
+                  : z.extern
+                    ? <li><a href={z.href} target="_blank" rel="noopener noreferrer">{z.name}</a></li>
+                    : <li><a href={z.href}>{z.name}</a></li>
+              ))}
+              <li><a href={otherHref} hreflang={HTML_LANG[other]} lang={HTML_LANG[other]} rel="alternate">{SPRACHE[other]}</a></li>
+            </ul>
+          </div>
+        </div></nav>
+      </details>
+      <nav class="dp-crumbs" aria-label={t('nav.path')} data-back-self={trail[trail.length - 1]?.label}>
+        {trail.map((c, idx) => (
+          <>
+            {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
+            {c.href ? (
+              <a
+                href={c.href}
+                data-backlink
+                data-back-path={c.href.split(/[?#]/)[0]}
+              >{c.label}</a>
+            ) : <span aria-current="page">{c.label}</span>}
+          </>
+        ))}
+      </nav>
     </header>
 
     <main id="main" class="dp-main">
@@ -208,6 +274,6 @@ const crumbLd = {
       </p>
     </footer>
   </div>
-  {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
+  <script is:inline src={backLinkSrc} defer></script>
   <script is:inline src={searchBoot} defer></script>
 </Layout>

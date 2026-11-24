@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-3.html' : '/patches/sc-4-8-3.html'}>Alpha 4.8.3 · XenoThreat</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Fraktion' : ' &nbsp;·&nbsp; Faction'} /></div>
       <h1><span class="thin">{de ? 'Der Angriff auf Stanton' : 'The Assault on Stanton'}</span>XenoThreat</h1>
       <p class="lead">{de ? 'Eine menschen-suprematistische, anti-alien Outlaw-Fraktion: mit 4.8.3 kehrt ihr Assault-on-Stanton-Event zurück — diesmal nicht als kinoreifer Server-Krieg, sondern als punktebasiertes PvE-Kampf-Event vom 1. bis 15. Juli 2026.' : 'A human-supremacist, anti-alien outlaw faction: with 4.8.3 their Assault-on-Stanton event returns — this time not as a cinematic server-wide war, but as a points-based PvE combat event running July 1–15, 2026.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Outlaw-Fraktion' : 'Outlaw faction'}</span><span class="tag">Assault on Stanton</span><span class="tag">{de ? 'Punkte-Event' : 'Points event'}</span><span class="tag">Foxwell Enforcement</span><span class="tag">{de ? 'Idris-Ziel' : 'Idris objective'}</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Outlaw-Fraktion' : 'Outlaw faction'}</Schlagwort><Schlagwort>Assault on Stanton</Schlagwort><Schlagwort>{de ? 'Punkte-Event' : 'Points event'}</Schlagwort><Schlagwort>Foxwell Enforcement</Schlagwort><Schlagwort>{de ? 'Idris-Ziel' : 'Idris objective'}</Schlagwort></div>
       <div class="hero__play" data-lb="yt:SsOtI2dtvBc"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
