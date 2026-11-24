@@ -68,8 +68,13 @@ export function missingFields(form: HTMLFormElement, status: HTMLElement): boole
   return true;
 }
 
-/** Grobe Form einer Adresse: etwas@etwas.tld, ohne Leerzeichen. */
-export const EMAIL_FORM = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
+/**
+ * Grobe Form einer Adresse: etwas@etwas.tld, ohne Leerzeichen. Die Domain
+ * besteht aus Buchstaben, Ziffern und Bindestrichen (auch Umlaute, die der
+ * Browser selbst umschreibt), mit mindestens einem Punkt: „pilot@beispiel.de,“
+ * fällt so durch.
+ */
+export const EMAIL_FORM = /^[^\s@]+@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+$/u;
 
 /**
  * Adresse in falscher Form: Satz ins Statusfeld, Feld markiert und

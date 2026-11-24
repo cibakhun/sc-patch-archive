@@ -48,10 +48,10 @@ describe('auth-felder: Satz und Adressform', () => {
   });
 
   test('ungültige Adressen fallen durch, gültige kommen durch', () => {
-    for (const bad of ['abc', 'pilot@', '@beispiel.de', 'pilot@beispiel', 'pi lot@beispiel.de', 'pilot@@beispiel.de', 'pilot@beispiel.']) {
+    for (const bad of ['abc', 'pilot@', '@beispiel.de', 'pilot@beispiel', 'pi lot@beispiel.de', 'pilot@@beispiel.de', 'pilot@beispiel.', 'pilot@beispiel.de,', 'pilot@bei;spiel.de', 'pilot@beispiel..de']) {
       assert.equal(EMAIL_FORM.test(bad), false, bad);
     }
-    for (const good of ['du@beispiel.de', 'a.b+c@mail.example.com', 'X_1@sub.domain.io']) {
+    for (const good of ['du@beispiel.de', 'a.b+c@mail.example.com', 'X_1@sub.domain.io', 'kai@müller-flug.de']) {
       assert.equal(EMAIL_FORM.test(good), true, good);
     }
   });
