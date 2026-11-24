@@ -24,12 +24,16 @@
 //   Dieser Test pinnt deshalb NICHT das Verhalten von measureMorph() (das ist
 //   Code, kein Wert), sondern die zwei Werte, aus denen es rechnet:
 //     1. den Schriftgrad-Token, aus dem .snav__brand liest (--fs-10 = 1rem)
-//     2. den Laufweiten-Token, aus dem .snav__brand liest (--ls-15 = 0.18em)
+//     2. den Laufweiten-Token, aus dem .snav__brand liest (--ls-10 = 0.08em;
+//        bis 24.11.2026 --ls-15 = 0.18em fuer die Versalien „VERSE·BASE“. Seit
+//        der Begriffsliste, docs/begriffe.md, heisst die Wortmarke ueberall
+//        „VerseBase“ wie die Ueberschrift, die hierher wandert, und laeuft
+//        enger; Sichtpruefung der Wandlung an den Bildern zu UX-Audit A2)
 //     3. dass .hero__mark h1 UNVERAENDERT seine woertliche clamp()-Formel +
 //        letter-spacing traegt (keine Skalen-Migration -- benannte Ausnahme,
 //        02-RESEARCH.md Open Question 2 / 01-SUMMARY.md)
 //     4. dass .snav__brand seinen Wert wirklich UEBER die Tokens bezieht
-//        (var(--fs-10)/var(--ls-15)) -- sonst waere Zusicherung 1+2 nur ein
+//        (var(--fs-10)/var(--ls-10)) -- sonst waere Zusicherung 1+2 nur ein
 //        Test auf einen unveraenderten Altzustand, kein Beweis der Migration.
 //
 //   Er ersetzt NICHT die menschliche Sichtpruefung aus Task 2 (Erfolgs-
@@ -97,24 +101,24 @@ describe('Messeingang 1: Schriftgrad-Token der Wortmarke (--fs-10, geht in --s e
   });
 });
 
-describe('Messeingang 2: Laufweiten-Token der Wortmarke (--ls-15, geht in --dx ein)', () => {
-  test('dist/assets/theme.css definiert --ls-15 exakt als 0.18em', () => {
+describe('Messeingang 2: Laufweiten-Token der Wortmarke (--ls-10, geht in --dx ein)', () => {
+  test('dist/assets/theme.css definiert --ls-10 exakt als 0.08em', () => {
     assert.ok(
-      themeCss.includes('--ls-15: 0.18em'),
-      '--ls-15 ist nicht mehr exakt 0.18em -- die gerenderte Breite von .snav__brand ' +
+      themeCss.includes('--ls-10: 0.08em'),
+      '--ls-10 ist nicht mehr exakt 0.08em -- die gerenderte Breite von .snav__brand ' +
         '(und damit --dx) wuerde sich verschieben'
     );
   });
 });
 
 describe('Migrationsprobe: .snav__brand liest wirklich ueber die Tokens, nicht ueber einen zufaellig passenden Altwert', () => {
-  test('.snav__brand{...} im gebauten Buendel traegt font-size:var(--fs-10) UND letter-spacing:var(--ls-15)', () => {
+  test('.snav__brand{...} im gebauten Buendel traegt font-size:var(--fs-10) UND letter-spacing:var(--ls-10)', () => {
     const hit = bundledCssFiles.some((css) =>
-      /\.snav__brand(\[[^\]]*\])?\{[^}]*font-size:var\(--fs-10\)[^}]*letter-spacing:var\(--ls-15\)/.test(css)
+      /\.snav__brand(\[[^\]]*\])?\{[^}]*font-size:var\(--fs-10\)[^}]*letter-spacing:var\(--ls-10\)/.test(css)
     );
     assert.ok(
       hit,
-      '.snav__brand referenziert font-size/letter-spacing nicht (mehr) ueber var(--fs-10)/var(--ls-15) ' +
+      '.snav__brand referenziert font-size/letter-spacing nicht (mehr) ueber var(--fs-10)/var(--ls-10) ' +
         'in dist/_astro/*.css -- entweder die Migration wurde rueckgaengig gemacht, oder Zusicherung 1+2 ' +
         'pruefen zufaellig nur einen unveraenderten Altzustand statt die echte Kopplung'
     );

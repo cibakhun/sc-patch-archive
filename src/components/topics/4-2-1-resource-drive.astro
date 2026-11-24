@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -58,7 +59,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-2-1.html' : '/patches/sc-4-2-1.html'}>Alpha 4.2.1 · Second Life</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Globales Event' : ' &nbsp;·&nbsp; Global Event'} /></div>
       <h1><span class="thin">{de ? 'Das erste globale Event' : 'The first global event'}</span>Resource Drive</h1>
       <p class="lead">{de ? 'Imperator Addison ruft Stantons vier Megakonzerne zum Wettstreit: wer am meisten Material liefert, gewinnt den Forschungsauftrag. Das erste Event, dessen Fortschritt über alle Shards zusammenläuft.' : 'Imperator Addison calls Stanton\'s four megacorporations to compete: whoever delivers the most material wins the research contract. The first event whose progress converges across all shards.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Globales Event' : 'Global Event'}</span><span class="tag">{de ? '4 Megakonzerne' : '4 Megacorporations'}</span><span class="tag">Hauling</span><span class="tag">{de ? 'Konvoi' : 'Convoy'}</span><span class="tag">{de ? 'Event-Tracking' : 'Event Tracking'}</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Globales Event' : 'Global Event'}</Schlagwort><Schlagwort>{de ? '4 Megakonzerne' : '4 Megacorporations'}</Schlagwort><Schlagwort>Hauling</Schlagwort><Schlagwort>{de ? 'Konvoi' : 'Convoy'}</Schlagwort><Schlagwort>{de ? 'Event-Tracking' : 'Event Tracking'}</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

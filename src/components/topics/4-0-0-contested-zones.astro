@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -54,7 +55,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-0.html' : '/patches/sc-4-0-0.html'}>Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Pyros Hochrisiko-Beutezonen' : 'Pyro\'s High-Risk Loot Zones'}</span>Contested Zones</h1>
       <p class="lead">{de ? 'Abgeriegelte Areale tief in Pyros Anlagen, in denen KI-Fraktionen, rivalisierende Spieler und das beste Loot des Verse aufeinandertreffen — und nur überlebt, wer wieder rauskommt.' : 'Sealed-off areas deep inside Pyro\'s facilities, where AI factions, rival players and the best loot in the Verse collide — and only those who make it back out survive.'}</p>
-      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">On-Foot / FPS</span><span class="tag">High-Tier Loot</span><span class="tag">{de ? 'Extraktion' : 'Extraction'}</span><span class="tag">{de ? 'Keine Sicherheitszone' : 'No Safe Zone'}</span></div>
+      <div class="tags"><Schlagwort hot>PvPvE</Schlagwort><Schlagwort>On-Foot / FPS</Schlagwort><Schlagwort>High-Tier Loot</Schlagwort><Schlagwort>{de ? 'Extraktion' : 'Extraction'}</Schlagwort><Schlagwort>{de ? 'Keine Sicherheitszone' : 'No Safe Zone'}</Schlagwort></div>
       <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

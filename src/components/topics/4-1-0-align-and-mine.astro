@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -47,7 +48,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-1-0.html' : '/patches/sc-4-1-0.html'}>Alpha 4.1.0 · Orbital Assault</a> &nbsp;·&nbsp; Feature</div>
       <h1><span class="thin">{de ? 'Orbital-Laser-Bergbau' : 'Orbital Laser Mining'}</span>Align &amp; Mine</h1>
       <p class="lead">{de ? 'Eine kooperative Sandbox-Aktivität: richte die Hathor-Anlagen auf zwei Monden aus, zünde den Orbital-Mining-Laser — und er sprengt eine brandneue, mineralienreiche Höhle in die Oberfläche.' : 'A cooperative sandbox activity: align the Hathor facilities on two moons, fire the orbital mining laser — and it blasts a brand-new, mineral-rich cave into the surface.'}</p>
-      <div class="tags"><span class="tag">Co-op</span><span class="tag">Mining</span><span class="tag">Hathor</span><span class="tag">{de ? 'Orbital-Laser' : 'Orbital Laser'}</span><span class="tag">Persistent</span></div>
+      <div class="tags"><Schlagwort>Co-op</Schlagwort><Schlagwort>Mining</Schlagwort><Schlagwort>Hathor</Schlagwort><Schlagwort>{de ? 'Orbital-Laser' : 'Orbital Laser'}</Schlagwort><Schlagwort>Persistent</Schlagwort></div>
       <div class="hero__play" data-lb="yt:NArGjlRFsQQ"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

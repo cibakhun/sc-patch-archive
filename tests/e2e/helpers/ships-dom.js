@@ -37,8 +37,8 @@ const CAT_ORDER = 'wtmscpqr';
 // Beschriftungen wie in ShipsOverview.astro — hier zweitgeschrieben, damit der
 // Test nicht dieselbe Quelle als Erwartung benutzt, die er prueft.
 const LABELS = {
-  en: { results: 'results', nodata: 'without slot data', andup: 'S{n} and up', any: 'Any size', off: 'Pick a component first' },
-  de: { results: 'Treffer', nodata: 'ohne Steckplatz-Daten', andup: 'ab S{n}', any: 'Beliebige Größe', off: 'Erst Bauteil wählen' },
+  en: { results: 'results', nodata: 'without slot data', andup: 'S{n} and up', any: 'Any size', off: 'Pick a component first', show: 'Show {n} results', none: 'No matches' },
+  de: { results: 'Treffer', nodata: 'ohne Steckplatz-Daten', andup: 'ab S{n}', any: 'Beliebige Größe', off: 'Erst Bauteil wählen', show: '{n} Treffer anzeigen', none: 'Keine Treffer' },
 };
 
 // Zweite, unabhaengige Kodierung -- siehe Kopfkommentar oben.
@@ -140,7 +140,17 @@ export function makeShipsDomContext(opts = {}) {
     'sf-count': new MockElement('span', 'sf-count'),
     'sf-empty': new MockElement('p', 'sf-empty'),
     'sf-fleet': new MockFleetElement('sf-fleet'),
+    // Filter-Schublade bis 820 px (UX-Audit TF V26/M4)
+    'sf-mehr': new MockElement('div', 'sf-mehr', 'sdb__mehr'),
+    'sf-toggle': new MockElement('button', 'sf-toggle'),
+    'sf-close': new MockElement('button', 'sf-close'),
+    'sf-show': new MockElement('button', 'sf-show'),
+    'sf-reset': new MockElement('button', 'sf-reset'),
   };
+  elements['sf-toggle'].setAttribute('aria-expanded', 'false');
+  elements['sf-show'].setAttribute('data-tpl', L.show);
+  elements['sf-show'].setAttribute('data-none', L.none);
+  elements['sf-show'].textContent = L.show.replace('{n}', String(ids.length));
   // sf-compsize traegt im ausgelieferten HTML genau einen Leereintrag plus das
   // disabled-Attribut, bevor eine Bauteilart gewaehlt ist (D-11).
   const emptySizeOpt = new MockElement('option');
