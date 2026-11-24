@@ -129,7 +129,9 @@ const shipBase = (lang === 'de' ? '/de' : '') + '/schiffe/';
     padding: 0.8rem 1rem; border: 1px solid color-mix(in srgb, var(--ok, #5ad19a) 45%, transparent); border-radius: 10px;
     background: color-mix(in srgb, var(--ok, #5ad19a) 8%, transparent); font-size: var(--fs-7);
   }
-  .flt-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); }
+  .flt-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); }
+  /* Am Handy zwei Karten nebeneinander, am breiten Schirm etwas größere. */
+  @media (min-width: 700px) { .flt-grid { grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); } }
   .flt-card { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
   .flt-card:hover { border-color: var(--accent); }
   .flt-card__link { display: grid; grid-template-rows: auto auto; color: var(--text); text-decoration: none; }
