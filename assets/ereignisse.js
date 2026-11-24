@@ -68,7 +68,7 @@
     filter: {
       werkzeug: WZ,
       filter:
-        'suche sortierung kategorie groesse verfuegbarkeit gewicht seltenheit ansicht typ auftraggeber fraktion gilde ort bauplan legal ' +
+        'suche sortierung kategorie groesse verfuegbarkeit gewicht seltenheit ansicht typ auftraggeber ort bauplan legal ' +
         'hersteller karriere rolle signatur merkmal komponente komponentengroesse ressource qualitaet system brechbar',
     },
     rechnung: { werkzeug: WZ },
