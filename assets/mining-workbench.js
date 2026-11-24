@@ -456,6 +456,11 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       links += '<a class="wb__link" href="' + esc(s.h) + '">' + esc(s.n) +
         (s.ore ? ' <b>' + esc(s.ore) + '</b>' : '') + '</a>';
     });
+    /* Querweg zum Routenrechner (UX-Audit 24.11.2026, G3): Precision Jump
+       hatte 178 Einstiege und keinen einzigen Inhaltslink, und wer hier
+       ein Halo-Erz sucht, braucht als Naechstes die Austrittsstelle. Nur
+       an Erzen, die im Halo tatsaechlich vorkommen. */
+    if (D.pjPath && m.locs.some(function (l) { return l.p === HALO; })) links += haloLink();
     $('wb-links').innerHTML = links;
 
     /* Der Weg zum Fracturing-Rechner nimmt das gewaehlte Erz mit — sonst
@@ -465,6 +470,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       frac.href = D.fracturingPath + '?mineral=' + encodeURIComponent(m.name) + '#calc';
       $('wb-frac-ore').textContent = m.name;
     }
+  }
+
+  /* Der Fundortschluessel des Halos und der Verweis darauf — eine Stelle fuer
+     die Erz- und die Fundort-Ansicht. Der Ortsname ist ein Spielname und
+     steht in beiden Sprachen gleich, ebenso der Werkzeugname. */
+  var HALO = 'Aaron Halo';
+  function haloLink() {
+    return '<a class="wb__link" href="' + esc(D.pjPath) + '">Precision Jump <b>' + esc(HALO) + '</b></a>';
   }
 
   /* Fundort-Ansicht (Phase 12, Tracer): der EINZIGE Ort, der die Sichtbarkeit
@@ -543,6 +556,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         }).join('') +
         '</div></div>';
     }
+    if (D.pjPath && S.selLoc === HALO) html = '<div class="wb__sec"><div class="wb__links">' + haloLink() + '</div></div>' + html;
     if (locView) locView.innerHTML = html;
   }
 
@@ -632,7 +646,28 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      gewaehlten Erz stehen, und der Rueckweg ist ohne Neuaufbau sofort da.
      renderLocation() laeuft NACH renderDetail() und ist die einzige Stelle,
      die zwischen beiden Ansichten umschaltet. */
-  function renderAll() { renderList(); renderDetail(); renderLocation(); renderPins(); renderLocPins(); renderPresetList(); save(); }
+  function renderAll() { renderList(); renderDetail(); renderLocation(); renderPins(); renderLocPins(); renderPresetList(); save(); adresse(); }
+
+  /* UX-Audit 24.11.2026 (Task-Flow F01, V3): die Adresse traegt das gewaehlte
+     Erz (?mineral=) und in der Fundort-Ansicht den Ort (?fundort=) — dieselben
+     zwei Parameter, die die Seite schon beim Laden liest (fromQuery*,
+     unten). Wer den Link der Crew schickt, schickt damit seine Ansicht und
+     nicht die Vorgabe. Per replaceState: kein Verlaufseintrag je Klick, und
+     der Zaehler wertet nur den Pfad (Adress-Hygiene im Layout).
+     Erst NACH dem ersten Zeichnen scharf: ein Besuch ohne Parameter soll
+     seine Adresse nicht schon beim Laden geaendert bekommen. */
+  var adresseAn = false;
+  function adresse() {
+    if (!adresseAn || !window.history || !history.replaceState) return;
+    try {
+      var q = new URLSearchParams(location.search);
+      if (S.sel) q.set('mineral', S.sel); else q['delete']('mineral');
+      if (S.view === 'loc' && S.selLoc) q.set('fundort', S.selLoc); else q['delete']('fundort');
+      var qs = q.toString();
+      var ziel = location.pathname + (qs ? '?' + qs : '') + location.hash;
+      if (ziel !== location.pathname + location.search + location.hash) history.replaceState(history.state, '', ziel);
+    } catch (e) { /* ohne Verlauf bleibt die Adresse, wie sie war */ }
+  }
 
   /* ==========================================================
      PRESETS — benannte Zusammenstellungen der Signaturenliste
@@ -1002,6 +1037,36 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   }
   mountSeg();
 
+  /* Reiterwechsel am Handy (bis 760 px stehen die drei Spalten als Reiter
+     „Minerale", „Ansicht", „Signaturen"). Eine Stelle fuer Knopf und
+     Erzwahl, damit Klasse am Raster und aria-selected nie auseinanderlaufen. */
+  function setSeg(k) {
+    if (!grid) return;
+    grid.classList.remove('seg-list', 'seg-view', 'seg-sig');
+    grid.classList.add('seg-' + k);
+    var tabs = document.querySelectorAll('[data-seg]');
+    for (var i3 = 0; i3 < tabs.length; i3++) {
+      var on = tabs[i3].getAttribute('data-seg') === k;
+      tabs[i3].classList.toggle('is-on', on);
+      tabs[i3].setAttribute('aria-selected', String(on));
+    }
+  }
+  /* UX-Audit 24.11.2026 (Task-Flow F01, Befund M2): am Handy blieb man nach
+     dem Antippen eines Erzes im Reiter „Minerale" stehen; Fundorte und beste
+     Stationen lagen im Reiter „Ansicht", den man erst selbst finden musste.
+     Eine Erzwahl wechselt dort jetzt dorthin und holt die Reiterleiste ins
+     Bild — sonst stuende man mitten in einer Liste, die es nicht mehr gibt.
+     Gefragt wird die Medienabfrage, nicht die Breite: dieselbe Grenze
+     (760 px) wie im Stilblock, an der die Reiter erscheinen. */
+  function zurAnsichtAmHandy() {
+    if (!grid || !grid.classList.contains('has-seg')) return;
+    var mm = window.matchMedia && window.matchMedia('(max-width:760px)');
+    if (!mm || !mm.matches) return;
+    setSeg('view');
+    var bar = document.querySelector('.wb__seg');
+    if (bar && bar.getBoundingClientRect().top < 0 && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
+  }
+
   /* Die Handler haengen am document und sehen JEDEN Klick der Seite — auch
      die im Refinery-Finder darunter. Ohne diesen Riegel koennte `closest`
      dort werfen oder ein gleichnamiges data-Attribut treffen. */
@@ -1165,7 +1230,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     /* Eine Erz-Auswahl bedeutet immer Erz-Ansicht (Claudes Ermessen, in
        CONTEXT.md festgelegt) -- sonst zeigte der Kopf weiter einen Ort,
        waehrend der zugehoerige Koerper verborgen ist. */
-    if (tile) { S.sel = tile.getAttribute('data-min'); S.view = 'ore'; renderAll(); return; }
+    if (tile) { S.sel = tile.getAttribute('data-min'); S.view = 'ore'; renderAll(); zurAnsichtAmHandy(); return; }
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
@@ -1175,18 +1240,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       renderList(); return;
     }
     var seg = t.closest('[data-seg]');
-    if (seg && grid) {
-      var k = seg.getAttribute('data-seg');
-      grid.classList.remove('seg-list', 'seg-view', 'seg-sig');
-      grid.classList.add('seg-' + k);
-      var tabs = document.querySelectorAll('[data-seg]');
-      for (var i3 = 0; i3 < tabs.length; i3++) {
-        var on = tabs[i3] === seg;
-        tabs[i3].classList.toggle('is-on', on);
-        tabs[i3].setAttribute('aria-selected', String(on));
-      }
-      return;
-    }
+    if (seg && grid) { setSeg(seg.getAttribute('data-seg')); return; }
   });
 
   onDoc('keydown', function (e) {
@@ -1198,6 +1252,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       S.sel = tile.getAttribute('data-min');
       S.view = 'ore';
       renderAll();
+      zurAnsichtAmHandy();
       return;
     }
     /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
@@ -1480,6 +1535,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
 
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
   renderAll();
+  adresseAn = true;
 
   /* Angesprungene Kachel ins Bild holen. Zwei Fallen: nicht ueber offsetTop
      rechnen (misst gegen das naechste positionierte Elternelement), und EIN

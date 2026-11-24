@@ -239,7 +239,7 @@ export const HELP = {
     // -- Refinery-Tracker --
     'refinerytracker.title': 'Wie funktioniert der Refinery-Tracker?',
     'refinerytracker.purpose':
-      'Verfolgt laufende Refinery-Aufträge bis zur Abholung — anders als der Refinery-Finder vergleicht er nicht vorab, sondern begleitet Aufträge, die schon laufen.',
+      'Verfolgt laufende Refinery-Aufträge bis zur Abholung — anders als die Ertragstafel auf dieser Seite vergleicht er nicht vorab, sondern begleitet Aufträge, die schon laufen.',
     'refinerytracker.step1': 'Raffinerie, Methode und Erze eines laufenden Auftrags eintragen.',
     'refinerytracker.step2': 'Bearbeitungszeit und Kosten aus dem Ingame-Terminal übernehmen.',
     'refinerytracker.step3': 'Den Countdown verfolgen und den Auftrag bei Fertigstellung abholen.',
@@ -457,7 +457,7 @@ export const HELP = {
     // -- Refinery Tracker --
     'refinerytracker.title': 'How does the Refinery Tracker work?',
     'refinerytracker.purpose':
-      'Tracks refinery work orders through to collection — unlike the Refinery Finder, it does not compare stations upfront, it follows orders already underway.',
+      'Tracks refinery work orders through to collection — unlike the yield table on this page, it does not compare stations upfront, it follows orders already underway.',
     'refinerytracker.step1': 'Log a running order’s refinery, method and ores.',
     'refinerytracker.step2': 'Copy the processing time and cost from the in-game terminal.',
     'refinerytracker.step3': 'Watch the countdown and collect the order once it is ready.',

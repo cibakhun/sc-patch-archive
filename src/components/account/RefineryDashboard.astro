@@ -33,8 +33,12 @@ const yieldStand = ausbeuteStand();
 
 const COPY = {
   de: {
-    title: 'Raffinerie',
-    lead: 'Ertrag aller %s Raffinerien je Erz, die %m Methoden und dein Tracker.',
+    // Werkzeugname wie im Spiel und in der Begriffsliste (UX-Audit 24.11.2026,
+    // G6): „Refinery" in beiden Sprachen; „Raffinerie" bleibt das Wort fuer
+    // die einzelne Station im Fliesstext.
+    title: 'Refinery',
+    lead: 'Ertrag aller %s Raffinerien je Erz, die %m Methoden und dein %t.',
+    leadTracker: 'Tracker',
     leadData: 'Spielstand %v, Preise von %u vom %d.',
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
@@ -101,7 +105,8 @@ const COPY = {
   },
   en: {
     title: 'Refinery',
-    lead: 'Yield of all %s refineries per ore, the %m methods, and your tracker.',
+    lead: 'Yield of all %s refineries per ore, the %m methods, and your %t.',
+    leadTracker: 'tracker',
     leadData: 'Game version %v, prices from %u as of %d.',
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders. Please check your connection.',
@@ -197,6 +202,9 @@ const defaultOre = oreRows.find((r) => r.top > 0)?.o.name ?? ores[0]?.name;
 const SYSTEM_TOPIC: Record<string, string> = { Pyro: '/topics/4-0-0-pyro-system.html', Nyx: '/topics/4-4-0-nyx-system.html' };
 const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang) : null);
 const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
+// Vorspann: Text um den Sprung zum Tracker herum (fuer Gaeste steht der seit
+// 24.11.2026 am Ende der Seite, s. Gast-Riegel unten).
+const leadKopf = COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length)).split('%t');
 // leadData: Text um die beiden Links (Spielstand, UEX) herum.
 const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDate).split('%v'); const [b, c] = rest.split('%u'); return [a, b, c]; })();
 ---
@@ -218,7 +226,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     <header class="rf-head">
       <h1>{COPY.title}</h1>
       <p>
-        {COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length))}
+        {leadKopf[0]}<a href="#tracker">{COPY.leadTracker}</a>{leadKopf[1]}
         {' '}{leadData[0]}{patch ? (patch.path ? <a href={href(patch.path, lang)}>{patch.label}</a> : patch.label) : '—'}{leadData[1]}<a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">UEX</a>{leadData[2]}
       </p>
     </header>
@@ -453,6 +461,29 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         </table>
       </div>
     </section>
+    {/* GAST-RIEGEL (UX-Audit 24.11.2026, Heuristik B18, Task-Flow T8/F06):
+        ohne Anmeldung stand oben ein gesperrtes Tracker-Feld, und die
+        oeffentliche Ertragstafel begann 2,2 Bildschirme tiefer. Fuer Gaeste
+        rueckt der Tracker deshalb ans Ende, hinter Erze, Ertrag und Methoden.
+        Entschieden wird VOR dem ersten Bild (Skript direkt hinter den
+        Abschnitten, ohne defer), sonst sprang die Seite nach dem Laden um
+        zwei Bildschirme. Gast heisst: kein Sitzungsschluessel des
+        Kontodienstes im Speicher. Ist einer da, der sich spaeter als
+        abgelaufen erweist, bleibt der Tracker oben und zeigt die Anmeldung
+        (der seltene Fall, kein Sprung). Ohne Speicherzugriff gilt Gast. */}
+    <script is:inline>
+      (function () {
+        var gast = true;
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            if (/^sb-[a-z0-9]+-auth-token$/.test(localStorage.key(i) || '')) { gast = false; break; }
+          }
+        } catch (e) { /* kein Speicher: Gast */ }
+        if (!gast) return;
+        var t = document.getElementById('tracker'), m = document.getElementById('methoden');
+        if (t && m && m.parentNode) m.parentNode.insertBefore(t, m.nextSibling);
+      })();
+    </script>
     {/* Datenstand am Ende des Inhalts, in der Inhaltsspalte .rf-in, die Breite
         und Rinne mitbringt (src/lib/datenstand.ts). */}
     <Datenstand lang={lang} zeilen={standRefinery(lang)} innen />

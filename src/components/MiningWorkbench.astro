@@ -337,6 +337,9 @@ const payload = {
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
   craftingPath: href(craftingPath, lang),
   refineryPath: href('/refinery.html', lang),
+  // Querweg zum Routenrechner (UX-Audit 24.11.2026, G3): Erze mit Fundort im
+  // Aaron Halo und die Fundort-Ansicht des Halos verlinken Precision Jump.
+  pjPath: href('/precision-jump.html', lang),
   fracturingPath,
   shipsByMethod,
 };
@@ -983,7 +986,14 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* Zeilen als Ableseposten auf dem Schirm: kantiger (Radius 3 statt 7) und mit
    einer feinen Lichtkante oben, damit sie im Schirm liegen statt darauf.
    Polsterung und Raster unveraendert. */
-.wb__row2{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+/* ⚠ minmax(0,1fr) statt 1fr (24.11.2026, UX-Audit Task-Flow F01, M3): bei
+   1fr ist die Untergrenze der Namensspalte die Breite des laengsten Namens
+   am Stueck (.p steht auf nowrap). Am Handy war „Asteroid Cluster (Medium
+   Yield)" damit 294 px breit in einer 263 px schmalen Spalte, und die Zeile
+   wurde an BEIDEN Raendern abgeschnitten — vorne der Name, hinten das
+   Prozentzeichen. Mit der Null-Untergrenze weicht der Name; am Handy bricht
+   er um (Stilblock unten), breiter endet er wie gehabt in der Ellipse. */
+.wb__row2{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;
   padding:5px 9px;border-radius:3px;background:color-mix(in srgb,var(--ink) 46%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
 .wb__row2 .p{font-size:var(--fs-5);font-weight:500;color:var(--text);display:block;
@@ -1513,6 +1523,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      muessen beide Listen weiter schrumpfen und innen scrollen, sonst schoebe
      eine lange Signaturenliste die Fundorte aus dem Fenster (Review PR #420). */
   .wb__grid .wb__sec2{flex:0 0 auto}
+  /* Lange Ortsnamen umbrechen statt abschneiden (s. .wb__row2 oben): am
+     Handy ist die Zeile so schmal, dass sonst „Asteroid Cluster (Me…" stuende. */
+  .wb__row2 .p{white-space:normal;overflow-wrap:anywhere}
   .wb__grid.has-seg{display:block}
   .wb__grid.has-seg > .wb__pane{display:none}
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
@@ -1531,6 +1544,19 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__rgrp,.wb__frac{width:100%}
   .wb__rgrp .wb__sel{max-width:none}
   .wb__frac{margin-left:0}
+}
+/* ⚠ Telefon (24.11.2026, UX-Audit Task-Flow F01, M2): Rand der Sektion 2 x 16
+   plus Rahmen 34 + 33 px nahmen bei 390 px ein Viertel der Breite; das
+   Suchfeld war 250 px breit, die Fundortzeile 263. Die 34 px Untergrenze des
+   Rahmens sind fuer den Schreibtisch eingemessen („15–32 px waren zu
+   duenn"), wo er neben 1000 px Schirm steht. Auf der Handflaeche liest das
+   Blech auch schmaler als Rahmen; hier 24 px und 10 px Rand — rund 30 px
+   mehr fuer den Inhalt. Die Zierstuecke rechnen sich aus --rahmen mit. */
+/* ⚠ Nicht im ausgelagerten Fenster (.wb--pop): es ist ebenfalls schmal,
+   traegt aber seine eigenen 8 px und kein Gehaeuse. */
+@media(max-width:480px){
+  .wb:not(.wb--pop){padding-left:10px;padding-right:10px}
+  .wb__chassis{--rahmen:24px}
 }
 </style>
 

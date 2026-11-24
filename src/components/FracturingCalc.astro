@@ -23,6 +23,7 @@
 //    `.fc__scroll` steht dort.
 import MODEL from '../../assets/mining-model.json';
 import DB from '../../assets/mining-db.json';
+import { REFINERY } from '../lib/refinery';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { href } from '../i18n/ui';
@@ -117,6 +118,11 @@ const RAR_LBL: Record<string, { de: string; en: string }> = {
 
 const sel = minerals[0];
 const miningPath = href('/topics/mining.html', lang);
+// Querweg zur Refinery (UX-Audit 24.11.2026, G3): nach dem Brechen kommt das
+// Raffinieren. Nur fuer Erze, die die Refinery-Seite kennt — sonst fuehrte der
+// Link auf eine Tafel ohne Vorauswahl.
+const refineryPath = href('/refinery.html', lang);
+const refOres = REFINERY.ores.map((o) => o.name);
 
 const S = de ? {
   ores: 'Erze', search: 'Erz suchen', onlyBreakable: 'nur brechbar',
@@ -130,6 +136,7 @@ const S = de ? {
   mCharge: 'Wirksamer Schaden', mMass: 'Nötiger Schaden', mRatio: 'Verhältnis',
   laserDps: 'Laser-DPS', guteZone: 'gut ab 1,30', grenzZone: 'grenzwertig ab 1,00',
   backLead: 'Fundorte, Ertrag und Steine zu', backGo: 'Im Mining ansehen →',
+  refLead: 'Ertrag je Station für', refGo: 'In der Refinery ansehen →',
 } : {
   ores: 'Ores', search: 'Search ore', onlyBreakable: 'breakable only',
   gear: 'Gear', laser: 'Laser', modules: 'Modules', gadget: 'Gadget',
@@ -142,12 +149,13 @@ const S = de ? {
   mCharge: 'Effective damage', mMass: 'Damage needed', mRatio: 'Ratio',
   laserDps: 'Laser DPS', guteZone: 'good from 1.30', grenzZone: 'marginal from 1.00',
   backLead: 'Locations, yield and rocks for', backGo: 'Open in Mining →',
+  refLead: 'Yield per station for', refGo: 'Open in Refinery →',
 };
 
 const payload = {
   lang, minerals, lasers, modules, gadgets,
   params: { decayPerMass: P.decayPerMass || 0.2 },
-  defaultMass: DEFAULT_MASS, t: S, miningPath,
+  defaultMass: DEFAULT_MASS, t: S, miningPath, refineryPath, refOres,
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
@@ -428,6 +436,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__back__t{flex:1;min-width:0;font-size:var(--fs-5);color:var(--muted)}
 .fc__back__t b{color:var(--text);font-weight:600}
 .fc__back__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
+.fc__back--ref{margin-top:6px}
 
 /* ---------------- Spalte 3 ---------------- */
 .fc__rig{padding:11px 12px;display:flex;flex-direction:column;gap:12px}
@@ -572,6 +581,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           <a class="fc__back" id="fc-back" href={miningPath}>
             <span class="fc__back__t"><span set:text={S.backLead} /> <b id="fc-back-ore" set:text={sel.name} /></span>
             <span class="fc__back__go" set:text={S.backGo} />
+          </a>
+          <a class="fc__back fc__back--ref" id="fc-ref" href={`${refineryPath}?erz=${encodeURIComponent(sel.name)}#ertrag`} hidden={!refOres.includes(sel.name)}>
+            <span class="fc__back__t"><span set:text={S.refLead} /> <b id="fc-ref-ore" set:text={sel.name} /></span>
+            <span class="fc__back__go" set:text={S.refGo} />
           </a>
         </div>
       </div>

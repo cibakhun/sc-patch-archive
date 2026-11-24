@@ -202,6 +202,18 @@
     var back = $('fc-back');
     back.href = D.miningPath + '?mineral=' + encodeURIComponent(m.name) + '#db';
     $('fc-back-ore').textContent = m.name;
+
+    /* Und weiter zur Refinery (UX-Audit 24.11.2026, G3), nur fuer Erze, die
+       dort eine Ertragstafel haben. */
+    var ref = $('fc-ref');
+    if (ref) {
+      var kann = (D.refOres || []).indexOf(m.name) >= 0;
+      ref.hidden = !kann;
+      if (kann) {
+        ref.href = D.refineryPath + '?erz=' + encodeURIComponent(m.name) + '#ertrag';
+        $('fc-ref-ore').textContent = m.name;
+      }
+    }
   }
 
   /* Je Steckplatz eine Auswahl statt eines Weiterschalt-Knopfes: bei 26

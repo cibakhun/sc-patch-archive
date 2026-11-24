@@ -14,6 +14,7 @@ import {
   type AnchorRecord,
 } from '../data/precision-jump';
 import { useHelp } from '../i18n/help';
+import { href } from '../i18n/ui';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
 
@@ -85,6 +86,9 @@ const S = {
     gameHaloSep: 'Innen',
     honesty:
       `QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau, ausgelesen in Patch ${PJ_PATCH}; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.`,
+    nextTitle: 'Weiter im Mining-Kreislauf',
+    nextMining: 'Was im Aaron Halo liegt: Erze und Anteile',
+    nextRef: 'Danach raffinieren: Ertrag je Station',
   },
   en: {
     solver: 'Route solver',
@@ -144,6 +148,9 @@ const S = {
     gameHaloSep: 'inner',
     honesty:
       `QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate, read out in patch ${PJ_PATCH}; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.`,
+    nextTitle: 'Next in the mining loop',
+    nextMining: 'What the Aaron Halo holds: ores and shares',
+    nextRef: 'Then refine: yield per station',
   },
 }[lang];
 
@@ -272,6 +279,17 @@ const CLIENT = {
     border-radius: 4px; color: var(--text); font-size: var(--fs-8); line-height: 1.55;
   }
   .pj-honesty b {color:var(--text); }
+  /* Querwege (UX-Audit 24.11.2026, G3): bis dahin hatte diese Seite keinen
+     einzigen Inhaltslink — 178 Einstiege, drei gingen weiter. Zwei Karten
+     direkt unter dem Ergebnis: was im Halo liegt (Mining-Werkbank mit dem
+     Fundort vorgewaehlt) und wohin danach (Refinery). */
+  .pj-next { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: .6rem; margin: 0 0 1.4rem; }
+  .pj-next__a { display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+    padding: .75rem 1rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface);
+    color: var(--muted); text-decoration: none; font-size: var(--fs-8); line-height: 1.4; }
+  .pj-next__a b { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .pj-next__a:hover { border-color: var(--accent); color: var(--text); }
+  .pj-next__a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* ---- Console ---- */
   .pj-console {
@@ -830,6 +848,11 @@ const CLIENT = {
 
     </div>
 
+    <nav class="pj-next" aria-label={S.nextTitle}>
+      <a class="pj-next__a" href={`${href('/topics/mining.html', lang)}?fundort=${encodeURIComponent('Aaron Halo')}#db`}><span>{S.nextMining}</span><b>Mining →</b></a>
+      <a class="pj-next__a" href={`${href('/refinery.html', lang)}#ertrag`}><span>{S.nextRef}</span><b>Refinery →</b></a>
+    </nav>
+
     <p class="pj-honesty" set:html={S.honesty} />
 
     <details class="pj-tbl" open data-help={h('precisionjump.ctl.table')}>
@@ -1234,9 +1257,39 @@ const CLIENT = {
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify({ s: byId('pj-start').value, e: byId('pj-end').value, b: byId('pj-bandsel').value })); } catch (e) {}
   }
+  // UX-Audit 24.11.2026 (Task-Flow F08, V3): die Route steht in der Adresse
+  // (?start=, ?ziel=, ?band= mit den Schluesseln aus den Auswahllisten), damit
+  // ein geteilter Link beim Empfaenger dieselbe Route zeigt und nicht dessen
+  // letzte. Die Adresse hat Vorrang vor dem Gespeicherten, unbekannte Werte
+  // fallen still auf das Gespeicherte zurueck. Geschrieben per replaceState
+  // (kein Verlaufseintrag je Wahl; der Zaehler wertet nur den Pfad) und erst
+  // nach einer Aenderung, nicht schon beim Laden.
+  function fromAddress() {
+    try {
+      var q = new URLSearchParams(location.search);
+      return { s: q.get('start'), e: q.get('ziel'), b: q.get('band') };
+    } catch (e) { return null; }
+  }
+  function toAddress() {
+    if (!window.history || !history.replaceState) return;
+    try {
+      var q = new URLSearchParams(location.search);
+      q.set('start', byId('pj-start').value);
+      q.set('ziel', byId('pj-end').value);
+      q.set('band', byId('pj-bandsel').value);
+      history.replaceState(history.state, '', location.pathname + '?' + q.toString() + location.hash);
+    } catch (e) { /* ohne Verlauf bleibt die Adresse, wie sie war */ }
+  }
   function load() {
     var v = null;
     try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    var a = fromAddress();
+    if (a) {
+      v = v || {};
+      if (a.s && AMAP[a.s]) v.s = a.s;
+      if (a.e && AMAP[a.e]) v.e = a.e;
+      if (a.b && D.bands[a.b]) v.b = a.b;
+    }
     var s = byId('pj-start'), e = byId('pj-end'), b = byId('pj-bandsel');
     s.value = (v && AMAP[v.s]) ? v.s : D.def.start;
     e.value = (v && AMAP[v.e]) ? v.e : D.def.end;
@@ -1245,7 +1298,7 @@ const CLIENT = {
     if (!e.value) e.value = D.def.end;
   }
 
-  function onChange() { save(); render(); }
+  function onChange() { save(); render(); toAddress(); }
 
   byId('pj-start').addEventListener('change', onChange);
   byId('pj-end').addEventListener('change', onChange);
