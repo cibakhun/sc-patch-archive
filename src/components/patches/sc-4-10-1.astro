@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
@@ -239,7 +240,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="codename">Orison <span>Relief Support</span></div>
       <div class="tagline">{de ? 'Nach dem Angriff — Crusader zahlt für den Wiederaufbau' : 'After the attack — Crusader pays for the rebuild'}</div>
       <div class="tags">
-        <span class="tag hot">{de ? 'Event bis 4.10.2' : 'Event until 4.10.2'}</span><span class="tag">SecondWind</span><span class="tag">Sabre Raven EX</span><span class="tag">Soft Death</span><span class="tag">{de ? '37 Fehler behoben' : '37 issues fixed'}</span><span class="tag">{de ? 'Kein Wipe' : 'No Wipe'}</span>
+        <Schlagwort hot>{de ? 'Event bis 4.10.2' : 'Event until 4.10.2'}</Schlagwort><Schlagwort>SecondWind</Schlagwort><Schlagwort>Sabre Raven EX</Schlagwort><Schlagwort>Soft Death</Schlagwort><Schlagwort>{de ? '37 Fehler behoben' : '37 issues fixed'}</Schlagwort><Schlagwort>{de ? 'Kein Wipe' : 'No Wipe'}</Schlagwort>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>

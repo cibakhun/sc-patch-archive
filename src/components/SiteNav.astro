@@ -15,7 +15,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
-import { bereiche, bereichVon, dienste } from '../lib/bereiche';
+import { bereiche, bereichVon, dienste, krumen } from '../lib/bereiche';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
@@ -70,18 +70,26 @@ const lang = localeFromPath(Astro.url.pathname);
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
 
-// BreadcrumbList JSON-LD — the nav already knows the trail (last item = page)
+// Brotkrumen nach der Bereichsliste (UX-Audit A3, src/lib/bereiche.ts
+// krumen()): Werkzeuge haengen nicht mehr unter einem Patch, die Startseite
+// heisst nicht mehr „Archiv“, Service und Recht stehen unter der Startseite.
+// Die Seiten reichen ihre Krumen unveraendert durch; geordnet wird hier.
+const trail = krumen(Astro.url.pathname, crumbs, lang);
+const istStart = Astro.url.pathname === '/' || Astro.url.pathname === L('/index.html');
+
+// BreadcrumbList JSON-LD: Startseite › Bereich › … › Seite, dieselbe Wurzel
+// wie der Datenblock der Datenblaetter (DataShell).
 const siteBase = SITE.url.replace(/\/$/, '');
 const crumbLd =
-  crumbs.length > 1
+  trail.length && !istStart
     ? {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        itemListElement: crumbs.map((c, i) => ({
+        itemListElement: [{ label: t('nav.home'), href: L('/index.html') }, ...trail].map((c, i) => ({
           '@type': 'ListItem',
           position: i + 1,
           name: c.label,
-          item: siteBase + (c.href ?? Astro.url.pathname),
+          item: siteBase + (c.href === L('/index.html') && lang === 'en' ? '/' : (c.href ?? Astro.url.pathname)),
         })),
       }
     : null;
@@ -102,7 +110,7 @@ const pathSegments = pathNoLocale.split('/').filter(Boolean);
 const isNestedPage = pathSegments.length >= 2;
 const isAccountArea = pathSegments[0] === 'account'; // Auth-Fluss ist keine Inhaltsnavigation
 const backParent = isNestedPage && !isAccountArea
-  ? [...crumbs].slice(0, -1).reverse().find((c) => c.href)
+  ? [...trail].slice(0, -1).reverse().find((c) => c.href)
   : undefined;
 const backTarget = backParent ? { href: backParent.href as string, label: backParent.label } : null;
 // Das Element wird FAST UEBERALL angelegt, nicht nur wo es ein statisches Ziel
@@ -187,12 +195,18 @@ const deckItem = (key: string): DeckItem[] => {
     external: z.extern || undefined,
   }];
 };
+// Seit UX-Audit A2: eine Gruppe je Bereich, in der Reihenfolge der Leiste,
+// dazu Konto & Service. Das Menue zeigt damit dieselbe Liste wie die
+// Bereichsleiste (ab 1280 px sichtbar) und wie das Handy-Menue der
+// Datenblaetter, nur mit allen Seiten je Bereich.
+const BEREICHE_HIER = bereiche(lang);
 const deckGroups: DeckGroup[] = [
-  { id: 'mining', label: t('nav.deck.grp.mining'), items: ['mining', 'fracturing', 'refinery', 'sprung'].flatMap(deckItem) },
-  { id: 'gear', label: t('nav.deck.grp.gear'), items: ['schiffe', 'hangar', 'missionen', 'finder', 'crafting', 'wikelo'].flatMap(deckItem) },
-  { id: 'archive', label: t('nav.deck.grp.archive'), items: ['archiv', 'themen', 'evolution'].flatMap(deckItem) },
-  { id: 'account', label: t('nav.deck.grp.account'), items: ['konto', 'downloads', 'feedback', 'discord', 'support'].flatMap(deckItem) },
+  ...BEREICHE_HIER.map((b) => ({ id: b.key, label: b.name, items: b.seiten.flatMap((s) => deckItem(s.key)) })),
+  { id: 'account', label: t('nav.deck.grp.account'), items: dienste(lang).flatMap((z) => deckItem(z.key)) },
 ];
+// Die Bereichsleiste in der Kopfzeile (Desktop ab 1280 px): ein Eintrag je
+// Bereich, markiert, wenn die Seite darin liegt.
+const leiste = BEREICHE_HIER.map((b) => ({ key: b.key, href: b.href, label: b.kurz, full: b.name, current: hier?.bereich === b.key }));
 // Die Staffelung läuft jetzt PRO GRUPPE, nicht über alle Gruppen hinweg:
 // --gseq (Gruppenindex) und --seq (Zeilenindex innerhalb der Gruppe) werden
 // direkt beim Rendern gesetzt. Ein durchlaufender Zähler ließ die letzte
@@ -225,7 +239,23 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 {backStatic && (
   <style is:inline>:root{--nav-h:104px}@media (max-width:860px){:root{--nav-h:116px}}</style>
 )}
-<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
+<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={trail.length ? trail[trail.length - 1]?.label : undefined}>
+  <div class="snav__center">
+    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
+      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
+      <span>VerseBase</span>
+    </a>
+  </div>
+  {/* Bereichsleiste (UX-Audit A2): dieselben sieben Bereiche wie das Menue
+      und die Datenblaetter, aus src/lib/bereiche.ts. Sichtbar ab 1280 px;
+      darunter traegt das Menue sie. Steht im DOM direkt hinter der
+      Wortmarke, damit die Tab-Reihenfolge am Desktop der Lesereihenfolge
+      folgt (Wortmarke, Bereiche, Konto, Sprache, Suche, Menue). */}
+  <ul class="snav__areas" role="list">
+    {leiste.map((b) => (
+      <li><a href={b.href} data-area={b.key} aria-current={b.current ? 'true' : undefined} title={b.label !== b.full ? b.full : undefined}>{b.label}</a></li>
+    ))}
+  </ul>
   <div class="snav__left">
     <a
       class="snav__acct js-nav-acct"
@@ -245,12 +275,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
     <FxToggle place="bar" />
-  </div>
-  <div class="snav__center">
-    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
-      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
-      <span>Verse·Base</span>
-    </a>
   </div>
   <div class="snav__right">
     <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
@@ -565,10 +589,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 0.55rem;
     color: var(--text, #e8eefc);
     font-family: var(--font-display, sans-serif);
-    font-weight: 700;
+    font-weight: 900;
     font-size: var(--fs-10);
-    letter-spacing: var(--ls-15);
-    text-transform: uppercase;
+    /* Eine Schreibweise der Wortmarke (docs/begriffe.md): „VerseBase“ wie in
+       der Datenleiste und in der Ueberschrift der Startseite, die beim
+       Scrollen hierher wandert. Vorher „VERSE·BASE“ in Versalien. */
+    letter-spacing: var(--ls-10);
     white-space: nowrap;
   }
   .snav__brand svg {
@@ -619,6 +645,71 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     align-items: center;
     gap: 0.6rem;
     justify-self: end;
+  }
+  /* ---- Feste Plaetze im Raster (UX-Audit A2) ----
+     Die Wortmarke steht im DOM vor der Bereichsleiste und den beiden
+     Gruppen, damit die Tab-Reihenfolge am Desktop der Lesereihenfolge folgt.
+     Unter 1280 px bleibt das Bild wie vorher: links Konto und Sprache, mittig
+     die Wortmarke, rechts Suche und Menue. */
+  .snav__left { grid-column: 1; grid-row: 1; }
+  .snav__center { grid-column: 2; grid-row: 1; }
+  .snav__right { grid-column: 3; grid-row: 1; }
+  .snav__areas { display: none; }
+  /* Ab 1280 px: Wortmarke links, die sieben Bereiche in der Mitte, Konto,
+     Sprache, Suche, Discord und Menue rechts. 89 % der Besucher kommen am
+     Desktop, und dort stand die ganze Navigation hinter „Menue“ (IA B2).
+     Platz: bei 1280 px bleiben nach Wortmarke und Bedienknoepfen rund 540 px,
+     die Bereiche brauchen ~500. Deshalb wandern ab hier der Partikel-Schalter
+     (steht im Menue-Fuss) und die Tastenkappen der Suche (Strg K gilt
+     weiter) aus der Leiste, und der Menueknopf zeigt nur sein Zeichen. */
+  @media (min-width: 1280px) {
+    .snav { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 1.1rem; }
+    .snav__center { grid-column: 1; justify-self: start; }
+    .snav__areas { grid-column: 2; grid-row: 1; justify-self: center; display: flex; align-items: center; gap: 0.1rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
+    .snav__left { grid-column: 3; }
+    .snav__right { grid-column: 4; }
+    /* Klasse am Huellen-Span (FxToggle place="bar"), nicht am Knopf; und der
+       Menuetext mit Knopf-Praefix, sonst gewinnt die spaetere Grundregel
+       .snav__menu-txt (gleiche Spezifitaet) und beides stuende weiter da. */
+    .snav__left > :global(.fxsw-wrap--bar) { display: none; }
+    .snav__search kbd { display: none; }
+    .snav__menu-btn .snav__menu-txt--open { display: none; }
+  }
+  .snav__areas a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0 0.6rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 600;
+    font-size: var(--fs-9);
+    letter-spacing: var(--ls-4);
+    white-space: nowrap;
+    color: var(--muted, #8a99b8);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-ui);
+  }
+  .snav__areas a:hover,
+  .snav__areas a:focus-visible { color: var(--text, #e8eefc); }
+  /* Der Bereich, in dem die Seite liegt: heller und unterstrichen. Kein
+     Akzent: der eine Akzentpunkt der Leiste bleibt die Wortmarke. */
+  .snav__areas a[aria-current] { color: var(--text, #e8eefc); }
+  .snav__areas a[aria-current]::after {
+    content: '';
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: 0.15rem;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.55;
+  }
+  /* Bis 1400 px sind es nur rund 20 px Luft je Seite: die Bereichslinks
+     ruecken etwas enger. */
+  @media (min-width: 1280px) and (max-width: 1399px) {
+    .snav__areas a { padding: 0 0.42rem; }
+    .snav__areas a[aria-current]::after { left: 0.42rem; right: 0.42rem; }
   }
   .snav__search {
     display: inline-flex;
@@ -1266,6 +1357,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     flex-direction: column;
     width: min(1240px, 100%);
     height: 100%;
+    /* Der Rahmen bringt seine Box-Regel selbst mit: ohne border-box kam der
+       Innenabstand zu 100 % Hoehe dazu, und auf Seiten ohne globales
+       box-sizing (Datenschutz, Impressum, Support, Hangar, Advanced
+       Loadout, Chronik 4.10.3) ragte der Rahmen am Handy rund 100 px unter
+       den Bildschirm. Genau dort, am Fuss des Menues, steht DE/EN — er war
+       nicht zu erreichen (UX-Audit 24.11.2026, gemessen mit iPhone 13). */
+    box-sizing: border-box;
     margin: 0 auto;
     padding: clamp(4.5rem, 7vh, 5.5rem) clamp(1.1rem, 4vw, 2.6rem) clamp(1rem, 3vh, 1.9rem);
     overflow-y: auto;
@@ -1567,11 +1665,31 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
 
   /* ---- Spalten ---- */
+  /* Seit UX-Audit A2 eine Gruppe je Bereich (acht statt vier, ein bis vier
+     Zeilen lang). Zwei Zeitungsspalten statt eines Rasters: das Raster gab
+     jedem Gruppenpaar die Hoehe der laengeren, die Spalten fuellen sich
+     gleichmaessig, und die Reihenfolge liest sich weiter von oben nach unten
+     wie die Leiste von links nach rechts. Die Pfeiltasten springen weiter
+     von Gruppe zu Gruppe (columns() im Skript unten). */
   .snav-deck__cols {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(1.1rem, 2.4vw, 2.2rem) clamp(1.2rem, 3vw, 2.6rem);
-    align-content: start;
+    display: block;
+    columns: 2;
+    column-gap: clamp(1.2rem, 3vw, 2.6rem);
+  }
+  .snav-deck__cols > .snav-deck__group {
+    break-inside: avoid;
+    margin-bottom: clamp(0.9rem, 2vw, 1.6rem);
+  }
+  /* Ab 1280 px drei Spalten und eine schmalere Buehne: mit acht Gruppen
+     ragte die erste von zwei Spalten auf 1440 x 900 unter den Bildschirm
+     (Refinery und Precision Jump erst nach Scrollen). */
+  @media (min-width: 1280px) {
+    .snav-deck__body {
+      grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
+    }
+    .snav-deck__cols {
+      columns: 3;
+    }
   }
   /* Eine Gruppe = ein Kanal. --gseq ist ihr Index (im Markup gesetzt) und
      treibt die ganze Staffelung: Gruppe, ihre Trennlinie, ihre Anzahl und
@@ -1832,7 +1950,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       display: none;
     }
     .snav-deck__cols {
-      grid-template-columns: 1fr;
+      columns: 1;
     }
     .snav-deck__status {
       padding-left: 0;

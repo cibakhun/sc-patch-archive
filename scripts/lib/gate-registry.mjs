@@ -245,6 +245,25 @@ export const CHECKS = [
       'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die weiteren Vorschauseiten (Chronik 4.10.3) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (24.11.2026, UX-Audit Paket C1): direkt nach den beiden
+    // Schaltern, weil der Fehler genau an ihren eingehaengten Seiten lag —
+    // DE/EN auf Hangar, Advanced Loadout, Patch 4.10.3 und Chronik 4.10.3
+    // fuehrte auf die Startseite der anderen Sprache (src/lib/routeTwins.ts
+    // kannte nur src/pages/). Kein env-Feld: nur dist/.
+    id: 'verify:sprachweiche',
+    npm: 'verify:sprachweiche',
+    script: 'scripts/verify-sprachweiche.mjs',
+    rail: 'A',
+    checks:
+      'jede Option des Sprachumschalters (Seitenkopf und Datenblatt) zeigt aufs Gegenstueck in der anderen Sprache, wenn es im Bau steht, sonst auf eine Seite der anderen Sprache, die es gibt; die hreflang-Paare im Kopf nennen genau Seite und Gegenstueck, beide im Bau; im Vorschau-Bau sind die eingehaengten Seiten (Hangar, Patch-Seiten vor der Abnahme) unter den geprueften; Klinken fuer Seiten mit Umschalter und eingehaengte Seiten',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Vorschau-Bau von origin/staging
+    // 6e984ac8 (vor der Reparatur): 16 FEHLER [1] — beide Umschalter
+    // (Kopfleiste und Menue) auf /hangar, /hangar-loadout, /patches/sc-4-10-3
+    // und /patches/4-10-3-film in beiden Sprachen zeigten auf /index.html
+    // bzw. /de.html. Ueber die anderen 18.650 Seiten kein Fund. Gruen nach
+    // der Reparatur derselben Lieferung (21.996 Optionen aufs Gegenstueck).
+  },
+  {
     // Neuzugang (22.11.2026): Items in 3D, derselbe STAGING-Schalter am
     // Artefakt, aber in beiden Bauten mit eigener Aussage — darum ohne
     // nurMitHangar. Kein env-Feld: nur dist/ und src/data/item-3d.json.
