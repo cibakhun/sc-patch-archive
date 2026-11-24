@@ -881,6 +881,10 @@ export const CHECKS = [
     // DE-Itemblaettern mit deutschem Namen ("10er-Serie-Greatsword-Kanone"
     // statt "10-Series Greatsword Cannon", "Origin Jumpworks 300i:
     // Schiffspanzerung" statt "300i Ship Armor"). Gruen nach der Korrektur.
+    // Ein Blatt ohne h1 zaehlt nicht als Paar und ist FEHLER (Review PR
+    // #448): rot gegen den Vorschau-Bau von 6e984ac8 mit drei entfernten Ueberschriften
+    // (100i in beiden Sprachen, 125a nur DE): 5.819 statt 5.821 Paare und
+    // "/de/items/100i.html: Itemblatt ohne Ueberschrift (h1)".
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer

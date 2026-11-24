@@ -351,8 +351,15 @@ const fName = [];
 let namenspaare = 0;
 for (const [id, de] of h1De) {
   if (!h1En.has(id)) continue;
+  const en = h1En.get(id);
+  // Ein Blatt ohne Ueberschrift ist selbst ein Befund und zaehlt nicht als
+  // verglichenes Paar (null === null waere sonst „gleich", Review PR #448).
+  if (de == null || en == null) {
+    fName.push(`/${de == null ? 'de/' : ''}items/${id}.html: Itemblatt ohne Ueberschrift (h1)`);
+    continue;
+  }
   namenspaare++;
-  if (de !== h1En.get(id)) fName.push(`/de/items/${id}.html: „${de}" statt „${h1En.get(id)}"`);
+  if (de !== en) fName.push(`/de/items/${id}.html: „${de}" statt „${en}"`);
 }
 console.log(`Namen (Regel 13): ${namenspaare.toLocaleString('de-DE')} Itemblaetter in beiden Sprachen verglichen (Klinke ${MIN_NAMENSPAARE.toLocaleString('de-DE')})`);
 if (namenspaare < MIN_NAMENSPAARE) fehler.push(`nur ${namenspaare} Itemblatt-Paare verglichen (Klinke ${MIN_NAMENSPAARE}) — stimmt der Pfad /items/<id>.html noch?`);
@@ -372,7 +379,7 @@ zeige(fDatum, '8 Datum im Format der anderen Sprache');
 zeige(fDezimal, '9 Dezimalzahl im Format der anderen Sprache (toLocaleString / num(v, lang))');
 zeige(fDeWort, '10 deutsches Wort auf EN-Seite (Umlaut oder Bedienwort)');
 zeige(fIntern, '11 interner Bezeichner im sichtbaren Text (Anzeigenamen statt Spieldaten-Schluessel)');
-zeige(fName, '13 Itemblatt auf /de/ mit anderem Namen als auf EN (Eigenname wie im Client, deutscher Name als Zweitname: displayName/altName in src/lib/items.ts)');
+zeige(fName, '13 Itemblatt auf /de/ mit anderem Namen als auf EN oder ohne Ueberschrift (Eigenname wie im Client, deutscher Name als Zweitname: displayName/altName in src/lib/items.ts)');
 console.log(`\n11 interne Bezeichner, offen und benannt (keine FEHLER, Schulden): ${[...internOffen].map(([a, n]) => `${a.name} ${n.toLocaleString('de-DE')}`).join(' · ')}`);
 const absatzFehler = [...fAbsatz.values()].reduce((s, e) => s + e.n, 0);
 if (absatzFehler) {
