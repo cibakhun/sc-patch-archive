@@ -6,6 +6,7 @@ import DiscordCard from '../../components/DiscordCard.astro';
 import { getCollection } from 'astro:content';
 import { avifDa, avifSet } from '../../../scripts/lib/avif.mjs';
 import { patchSeiteHref } from '../../lib/patchPages';
+import { bereiche, startKacheln, startWeitere } from '../../lib/bereiche';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -23,21 +24,21 @@ const HERO_IMG = '/assets/t-polaris-5.jpg';
 const HERO_AVIF = avifDa(HERO_IMG);
 const bg = (v: string, img: string) => { const set = avifSet(img); return `--${v}:url('${img}')${set ? `;--${v}-set:${set}` : ''}`; };
 
-// Werkzeuge als Bild-Kacheln (Bento). Kein Text-Ballast, kein Zahlen-Soup —
-// je Kachel nur Name + Kurzlabel, das Bild trägt die Optik.
-// Das Patch-Archiv ist die Leitkachel (xl) — Bild vom Ära-Anfang (4.0), damit
-// es sich von der „Aktuell"-Karte (laufender Patch) unterscheidet.
-const tools = [
-  { name: 'Patch-Archiv', href: '/de/archiv.html', sub: `${patches.length} Patches · Alpha ${first.data.version} → ${latest.data.version}`, img: '/assets/trailer-4-0-0.jpg', size: 'xl' },
-  { name: 'Schiffe', href: '/de/schiffe.html', sub: 'Datenblätter & Specs', img: '/assets/t-perseus-1.jpg', size: 'w' },
-  { name: 'Missionen', href: '/de/missionen.html', sub: 'Belohnung & Reputation', img: '/assets/t-tsg-4.jpg', size: 'w' },
-  { name: 'Mining', href: '/de/topics/mining.html', sub: 'Mineralien & Rechner', img: '/assets/t-align-1.jpg', size: 't' },
-  { name: 'Refinery', href: '/de/refinery.html', sub: 'Deine Ausbeute im Blick', img: '/assets/img-refinery.jpg', size: 't' },
-  { name: 'Crafting', href: '/de/topics/crafting.html', sub: 'Blueprints & Planer', img: '/assets/t-craft-1.jpg', size: 't' },
-  { name: "Wikelo's Emporium", href: '/de/topics/wikelo-emporium.html', sub: 'Banu-Trades', img: '/assets/img-railen.jpg', size: 't' },
-  { name: 'Item Finder', href: '/de/item-finder.html', sub: 'Preise & Fundorte', img: '/assets/cz-loot.jpg', size: 't' },
-  { name: 'Evolution', href: '/de/evolution.html', sub: 'Systeme × Patches', img: '/assets/t-mesh-1.jpg', size: 't' },
-];
+// Werkzeuge als Bild-Kacheln (Bento). Seit UX-Audit A5 aus der einen
+// Bereichsliste (src/lib/bereiche.ts, startKacheln): nach Nachfrage geordnet,
+// das Patch-Archiv klein statt als Leitkachel, Precision Jump dabei. Name und
+// Unterzeile wie im Menue; das Archiv nennt statt der Unterzeile seinen Umfang.
+const tools = startKacheln('de').map((z) => ({
+  name: z.name,
+  href: z.href,
+  sub: z.key === 'archiv' ? `${patches.length} Patches · Alpha ${first.data.version} → ${latest.data.version}` : z.sub,
+  img: `/assets/${z.bild}.jpg`,
+  size: z.groesse,
+}));
+// Die Zeile unter den Kacheln: alle uebrigen Seiten der Bereiche.
+const weitere = startWeitere('de');
+// Die Bereiche im ersten Bildschirm, unter der Suche (A5).
+const leiste = bereiche('de');
 ---
 <Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
 <link slot="head" rel="preload" as="image" href={HERO_AVIF ?? HERO_IMG} type={HERO_AVIF ? 'image/avif' : undefined} fetchpriority="high" />
@@ -247,6 +248,18 @@ const tools = [
   .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:var(--ls-5);white-space:nowrap}
   .sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
 
+  /* Bereiche unter der Suche (UX-Audit A5): der erste Bildschirm zeigte
+     Wortmarke, Suchfeld und Pfeile, aber nicht, was die Seite kann. Dieselben
+     sieben Bereiche wie Menue und Datenblaetter, aus src/lib/bereiche.ts.
+     Auf dem Foto, also Medienfarben wie das Suchfeld. */
+  .hero__areas{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;width:100%;max-width:720px;margin:1.15rem auto 0}
+  .hero__areas a{display:inline-flex;align-items:center;min-height:40px;padding:0 1rem;border:1px solid var(--on-media-line);border-radius:999px;
+    background:var(--scrim-4);backdrop-filter:blur(6px);color:var(--on-media);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);
+    letter-spacing:var(--ls-4);white-space:nowrap;transition:border-color var(--dur-base) var(--ease-ui),background-color var(--dur-base) var(--ease-ui)}
+  .hero__areas a:hover,.hero__areas a:focus-visible{border-color:var(--accent-media);background:var(--scrim-6);outline:none}
+  .hero__areas a:focus-visible{box-shadow:0 0 0 2px var(--accent-media)}
+  @media(max-width:520px){.hero__areas{gap:.4rem}.hero__areas a{padding:0 .8rem;font-size:var(--fs-6)}}
+
   /* ========== Werkzeuge — Bento aus Bild-Kacheln ========== */
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
   .tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);align-items:baseline}
@@ -366,6 +379,9 @@ const tools = [
   </div>
   <div class="hero__inner">
     <HomeSearch lang="de" />
+    <nav class="hero__areas" aria-label="Bereiche">
+      {leiste.map((b) => <a href={b.href} data-area={b.key}>{b.kurz}</a>)}
+    </nav>
   </div>
   <a class="hero__cue" href="#tools" aria-label="Zu den Werkzeugen">
     {[0, 1, 2, 3, 4].map(() => (
@@ -393,11 +409,8 @@ const tools = [
       ))}
     </div>
     <p class="tools__more">
-      <span>Komplette Datenbank:</span>
-      <a href="/de/items.html">Alle Items nach Kategorie</a>
-      <a href="/de/crafting.html">Blueprints</a>
-      <a href="/de/schiffe.html">Schiffs-Index</a>
-      <a href="/de/missionen.html">Missionen</a>
+      <span>Außerdem:</span>
+      {weitere.map((z) => <a href={z.href}>{z.name}</a>)}
     </p>
   </section>
 

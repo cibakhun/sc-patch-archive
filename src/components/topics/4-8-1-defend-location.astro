@@ -4,6 +4,7 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
+import Schlagwort from '../dossier/Schlagwort.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -46,7 +47,7 @@ const de = lang === 'de';
       <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-1.html' : '/patches/sc-4-8-1.html'}>Alpha 4.8.1 · Gameplay</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Neuer Missionstyp' : ' &nbsp;·&nbsp; New mission type'} /></div>
       <h1><span class="thin">{de ? 'Halte die Stellung' : 'Hold the line'}</span>Defend Location</h1>
       <p class="lead">{de ? 'Der neue wellenbasierte Raumkampf-Missionstyp aus 4.8.1: verteidige Asteroiden-Mining-Basen gegen Bomber-Anfluege — quer ueber 385 Einsatzorte in Stanton und Pyro.' : 'The new wave-based space-combat mission type from 4.8.1: defend asteroid mining bases against bomber runs — across 385 locations in Stanton and Pyro.'}</p>
-      <div class="tags"><span class="tag hot">{de ? 'Neuer Missionstyp' : 'New mission type'}</span><span class="tag">{de ? '385 Orte' : '385 locations'}</span><span class="tag">{de ? 'Bomber-Abwehr' : 'Bomber defense'}</span><span class="tag">{de ? 'Escort-Hybrid' : 'Escort hybrid'}</span><span class="tag">Blueprints</span></div>
+      <div class="tags"><Schlagwort hot>{de ? 'Neuer Missionstyp' : 'New mission type'}</Schlagwort><Schlagwort>{de ? '385 Orte' : '385 locations'}</Schlagwort><Schlagwort>{de ? 'Bomber-Abwehr' : 'Bomber defense'}</Schlagwort><Schlagwort>{de ? 'Escort-Hybrid' : 'Escort hybrid'}</Schlagwort><Schlagwort>Blueprints</Schlagwort></div>
     </div>
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>

@@ -325,6 +325,26 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   font-size: clamp(1.02rem, 1.5vw, 1.18rem);
   color: var(--muted);
 }
+/* Weg in die Evolution (UX-Audit H3, 24.11.2026): bis dahin fuehrte nur
+   ein einziger Inhaltslink dorthin, live zwei Besuche in zwei Wochen. */
+.mast__evo {
+  margin-top: 0.9rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: var(--fs-8);
+  letter-spacing: var(--ls-6);
+}
+.mast__evo a {
+  color: var(--accent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  padding-bottom: 0.1rem;
+  transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
+}
+.mast__evo a:hover,
+.mast__evo a:focus-visible {
+  color: var(--text);
+  border-bottom-color: currentColor;
+}
 
 /* ── Telemetry readout ────────────────────────────────────────────────────────
    No enclosing box — instrument readouts on a ruled top edge, each punctuated by

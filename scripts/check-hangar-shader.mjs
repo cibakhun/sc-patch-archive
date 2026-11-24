@@ -358,6 +358,23 @@
    1339 Spiellampen (1325 nach Gruppierung) gesetzt, 126 gedämpft, 4
    Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die Carrack in
    der Large-Halle unveraendert 6 (Klinke 6).
+   Seit 24.11.2026 auch Small und Medium (Klinke 2 und 4, dieselben
+   Werte wie Large; Krisz zum Licht der Large-Halle: „Schau doch
+   selber“, beim Urteil fanden sich dort dieselben tuerkisen Fluter).
+   Vorgefuehrt rot am Vorschau-Bau des Commits „Hangar: Licht der
+   Large-Halle auch in Small und Medium“ (gebaut als b630d6c0, bevor er
+   auf den neuesten staging-Stand gesetzt wurde; derselbe Viewer) auf
+   dem PC, der
+   ausgelieferte Viewer ohne strahler in der Zeile der Halle, je 1
+   FEHLER: ohne --ship (Gladius, Small) „die Buehne der Halle
+   util-smltop hat 0 Hauptstrahler gestellt, Klinke 2: …“; mit --ship
+   drak-cutlass-black „die Buehne der Halle util-medtop hat 0
+   Hauptstrahler gestellt, Klinke 4: …“. Ohne Eingriff: „… 6 Lampen aus
+   379 Spiellampen (373 nach Gruppierung) gesetzt, 28 gedämpft, 2
+   Hauptstrahler …“ und „Hauptstrahler: 2 (Klinke 2)“, in Medium „… 6
+   Lampen aus 653 Spiellampen (648 nach Gruppierung) gesetzt, 86
+   gedämpft, 4 Hauptstrahler …“ und „Hauptstrahler: 4 (Klinke 4)“; die
+   Carrack unveraendert 6 (Klinke 6).
 
    ARBEITSSZENEN (21.11.2026, Krisz auf der Karte vom 15.11.2026: „Alle
    vier einbauen“). Die Large-Halle traegt vier Arbeitsszenen an ihren
@@ -569,8 +586,10 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // strahler: so viele Lampen hat die Buehne als Hauptstrahler gestellt (dieselbe Zeile,
 // "…, N Hauptstrahler", im Kopf unter HAUPTSTRAHLER). util-lrgtop, gemessen
 // 18.11.2026: 6, die Fluter unter der Decke. util-xltop seit 20.11.2026: 4, die
-// Fluter ueber den Laengsseiten (HALL_FEST.strahler mit bis 1000 und mal 12). Eine
-// Halle ohne diese Klinke stellt keine; meldet ihre Buehne doch welche, ist der Lauf rot.
+// Fluter ueber den Laengsseiten (HALL_FEST.strahler mit bis 1000 und mal 12).
+// util-smltop und util-medtop seit 24.11.2026: 2 und 4, ihre Fluter ueber der
+// Landeflaeche (dieselben Werte wie Large). Eine Halle ohne diese Klinke stellt
+// keine; meldet ihre Buehne doch welche, ist der Lauf rot.
 // plaetze: so viele Plaetze des Wartungsplatzes stehen am Schiff (Zeile "[hangar]
 // Wartungsplatz bei …: N von M Plätzen", im Kopf unter WARTUNGSPLATZ). Wie viele
 // WORK_DIENST stellt, haengt an der Groesse des Schiffs (ab/bis): 6 Plaetze bekommt
@@ -600,8 +619,8 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // frei 500 -> 610 (rund ein Zehntel unter dem Gemessenen wie bei den anderen Hallen).
 const KLINKE_FEST = {
   'util-lrgtop': { programme: 58, schichten: 2, frei: 610, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6, szenen: 119 },
-  'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
-  'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
+  'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, strahler: 2, ktx: 530 },
+  'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6, strahler: 4 },
   'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6, strahler: 4 },
 };
 // Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle
