@@ -396,3 +396,186 @@ for (const lang of ['de', 'en']) {
     });
   });
 }
+
+/* ---------- Fehlertolerant, Grundmodell vorn, zweiter Weg (24.11.2026) ----------
+   UX-Audit, Umsetzungsplan Paket B: „Kutlass", „Gladis", „quantanium" fanden
+   nichts, „P4-AR" zeigte das Grundmodell erst hinter „+7 weitere", und
+   „Quantainium" zeigte zuerst eine Wasserflasche. Gemessen wird wieder das
+   echte Skript, mit einem Register, das die Lage im Katalog nachstellt. */
+const WELT = [
+  { k: 'werkzeug', b: '', t: 'Mining', s: 'Werkzeug', u: '/topics/mining.html', x: 'mining bergbau erz erze' },
+  { k: 'erz', b: 'Erz', t: 'Quantainium', s: 'Erz · Stanton', u: '/topics/mining.html?mineral=Quantainium#db', x: 'erz erze ore', w: '/refinery.html?erz=Quantainium#ertrag', wl: 'Refinery' },
+  { k: 'ort', b: 'Ort', t: 'Daymar', s: 'Mond · Stanton', u: '/topics/mining.html?fundort=Daymar#db', x: 'ort place', w: '/missionen.html?loc=stanton2b', wl: 'Missionen' },
+  { k: 'liste', b: 'Liste', t: 'Helmets', s: 'Rüstung · 659 Items', u: '/items/category/armour-helmets.html', x: 'Armour / Helmets helm' },
+  { k: 'schiff', b: 'Drake', t: 'Cutlass Black', s: 'Drake', u: '/schiffe/cutlass-black.html', x: '' },
+  { k: 'schiff', b: 'Aegis', t: 'Gladius', s: 'Aegis', u: '/schiffe/gladius.html', x: '' },
+  { k: 'mission', b: 'Delivery', t: 'RSI Disc. Month: Procure Refined Quantainium Collection', s: '', u: '/missionen/q.html', x: '' },
+];
+const WELT_MORE = [
+  { k: 'item', b: 'Countermeasures', t: 'Aegis Gladius: Köderwerfer', s: '', u: '/items/g1.html', x: '' },
+  { k: 'item', b: 'Drinks', t: '"Quantainium" Water Bottle', s: '', u: '/items/qw.html', x: 'getränk' },
+  { k: 'item', b: 'Helmets', t: 'Argus Helmet', s: '', u: '/items/argus.html', x: 'helm' },
+  { k: 'item', b: 'Helmets', t: 'Glade Helmet', s: '', u: '/items/glade.html', x: 'helm' },
+  // Varianten stehen im Katalog alphabetisch VOR dem Grundmodell.
+  { k: 'item', b: 'Weapons', t: 'Karna "Alpine Sunset" Rifle', s: '', u: '/items/k1.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'Karna "Fate" Rifle', s: '', u: '/items/k2.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'Karna Rifle', s: '', u: '/items/karna-rifle.html', x: 'gewehr', c: '/topics/crafting.html?bp=Karna&bpi=1' },
+  { k: 'item', b: 'Magazine', t: 'Karna Rifle Battery (35 cap)', s: '', u: '/items/k3.html', x: 'gewehr' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR "Blacklist" Rifle', s: '', u: '/items/p1.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR-Gewehr (Knochen)', s: '', u: '/items/p2.html', x: 'P4-AR "Boneyard" Rifle' },
+  { k: 'item', b: 'Magazine', t: 'P4-AR Magazine (40 cap)', s: '', u: '/items/p3.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'P4-AR Rifle', s: '', u: '/items/p4-ar-rifle.html', x: 'gewehr' },
+];
+function bootWelt(lang) {
+  ERSTER.splice(0, ERSTER.length, ...WELT);
+  ITEMS.splice(0, ITEMS.length, ...WELT_MORE);
+  const s = boot(lang, {});
+  const ereignisse = [];
+  s.win.vbEreignis = (name, data) => ereignisse.push({ name, ...data });
+  return { ...s, ereignisse };
+}
+// Text eines Knotens wie im Browser, ohne Trenner zwischen Textstuecken
+// (der Titel besteht aus Text, <mark> und Text).
+const roh = (n) => (n ? n.textContent + n.children.map(roh).join('') : '');
+const titel = (z) => roh(z.find('scs__t'));
+const ersteTitel = (s) => s.optionen().filter((c) => c.className.includes('scs__hit')).map(titel);
+async function suche(s, wort) {
+  s.tippe(wort);
+  await flush();
+  return ersteTitel(s);
+}
+
+for (const lang of ['de', 'en']) {
+  describe(`Fehlertolerante Suche (${lang})`, () => {
+    test('ein Tippfehler findet trotzdem: Kutlass, Gladis', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.deepEqual((await suche(s, 'Kutlass')).slice(0, 1), ['Cutlass Black']);
+        // Das Schiff, dessen GANZER Name gemeint ist, vor dem Teil, das ihn traegt.
+        assert.deepEqual((await suche(s, 'Gladis')).slice(0, 2), ['Gladius', 'Aegis Gladius: Köderwerfer']);
+        // Markiert ist das Wort, das passte.
+        const mark = s.optionen()[0].find('scs__t').children.find((c) => c.tagName === 'MARK');
+        assert.equal(mark && mark.textContent, 'Gladius');
+      } finally { zurueck(); }
+    });
+
+    test('ab acht Zeichen zwei Tippfehler: quantanium und quantaneum finden das Erz zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'quantanium'))[0], 'Quantainium');
+        assert.equal((await suche(s, 'quantaneum'))[0], 'Quantainium');
+        // Gruppe „Erze & Orte" vorn.
+        const g = s.list.children.find((c) => c.className.includes('scs__grp'));
+        assert.match(g.className, /scs__grp--world/);
+        assert.ok(g.text.includes(s.rd['data-g-world']), g.text);
+      } finally { zurueck(); }
+    });
+
+    test('woertlich Gefundenes bleibt woertlich: kein Tippfehler-Rauschen', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        // „gladi" steht woertlich in Gladius; „Glade Helmet" waere einen
+        // Buchstaben entfernt und darf NICHT dazukommen.
+        const t = await suche(s, 'gladi');
+        assert.ok(t.includes('Gladius'), t.join(' / '));
+        assert.ok(!t.includes('Glade Helmet'), `Rauschen: ${t.join(' / ')}`);
+        // Unter vier Zeichen kein Tippfehler: „kut" findet nichts.
+        s.tippe('kut');
+        await flush();
+        assert.match(s.list.children[0].className, /scs__status--leer/);
+      } finally { zurueck(); }
+    });
+
+    test('Leertext ohne den Rat „englischen Namen versuchen"', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('zzqxwvv');
+        await flush();
+        const z = s.list.children[0];
+        assert.match(z.className, /scs__status--leer/);
+        assert.ok(!/englisch|english/i.test(z.text), z.text);
+      } finally { zurueck(); }
+    });
+  });
+
+  describe(`Reihenfolge und neue Arten (${lang})`, () => {
+    test('Grundmodell vor Varianten: Karna Rifle, P4-AR Rifle', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'karna'))[0], 'Karna Rifle');
+        assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('Gattungswort im Register: „karna gewehr" findet das Gewehr', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'karna gewehr');
+        assert.equal(t[0], 'Karna Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('das Erz steht vor der Mission und der Wasserflasche, die es im Namen tragen', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'Quantainium');
+        assert.equal(t[0], 'Quantainium');
+        assert.ok(t.indexOf('Quantainium') < t.indexOf('"Quantainium" Water Bottle'), t.join(' / '));
+      } finally { zurueck(); }
+    });
+
+    test('eine Liste vor einzelnen Teilen: „helme" zeigt zuerst die Kategorie', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const t = await suche(s, 'helme');
+        assert.equal(t[0], 'Helmets');
+        assert.match(s.optionen()[0].className, /scs__hit--liste/);
+      } finally { zurueck(); }
+    });
+
+    test('zweiter Weg: Knopf mit eigener Beschriftung, Pfeil rechts fuehrt dorthin, Ereignis mit freigegebener Art', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('daymar');
+        await flush();
+        const z = s.optionen()[0];
+        assert.match(z.className, /scs__hit--ort/);
+        const knopf = z.find('scs__weg');
+        assert.ok(knopf, 'der Ort braucht den Knopf zum zweiten Weg');
+        assert.equal(roh(knopf), 'Missionen');
+        assert.equal(z.find('scs__craft') && z.find('scs__craft').className.includes('scs__weg'), true, 'ein Knopf, nicht "Herstellen" daneben');
+        const ev = { key: 'ArrowDown', preventDefault() {}, target: s.input };
+        for (const fn of s.win.document.listeners.keydown || []) fn(ev);
+        s.input.selectionStart = s.input.selectionEnd = s.input.value.length;
+        for (const fn of s.win.document.listeners.keydown || []) fn({ ...ev, key: 'ArrowRight' });
+        assert.equal(s.win.location.href, '/missionen.html?loc=stanton2b');
+        // Das Messereignis kennt „ort" nicht: gemeldet wird die Art des Ziels.
+        assert.deepEqual(s.ereignisse.at(-1), { name: 'suche-treffer', art: 'werkzeug', platz: '1-3' });
+        // Enter auf einem Erz: Art „werkzeug", nicht „erz".
+        s.tippe('quantainium');
+        await flush();
+        for (const fn of s.win.document.listeners.keydown || []) fn({ ...ev, key: 'Enter' });
+        assert.equal(s.win.location.href, '/topics/mining.html?mineral=Quantainium#db');
+        assert.equal(s.ereignisse.at(-1).art, 'werkzeug');
+      } finally { zurueck(); }
+    });
+  });
+}

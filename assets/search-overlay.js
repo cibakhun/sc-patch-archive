@@ -39,6 +39,18 @@
 // Blueprints, Missionen, Patches & Themen — die Gruppe mit dem besten Treffer
 // zuerst, je drei Zeilen und "+ N weitere". Ein Item mit Rezept ist EIN
 // Treffer mit "Herstellen" daneben (Register-Feld c, src/lib/searchIndex.ts).
+//
+// Fehlertolerant (24.11.2026, UX-Audit Paket B): Ein Suchwort, das NIRGENDS
+// woertlich vorkommt, darf um ein Zeichen abweichen (ab vier Zeichen), ab
+// acht Zeichen um zwei — „Kutlass" findet die Cutlass, „Gladis" die Gladius,
+// „quantanium" das Erz. Ein Wort, das irgendwo woertlich steht, bleibt
+// woertlich: wer „Gladi" tippt, bekommt nicht noch jedes Wort mit „Glad".
+// Innerhalb einer Gruppe steht vorn, was den Namen am vollstaendigsten
+// trifft: „Karna Rifle" vor „Karna "Alpine Sunset" Rifle" (Grundmodell vor
+// Varianten). Neue Arten: Erze, Orte und Laeden (Gruppe „Erze & Orte") sowie
+// die Kategorielisten der Items und Blueprints. Ein Treffer kann statt
+// "Herstellen" einen zweiten Weg tragen (Feld w, Beschriftung wl), etwa
+// „Refinery" am Erz oder „Missionen" am Ort.
 (function () {
   if (window.__scsInit) return;
   var root = document.getElementById('scs');
@@ -60,10 +72,17 @@
   var GROUP = {
     werkzeug: 'tools', schiff: 'ships', item: 'items', bauplan: 'recipes', mission: 'missions',
     patch: 'patches', thema: 'patches', feature: 'patches', event: 'patches',
+    erz: 'world', ort: 'world', laden: 'world', liste: 'items', bauplanliste: 'recipes',
   };
   var GROUP_LABEL = {
     tools: D.gTools, ships: D.gShips, items: D.gItems, recipes: D.gRecipes, missions: D.gMissions, patches: D.gPatches,
+    world: D.gWorld,
   };
+  // Das Messereignis kennt nur die freigegebenen Arten (assets/ereignisse.js).
+  // Neuere Arten melden sich unter der Art ihres Ziels: Erz und Ort oeffnen
+  // ein Werkzeug, eine Kategorieliste fuehrt zu Items bzw. Blueprints.
+  var ART_EREIGNIS = { erz: 'werkzeug', ort: 'werkzeug', laden: 'werkzeug', liste: 'item', bauplanliste: 'bauplan' };
+  var artFuer = function (k) { return ART_EREIGNIS[k] || k; };
   // Striche wie die Symbole im Menue der Seite (24er-Raster).
   var ICON = {
     werkzeug: ['M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z'],
@@ -74,15 +93,23 @@
     patch: ['M21 8v13H3V8M1 3h22v5H1zM10 12h4'],
   };
   ICON.thema = ICON.feature = ICON.event = ICON.patch;
+  // Erz: ein Brocken; Ort und Laden: eine Markierung; Listen: Zeilen.
+  ICON.erz = ['M7 4l7-1 6 6-2 9-8 3-6-6z', 'M7 4l3 7 8-2M10 11l-4 4'];
+  ICON.ort = ICON.laden = ['M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z', 'M12 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5z'];
+  ICON.liste = ICON.bauplanliste = ['M8 6h13M8 12h13M8 18h13', 'M3 6h.01M3 12h.01M3 18h.01'];
   var norm = function (s) {
     return (s || '')
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '');
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/ß/g, 'ss');
   };
+  var words = function (s) { return s.match(/[a-z0-9]+/g) || []; };
   var prep = function (j) {
     return (Array.isArray(j) ? j : []).map(function (e) {
-      return Object.assign({}, e, { nt: norm(e.t), ns: norm(e.s), nx: norm(e.x) });
+      var nt = norm(e.t);
+      var nx = norm(e.x);
+      return Object.assign({}, e, { nt: nt, ns: norm(e.s), nx: nx, wt: words(nt), wx: words(nx) });
     });
   };
   var fill = function (s, n) { return String(s || '').replace('%n%', n); };
@@ -191,7 +218,8 @@
   // Titel mit dem ersten getroffenen Suchwort hervorgehoben. Nur wo die
   // Normalisierung die Laenge nicht aendert (Akzente fallen dort weg) —
   // sonst stimmen die Stellen nicht, und der Titel bleibt schlicht.
-  function title(e, terms) {
+  // Mit Tippfehler gefunden: markiert wird das Wort des Namens, das passte.
+  function title(e, terms, fz) {
     var t = el('span', 'scs__t');
     var at = -1;
     var len = 0;
@@ -199,6 +227,13 @@
       for (var i = 0; i < terms.length; i++) {
         var p = e.nt.indexOf(terms[i]);
         if (p >= 0 && (at < 0 || p < at)) { at = p; len = terms[i].length; }
+      }
+      if (at < 0 && fz) {
+        var re = /[a-z0-9]+/g;
+        var m;
+        while (at < 0 && (m = re.exec(e.nt))) {
+          for (var f = 0; f < fz.length; f++) if (fz[f] && fz[f][m[0]]) { at = m.index; len = m[0].length; break; }
+        }
       }
     }
     if (at < 0) { t.textContent = e.t; return t; }
@@ -230,14 +265,14 @@
     S.list.appendChild(li);
     return li;
   }
-  function hitRow(S, e, terms, chip, hit) {
+  function hitRow(S, e, terms, chip, hit, fz) {
     var n = S.rows.length;
     var li = option(S, 'scs__hit scs__hit--' + e.k + (chip ? ' scs__chip' : ''), { e: e, hit: hit });
     var ic = el('span', 'scs__ic');
     ic.appendChild(icon(e.k));
     li.appendChild(ic);
     var tx = el('span', 'scs__tx');
-    tx.appendChild(title(e, terms));
+    tx.appendChild(title(e, terms, fz));
     var sn = chip && !terms.length ? '' : snippet(e);
     if (sn) tx.appendChild(el('span', 'scs__s', sn));
     li.appendChild(tx);
@@ -256,6 +291,18 @@
         craft(S, n);
       });
       act.appendChild(cb);
+    } else if (e.w && e.wl) {
+      // Zweiter Weg (Erz -> Refinery, Ort -> Missionen): wie "Herstellen",
+      // in der Farbe des Akzents, mit Pfeil nach rechts erreichbar.
+      var wb = el('button', 'scs__craft scs__weg');
+      wb.setAttribute('type', 'button');
+      wb.setAttribute('tabindex', '-1');
+      wb.appendChild(el('span', null, e.wl));
+      wb.addEventListener('click', function (ev) {
+        if (ev && ev.stopPropagation) ev.stopPropagation();
+        craft(S, n);
+      });
+      act.appendChild(wb);
     }
     var go_ = el('span', 'scs__go', '→');
     go_.setAttribute('aria-hidden', 'true');
@@ -286,27 +333,120 @@
     }
     S.list.appendChild(li);
   }
-  function score(e, terms, whole) {
+  /* ---------- Tippfehler ---------- */
+  // Abstand zwischen Suchwort q und dem Anfang von Wort w (Einfuegen,
+  // Loeschen, Ersetzen, zwei Nachbarn vertauscht = je 1). Liefert
+  // { voll, anfang }: voll = Abstand zum ganzen Wort, anfang = zum besten
+  // Wortanfang („kutl" trifft „cutlass" schon beim Tippen). Ueber k wird
+  // nicht weiter gerechnet (k + 1).
+  function abstand(q, w, k) {
+    var m = q.length;
+    var n = Math.min(w.length, m + k);
+    if (w.length < m - k) return null;
+    var vor2 = null;
+    var vor = [];
+    var j;
+    for (j = 0; j <= n; j++) vor[j] = j;
+    for (var i = 1; i <= m; i++) {
+      var cur = [i];
+      var min = i;
+      for (j = 1; j <= n; j++) {
+        var v = Math.min(vor[j] + 1, cur[j - 1] + 1, vor[j - 1] + (q.charCodeAt(i - 1) === w.charCodeAt(j - 1) ? 0 : 1));
+        if (vor2 && j > 1 && q.charCodeAt(i - 1) === w.charCodeAt(j - 2) && q.charCodeAt(i - 2) === w.charCodeAt(j - 1)) v = Math.min(v, vor2[j - 2] + 1);
+        cur[j] = v;
+        if (v < min) min = v;
+      }
+      if (min > k) return null;
+      vor2 = vor;
+      vor = cur;
+    }
+    var anfang = k + 1;
+    for (j = 0; j <= n; j++) if (vor[j] < anfang) anfang = vor[j];
+    if (anfang > k) return null;
+    return { voll: w.length <= m + k ? vor[w.length] : k + 1, anfang: anfang };
+  }
+  var erlaubt = function (q) { return q.length >= 8 ? 2 : q.length >= 4 ? 1 : 0; };
+  // Woerter des Registers, einmal je Stand (erster Teil allein, dann beide).
+  var vokabel = { pool: null, liste: null, cache: {} };
+  function woerterVon(pool) {
+    if (vokabel.pool === pool) return vokabel;
+    var seen = Object.create(null);
+    var liste = [];
+    pool.forEach(function (e) {
+      e.wt.concat(e.wx).forEach(function (w) {
+        if (!seen[w]) { seen[w] = true; liste.push(w); }
+      });
+    });
+    vokabel = { pool: pool, liste: liste, cache: {} };
+    return vokabel;
+  }
+  // Zu jedem Suchwort, das NIRGENDS woertlich steht: die Woerter des
+  // Registers in Tippfehler-Naehe, mit Abstand. null = woertlich suchen.
+  function naehe(pool, terms) {
+    var V = null;
+    return terms.map(function (q) {
+      var k = erlaubt(q);
+      if (!k || /[^a-z0-9]/.test(q)) return null;
+      for (var i = 0; i < pool.length; i++) if (pool[i].nt.indexOf(q) >= 0 || pool[i].nx.indexOf(q) >= 0) return null;
+      V = V || woerterVon(pool);
+      if (V.cache[q]) return V.cache[q];
+      var treffer = Object.create(null);
+      V.liste.forEach(function (w) {
+        var a = abstand(q, w, k);
+        if (a) treffer[w] = a;
+      });
+      V.cache[q] = treffer;
+      return treffer;
+    });
+  }
+  function score(e, terms, whole, fz) {
     var total = 0;
+    var abgedeckt = 0;
+    var ganz = 0;
     for (var i = 0; i < terms.length; i++) {
       var q = terms[i];
       var pts = 0;
-      if (e.nt.indexOf(q) === 0) pts = 40;
-      else if (e.nt.indexOf(q) >= 0) pts = 25;
-      else if (e.nx.indexOf(q) >= 0) pts = 15;
-      else if (e.ns.indexOf(q) >= 0) pts = 8;
-      if (!pts) return 0; // AND semantics
+      var f = fz && fz[i];
+      if (!f) {
+        var at = e.nt.indexOf(q);
+        if (at === 0) pts = 40;
+        else if (at >= 0) pts = 25;
+        else if (e.nx.indexOf(q) >= 0) pts = 15;
+        else if (e.ns.indexOf(q) >= 0) pts = 8;
+        if (at >= 0) abgedeckt += q.length;
+      } else {
+        // Tippfehler: unter jedem woertlichen Treffer, ein ganzes Wort
+        // besser als ein Wortanfang, je Abweichung weniger.
+        for (var a = 0; a < e.wt.length; a++) {
+          var d = f[e.wt[a]];
+          if (!d) continue;
+          var p = d.voll <= erlaubt(q) ? 20 - 4 * d.voll : 14 - 4 * d.anfang;
+          if (p > pts) pts = p;
+          if (d.voll <= erlaubt(q)) { ganz++; abgedeckt += e.wt[a].length; }
+        }
+        if (!pts) for (var b = 0; b < e.wx.length; b++) {
+          var dx = f[e.wx[b]];
+          if (dx) pts = Math.max(pts, dx.voll <= erlaubt(q) ? 10 - 2 * dx.voll : 7 - 2 * dx.anfang);
+        }
+        if (!pts && e.ns.indexOf(q) >= 0) pts = 8;
+      }
+      if (!pts) return null; // AND semantics
       total += pts;
     }
     // Wer den Namen ganz tippt, meint genau diesen Eintrag: "Arrow" soll das
     // Schiff vor "Arrow Missile Rack" zeigen, "CF-337 Panther Repeater" die
-    // Waffe vor allem, was sie im Namen fuehrt.
-    if (e.nt === whole) total += 30;
+    // Waffe vor allem, was sie im Namen fuehrt. Mit Tippfehler genauso:
+    // „Gladis" meint das Schiff Gladius.
+    if (e.nt === whole || (ganz && ganz === e.wt.length && ganz === terms.length)) total += 30;
     // Werkzeuge vor gleich gut passenden Daten: wer auf einer Item-Seite
     // "bruch" oder "raffinerie" tippt, sucht den Rechner, nicht jedes Teil mit
-    // "(Bruch)" im Namen. Es sind nur elf Eintraege.
+    // "(Bruch)" im Namen.
     if (e.k === 'werkzeug') total += 20;
-    return total;
+    // Eine ganze Liste vor einzelnen Teilen: „Helme" zeigt erst die Liste.
+    else if (e.k === 'liste' || e.k === 'bauplanliste') total += 10;
+    // Anteil des Namens, den die Suche trifft — nur fuer die Reihenfolge
+    // innerhalb einer Gruppe (Grundmodell vor Varianten).
+    return { sc: total, anteil: e.nt.length ? abgedeckt / e.nt.length : 0 };
   }
   // Leeres Feld: die Werkzeuge als Kacheln, darunter ein Satz, was die
   // Suche alles kennt. Nichts ist vorgewaehlt — Enter tut hier nichts.
@@ -336,11 +476,16 @@
     }
     if (!terms.length) { start(S); return; }
     var pool = more ? index.concat(more) : index;
-    var all = pool
-      .map(function (e, i) { return { e: e, sc: score(e, terms, whole), i: i }; })
-      .filter(function (r) { return r.sc > 0; })
-      .sort(function (a, b) { return b.sc - a.sc || a.i - b.i; })
-      .map(function (r) { return r.e; });
+    var fz = naehe(pool, terms);
+    var bewertet = [];
+    pool.forEach(function (e, i) {
+      var r = score(e, terms, whole, fz);
+      if (r && r.sc > 0) bewertet.push({ e: e, sc: r.sc, anteil: r.anteil, i: i });
+    });
+    // Die Reihenfolge der GRUPPEN folgt der Punktzahl ihres besten Treffers
+    // (wie bisher); innerhalb einer Gruppe entscheidet bei gleicher Punktzahl
+    // der getroffene Anteil des Namens.
+    var all = bewertet.sort(function (a, b) { return b.sc - a.sc || a.i - b.i; });
     if (!all.length) {
       // Solange der zweite Teil noch laedt, ist "nichts gefunden" verfrueht —
       // aber eine leere Liste ist es auch: sie sah aus wie "kein Treffer".
@@ -355,10 +500,15 @@
     // Gruppen in der Reihenfolge ihres besten Treffers.
     var groups = [];
     var byKey = {};
-    all.forEach(function (e) {
-      var g = GROUP[e.k] || 'patches';
+    all.forEach(function (r) {
+      var g = GROUP[r.e.k] || 'patches';
       if (!byKey[g]) { byKey[g] = { key: g, hits: [] }; groups.push(byKey[g]); }
-      byKey[g].hits.push(e);
+      byKey[g].hits.push(r);
+    });
+    groups.forEach(function (G) {
+      G.hits = G.hits
+        .sort(function (a, b) { return b.sc - a.sc || b.anteil - a.anteil || a.i - b.i; })
+        .map(function (r) { return r.e; });
     });
     var head = plain(S, 'scs__head');
     head.appendChild(el('span', 'scs__count', fill(D.count || '%n%', all.length)));
@@ -381,7 +531,7 @@
       var lim = S.expand[G.key] || (G.key === 'tools' ? TOOLS_SHOWN : SHOWN);
       G.hits.slice(0, lim).forEach(function (e, j) {
         if (after && after.key === G.key && j === after.at) want = S.rows.length;
-        hitRow(S, e, terms, G.key === 'tools', hit++);
+        hitRow(S, e, terms, G.key === 'tools', hit++, fz);
       });
       if (G.hits.length > lim) {
         var li = option(S, 'scs__more', { more: G.key, lim: lim });
@@ -426,15 +576,17 @@
     }
     // Messereignis (assets/ereignisse.js): nur Art und Platzgruppe des
     // Treffers, nie Suchbegriff oder Ziel.
-    if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: r.e.k, platz: platz(r.hit) });
+    if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: artFuer(r.e.k), platz: platz(r.hit) });
     weiter(S, r.e.u);
   }
+  // Der zweite Weg eines Treffers: "Herstellen" (c) oder w.
   function craft(S, i) {
     var r = S.rows[i == null ? S.sel : i];
-    if (!r || !r.e || !r.e.c) return;
-    // Wer "Herstellen" waehlt, waehlt das Rezept: Art "bauplan".
-    if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: 'bauplan', platz: platz(r.hit) });
-    weiter(S, r.e.c);
+    if (!r || !r.e || !(r.e.c || r.e.w)) return;
+    // Wer "Herstellen" waehlt, waehlt das Rezept: Art "bauplan". Der zweite
+    // Weg eines Erzes oder Orts fuehrt in ein Werkzeug.
+    if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: r.e.c ? 'bauplan' : 'werkzeug', platz: platz(r.hit) });
+    weiter(S, r.e.c || r.e.w);
   }
   // Wohin ein Treffer fuehrt: in der Regel diese Seite verlassen. Eine Seite,
   // die Treffer selbst zeigen kann, setzt window.vbSucheWeg; sagt sie true,
@@ -463,7 +615,7 @@
       var inp = S.input;
       // Nur am Ende der Eingabe: mitten im Wort bewegt der Pfeil die Marke.
       var amEnde = inp.selectionStart == null || (inp.selectionStart === inp.value.length && inp.selectionEnd === inp.value.length);
-      if (r && r.e && r.e.c && amEnde) { e.preventDefault(); craft(S); }
+      if (r && r.e && (r.e.c || (r.e.w && r.e.wl)) && amEnde) { e.preventDefault(); craft(S); }
     }
   }
   function typed(S) {

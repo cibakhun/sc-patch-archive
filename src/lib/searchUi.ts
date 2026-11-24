@@ -17,6 +17,8 @@ import { href, useTranslations, type Locale } from '../i18n/ui';
 /** Arten eines Treffers; die Anzeige-Beschriftung kommt aus search.kind.<art>. */
 export const SEARCH_KINDS = [
   'werkzeug', 'schiff', 'mission', 'patch', 'thema', 'feature', 'event', 'item', 'bauplan',
+  // Seit 24.11.2026 (UX-Audit Paket B): Erze, Orte, Laeden, Kategorielisten.
+  'erz', 'ort', 'laden', 'liste', 'bauplanliste',
 ] as const;
 export type SearchKind = (typeof SEARCH_KINDS)[number];
 
@@ -44,6 +46,7 @@ export function searchRootData(lang: Locale): Record<string, string> {
     'data-g-recipes': t('search.group.recipes'),
     'data-g-missions': t('search.group.missions'),
     'data-g-patches': t('search.group.patches'),
+    'data-g-world': t('search.group.world'),
     'data-more': t('search.more'),
     'data-craft': t('search.craft'),
     'data-jump': t('search.jump'),
