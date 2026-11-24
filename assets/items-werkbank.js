@@ -1152,7 +1152,11 @@
     aussenTraege(true);
     if (window.VBScrollLock) window.VBScrollLock.lock();
     if (ausHistorie) blattGeschoben = true;
-    else { try { history.pushState({ wzBlatt: 1 }, '', location.href); blattGeschoben = true; } catch (e) {} }
+    // Der Blatteintrag traegt die Auswahl sofort, nicht erst mit dem
+    // verzoegerten schreibeUrl(): geht man zurueck, bevor der schreibt, findet
+    // Vorwaerts sonst einen Eintrag ohne Item und oeffnet das Blatt nicht.
+    // Der Eintrag der Liste darunter bleibt, wie er ist.
+    else { try { history.pushState({ wzBlatt: 1 }, '', adresse()); blattGeschoben = true; } catch (e) {} }
     setTimeout(function () { try { el.box.focus({ preventScroll: true }); } catch (e) {} }, 30);
   }
   function telefonZu(ausHistorie) {
@@ -1175,9 +1179,17 @@
   // Wer hier oeffnet oder leert, stoesst schreibeUrl() neu an; ein noch
   // wartender Schreibvorgang trifft damit den Eintrag, auf dem man steht,
   // mit dem Stand nach der Uebernahme.
+  // item= nimmt die Id, ersatzweise den Namen (geteilte Links von Hand).
+  function itemAusWunsch(w) {
+    if (!w) return null;
+    if (BYID[w]) return BYID[w];
+    var k = String(w).trim().toLowerCase();
+    for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].name.toLowerCase() === k) return ITEMS[i];
+    return null;
+  }
   function auswahlAusAdresse() {
-    var p = new URLSearchParams(location.search), id = p.get('item'), sid = p.get('satz');
-    if (id && BYID[id]) { if (S.item !== id) oeffneItem(BYID[id], { still: true }); return true; }
+    var p = new URLSearchParams(location.search), it = itemAusWunsch(p.get('item')), sid = p.get('satz');
+    if (it) { if (S.item !== it.id) oeffneItem(it, { still: true }); return true; }
     if (sid && SETS[sid]) { if (S.satz !== sid) oeffneSatz(SETS[sid], { still: true }); return true; }
     return false;
   }
@@ -1406,26 +1418,30 @@
 
   /* ---------- Adresse ---------- */
   var urlTimer = 0;
+  // Adresse des aktuellen Zustands (Filter, Suche, Auswahl).
+  function adresse() {
+    var p = new URLSearchParams();
+    if (S.tab === 'sets') p.set('tab', 'sets');
+    if (S.tab === 'items') {
+      if (S.blatt) { p.set('gruppe', S.blatt.gr.s); p.set('kat', S.blatt.s); }
+      else if (S.gruppe) p.set('gruppe', S.gruppe.s);
+    }
+    if (S.q) p.set('q', S.q);
+    if (S.art !== 'all') p.set('art', S.art);
+    if (S.gr != null) p.set('gr', String(S.gr));
+    if (S.pk) p.set('pk', S.pk);
+    if (S.sel) p.set('sel', S.sel);
+    if (S.set) p.set('set', S.set);
+    if (S.sort !== 'relevanz') p.set('sort', S.sort);
+    if (S.item) p.set('item', S.item);
+    if (S.satz) p.set('satz', S.satz);
+    var qs = p.toString();
+    return location.pathname + (qs ? '?' + qs : '') + location.hash;
+  }
   function schreibeUrl() {
     clearTimeout(urlTimer);
     urlTimer = setTimeout(function () {
-      var p = new URLSearchParams();
-      if (S.tab === 'sets') p.set('tab', 'sets');
-      if (S.tab === 'items') {
-        if (S.blatt) { p.set('gruppe', S.blatt.gr.s); p.set('kat', S.blatt.s); }
-        else if (S.gruppe) p.set('gruppe', S.gruppe.s);
-      }
-      if (S.q) p.set('q', S.q);
-      if (S.art !== 'all') p.set('art', S.art);
-      if (S.gr != null) p.set('gr', String(S.gr));
-      if (S.pk) p.set('pk', S.pk);
-      if (S.sel) p.set('sel', S.sel);
-      if (S.set) p.set('set', S.set);
-      if (S.sort !== 'relevanz') p.set('sort', S.sort);
-      if (S.item) p.set('item', S.item);
-      if (S.satz) p.set('satz', S.satz);
-      var qs = p.toString();
-      var neu = location.pathname + (qs ? '?' + qs : '') + location.hash;
+      var neu = adresse();
       if (neu !== location.pathname + location.search + location.hash) {
         try { history.replaceState(history.state, '', neu); } catch (e) {}
       }
@@ -1487,14 +1503,8 @@
     vorbereiten(db || {});
     bereit = true;
     var it = null, st = null;
-    if (wunsch.item) {
-      it = BYID[wunsch.item] || null;
-      if (!it) {
-        var w2 = wunsch.item.trim().toLowerCase();
-        for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].name.toLowerCase() === w2) { it = ITEMS[i]; break; }
-      }
-      if (it) S.item = it.id;
-    }
+    it = itemAusWunsch(wunsch.item);
+    if (it) S.item = it.id;
     if (wunsch.satz && SETS[wunsch.satz]) { st = SETS[wunsch.satz]; S.satz = st.id; }
     anwenden({ bisAuswahl: true });
     if (it) oeffneItem(it, { still: !TELEFON.matches });
