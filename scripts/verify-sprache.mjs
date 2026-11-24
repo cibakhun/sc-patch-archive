@@ -82,7 +82,7 @@ import {
   ladeKataloge, sprachMengen, textStellen, textStellenMitOrt, norm, rohschluesselRe, findeRohschluessel, INTERN_RE, ohneTechnischeDetails,
   ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, DOPPELWORT_EN_RE, DE_FUNKTIONSWORT_RE,
   DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE, DE_UMLAUTWORT_RE, DE_WORT_EN_RE,
-  absaetze,
+  absaetze, absatzFalschesLang,
 } from './lib/textregeln.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -232,7 +232,7 @@ for (const f of seiten) {
       absaetzeDe++;
       if (a.sprache === 'en' && a.lang === 'en') { spieltextDe++; seitenMitSpieltext.add(page); }
     }
-    if ((a.lang !== 'de' && a.lang !== 'en') || a.sprache === a.lang) continue;
+    if (!absatzFalschesLang(a)) continue;
     const ausn = ABSATZ_AUSNAHMEN.find((x) => x.bereich.test(page) && x.text.test(a.text));
     if (ausn) { absatzOffen.set(ausn, absatzOffen.get(ausn) + 1); continue; }
     const k = `${bereichVon(page)} <${a.tag}${a.klasse ? '.' + a.klasse.split(/\s+/)[0] : ''}>: ${a.sprache.toUpperCase()} ohne lang="${a.sprache}"`;

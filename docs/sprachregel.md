@@ -71,4 +71,10 @@ reißt `tests/e2e/sprachregel.test.js`, bis die Tabelle den Eintrag hat.
 - Das Modal des Item Finders zeigt Fundhinweise und Ortsarten der eigenen
   Recherche noch englisch; die Tabellen oben sind dafür da (Thread
   „Items und Item Finder zusammenlegen").
-- Die Blattnamen der Crafting-Kategorien liegen beim selben Thread.
+- Die Blattnamen der Crafting-Kategorien („Sniper", „Armour") liegen beim
+  selben Thread (Heuristik P32, Umsetzungsplan: Items-Thread). Sie werden
+  überall zugleich übersetzt: Überschrift und Titel der Kategorieseite
+  (`CraftingListing.astro`), Pfad und Schaltfläche auf dem Bauplan-Blatt
+  (`BlueprintDetail.astro`), damit ein Ziel überall gleich heißt
+  (`docs/begriffe.md` Regel 1). `gattung()` und `PFADGLIEDER_DE` sind dafür
+  da.

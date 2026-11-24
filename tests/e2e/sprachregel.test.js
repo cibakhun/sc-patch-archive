@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { absatzSprache, absaetze } from '../../scripts/lib/textregeln.mjs';
+import { absatzSprache, absaetze, absatzFalschesLang } from '../../scripts/lib/textregeln.mjs';
 
 async function bundle(entries) {
   const { buildSync } = await import('esbuild');
@@ -162,6 +162,19 @@ describe('Regel 12: Absatzsprache (verify:sprache)', () => {
     </main></body></html>`;
     const r = absaetze(html, 'de').map((a) => `${a.klasse}:${a.sprache}/${a.lang}`);
     assert.deepEqual(r, ['a:en/de', 'b:en/en', 'c:en/en', 'd:de/de']);
+  });
+
+  test('absatzFalschesLang: leeres, drittes oder fehlendes lang ist ein Befund, Regionsangabe nicht (Review PR #442)', () => {
+    const html = `<html lang="de"><body>
+      <p class="leer" lang="">${EN}</p>
+      <p class="fr" lang="fr">${EN}</p>
+      <p class="region" lang="en-US">${EN}</p>
+      <p class="ohne">${EN}</p>
+      <p class="de">${DE}</p>
+      <p class="en" lang="en">${EN}</p>
+    </body></html>`;
+    const befund = absaetze(html, 'de').filter(absatzFalschesLang).map((a) => a.klasse);
+    assert.deepEqual(befund, ['leer', 'fr', 'ohne']);
   });
 
   test('absaetze: verschachtelte Absaetze gehoeren dem innersten', () => {

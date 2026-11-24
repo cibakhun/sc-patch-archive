@@ -432,6 +432,14 @@ export function absatzSprache(text) {
 }
 
 /**
+ * Regel 12: Ein Absatz verstoesst, wenn seine erkannte Sprache nicht die
+ * seines wirksamen lang ist, auch bei lang="" oder einer dritten Sprache
+ * (Review PR #442). Das lang ist in absaetze() schon auf den Hauptteil
+ * gebracht ("en-US" -> "en").
+ */
+export const absatzFalschesLang = (a) => a.sprache !== a.lang;
+
+/**
  * Die Absaetze einer Seite mit erkannter Sprache und wirksamem lang:
  * [{ text, sprache: 'en'|'de', lang: 'en'|'de'|…, tag, klasse }]. Absaetze
  * ohne eindeutige Sprache fehlen. Text gehoert dem innersten offenen Absatz,
