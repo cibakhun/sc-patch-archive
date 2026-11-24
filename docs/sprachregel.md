@@ -27,6 +27,13 @@ Ausnahme in der Tabelle der Wertnamen: Die Slotnamen der Fertigung (FRAME,
 BARREL, …) bleiben englisch. Sie stehen so am Fabrikator im Spiel und sind dort
 Beschriftung, kein Fließtext.
 
+Item-Namen (Paket C4): Das Itemblatt, die Listen und die Suche zeigen auf
+`/de/` den englischen Namen wie im Client (`displayName()` in
+`src/lib/items.ts`). Den deutschen Namen der Spieldaten (`nameDe`) zeigt das
+Itemblatt als Zweitnamen unter der Überschrift (`p.dp-alt`, auf EN mit
+`lang="de"`), und die Suche findet das Item unter beiden Namen
+(`altName()`). Die URLs bleiben.
+
 ## Wo die Übersetzungen liegen
 
 - `src/i18n/craftingWerte.ts`: Wertnamen (`WERTNAMEN_DE`), Glieder der
@@ -60,14 +67,17 @@ reißt `tests/e2e/sprachregel.test.js`, bis die Tabelle den Eintrag hat.
   Absatz auf einer EN-Seite ohne `lang="de"`. Die Selbstauskunft nennt den
   Anteil gekennzeichneten englischen Spieltexts an den Absätzen der DE-Seiten;
   über der Decke `ANTEIL_DECKE` gibt es eine WARNUNG.
+- `verify:sprache` Regel 13: Die Überschrift eines Itemblatts ist auf
+  `/de/items/<id>.html` zeichengleich mit `/items/<id>.html`. Selbstauskunft
+  mit Klinke für die verglichenen Paare.
 - `verify:clienttext` prüft den Text, den die Skripte schreiben, mit denselben
   Katalogen, also auch die Wertnamen im Crafting-Rechner.
 
 ## Offen
 
-- Item-Namen stehen auf DE-Seiten noch in der deutschen Fassung des Spiels.
-  Nach der Regel kommen sie englisch, mit dem deutschen Namen als Zweitnamen
-  (`lang="de"`) und in der Suche unter beiden Namen (Paket C4, eigene PR).
+- Der Hangar (nur Vorschau-Bau) zeigt Bauteilnamen auf DE noch aus `nameDe`
+  (`src/lib/hangar/layouts.ts`, `assets/hangar-layouts.js`); das ziehen die
+  Hangar-Threads nach.
 - Das Modal des Item Finders zeigt Fundhinweise und Ortsarten der eigenen
   Recherche noch englisch; die Tabellen oben sind dafür da (Thread
   „Items und Item Finder zusammenlegen").

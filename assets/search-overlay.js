@@ -122,8 +122,14 @@
     });
   };
   var fill = function (s, n) { return String(s || '').replace('%n%', n); };
+  // cache: 'no-cache' — der Browser fragt bei jedem Laden kurz nach (ETag,
+  // meist 304 ohne Inhalt), statt den Teil bis zu einen Tag aus dem eigenen
+  // Cache zu nehmen: JSON unter fester Adresse kommt mit `expires 1d`
+  // (nginx/default.conf). Ohne das sah ein Besucher nach einem Deploy noch
+  // einen Tag das alte Register (gesehen am 24.11.2026 auf staging: Missionen
+  // ohne Zusatz, obwohl das ausgelieferte Register ihn trug).
   var fetchJson = function (url) {
-    return fetch(url).then(function (r) {
+    return fetch(url, { cache: 'no-cache' }).then(function (r) {
       if (!r.ok) throw new Error('index ' + r.status);
       // Eine Umleitung auf eine HTML-Seite (auf staging das Testpilot-Tor,
       // wenn der Ausweis gerade ablief) antwortet mit 200 — r.json() wirft

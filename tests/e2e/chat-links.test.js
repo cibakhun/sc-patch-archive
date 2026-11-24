@@ -50,7 +50,17 @@ describe('Chat: eigene Links erkennen', () => {
       '/schiffe/Gladius.html',
       '/schiffe/aegs-gladius.html?x=<script>',
       'x/schiffe/aegs-gladius.html',
+      'https://example.com/(/schiffe/aegs-gladius.html)',
+      'https://example.com/x(/schiffe/aegs-gladius.html)',
     ]) assert.equal(findChatLinks(t, true).length, 0, t);
+  });
+
+  test('eigene Pfade in Klammern bleiben Links', () => {
+    for (const t of ['(/schiffe/aegs-gladius.html)', 'siehe (/schiffe/aegs-gladius.html).', 'a\n(/schiffe/aegs-gladius.html)']) {
+      const ls = findChatLinks(t, true);
+      assert.equal(ls.length, 1, t);
+      assert.equal(t.slice(ls[0].start, ls[0].end), '/schiffe/aegs-gladius.html', t);
+    }
   });
 
   test('Ziel in der Sprache des Lesers', () => {

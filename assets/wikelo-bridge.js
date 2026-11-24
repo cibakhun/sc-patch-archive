@@ -56,6 +56,8 @@
   function openFor(el) {
     var name = el.getAttribute('data-item');
     var sheet = el.tagName === 'A' ? el.getAttribute('href') : null;
+    // Erze ohne Shop (UX-Audit P41): die Seite gibt den Weg zur Mining-Datenbank mit.
+    var mine = el.getAttribute('data-mine');
     if (!name || !modal || !body) return;
     body.innerHTML = '<p class="wkb__note">' + esc(tr('loading', 'Wird geladen…')) + '</p>';
     modal.hidden = false;
@@ -63,10 +65,10 @@
     loadItems().then(function () {
       if (modal.hidden) return; // inzwischen geschlossen
       var it = ITEMS_BY_NAME && ITEMS_BY_NAME[name.toLowerCase()];
-      if (it) { renderPopup(it, sheet); return; }
+      if (it) { renderPopup(it, sheet, mine); return; }
       body.innerHTML = '<h2 class="wkb__name">' + esc(name) + '</h2>' +
-        '<p class="wkb__note">' + esc(tr('catalogNote', 'Keine verifizierten Shop- oder Loot-Daten für dieses Item.')) + '</p>' +
-        sheetLink(sheet);
+        '<p class="wkb__note">' + esc(leerNote(mine)) + '</p>' +
+        '<p class="wkb__links">' + sheetLink(sheet) + mineLink(mine) + '</p>';
     });
   }
   grid.addEventListener('click', function (e) {
@@ -75,14 +77,21 @@
     if (el.tagName === 'A' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
     e.preventDefault();
     openFor(el);
+    zaehlen(e, el);
   });
   // Links loesen mit Enter selbst einen Klick aus; nur die Namen ohne Seite
   // (role="button") brauchen Enter und Leertaste von hier.
   grid.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var el = e.target.closest('[data-item]');
-    if (el && el.tagName !== 'A') { e.preventDefault(); openFor(el); }
+    if (el && el.tagName !== 'A') { e.preventDefault(); openFor(el); zaehlen(e, el); }
   });
+  // Messereignis treffer-offen (assets/ereignisse.js) fuer die Namen ohne
+  // eigene Seite (role="button"): Namen mit Seite sind Links, die zaehlt
+  // ereignisse.js schon wie jeden Treffer-Link einer Werkzeugseite.
+  function zaehlen(e, el) {
+    if (e.isTrusted && el.tagName !== 'A' && window.vbEreignis) window.vbEreignis('treffer-offen');
+  }
 
   // ---- Popup (kompakter Item-Finder-Ausschnitt) ----
   var modal = document.getElementById('wkb-modal');
@@ -108,7 +117,17 @@
     return sheet ? '<a class="wkb__flink wkb__flink--sheet" href="' + esc(sheet) + '">' + esc(tr('openSheet', 'Zum Datenblatt')) + ' &rarr;</a>' : '';
   }
 
-  function renderPopup(it, sheet) {
+  function leerNote(mine) {
+    return mine
+      ? tr('mineNote', 'Kein Shop: Dieses Material wird abgebaut. Fundorte und Werte stehen in der Mining-Datenbank.')
+      : tr('catalogNote', 'Keine verifizierten Shop- oder Loot-Daten für dieses Item.');
+  }
+
+  function mineLink(mine) {
+    return mine ? '<a class="wkb__flink" href="' + esc(mine) + '">' + esc(tr('openMining', 'Fundorte in Mining')) + ' &rarr;</a>' : '';
+  }
+
+  function renderPopup(it, sheet, mine) {
     var url = (CFG.itemPage || '/item-finder.html') + '?item=' + encodeURIComponent(it.name);
     var html = '<div class="wkb__cat">' + esc(it.category || '') + '</div>' +
       '<h2 class="wkb__name">' + esc(it.name) + '</h2>' +
@@ -128,9 +147,9 @@
         html += '<p class="wkb__note">' + esc(tr('more', '+{n} weitere Quellen im Item Finder').replace('{n}', obtain.length - shown.length)) + '</p>';
       }
     } else {
-      html += '<p class="wkb__note">' + esc(tr('catalogNote', 'Keine verifizierten Shop- oder Loot-Daten für dieses Item.')) + '</p>';
+      html += '<p class="wkb__note">' + esc(leerNote(mine)) + '</p>';
     }
-    html += '<p class="wkb__links">' + sheetLink(sheet) +
+    html += '<p class="wkb__links">' + sheetLink(sheet) + mineLink(mine) +
       '<a class="wkb__flink" href="' + esc(url) + '">' + esc(tr('openFinder', 'Im Item Finder öffnen')) + ' &rarr;</a></p>';
     body.innerHTML = html;
   }

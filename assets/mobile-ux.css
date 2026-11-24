@@ -816,7 +816,14 @@ summary:active {
    demselben Grund NICHT .vb-scrollbox: die Hoehe kommt von der Buehne. */
 .hgx-scroll,
 /* Hangar, Vergleichstabelle im Dialog: die Hoehe kommt vom Dialog. */
-.hgx-cmp__scroll {
+.hgx-cmp__scroll,
+/* Werkzeug-Standard (src/lib/werkzeugStandard.ts, erste Seite die
+   Items-Werkbank): Leiste und Blatt rollen fuer sich, die Hoehe kommt aus
+   dem Raster der Werkbank, deshalb NICHT .vb-scrollbox; die Filter-
+   Schublade rollt auf jeder Breite. Die Trefferliste traegt .vb-scrollbox. */
+.wz-rail,
+.wz-blatt__box,
+.wz-schublade {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -835,7 +842,10 @@ summary:active {
 .fc__filters .tool-help__body::-webkit-scrollbar,
 .holo__readout::-webkit-scrollbar,
 .hgx-scroll::-webkit-scrollbar,
-.hgx-cmp__scroll::-webkit-scrollbar {
+.hgx-cmp__scroll::-webkit-scrollbar,
+.wz-rail::-webkit-scrollbar,
+.wz-blatt__box::-webkit-scrollbar,
+.wz-schublade::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -855,7 +865,10 @@ summary:active {
 .fc__filters .tool-help__body::-webkit-scrollbar-thumb,
 .holo__readout::-webkit-scrollbar-thumb,
 .hgx-scroll::-webkit-scrollbar-thumb,
-.hgx-cmp__scroll::-webkit-scrollbar-thumb {
+.hgx-cmp__scroll::-webkit-scrollbar-thumb,
+.wz-rail::-webkit-scrollbar-thumb,
+.wz-blatt__box::-webkit-scrollbar-thumb,
+.wz-schublade::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }

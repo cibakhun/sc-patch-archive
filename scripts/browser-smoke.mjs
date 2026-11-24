@@ -145,11 +145,14 @@ const SEITEN = [
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
   { id: 'downloads', en: '/downloads.html', de: '/de/downloads.html', leit: 'main' },
   // Zwei unabhaengige ToolHelp-Instanzen auf EINER Seite (Phase 1.2, Plan 02).
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2 },
+  // Traegt die Probe der lokalen Leiste (UX-Audit A6): der Kopf des Bereichs
+  // Mining zeigt die vier Seiten seines Kreislaufs unter der Kopfleiste.
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: (page) => probeLokaleLeiste(page, 'Mining-Thema', 4) },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
   // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
-  { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true, probe: (page) => probeZurueckMarke(page, 'Patchseite') },
+  // Und die der Zeile beim Lesen (P47): die Seite ist lang genug zum Rollen.
+  { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true, probe: async (page) => (await probeZurueckMarke(page, 'Patchseite')) ?? (await probeZeileBeimLesen(page, 'Patchseite')) },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
   { id: 'item-detail', en: '/items/hardy-boots.html', de: '/de/items/hardy-boots.html', leit: 'main' },
   // Der 3D-Hangar, als tiefer Link auf ein Schiff, das nicht das Startschiff
@@ -1805,6 +1808,44 @@ async function probeZurueckMarke(page, wo) {
   });
   if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur auf der Crafting-Seite weg)`;
   if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
+  return null;
+}
+
+/* Lokale Leiste (UX-Audit A6, 24.11.2026): auf den Seiten eines Bereichs mit
+   mehreren Seiten steht deren Abfolge unter der Kopfleiste, die eigene als
+   aktuelle markiert (aria-current). Faellt sie weg, fehlt auf diesen Seiten
+   der Weg zur Nachbarseite, und kein Datei-Tor saehe es, weil die Leiste
+   im HTML stuende und nur die Darstellung sie verschluckte. */
+async function probeLokaleLeiste(page, wo, mindestens) {
+  const l = await mitSichtbar(page, (_, da) => {
+    const ul = document.querySelector('#topbar .snav__local');
+    if (!da(ul)) return null;
+    const links = [...ul.querySelectorAll('a')].filter((a) => da(a));
+    const akt = [...ul.querySelectorAll('a[aria-current="page"]')].map((a) => a.getAttribute('href'));
+    return { n: links.length, akt, pfad: location.pathname };
+  });
+  if (!l) return `${wo}: die lokale Leiste unter der Kopfleiste ist nicht zu sehen`;
+  if (l.n < mindestens) return `${wo}: die lokale Leiste zeigt ${l.n} Links statt ${mindestens}`;
+  if (l.akt.length !== 1 || l.akt[0] !== l.pfad) return `${wo}: in der lokalen Leiste ist ${l.akt.length ? l.akt.join(', ') : 'keine Seite'} als aktuelle markiert statt ${l.pfad}`;
+  return null;
+}
+
+/* Zeile beim Lesen (Heuristik P47, 24.11.2026): die Zeile unter der
+   Kopfleiste (Zurueck-Marke, lokale Leiste) geht beim Herunterrollen weg und
+   kommt ein Stueck nach oben wieder. Gemessen an der Klasse, die das
+   Rollskript setzt, nicht am Bild: die Blende dauert, die Klasse nicht. */
+async function probeZeileBeimLesen(page, wo) {
+  const weg = () => page.evaluate(() => document.querySelector('#topbar').classList.contains('snav--sub-weg'));
+  const warte = (soll) => page.waitForFunction((s) => document.querySelector('#topbar').classList.contains('snav--sub-weg') === s, soll, { timeout: 2000 }).then(() => true, () => false);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(150);
+  if (await weg()) return `${wo}: die Zeile unter der Kopfleiste ist ganz oben schon weg`;
+  await page.evaluate(() => window.scrollTo(0, 900));
+  if (!(await warte(true))) return `${wo}: beim Herunterrollen bleibt die Zeile unter der Kopfleiste stehen (P47)`;
+  await page.evaluate(() => window.scrollBy(0, -200));
+  if (!(await warte(false))) return `${wo}: ein Stueck nach oben kommt die Zeile unter der Kopfleiste nicht wieder (P47)`;
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(150);
   return null;
 }
 

@@ -313,8 +313,8 @@ const sizeOf = (sets: { id: string }[]) => {
                 {list.map((i) => (
                   <li>
                     {pageItemIds.has(i.id)
-                      ? <a href={href(itemPath(i), lang)}>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</a>
-                      : <span>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</span>}
+                      ? <a href={href(itemPath(i), lang)}>{i.name}</a>
+                      : <span>{i.name}</span>}
                     {i.game?.rarity && i.game.rarity !== 'Common' && (
                       <em class={`as-rar as-rar--${i.game.rarity.toLowerCase()}`}>{rarityLabel(i.game.rarity)}</em>
                     )}

@@ -128,3 +128,17 @@ export function miningLink(material: string, lang: Locale): string | null {
   if (!mineral) return null;
   return `${href(miningPath, lang)}?mineral=${encodeURIComponent(mineral)}#db`;
 }
+
+/**
+ * Erze im Item-Katalog: Item Finder und Items-Werkbank führen jedes Mineral
+ * als Commodity, roh („Agricium (Ore)", „Hadanite (Raw)") und raffiniert
+ * („Agricium"), beide ohne Bezugsquelle. Die Fundorte stehen auf der
+ * Mining-Seite; diese Tabelle gibt dem Client-JS, was es für den Verweis
+ * braucht: Mineralname klein -> [Anzeigename, Zahl der Fundorte]. Den Zusatz
+ * „(Ore)“/„(Raw)“ schneidet der Client ab (erzVon() in beiden Skripten).
+ */
+export function erzKatalog(lang: Locale): { url: string; m: Record<string, [string, number]> } {
+  const m: Record<string, [string, number]> = {};
+  for (const x of MINE.minerals) m[x.name.toLowerCase()] = [x.name, Array.isArray(x.locations) ? x.locations.length : 0];
+  return { url: href(miningPath, lang), m };
+}

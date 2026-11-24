@@ -118,26 +118,18 @@ a{color:inherit;text-decoration:none}
   background:linear-gradient(90deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
 .evo__matrix.is-less .evo__scrollwrap::before{opacity:1}
 
-/* Eigene Hoehe, damit die Matrix senkrecht IN SICH scrollt. Nur so bleiben
-   die Patch-Nummern beim Lesen der unteren Zeilen stehen: `position:sticky`
-   richtet sich immer am naechsten Scrollbereich aus, und der ist hier durch
-   `overflow-x:auto` ohnehin dieser Kasten — an den Seiten-Scrollbereich kommt
-   ein Kopf darin nicht heran (mit `overflow-y:clip` geprueft: der Kopf klebt
-   dann bloss am oberen Rand des Kastens statt am Fenster).
-   9rem lassen Platz fuer die feste Leiste (65 px) und etwas Luft. */
-.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
-  max-height:calc(100vh - 9rem);max-height:calc(100dvh - 9rem)}
-/* ⚠ NACHGEMESSEN 30.08.2026: die Deckelung ist auf einem FLACHEN Fenster
-   selbst das Problem. 100dvh - 9rem ergab bei 844x390 (Telefon quer) nur
-   228 px fuer eine Matrix mit 1138 px Inhalt — drei Zeilen von 23, in einem
-   Kasten, der zusaetzlich seitwaerts scrollt. Zwei Bildlaufrichtungen auf
-   228 px sind keine Tabelle mehr, sondern ein Sehschlitz.
-   Unterhalb von 620 px Fensterhoehe faellt der Deckel weg und die Matrix
-   steht in voller Hoehe im Seitenfluss; gescrollt wird dann die Seite.
-   Dieselbe Lehre wie bei .vb-scrollbox in mobile-ux.css 5d. */
-@media (max-height:620px){
-  .evo__scroll{max-height:none}
-}
+/* Volle Hoehe (UX-Audit P48): bis 24.11.2026 hatte die Matrix eine eigene
+   Hoehe und scrollte senkrecht in sich, damit die Patch-Nummern stehen
+   blieben. Der Kasten fing dabei das Mausrad und verdeckte rund elf Zeilen.
+   Jetzt steht sie im Seitenfluss, gescrollt wird die Seite; die Kopfzeile
+   faehrt per Skript unter der festen Leiste mit (siehe kopf() unten).
+   `position:sticky` allein reicht dafuer nicht: es richtet sich am naechsten
+   Scrollbereich aus, und der ist durch `overflow-x:auto` dieser Kasten. */
+.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
+/* --kopf-deck: der Streifen zwischen Unterkante der Leiste und --nav-h
+   (gut 3 px, mit Zurueck-Marke knapp 40). Ohne die Abdeckung schienen
+   dort die Zeilen durch, die gerade unter der Kopfzeile wegrollen. */
+.evo__matrix.is-kopf thead th{box-shadow:0 calc(-1px * var(--kopf-deck,0)) 0 var(--bg-2),0 8px 14px -8px rgba(0,0,0,.7)}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
@@ -412,6 +404,37 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(neu);
     neu();
 
+    // Kopfzeile faehrt mit (UX-Audit P48): Liegt der obere Rand der Matrix
+    // unter der festen Leiste, schieben sich die Kopfzellen um genau so viel
+    // nach unten, bis kurz vor das Tabellenende. Waagrecht bleiben sie Teil
+    // des Kastens und scrollen deshalb ohne Abgleich mit.
+    var kopfZellen = scroller.querySelectorAll('thead th');
+    var kopfJetzt = '';
+    var leiste = document.getElementById('topbar');
+    var kopf = function () {
+      var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+      var r = scroller.getBoundingClientRect();
+      var h = kopfZellen.length ? kopfZellen[0].offsetHeight : 0;
+      var off = Math.round(Math.max(0, Math.min(navH - r.top, r.height - h - 48)));
+      var t = off > 0 ? 'translateY(' + off + 'px)' : '';
+      // 4 px Ueberlappung unter die Leiste: deren Unterkante ist nicht ganz deckend.
+      var deck = off > 0 && leiste ? Math.max(0, Math.ceil(navH - leiste.getBoundingClientRect().bottom)) + 4 : 0;
+      if (t + deck === kopfJetzt) return;
+      kopfJetzt = t + deck;
+      shell.classList.toggle('is-kopf', off > 0);
+      shell.style.setProperty('--kopf-deck', String(deck));
+      kopfZellen.forEach(function (c) { c.style.transform = t; });
+    };
+    var kopfGeplant = false;
+    var kopfTakt = function () {
+      if (kopfGeplant) return;
+      kopfGeplant = true;
+      requestAnimationFrame(function () { kopfGeplant = false; kopf(); });
+    };
+    window.addEventListener('scroll', kopfTakt, { passive: true });
+    window.addEventListener('resize', kopfTakt);
+    kopf();
+
     // Verweis auf eine Zeile oder Zelle (#sys-mining, #sys-mining--4-1-0,
     // UX-Audit H3): Zeile und Zelle markieren, die Matrix in sich so
     // verschieben, dass beide mittig stehen, und die Matrix ins Bild holen.
@@ -470,7 +493,7 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
     });
   }
   document.querySelectorAll('.evo__cell').forEach(function (btn) {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', function (e) {
       var id = btn.getAttribute('data-ed');
       var d = document.getElementById(id);
       if (!d) return;
@@ -482,6 +505,9 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
       btn.classList.add('sel');
       btn.setAttribute('aria-expanded', 'true');
       open = id;
+      // Messereignis treffer-offen (assets/ereignisse.js): die Zelle oeffnet
+      // ihren Eintrag; Schliessen zaehlt nicht.
+      if (e.isTrusted && window.vbEreignis) window.vbEreignis('treffer-offen');
       d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   });
