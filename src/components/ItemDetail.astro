@@ -133,7 +133,11 @@ const crumbs = [
   {/* data-fahrzeug-item: Fahrzeug-Itemblatt — verify:bezugswege [6] prueft,
       dass es sichtbar auf sein Schiffsblatt zeigt (Krisz 24.11.2026: beide
       Blaetter gleichrangig, kein Canonical, gegenseitige Links). */}
-  <h1 slot="hero" data-fahrzeug-item={item.category === 'Vehicle' || undefined}>{name}</h1>
+  {/* lang="en" auf DE: der Name ist der englische aus dem Client
+      (Sprachregel C4). Die Ueberschrift trennt mit hyphens:auto nach der
+      Sprache ihres lang; mit deutschen Mustern brach „Greatsword" am
+      iPhone als „Gre- / atsword". */}
+  <h1 slot="hero" lang={lang === 'de' ? 'en' : undefined} data-fahrzeug-item={item.category === 'Vehicle' || undefined}>{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? undefined : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
   {/* Direkte Wege (Skizze 016, 09.11.2026): vom Item ins Crafting-Werkzeug
