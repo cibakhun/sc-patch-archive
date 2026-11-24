@@ -952,29 +952,35 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        es ist: sonst kaeme dieselbe Vorlage beim naechsten Laden noch einmal. */
     if (!gastSchreiben([])) return Promise.resolve();
     var zurueck = function () {
-      var jetzt = gastLesen(), da = {};
+      var jetzt = gastLesen(), da = Object.create(null);
       jetzt.forEach(function (p) { da[p.name] = 1; });
       var ok = gastSchreiben(jetzt.concat(gast.filter(function (p) { return !da[p.name]; })));
       preSay(ok ? T.presetSyncFail : T.presetSyncLost, ok ? 6000 : 0);
     };
-    return preRest('GET', TBL + '?select=name,minerals,locations&order=name.asc')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (rows) {
-        if (!rows) { zurueck(); return; }
-        var belegt = Object.create(null);
-        rows.forEach(function (r) { belegt[r.name] = 1; });
-        var body = gast.map(function (p) {
-          var n = freierName(p.name, belegt);
-          belegt[n] = 1;
-          return { name: n, minerals: p.minerals, locations: p.locations };
-        });
-        return preRest('POST', TBL + '?on_conflict=user_id,name', body, 'resolution=merge-duplicates,return=minimal')
-          .then(function (r) {
-            if (!r.ok) { zurueck(); return; }
-            preSay(body.length === 1 ? T.presetSynced1 : T.presetSynced.replace('%n', String(body.length)), 6000);
+    /* Einfuegen, nie ueberschreiben: legt ein anderes Geraet zwischen GET und
+       POST eine gleichnamige Vorlage an, lehnt die Tabelle den ganzen POST mit
+       409 ab, und es gibt genau einen neuen Versuch mit frischen Namen. */
+    var versuch = function (nochmal) {
+      return preRest('GET', TBL + '?select=name,minerals,locations&order=name.asc')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (rows) {
+          if (!rows) { zurueck(); return; }
+          var belegt = Object.create(null);
+          rows.forEach(function (r) { belegt[r.name] = 1; });
+          var body = gast.map(function (p) {
+            var n = freierName(p.name, belegt);
+            belegt[n] = 1;
+            return { name: n, minerals: p.minerals, locations: p.locations };
           });
-      })
-      .catch(zurueck);
+          return preRest('POST', TBL, body, 'return=minimal')
+            .then(function (r) {
+              if (r.status === 409 && nochmal) return versuch(false);
+              if (!r.ok) { zurueck(); return; }
+              preSay(body.length === 1 ? T.presetSynced1 : T.presetSynced.replace('%n', String(body.length)), 6000);
+            });
+        });
+    };
+    return versuch(true).catch(zurueck);
   }
 
   function preSay(text, ms) {

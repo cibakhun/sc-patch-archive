@@ -105,7 +105,8 @@ test('9.3: beim Anmelden wandern Gast-Vorlagen einmal ins Konto, gleiche Namen b
   ]);
   const posts = ctx.account.calls.filter((c) => c.method === 'POST');
   assert.strictEqual(posts.length, 1, 'ein POST fuer alle Gast-Vorlagen');
-  assert.strictEqual(posts[0].path, 'mining_sig_presets?on_conflict=user_id,name');
+  assert.strictEqual(posts[0].path, 'mining_sig_presets', 'reines Einfuegen, kein Upsert: nichts im Konto wird ueberschrieben');
+  assert.strictEqual(posts[0].prefer, 'return=minimal');
   const gesendet = Array.from(posts[0].body).map((b) => b.name);
   assert.deepStrictEqual(gesendet, ['Alt (2)', 'Neu', 'y'.repeat(56) + ' (2)']);
   assert.ok(gesendet.every((n) => n.length <= 60));
@@ -147,4 +148,23 @@ test('9.3: scheitern Uebernahme und Zuruecklegen, sagt die Werkbank das', async 
   vm.runInContext(CODE, vm.createContext(ctx));
   await flush();
   assert.strictEqual(meldung(ctx), 'SYNC-LOST');
+});
+
+test('9.3: legt ein anderes Geraet zwischen GET und POST denselben Namen an, wird nichts ueberschrieben', async () => {
+  const ctx = await run({ account: { rows: [], vorPost: (rows) => rows.push({ name: 'Neu', minerals: ['Gold'], locations: [] }) } }, [
+    { name: 'Neu', minerals: ['Quantainium'], locations: [] },
+  ]);
+  assert.deepStrictEqual(ctx.account.calls.map((c) => c.method), ['GET', 'POST', 'GET', 'POST', 'GET']);
+  assert.deepStrictEqual(Array.from(ctx.account.calls.filter((c) => c.method === 'POST')[1].body).map((b) => b.name), ['Neu (2)']);
+  assert.deepStrictEqual(Array.from(ctx.account.rows.find((r) => r.name === 'Neu').minerals), ['Gold'], 'die Vorlage des anderen Geraets bleibt');
+  assert.strictEqual(meldung(ctx), 'SYNCED-1');
+});
+
+test('9.3: scheitert die Uebernahme, behaelt das Zuruecklegen auch Namen wie constructor', async () => {
+  const ctx = await run({ account: { rows: [], postOk: false } }, [
+    { name: 'constructor', minerals: ['Gold'], locations: [] },
+    { name: 'toString', minerals: ['Gold'], locations: [] },
+  ]);
+  assert.strictEqual(meldung(ctx), 'SYNC-FAIL');
+  assert.deepStrictEqual(ablage(ctx).presets.map((p) => p.name).sort(), ['constructor', 'toString']);
 });

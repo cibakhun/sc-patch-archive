@@ -146,6 +146,7 @@ function makeAccount(opts = {}) {
   const session = 'session' in opts ? opts.session : { access_token: 'test-token', user: { id: 'test-user' } };
   const rows = (opts.rows || []).map((r) => ({ ...r }));
   const postOk = opts.postOk !== false;
+  let vorPost = typeof opts.vorPost === 'function' ? opts.vorPost : null;
   const calls = [];
 
   function qs(p) {
@@ -172,6 +173,13 @@ function makeAccount(opts = {}) {
       if (method === 'GET') return Promise.resolve(ok(rows.map((r) => ({ ...r }))));
       if (method === 'POST') {
         if (!postOk) return Promise.resolve(bad());
+        // vorPost: ein anderes Geraet schreibt genau vor diesem POST (einmal).
+        if (vorPost) { const f = vorPost; vorPost = null; f(rows); }
+        // Ohne on_conflict ist es ein reines INSERT: ein vergebener Name
+        // (Primaerschluessel user_id, name) lehnt den ganzen Stapel mit 409 ab.
+        if (!('on_conflict' in qs(reqPath)) && (body || []).some((e) => rows.some((r) => r.name === e.name))) {
+          return Promise.resolve(bad(409));
+        }
         (body || []).forEach((entry) => {
           const existing = rows.find((r) => r.name === entry.name);
           if (existing) { existing.minerals = entry.minerals; existing.locations = entry.locations; }
@@ -346,6 +354,7 @@ function mk(tag, id, className) {
  *                       fuer den Altbestands-Nachweis)
  *   account.session   — vorgetaeuschte Sitzung; undefined/null = Gast
  *   account.postOk    — false simuliert einen abgewiesenen Upsert
+ *   account.vorPost   — fn(rows), laeuft einmal direkt vor dem ersten POST (zweites Geraet)
  *   localStorageSeed  — Rumpf, der unter dem Schluessel LS_KEY vorbelegt wird
  *                       (Altbestands-Nachweis ohne locPins-Feld: dieses Feld
  *                       einfach weglassen)

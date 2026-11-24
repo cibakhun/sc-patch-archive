@@ -2091,11 +2091,12 @@ async function probeMiningFundorteVorlagen(page) {
       await p.fill('#wb-pre-name', 'Rauchtest');
       await p.click('#wb-pre-ok');
       await p.waitForTimeout(300);
-      const liste = () => p.evaluate(() => {
+      // Sichtbar nach der einen Regel (SICHTBAR), nicht nur im DOM; die Ablage getrennt.
+      const liste = () => mitSichtbar(p, (_, da) => {
         let ablage = null;
         try { ablage = JSON.parse(localStorage.getItem('vb.mining.presets.v1') || 'null'); } catch { ablage = 'kaputt'; }
         return {
-          namen: [...document.querySelectorAll('#wb-preset-list .wb__pre-item')].map((x) => x.getAttribute('data-preset')),
+          namen: [...document.querySelectorAll('#wb-preset-list .wb__pre-item')].filter((x) => da(x)).map((x) => x.getAttribute('data-preset')),
           ablage: ablage && Array.isArray(ablage.presets) ? ablage.presets.map((x) => x.name) : [],
         };
       });
@@ -2104,7 +2105,7 @@ async function probeMiningFundorteVorlagen(page) {
       await p.reload({ waitUntil: 'load' });
       await p.waitForSelector('#wb-preset-list .wb__pre-item', { timeout: 15000 }).catch(() => {});
       const w = await liste();
-      if (!w.namen.includes('Rauchtest')) probleme.push('nach dem Neuladen fehlt die Vorlage in der Liste');
+      if (!w.namen.includes('Rauchtest')) probleme.push('nach dem Neuladen ist die Vorlage in der Liste nicht zu sehen');
     }
     const befund = await grund();
     if (befund) probleme.push(befund);
