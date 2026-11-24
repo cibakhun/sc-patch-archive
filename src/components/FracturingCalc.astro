@@ -29,6 +29,7 @@ import { versioned } from '../lib/assetVersion';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 import { jsonForScript } from '../lib/safeJson';
+import { items, pageItemIds, itemPath } from '../lib/items';
 
 /* Titel ins Gehaeuse (15.08.2026), wie bei der Mining-Werkbank: das Kopfband
    der Grafik traegt ihn, der separate `.hero` der Seite faellt dafuer weg. */
@@ -79,9 +80,17 @@ const minerals = (DB.minerals as any[])
    Namen lieferte in der Werkbank fuer ALLE 14 Laser null Modulplaetze —
    drei Knoepfe dauerhaft gesperrt, 26 Module unerreichbar, die Rechnung
    ignorierte Module vollstaendig. Nicht wieder umbenennen. */
+/* Datenblatt je Laser (UX-Audit 24.11.2026, G8): der gewaehlte Laser und
+   jede Zeile im Vergleich verlinken ihr Item-Blatt — nur, wenn es das Blatt
+   wirklich gibt (pageItemIds), sonst bleibt der Name ohne Verweis. */
+const itemIdByName = new Map(items.map((i) => [i.name, i.id]));
+const sheetOf = (name: string) => {
+  const id = itemIdByName.get(name);
+  return id && pageItemIds.has(id) ? href(itemPath(id), lang) : null;
+};
 const lasers = (MODEL.lasers as any[])
   .filter((l) => !l.builtIn && l.mining && l.mining.dps)
-  .map((l) => ({ n: l.name, size: l.size, slots: l.moduleSlots || 0, dps: Math.round(l.mining.dps), mods: l.mods || {} }))
+  .map((l) => ({ n: l.name, size: l.size, slots: l.moduleSlots || 0, dps: Math.round(l.mining.dps), mods: l.mods || {}, sheet: sheetOf(l.name) }))
   .sort((a, b) => b.dps - a.dps);
 const modules = (MODEL.modules as any[])
   .map((m) => ({ n: m.name, type: m.type, mult: m.miningMult || 1, mods: m.mods || {} }))
@@ -137,6 +146,11 @@ const S = de ? {
   laserDps: 'Laser-DPS', guteZone: 'gut ab 1,30', grenzZone: 'grenzwertig ab 1,00',
   backLead: 'Fundorte, Ertrag und Steine zu', backGo: 'Im Mining ansehen →',
   refLead: 'Ertrag je Station für', refGo: 'In der Refinery ansehen →',
+  sheet: 'Datenblatt →', scanH: 'Laut Scanner', massNum: 'Masse', resNum: 'Widerstand in %',
+  resPh: 'vom Erz', resScan: 'Widerstand laut Scanner', scanTag: 'Scannerwert',
+  cmpTitle: 'Laser vergleichen', cmpLead: 'Verhältnis für das gewählte Erz mit der eingestellten Masse und dem Gadget, ohne Module. Spaltenköpfe sortieren.',
+  thLaser: 'Laser', thSize: 'Größe', thDps: 'Leistung', thRes: 'Widerstand', thInst: 'Instabilität', thWin: 'Ladefenster', thSlots: 'Module', thRatio: 'Verhältnis',
+  pick: 'Wählen', picked: 'gewählt',
 } : {
   ores: 'Ores', search: 'Search ore', onlyBreakable: 'breakable only',
   gear: 'Gear', laser: 'Laser', modules: 'Modules', gadget: 'Gadget',
@@ -150,6 +164,11 @@ const S = de ? {
   laserDps: 'Laser DPS', guteZone: 'good from 1.30', grenzZone: 'marginal from 1.00',
   backLead: 'Locations, yield and rocks for', backGo: 'Open in Mining →',
   refLead: 'Yield per station for', refGo: 'Open in Refinery →',
+  sheet: 'Data sheet →', scanH: 'From your scanner', massNum: 'Mass', resNum: 'Resistance in %',
+  resPh: 'from ore', resScan: 'Resistance from scanner', scanTag: 'scanner value',
+  cmpTitle: 'Compare lasers', cmpLead: 'Ratio for the selected ore with the mass and gadget you set, without modules. Click a heading to sort.',
+  thLaser: 'Laser', thSize: 'Size', thDps: 'Power', thRes: 'Resistance', thInst: 'Instability', thWin: 'Charge window', thSlots: 'Modules', thRatio: 'Ratio',
+  pick: 'Pick', picked: 'picked',
 };
 
 const payload = {
@@ -161,6 +180,18 @@ const payload = {
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
+/* Vorzeichen-Prozent fuer die Lasermodifikatoren: −30 %, +60 %, ±0. */
+const sgnPct = (v: number) => (v === 0 ? '±0' : `${v > 0 ? '+' : '−'}${Math.abs(v)} %`);
+const nf0 = new Intl.NumberFormat(de ? 'de-DE' : 'en-GB');
+/* Name, Verhaeltnis und Waehlen vorn: am Telefon (358 px Ausschnitt) ist das
+   genau, was ohne Wischen sichtbar bleibt — die Antwort und der Knopf dazu.
+   Die Kennwerte folgen dahinter. */
+const CMP_HEAD = [{ k: 'n', t: S.thLaser }, { k: 'ratio', t: S.thRatio, num: true }];
+const CMP_TAIL = [
+  { k: 'size', t: S.thSize, num: true }, { k: 'dps', t: S.thDps, num: true },
+  { k: 'res', t: S.thRes, num: true }, { k: 'inst', t: S.thInst, num: true }, { k: 'win', t: S.thWin, num: true },
+  { k: 'slots', t: S.thSlots, num: true },
+];
 ---
 
 {/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
@@ -451,6 +482,45 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   font-size:var(--fs-5);padding:7px 9px;cursor:pointer;width:100%;border-radius:7px;font-family:inherit}
 .fc__sel option,.fc__slot option{background:var(--surface);color:var(--text)}
 .fc__slots{display:flex;flex-direction:column;gap:4px}
+/* Datenblatt des gewaehlten Lasers, Scannerwerte (UX-Audit 24.11.2026, G8/G9) */
+.fc__sheet{align-self:flex-start;margin-top:-6px;font-size:var(--fs-4);font-weight:600;color:var(--accent);text-decoration:none}
+.fc__sheet:hover{text-decoration:underline}
+.fc__nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fc__num{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fc__numw{position:relative;display:block}
+.fc__numin{width:100%;box-sizing:border-box;background:color-mix(in srgb,var(--ink) 34%,var(--surface));border:0;color:var(--text);
+  font-size:var(--fs-5);padding:6px 8px;border-radius:7px;-moz-appearance:textfield;appearance:textfield}
+.fc__numin::-webkit-inner-spin-button,.fc__numin::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.fc__numin::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent);font-family:var(--font-ui,system-ui)}
+#fc-resnum{padding-right:22px}
+.fc__unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:var(--fs-4);color:var(--muted);pointer-events:none}
+.fc__tag.is-scan{color:var(--accent-2)}
+
+/* ---------------- Laser vergleichen (unter dem Geraet) ---------------- */
+.fc__cmp{position:relative;z-index:1;background:color-mix(in srgb,var(--ink) 90%,var(--surface));border-radius:12px;
+  padding:14px 0 6px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent)}
+.fc__cmph{margin:0 16px;font-size:var(--fs-7);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--text);display:flex;align-items:baseline;gap:10px}
+.fc__cmpl{margin:6px 16px 10px;font-size:var(--fs-5);color:var(--muted);max-width:70ch}
+.fc__cmps{overflow-x:auto;scrollbar-width:thin}
+.fc__cmpt{width:100%;border-collapse:collapse;font-size:var(--fs-6)}
+.fc__cmpt th,.fc__cmpt td{padding:7px 12px;text-align:left;border-bottom:1px solid color-mix(in srgb,var(--text) 8%,transparent);white-space:nowrap}
+.fc__cmpt .num{text-align:right}
+.fc__cmpt thead th{font-size:var(--fs-4);font-weight:600;color:var(--muted)}
+.fc__cmpt tbody th{font-weight:600}
+.fc__cmpt tbody th,.fc__cmpt thead th:first-child{position:sticky;left:0;z-index:1;background:color-mix(in srgb,var(--ink) 90%,var(--surface))}
+.fc__cmpt tbody th a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--line)}
+.fc__cmpt tbody th a:hover{color:var(--accent);border-color:var(--accent)}
+.fc__cmpt tbody tr.is-on th,.fc__cmpt tbody tr.is-on td{background:color-mix(in srgb,var(--accent-2) 12%,color-mix(in srgb,var(--ink) 90%,var(--surface)))}
+.fc__sort{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer}
+.fc__sort:hover{color:var(--text)}
+th[aria-sort="ascending"] .fc__sort::after{content:' ▲';font-size:.8em}
+th[aria-sort="descending"] .fc__sort::after{content:' ▼';font-size:.8em}
+.fc__cr.is-ok{color:#6FBE7A} .fc__cr.is-warn{color:var(--accent-2)} .fc__cr.is-bad{color:#D2705A}
+.fc__pick{font-size:var(--fs-4);font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--line);
+  background:none;color:var(--text);cursor:pointer;font-family:inherit}
+.fc__pick:hover{border-color:var(--accent)}
+.fc__pick[aria-pressed="true"]{background:var(--accent-2);border-color:var(--accent-2);color:var(--ink)}
+.fc__sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .fc__slot{height:30px;border:0;padding:0 7px;font-size:var(--fs-4);width:100%;
   color:var(--text);cursor:pointer;border-radius:6px;font-family:inherit;
   background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
@@ -476,7 +546,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__kv b{display:block;font-size:var(--fs-9);font-weight:600;margin-top:2px;color:var(--accent-2)}
 
 .fc__search:focus-visible,.fc__sel:focus-visible,.fc__chip:focus-visible,
-.fc__slot:focus-visible,.fc__tile:focus-visible,.fc__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.fc__slot:focus-visible,.fc__tile:focus-visible,.fc__back:focus-visible,.fc__numin:focus-visible,
+.fc__sort:focus-visible,.fc__pick:focus-visible,.fc__sheet:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 @media(max-width:1180px){
   /* ⚠ Gleiche Lehre wie in MiningWorkbench.astro (dort ausfuehrlich): das
@@ -598,6 +669,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         <label class="fc__rgrp"><span class="fc__lbl" set:text={S.laser} />
           <select class="fc__sel" id="fc-laser" data-help={hlp('laser')}>{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
         </label>
+        <a class="fc__sheet" id="fc-sheet" href={L0.sheet || '#'} hidden={!L0.sheet} set:text={S.sheet} />
         <div class="fc__rgrp">
           <span class="fc__lbl"><span set:text={S.modules} /> · <span id="fc-slotcount">0</span> <span set:text={S.slots} /></span>
           <div class="fc__slots" id="fc-slots" data-help={hlp('modules')}></div>
@@ -608,6 +680,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         <div class="fc__rgrp"><span class="fc__lbl" set:text={S.rock} />
           <div class="fc__chips" id="fc-mass" data-help={hlp('mass')}>{MASS_PRESETS.map((p) => (<button type="button" class={`fc__chip${p.m === DEFAULT_MASS ? ' is-on' : ''}`} data-mass={String(p.m)} set:text={p[lang]} />))}</div>
         </div>
+        {/* Scannerwerte als Zahl (UX-Audit 24.11.2026, G9): die vier Stufen
+            darueber bleiben als Abkuerzung, die Zahl ist das, was das Spiel
+            zeigt. Nebeneinander, weil die Ruestspalte bei 1280 x 720 keine
+            zwei weiteren Zeilen hergibt. */}
+        <div class="fc__rgrp"><span class="fc__lbl" set:text={S.scanH} />
+          <div class="fc__nums">
+            <label class="fc__num"><span class="fc__lbl" set:text={S.massNum} />
+              <input class="fc__numin num" id="fc-massnum" type="number" inputmode="numeric" min="1" max="10000000" step="1" value={String(DEFAULT_MASS)} data-help={hlp('massnum')} />
+            </label>
+            <label class="fc__num"><span class="fc__lbl" set:text={S.resNum} />
+              <span class="fc__numw"><input class="fc__numin num" id="fc-resnum" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder={S.resPh} data-help={hlp('resnum')} /><span class="fc__unit" aria-hidden="true">%</span></span>
+            </label>
+          </div>
+        </div>
         <div class="fc__rstat">
           <span class="fc__kv"><span class="fc__lbl" set:text={S.laserDps} /><b class="num" id="fc-dps">—</b></span>
           <span class="fc__kv"><span class="fc__lbl">Res-Mod</span><b class="num" id="fc-resmod">—</b></span>
@@ -617,6 +703,43 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   </div>
     </div>{/* .fc__cscreen */}
   </div>{/* .fc__chassis */}
+
+  {/* Laser vergleichen (UX-Audit 24.11.2026, G8). Steht unter dem Geraet,
+      weil die Ruestspalte fuer eine Tafel mit acht Spalten zu schmal ist.
+      Serverseitig nach Leistung sortiert und ohne Verhaeltnis; das Skript
+      fuellt die Verhaeltnisspalte und sortiert auf Klick um. Nur hier, nicht in
+      der Mining-Werkbank: die kennt seit 12.08.2026 bewusst keine Laser. */}
+  <div class="fc__cmp chamf" id="laser-vergleich" data-help={hlp('compare')}>
+    <h2 class="fc__cmph"><span set:text={S.cmpTitle} /> <span class="fc__c" set:text={String(lasers.length)} /></h2>
+    <p class="fc__cmpl" set:text={S.cmpLead} />
+    <div class="fc__cmps">
+      <table class="fc__cmpt">
+        <thead><tr>
+          {CMP_HEAD.map((c) => (<th scope="col" class={c.num ? 'num' : ''} aria-sort="none"><button type="button" class="fc__sort" data-sort={c.k} set:text={c.t} /></th>))}
+          <th scope="col"><span class="fc__sr" set:text={S.pick} /></th>
+          {CMP_TAIL.map((c) => (<th scope="col" class={c.num ? 'num' : ''} aria-sort={c.k === 'dps' ? 'descending' : 'none'}><button type="button" class="fc__sort" data-sort={c.k} set:text={c.t} /></th>))}
+        </tr></thead>
+        <tbody id="fc-cmp">
+          {lasers.map((l, i) => (
+            <tr data-laser={String(i)} data-n={l.n} data-size={String(l.size)} data-dps={String(l.dps)}
+                data-res={String(l.mods.resistance || 0)} data-inst={String(l.mods.instability || 0)}
+                data-win={String(l.mods.optimalChargeWindowSize || 0)} data-slots={String(l.slots)} data-ratio="0"
+                class={i === 0 ? 'is-on' : ''}>
+              <th scope="row">{l.sheet ? <a href={l.sheet} set:text={l.n.replace(' Mining Laser', '')} /> : <span set:text={l.n.replace(' Mining Laser', '')} />}</th>
+              <td class="num fc__cr">—</td>
+              <td><button type="button" class="fc__pick" data-pick={String(i)} aria-pressed={i === 0 ? 'true' : 'false'} set:text={i === 0 ? S.picked : S.pick} /></td>
+              <td class="num" set:text={`S${l.size}`} />
+              <td class="num" set:text={nf0.format(l.dps)} />
+              <td class="num" set:text={sgnPct(l.mods.resistance || 0)} />
+              <td class="num" set:text={sgnPct(l.mods.instability || 0)} />
+              <td class="num" set:text={sgnPct(l.mods.optimalChargeWindowSize || 0)} />
+              <td class="num" set:text={String(l.slots)} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>
 
 <script type="application/json" id="fc-data" set:html={jsonForScript(payload)}></script>

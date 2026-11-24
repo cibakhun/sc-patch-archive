@@ -389,6 +389,9 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('h4', 'wb-loch')));
   root.appendChild(reg(mk('div', 'wb-locs')));
   root.appendChild(reg(mk('div', 'wb-refs')));
+  // Verkauf raffiniert (UX-Audit 24.11.2026, G7): Abschnitt + Liste.
+  root.appendChild(reg(mk('div', 'wb-sellsec')));
+  root.appendChild(reg(mk('div', 'wb-sell')));
   root.appendChild(reg(mk('div', 'wb-links')));
 
   // Fundort-Kopf + Fundort-Ansicht (Phase 12, Plan 01, Task 1, D-01/D-11):

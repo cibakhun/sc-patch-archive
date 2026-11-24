@@ -441,6 +441,20 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       $('wb-refs').innerHTML = html;
     }
 
+    /* Verkauf nach dem Raffinieren (UX-Audit 24.11.2026, G7): bester Ort mit
+       seinem Preis, darunter der Durchschnitt. Erze ohne Preis (Handerze,
+       Eis) lassen den Abschnitt zu, statt eine leere Zeile zu zeigen. */
+    var sell = (D.sell || {})[m.name], sellSec = $('wb-sellsec');
+    if (sellSec) {
+      sellSec.hidden = !sell;
+      if (sell) {
+        var sh = '';
+        if (sell.m && sell.l) sh += row2(sell.l, T.sellBest, null, NF.format(sell.m) + ' aUEC/SCU', false, false, null, { cls: 'is-sell' });
+        if (sell.a) sh += row2(T.sellAvg, '', null, NF.format(sell.a) + ' aUEC/SCU', false, false, null, { cls: 'is-sell' });
+        $('wb-sell').innerHTML = sh;
+      }
+    }
+
     /* Bezuege nach draussen: Crafting und Schiffe — in der ersten Fassung
        ersatzlos weggefallen, hier wieder angebunden. */
     var links = '';

@@ -54,6 +54,8 @@ import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 import { jsonForScript } from '../lib/safeJson';
 import { ausbeuteStand } from '../lib/refineryStand';
+import { REFINERY } from '../lib/refinery';
+import { datumLang } from '../lib/datenstand';
 
 /* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
    der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
@@ -267,6 +269,7 @@ const S_DE = {
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
+  sellH: 'Verkauf raffiniert', sellStand: 'Stand %d', sellBest: 'bester Ort', sellAvg: 'Durchschnitt der Terminals',
   bestRef: 'Beste Stationen', bestRefStand: 'Stand %v, von Hand', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
   // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
@@ -303,6 +306,7 @@ const S_EN = {
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
+  sellH: 'Selling refined', sellStand: 'as of %d', sellBest: 'best place', sellAvg: 'average across terminals',
   bestRef: 'Best stations', bestRefStand: 'as of %v, by hand', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
   // Phase 12: location view (D-01/D-11) — back-button label and the trace
@@ -342,8 +346,15 @@ const payload = {
   pjPath: href('/precision-jump.html', lang),
   fracturingPath,
   shipsByMethod,
+  // Verkaufsorte raffinierter Erze (UX-Audit 24.11.2026, G7): Durchschnitt,
+  // bester Preis und sein Ort je Erz, aus derselben Preistafel wie die
+  // Refinery-Seite. Erze ohne Preis fehlen hier, der Abschnitt bleibt dann zu.
+  sell: Object.fromEntries(REFINERY.ores
+    .filter((o) => o.sell || o.sellMax)
+    .map((o) => [o.name, { a: o.sell, m: o.sellMax, l: o.sellLoc }])),
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
+const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, lang) : '—';
 ---
 
 {/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
@@ -1025,6 +1036,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    (und stand vor der Rundung ohnehin als 28.29999923 da). */
 .wb__row2 em{font-size:var(--fs-4);color:var(--muted);font-style:normal;width:58px;text-align:right;
   white-space:nowrap;font-family:var(--font-mono,ui-monospace)}
+/* Verkaufszeilen (G7): der Preis mit Einheit ist breiter als die 58 px fuer
+   Prozentwerte und lief am Telefon 30 px ueber den Rand. */
+.wb__row2.is-sell em{width:auto;min-width:58px;color:var(--text)}
 /* Die in der Rig-Leiste gewaehlte Station. */
 .wb__row2.is-pick{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-2) 60%,transparent)}
 /* Klickbare Fundort- UND Erzzeile (Phase 12, D-01/D-02) — wortgleicher
@@ -1813,6 +1827,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <div class="wb__scroll" id="wb-oreview">
         <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
         <div class="wb__sec"><h4 set:text={`${S.bestRef} · ${S.bestRefStand.replace('%v', ausbeuteStand())}`} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec" id="wb-sellsec" hidden><h4 set:text={`${S.sellH} · ${S.sellStand.replace('%d', sellDate)}`} /><div class="wb__refs" id="wb-sell"></div></div>
         <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
       </div>
       <div class="wb__scroll" id="wb-locview" hidden></div>

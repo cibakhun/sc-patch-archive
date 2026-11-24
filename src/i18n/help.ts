@@ -126,6 +126,10 @@ export const HELP = {
     'fracturing.ctl.modules': 'Bis zu drei Module, je nach Laser. Sie verändern Schaden und Widerstand.',
     'fracturing.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
     'fracturing.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
+    // Scannerwerte und Laservergleich (UX-Audit 24.11.2026, G9 und G8)
+    'fracturing.ctl.massnum': 'Die Masse, die dein Scanner für diesen Brocken anzeigt. Die vier Knöpfe darüber sind Abkürzungen dafür.',
+    'fracturing.ctl.resnum': 'Der Widerstand laut Scanner, in Prozent. Leer gilt der Wert des Erzes; Laser, Module und Gadget rechnet der Rechner dazu.',
+    'fracturing.ctl.compare': 'Alle Laser nebeneinander. Ein Klick auf einen Spaltenkopf sortiert, „Wählen“ übernimmt den Laser in die Rechnung.',
 
     // -- Patch-Archiv --
     'archive.title': 'Wie funktioniert das Patch-Archiv?',
@@ -237,7 +241,7 @@ export const HELP = {
     'precisionjump.ctl.table': 'Klappt eine Tabelle mit weiteren Werten auf.',
 
     // -- Refinery-Tracker --
-    'refinerytracker.title': 'Wie funktioniert der Refinery-Tracker?',
+    'refinerytracker.title': 'Wie funktioniert der Tracker?',
     'refinerytracker.purpose':
       'Verfolgt laufende Refinery-Aufträge bis zur Abholung — anders als die Ertragstafel auf dieser Seite vergleicht er nicht vorab, sondern begleitet Aufträge, die schon laufen.',
     'refinerytracker.step1': 'Raffinerie, Methode und Erze eines laufenden Auftrags eintragen.',
@@ -341,6 +345,10 @@ export const HELP = {
     'fracturing.ctl.modules': 'Up to three modules, depending on the laser. They change damage and resistance.',
     'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
     'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
+    // Scanner values and laser comparison (UX audit 24.11.2026, G9 and G8)
+    'fracturing.ctl.massnum': 'The mass your scanner shows for this rock. The four buttons above are shortcuts for it.',
+    'fracturing.ctl.resnum': 'The resistance your scanner shows, in percent. Left empty, the ore’s value applies; laser, modules and gadget are added on top.',
+    'fracturing.ctl.compare': 'Every laser side by side. Click a column heading to sort, “Pick” puts the laser into the calculation.',
     // 'mining.ctl.station' — s. die deutsche Seite, dort steht der Grund.
     'mining.ctl.locpin': 'The whole row opens this location; the pin on the right additionally pins it to the shortlist below.',
     'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”. Click opens the location, the × unpins it.',
@@ -455,7 +463,7 @@ export const HELP = {
     'precisionjump.ctl.table': 'Expands a table with further values.',
 
     // -- Refinery Tracker --
-    'refinerytracker.title': 'How does the Refinery Tracker work?',
+    'refinerytracker.title': 'How does the tracker work?',
     'refinerytracker.purpose':
       'Tracks refinery work orders through to collection — unlike the yield table on this page, it does not compare stations upfront, it follows orders already underway.',
     'refinerytracker.step1': 'Log a running order’s refinery, method and ores.',

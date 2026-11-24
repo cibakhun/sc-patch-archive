@@ -37,7 +37,12 @@
 
   var S = {
     sel: D.minerals[0].name, laser: 0, mods: [-1, -1, -1],
-    gadget: -1, mass: D.defaultMass, q: '', sys: null, onlyBreak: false
+    gadget: -1, mass: D.defaultMass, q: '', sys: null, onlyBreak: false,
+    /* Widerstand laut Scanner als Bruch (0,42 fuer 42 %), null = der Wert
+       des Erzes. Bewusst NICHT gespeichert: er gilt fuer den einen Brocken
+       vor dir, beim naechsten Besuch waere er ein falscher Vorgabewert. */
+    resScan: null,
+    cmpKey: 'dps', cmpDir: -1
   };
   try {
     var saved = JSON.parse(localStorage.getItem(LS) || 'null');
@@ -46,7 +51,7 @@
       if (typeof saved.laser === 'number' && D.lasers[saved.laser]) S.laser = saved.laser;
       if (Array.isArray(saved.mods) && saved.mods.length === 3) S.mods = saved.mods;
       if (typeof saved.gadget === 'number') S.gadget = saved.gadget;
-      if (typeof saved.mass === 'number') S.mass = saved.mass;
+      if (typeof saved.mass === 'number' && saved.mass > 0) S.mass = saved.mass;
     }
   } catch (e) { /* kaputter Speicher ist kein Grund, das Werkzeug zu verweigern */ }
   function save() {
@@ -75,12 +80,12 @@
     return (D.lang === 'de' ? out.replace('.', ',') : out) + ' %';
   }
 
-  function loadout() {
-    var L = D.lasers[S.laser] || D.lasers[0];
+  function loadout(idx, ohneModule) {
+    var L = D.lasers[idx === undefined ? S.laser : idx] || D.lasers[0];
     var resMod = (L.mods && L.mods.resistance) || 0;
     var dpsMult = 1;
     for (var i = 0; i < 3; i++) {
-      if (i >= (L.slots || 0)) continue;
+      if (ohneModule || i >= (L.slots || 0)) continue;
       var m = D.modules[S.mods[i]];
       if (!m) continue;
       dpsMult *= (m.mult || 1);
@@ -90,9 +95,9 @@
     if (g) resMod += (g.mods && g.mods.resistance) || 0;
     return { L: L, dps: L.dps, dpsMult: dpsMult, resMod: resMod };
   }
-  function verdict(res) {
+  function verdict(res, lo) {
     if (res === null || res === undefined) return { cls: 'na', ratio: null };
-    var lo = loadout();
+    lo = lo || loadout();
     var R = Math.max(0, res);
     var Reff = R * (1 + lo.resMod / 100);
     var chargeFactor = Math.max(0.05, 1 - Reff);
@@ -164,7 +169,7 @@
     }
     var rows = [
       [T.mLaser, n0(lo.dps) + (lo.dpsMult !== 1 ? ' × ' + n2(lo.dpsMult) : ''), n0(lo.dps * lo.dpsMult)],
-      [T.mResist, n2(m.res) + (lo.resMod ? ' · ' + (lo.resMod > 0 ? '+' : '') + nPct(lo.resMod) : ''), n2(v.Reff)],
+      [S.resScan !== null ? T.resScan : T.mResist, n2(resOf(m)) + (lo.resMod ? ' · ' + (lo.resMod > 0 ? '+' : '') + nPct(lo.resMod) : ''), n2(v.Reff)],
       [T.mCharge, n0(lo.dps * lo.dpsMult) + ' × ' + n2(v.charge), n0(v.avail)],
       [T.mMass, n0(S.mass) + ' × ' + n2(D.params.decayPerMass || 0.2), n0(v.req)]
     ];
@@ -178,15 +183,21 @@
       '<b class="num">×' + esc(n2(v.ratio)) + '</b></div>';
   }
 
+  /* Der Widerstand, mit dem das Urteil rechnet: der Scannerwert, wenn einer
+     eingetragen ist (G9), sonst der des Erzes. Die Kacheln links rechnen
+     weiter je Erz — ein Scannerwert gilt fuer genau einen Brocken. */
+  function resOf(m) { return S.resScan !== null ? S.resScan : m.res; }
+
   function renderDetail() {
     var m = byName[S.sel];
     if (!m) return;
-    var v = verdict(m.res);
+    var v = verdict(resOf(m));
 
     $('fc-name').textContent = m.name;
     $('fc-tags').innerHTML =
       '<span class="fc__tag is-rar">' + esc(D.rar[m.rarity] || (D.lang === 'de' ? 'ohne Stufe' : 'no tier')) + '</span>' +
-      '<span class="fc__tag">' + esc(m.kind) + '</span>';
+      '<span class="fc__tag">' + esc(m.kind) + '</span>' +
+      (S.resScan !== null ? '<span class="fc__tag is-scan">' + esc(T.scanTag) + '</span>' : '');
 
     renderGauge(v);
     renderMath(m, v);
@@ -248,9 +259,71 @@
     for (var j = 0; j < chips.length; j++) {
       chips[j].classList.toggle('is-on', +chips[j].getAttribute('data-mass') === S.mass);
     }
+    /* Die Massezahl folgt den Stufenknoepfen, aber nicht, waehrend jemand
+       in ihr tippt — sonst springt der Wert unter dem Cursor zurueck. */
+    var mn = $('fc-massnum');
+    if (mn && document.activeElement !== mn) mn.value = String(S.mass);
+    /* Datenblatt des gewaehlten Lasers (G8) — nur, wenn es eines gibt. Es
+       wird nur der Pfad getauscht: der Verweis bleibt auf dieser Seite und
+       ihrem Ursprung, gleich was in der Nutzlast steht. */
+    var sh = $('fc-sheet');
+    if (sh) {
+      var ok = typeof L.sheet === 'string' && L.sheet.charAt(0) === '/' && L.sheet.charAt(1) !== '/';
+      sh.hidden = !ok;
+      if (ok) { sh.pathname = L.sheet; sh.search = ''; sh.hash = ''; }
+    }
   }
 
-  function renderAll() { renderList(); renderDetail(); renderRig(); save(); }
+  /* Laser vergleichen (UX-Audit 24.11.2026, G8): je Zeile das Verhaeltnis
+     fuer das gewaehlte Erz mit Masse, Scannerwert und Gadget, aber OHNE
+     Module — die haengen an den Steckplaetzen des jeweils gewaehlten Lasers
+     und wuerden den Vergleich verzerren. */
+  var cmpBody = $('fc-cmp');
+  function renderCmp() {
+    if (!cmpBody) return;
+    var m = byName[S.sel], res = m ? resOf(m) : null;
+    var rows = cmpBody.querySelectorAll('tr[data-laser]');
+    for (var i = 0; i < rows.length; i++) {
+      var tr = rows[i], idx = +tr.getAttribute('data-laser');
+      var v = verdict(res, loadout(idx, true));
+      var cell = tr.querySelector('.fc__cr');
+      cell.textContent = v.ratio === null ? T.none : '×' + n2(v.ratio);
+      cell.className = 'num fc__cr is-' + v.cls;
+      tr.setAttribute('data-ratio', v.ratio === null ? '-1' : String(v.ratio));
+      var on = idx === S.laser;
+      tr.classList.toggle('is-on', on);
+      var b = tr.querySelector('.fc__pick');
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.textContent = on ? T.picked : T.pick;
+    }
+    var rh = document.querySelector('#laser-vergleich [data-sort="ratio"]');
+    if (rh && m) rh.textContent = T.thRatio + ' · ' + m.name;
+    if (S.cmpKey === 'ratio') sortCmp();
+  }
+  function sortCmp() {
+    var k = S.cmpKey, dir = S.cmpDir;
+    var rows = Array.prototype.slice.call(cmpBody.querySelectorAll('tr[data-laser]'));
+    rows.sort(function (a, b) {
+      var x = a.getAttribute('data-' + k), y = b.getAttribute('data-' + k);
+      var c = k === 'n' ? x.localeCompare(y) : (+x) - (+y);
+      return c * dir || (+a.getAttribute('data-laser')) - (+b.getAttribute('data-laser'));
+    });
+    for (var i = 0; i < rows.length; i++) cmpBody.appendChild(rows[i]);
+    var ths = document.querySelectorAll('#laser-vergleich th[aria-sort]');
+    for (var j = 0; j < ths.length; j++) {
+      var bk = ths[j].querySelector('[data-sort]');
+      ths[j].setAttribute('aria-sort', bk && bk.getAttribute('data-sort') === k
+        ? (dir > 0 ? 'ascending' : 'descending') : 'none');
+    }
+  }
+  function pickLaser(idx) {
+    S.laser = idx;
+    var slots = (D.lasers[S.laser] || {}).slots || 0;
+    for (var i = slots; i < 3; i++) S.mods[i] = -1;
+    if ($('fc-laser')) $('fc-laser').value = String(S.laser);
+  }
+
+  function renderAll() { renderList(); renderDetail(); renderRig(); renderCmp(); save(); }
 
   /* Die Handler haengen am document; der Riegel haelt sie in diesem Werkzeug,
      falls die Seite spaeter ein zweites bekommt. */
@@ -262,7 +335,20 @@
     var tile = t.closest('.fc__tile');
     if (tile) { S.sel = tile.getAttribute('data-min'); renderAll(); return; }
     var mass = t.closest('[data-mass]');
-    if (mass) { S.mass = +mass.getAttribute('data-mass'); renderAll(); return; }
+    if (mass) {
+      S.mass = +mass.getAttribute('data-mass');
+      if ($('fc-massnum')) $('fc-massnum').value = String(S.mass);
+      renderAll(); return;
+    }
+    var sortBtn = t.closest('[data-sort]');
+    if (sortBtn) {
+      var k = sortBtn.getAttribute('data-sort');
+      if (S.cmpKey === k) S.cmpDir = -S.cmpDir;
+      else { S.cmpKey = k; S.cmpDir = k === 'n' ? 1 : -1; }
+      sortCmp(); return;
+    }
+    var pick = t.closest('[data-pick]');
+    if (pick) { pickLaser(+pick.getAttribute('data-pick')); renderAll(); return; }
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
@@ -288,9 +374,7 @@
   document.addEventListener('change', function (e) {
     var t = e.target;
     if (t.id === 'fc-laser') {
-      S.laser = +t.value;
-      var slots = (D.lasers[S.laser] || {}).slots || 0;
-      for (var i = slots; i < 3; i++) S.mods[i] = -1;
+      pickLaser(+t.value);
       renderAll();
     } else if (t.id === 'fc-gadget') { S.gadget = +t.value; renderAll(); }
     else if (t.classList && t.classList.contains('fc__slot')) {
@@ -299,8 +383,26 @@
     }
   });
 
+  /* Scannerwerte (G9). Unbrauchbare Eingaben (leer, 0, negativ) lassen die
+     letzte gueltige Masse stehen; beim Verlassen des Feldes zeigt es sie
+     wieder an. Der Widerstand wird auf 0…100 % geklemmt, leer heisst „vom Erz". */
   document.addEventListener('input', function (e) {
-    if (e.target.id === 'fc-q') { S.q = e.target.value; renderList(); }
+    var id = e.target.id;
+    if (id === 'fc-q') { S.q = e.target.value; renderList(); return; }
+    if (id === 'fc-massnum') {
+      var mv = parseFloat(e.target.value);
+      if (mv > 0 && isFinite(mv)) { S.mass = mv; renderAll(); }
+      return;
+    }
+    if (id === 'fc-resnum') {
+      var raw = String(e.target.value).trim();
+      var rv = parseFloat(raw.replace(',', '.'));
+      S.resScan = raw === '' || !isFinite(rv) ? null : Math.min(100, Math.max(0, rv)) / 100;
+      renderDetail(); renderCmp();
+    }
+  });
+  document.addEventListener('focusout', function (e) {
+    if (e.target && e.target.id === 'fc-massnum') e.target.value = String(S.mass);
   });
 
   /* ?mineral=<Name> — dieselbe Sprache wie die Mining-Werkbank, damit der

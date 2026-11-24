@@ -43,7 +43,7 @@ const COPY = {
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
     retry: 'Neu laden',
-    outTitle: 'Dein Refinery-Tracker',
+    outTitle: 'Dein Tracker',
     outText: 'Melde dich an, um Aufträge mit Countdown zu verfolgen. Der Wert erscheint auch in deinem Konto.',
     login: 'Anmelden', register: 'Konto erstellen',
     stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen', stPipe: 'SCU in Arbeit', stValue: 'Refinery-Wert',
@@ -88,8 +88,8 @@ const COPY = {
     save: 'Speichern', cancel: 'Abbrechen',
     scu: 'SCU',
     oresTitle: 'Raffinierbare Erze',
-    oresNote: 'Ø Verkaufspreis laut UEX, Stand %d. Der Erzname führt zur Mining-Datenbank.',
-    thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
+    oresNote: 'Ø Verkaufspreis und bester Verkaufsort laut UEX, Stand %d. Der Erzname führt zur Mining-Datenbank.',
+    thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thSell: 'Bester Verkaufsort', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
     kind: { Metal: 'Metall', Mineral: 'Mineral', Ice: 'Eis' } as Record<string, string>,
     rarity: { common: 'häufig', uncommon: 'ungewöhnlich', rare: 'selten', epic: 'episch', legendary: 'legendär' } as Record<string, string>,
     noBonus: 'überall ±0 %',
@@ -111,7 +111,7 @@ const COPY = {
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders. Please check your connection.',
     retry: 'Reload',
-    outTitle: 'Your refinery tracker',
+    outTitle: 'Your tracker',
     outText: 'Sign in to track orders with a countdown. The value also shows up in your account.',
     login: 'Sign in', register: 'Create account',
     stActive: 'Active orders', stReady: 'Ready to collect', stPipe: 'SCU refining', stValue: 'Refinery value',
@@ -156,8 +156,8 @@ const COPY = {
     save: 'Save', cancel: 'Cancel',
     scu: 'SCU',
     oresTitle: 'Refinable ores',
-    oresNote: 'Average sell price from UEX, as of %d. The ore name links to the mining database.',
-    thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thBest: 'Best refinery', thSystems: 'Found in',
+    oresNote: 'Average sell price and best place to sell from UEX, as of %d. The ore name links to the mining database.',
+    thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thSell: 'Best place to sell', thBest: 'Best refinery', thSystems: 'Found in',
     kind: { Metal: 'Metal', Mineral: 'Mineral', Ice: 'Ice' } as Record<string, string>,
     rarity: { common: 'common', uncommon: 'uncommon', rare: 'rare', epic: 'epic', legendary: 'legendary' } as Record<string, string>,
     noBonus: '±0 % everywhere',
@@ -371,15 +371,22 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     <section id="erze" class="ck-col rf-sec" aria-labelledby="rf-ores-h">
       <h2 class="ck-h" id="rf-ores-h">{COPY.oresTitle}<span class="rf-n">{ores.length}</span></h2>
       <div class="rf-scroll">
-        <table class="rf-table">
-          <thead><tr><th scope="col">{COPY.thOre}</th><th scope="col">{COPY.thKind}</th><th scope="col">{COPY.thRarity}</th><th scope="col" class="num">{COPY.thPrice}</th><th scope="col">{COPY.thBest}</th><th scope="col">{COPY.thSystems}</th></tr></thead>
+        {/* Spaltenfolge seit dem UX-Audit 24.11.2026 (G10, G7): der Preis steht
+            direkt hinter dem Namen und der Name klebt links. Vorher begann die
+            Spalte Ø aUEC am Telefon bei 359 px, also rechts neben dem 334 px
+            breiten Ausschnitt, und war ohne Wischen unsichtbar. Daneben der
+            beste Verkaufsort mit seinem Preis, damit der Weg nach dem
+            Raffinieren nicht auf einer anderen Seite weitergeht. */}
+        <table class="rf-table rf-table--ores">
+          <thead><tr><th scope="col">{COPY.thOre}</th><th scope="col" class="num">{COPY.thPrice}</th><th scope="col">{COPY.thSell}</th><th scope="col">{COPY.thKind}</th><th scope="col">{COPY.thRarity}</th><th scope="col">{COPY.thBest}</th><th scope="col">{COPY.thSystems}</th></tr></thead>
           <tbody>
             {oreRows.map(({ o, top, best, link }) => (
               <tr>
                 <th scope="row">{link ? <a href={link}>{o.name}</a> : o.name}{o.code && <small>{o.code}</small>}</th>
+                <td class="num tnum">{fmtPrice(o.sell)}</td>
+                <td class="rf-sell">{o.sellLoc && o.sellMax ? <><b class="tnum">{fmtPrice(o.sellMax)}</b> <span>{o.sellLoc}</span></> : '—'}</td>
                 <td>{(o.kind && COPY.kind[o.kind]) || o.kind || '—'}</td>
                 <td>{o.rarity ? <span class={`rf-rar rf-rar--${o.rarity}`}>{COPY.rarity[o.rarity] || o.rarity}</span> : '—'}</td>
-                <td class="num tnum">{fmtPrice(o.sell)}</td>
                 <td>
                   {best.length
                     ? <button type="button" class="rf-pick" data-ore={o.name}><b class="rf-pos">{pct(top)}</b> {best.map((s) => s.short).join(', ')}</button>
@@ -641,6 +648,13 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-table--matrix { font-size: var(--fs-6); }
   .rf-table--matrix th, .rf-table--matrix td { padding: 6px 9px; }
   .rf-table--matrix tbody th, .rf-table--matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  /* Erztafel: Name klebt links wie in der Matrix, der Verkaufsort darf
+     umbrechen (Ortsnamen bis 46 Zeichen), der Preis davor nicht. */
+  .rf-table--ores tbody th, .rf-table--ores thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .rf-table--ores thead th:first-child { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); }
+  .rf-table--ores .rf-sell { white-space: normal; min-width: 13rem; max-width: 18rem; }
+  .rf-table--ores .rf-sell b { display: block; font-family: var(--font-ui); font-weight: 700; color: var(--text); }
+  .rf-table--ores .rf-sell span { display: block; font-size: var(--fs-5); line-height: 1.3; color: var(--muted); }
   .rf-sys th { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5); color: var(--accent) !important; text-transform: uppercase; letter-spacing: var(--ls-10); background: color-mix(in srgb, var(--surface-2) 80%, var(--surface)) !important; }
   .rf-sys th a { color: inherit !important; border: 0 !important; }
 
