@@ -114,6 +114,21 @@ test('Obergrenze: ueber GAST_MAX fallen die am laengsten abgeholten weg, laufend
   assert.equal(ids.includes(GAST_MAX + 1) && ids.includes(GAST_MAX + 2), true, 'laufende bleiben');
 });
 
+test('Obergrenze: nur laufende Auftraege ueber GAST_MAX werden abgelehnt, die Ablage bleibt', () => {
+  const s = store();
+  const voll = [];
+  for (let i = 1; i <= GAST_MAX; i++) voll.push(auftrag(i));
+  assert.equal(speichereGast(s, voll), true);
+  assert.equal(speichereGast(s, [...voll, auftrag(GAST_MAX + 1)]), false, 'Auftrag 201 darf nicht als gespeichert gelten');
+  assert.equal(ladeGast(s).length, GAST_MAX, 'die Ablage bleibt, wie sie war');
+});
+
+test('Pruefung vor dem Speichern: mehr als 30 Erze lehnt gastAuftrag ab', () => {
+  const erze = Array.from({ length: 31 }, () => ({ ore: 'Gold', rawScu: 1, yieldScu: 1 }));
+  assert.equal(gastAuftrag(auftrag(1, { items: erze })), null);
+  assert.notEqual(gastAuftrag(auftrag(1, { items: erze.slice(0, 30) })), null);
+});
+
 test('Kennung: naechste freie Zahl nach der groessten', () => {
   assert.equal(naechsteGastId([]), 1);
   assert.equal(naechsteGastId([{ id: 3 }, { id: 7 }, { id: 2 }]), 8);
@@ -141,10 +156,12 @@ test('Uebernahme gescheitert: zurueckLegen behaelt, was inzwischen dazukam, mit 
   const s = store();
   const mit = [auftrag(1), auftrag(2)];
   speichereGast(s, [auftrag(1, { note: 'neu in anderem Tab' })]);
-  zurueckLegen(s, mit);
+  assert.equal(zurueckLegen(s, mit), true);
   const jetzt = ladeGast(s);
   assert.deepEqual(jetzt.map((j) => j.id), [1, 2, 3]);
   assert.equal(jetzt[0].note, 'neu in anderem Tab');
+  // Nimmt der Browser sie nicht wieder, meldet zurueckLegen das (die Seite sagt es dann)
+  assert.equal(zurueckLegen(store({}, { sperre: true }), mit), false);
 });
 
 test('Abmelden raeumt die Gast-Ablage nicht weg (kein Kontospiegel)', () => {
@@ -161,6 +178,9 @@ test('Seite: Gast-Tracker statt Schloss, Gast-Riegel kennt die Ablage, Formular 
   assert.equal(GAST_KEY, 'vb.refinery.v1');
   assert.match(src, /if \(!data\.session\) \{ startGast\(\); return; \}/);
   assert.match(src, /await uebernimmGast\(\);\s*\n\s*const \{ data: rows/, 'Uebernahme vor dem Laden der Kontoauftraege');
+  assert.match(src, /data = gastAuftrag\(\{ \.\.\.zeile/, 'Gast-Formular prueft wie beim Laden, bevor es bestaetigt');
+  assert.match(src, /const ORE_MAX = 30;/, 'hoechstens 30 Erze wie refinery_jobs');
+  assert.match(src, /zurueck \? C\.syncFehler : C\.syncVerloren/, 'gescheitertes Zuruecklegen wird gemeldet');
   // Jede Schreibstelle ins Konto steht hinter !gast oder in der Uebernahme.
   const schreib = [...src.matchAll(/supabase\.from\('refinery_jobs'\)\.(insert|update|delete)/g)].length;
   assert.equal(schreib, 5, 'collect, del, update, Formular, Uebernahme');

@@ -554,8 +554,12 @@ const CLIENT = {
     color: var(--text); text-shadow: none; margin: .15rem 0 .25rem; letter-spacing: normal;
   }
   .pj-trigger__sub { margin: 0; max-width: 68ch; font-size: var(--fs-8); }
-  .pj-kurz { margin: .7rem 0 0; padding-left: 1.35rem; max-width: 68ch; font-family: var(--font-ui); font-size: var(--fs-8); color: var(--text); line-height: 1.5; }
-  .pj-kurz li { margin: .1rem 0; padding-left: .2rem; }
+  /* order/flex: im Auslöse-Block (Flex, Felder order 1-4) steht der Kurzweg
+     als eigene Zeile darunter, nicht vor der Achse. Die Zeilenlaenge begrenzt
+     das li: ein max-width an der Liste kappt die 100 % und holt sie zurueck
+     in die Zeile des Auslösewerts. */
+  .pj-kurz { order: 5; flex: 0 0 100%; margin: .7rem 0 0; padding-left: 1.35rem; font-family: var(--font-ui); font-size: var(--fs-8); color: var(--text); line-height: 1.5; }
+  .pj-kurz li { margin: .1rem 0; padding-left: .2rem; max-width: 68ch; }
   .pj-kurz li::marker { color: var(--accent); font-weight: 700; }
   .pj-kurz [lang] { font-variant-numeric: tabular-nums; font-weight: 700; }
   .pj-copy { text-transform: none; letter-spacing: normal; font-size: var(--fs-7); }

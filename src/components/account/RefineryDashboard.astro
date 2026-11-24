@@ -46,6 +46,8 @@ const COPY = {
     gastTitle: 'Gespeichert in diesem Browser',
     gastText: 'Deine Aufträge liegen ohne Konto nur hier. Mit Konto schreibt dir der Verse-Bot auf Discord, sobald ein Auftrag fertig ist, und die Aufträge stehen auf all deinen Geräten bereit. Was hier schon liegt, nimmst du bei der Anmeldung mit.',
     gastFehler: 'Dieser Browser speichert gerade nichts, etwa in einem privaten Fenster. Mit Konto geht es trotzdem.',
+    gastVoll: 'In diesem Browser laufen schon %n Aufträge. Hol erst welche ab oder melde dich an.',
+    syncVerloren: 'Die Aufträge aus diesem Browser ließen sich weder ins Konto übernehmen noch hier zurücklegen. Trag laufende Aufträge bitte neu ein.',
     syncOk: '%n Aufträge aus diesem Browser liegen jetzt in deinem Konto.',
     syncOk1: 'Ein Auftrag aus diesem Browser liegt jetzt in deinem Konto.',
     syncFehler: 'Die Aufträge aus diesem Browser ließen sich nicht ins Konto übernehmen. Sie bleiben dort, beim nächsten Laden versucht es die Seite noch einmal.',
@@ -118,6 +120,8 @@ const COPY = {
     gastTitle: 'Saved in this browser',
     gastText: 'Without an account, your orders live only here. With an account, Verse-Bot messages you on Discord as soon as an order is done, and your orders are on all your devices. Whatever is already saved here comes along when you sign in.',
     gastFehler: 'This browser is not saving anything right now, for example in a private window. With an account it still works.',
+    gastVoll: 'This browser already has %n orders running. Collect some first or sign in.',
+    syncVerloren: 'The orders from this browser could neither be moved into your account nor put back here. Please enter running orders again.',
     syncOk: '%n orders from this browser are now in your account.',
     syncOk1: 'One order from this browser is now in your account.',
     syncFehler: 'The orders from this browser could not be moved into your account. They stay there, and the page tries again on the next load.',
@@ -713,7 +717,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     type RefineryJob, type RefineryItem,
   } from '../../lib/refinery';
   import { refineryValue, refinerySpark, jobValue } from '../../lib/refineryJobs';
-  import { GAST_KEY, ladeGast, speichereGast, naechsteGastId, nimmGast, zurueckLegen, kontoZeile } from '../../lib/refineryGast';
+  import { GAST_KEY, GAST_MAX, gastAuftrag, ladeGast, speichereGast, naechsteGastId, nimmGast, zurueckLegen, kontoZeile } from '../../lib/refineryGast';
 
   const root = document.getElementById('rf') as HTMLElement | null;
   if (root) {
@@ -1139,7 +1143,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       row.querySelector('[data-role="raw"]')!.addEventListener('input', updatePreview);
       row.querySelector('[data-role="yield"]')!.addEventListener('input', updatePreview);
       row.querySelector('[data-role="remove"]')!.addEventListener('click', () => {
-        if (oresBox.querySelectorAll('.rf-ore').length > 1) row.remove();
+        if (oresBox.querySelectorAll('.rf-ore').length > 1) { row.remove(); syncAddOre(); }
         else {
           sel.value = '';
           (row.querySelector('[data-role="raw"]') as HTMLInputElement).value = '';
@@ -1149,12 +1153,19 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         updatePreview();
       });
     }
+    // Hoechstens 30 Erze je Auftrag, wie refinery_jobs (items_shape) und die
+    // Gast-Ablage es verlangen; danach ist „Erz hinzufuegen" aus.
+    const ORE_MAX = 30;
+    const addOreBtn = $('rfd-addore') as HTMLButtonElement;
+    const syncAddOre = () => { addOreBtn.disabled = oresBox.querySelectorAll('.rf-ore').length >= ORE_MAX; };
     function addOreRow() {
+      if (oresBox.querySelectorAll('.rf-ore').length >= ORE_MAX) return;
       const row = (oreTpl.content.cloneNode(true) as DocumentFragment).querySelector('.rf-ore') as HTMLElement;
       oresBox.appendChild(row);
       wireOreRow(row);
+      syncAddOre();
     }
-    $('rfd-addore').addEventListener('click', addOreRow);
+    addOreBtn.addEventListener('click', addOreRow);
     stationSel.addEventListener('change', () => oresBox.querySelectorAll<HTMLElement>('.rf-ore').forEach(oreHint));
 
     methodSel.addEventListener('change', () => {
@@ -1199,7 +1210,13 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       };
       let data: RefineryJob | null = null;
       if (gast) {
-        data = { ...zeile, id: naechsteGastId(jobs), sold_value: null, collected_at: null, created_at: started.toISOString() };
+        // Vor dem Speichern dieselbe Pruefung wie beim Laden der Ablage: was
+        // sie verwerfen wuerde, wird gar nicht erst bestaetigt.
+        data = gastAuftrag({ ...zeile, id: naechsteGastId(jobs), sold_value: null, collected_at: null, created_at: started.toISOString() });
+        if (!data) { formStatus.textContent = C.errForm; formStatus.hidden = false; return; }
+        if (jobs.filter((j) => j.status === 'active').length >= GAST_MAX) {
+          formStatus.textContent = C.gastVoll.replace('%n', String(GAST_MAX)); formStatus.hidden = false; return;
+        }
         jobs.unshift(data);
         // Beim Anlegen steht der Hinweis am Formular, nicht zusaetzlich oben
         // (sichern() meldet nur fuer Abholen, Loeschen und Erloes).
@@ -1320,9 +1337,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       const st = $('rfd-sync');
       const { error } = await supabase.from('refinery_jobs').insert(mit.map(kontoZeile));
       if (error) {
-        zurueckLegen(ablage, mit);
+        const zurueck = zurueckLegen(ablage, mit);
         st.className = 'acx-status';
-        st.textContent = C.syncFehler;
+        st.textContent = zurueck ? C.syncFehler : C.syncVerloren;
       } else {
         st.className = 'acx-status acx-status--ok';
         st.textContent = mit.length === 1 ? C.syncOk1 : C.syncOk.replace('%n', String(mit.length));

@@ -102,7 +102,9 @@ export function ladeGast(store: GastStore | null | undefined): RefineryJob[] {
 /**
  * Schreibt die Gast-Auftraege. Ueber GAST_MAX fallen die am laengsten
  * abgeholten zuerst weg, laufende nie. Leere Liste: Ablage entfernen.
- * Gibt false zurueck, wenn der Browser das Schreiben ablehnt.
+ * Gibt false zurueck, wenn der Browser das Schreiben ablehnt oder die Grenze
+ * nur durch Loeschen laufender Auftraege zu halten waere (dann bleibt die
+ * Ablage, wie sie war).
  */
 export function speichereGast(store: GastStore | null | undefined, jobs: readonly RefineryJob[]): boolean {
   if (!store) return false;
@@ -115,6 +117,7 @@ export function speichereGast(store: GastStore | null | undefined, jobs: readonl
         .sort((a, b) => Date.parse(a.collected_at || a.created_at) - Date.parse(b.collected_at || b.created_at));
       const weg = new Set(fertig.slice(0, behalten.length - GAST_MAX).map((j) => j.id));
       behalten = behalten.filter((j) => !weg.has(j.id));
+      if (behalten.length > GAST_MAX) return false;
     }
     store.setItem(GAST_KEY, JSON.stringify({ v: 1, jobs: behalten }));
     return true;
@@ -169,10 +172,13 @@ export function nimmGast(store: GastStore | null | undefined): RefineryJob[] {
   return jobs;
 }
 
-/** Legt nicht uebernommene Auftraege zurueck, zu dem, was inzwischen dort liegt. */
-export function zurueckLegen(store: GastStore | null | undefined, jobs: readonly RefineryJob[]): void {
-  if (!jobs.length) return;
+/**
+ * Legt nicht uebernommene Auftraege zurueck, zu dem, was inzwischen dort
+ * liegt. false: der Browser hat sie nicht wieder genommen (die Seite sagt das).
+ */
+export function zurueckLegen(store: GastStore | null | undefined, jobs: readonly RefineryJob[]): boolean {
+  if (!jobs.length) return true;
   const jetzt = ladeGast(store);
   let id = naechsteGastId(jetzt);
-  speichereGast(store, [...jetzt, ...jobs.map((j) => ({ ...j, id: id++ }))]);
+  return speichereGast(store, [...jetzt, ...jobs.map((j) => ({ ...j, id: id++ }))]);
 }
