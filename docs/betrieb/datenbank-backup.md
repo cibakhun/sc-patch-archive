@@ -42,6 +42,7 @@ Dienste**. Diese Anleitung deckt die Datenbank und die Storage-Dateien ab.
 | Migrationshistorie | `history_schema.sql`, `history_data.sql` |
 | Die Dateien in Supabase Storage (Avatare, Banner) | `storage/` |
 | Objekt- und Rechteliste, Zeilenzahlen, Prüfsummen | `katalog.json`, `manifest.json` |
+| Auth- und Storage-Version der Quelle zur Zeit der Sicherung | `plattform.json` |
 
 | **Nicht** gesichert — muss bei einem Neuaufbau von Hand oder aus dem Repo kommen | Wo es steht |
 |---|---|
@@ -59,8 +60,10 @@ Dienste**. Diese Anleitung deckt die Datenbank und die Storage-Dateien ab.
    │  Skripte aus diesem Repo, auf einen Commit angeheftet
    │
    ├─ 1 sichern.sh ── Session-Pooler ──▶ Live-Datenbank   (Rolle vb_backup: nur lesen)
-   │       └─ Storage-Dateien über die öffentlichen Bucket-Adressen (kein Schlüssel)
-   ├─ 2 wiederherstellen-probe.sh ──▶ frischer lokaler Supabase-Stack auf dem Läufer
+   │       ├─ Storage-Dateien über die öffentlichen Bucket-Adressen (kein Schlüssel)
+   │       └─ Auth-/Storage-Version von Live (öffentliche Versions-Endpunkte)
+   ├─ 2 wiederherstellen-probe.sh ──▶ frischer lokaler Supabase-Stack auf dem Läufer,
+   │       Auth und Storage in genau den Versionen von Live
    │       └─ verify-backup.mjs: Objekt für Objekt, Recht für Recht, Zeile für Zeile
    ├─ 3 verschluesseln.sh ── age an den öffentlichen Schlüssel des Betreibers
    │
@@ -95,6 +98,23 @@ Dienste**. Diese Anleitung deckt die Datenbank und die Storage-Dateien ab.
 - **Probe in jedem Lauf**: ein Dump, der durchlief, beweist nichts. Erst die
   Wiederherstellung zeigt, ob er vollständig ist. Ohne grüne Probe entsteht
   kein Archiv, und der Lauf ist rot.
+- **Probe auf dem Plattform-Stand von Live**: Supabase hebt Auth und Storage
+  im gehosteten Projekt selbst an, ohne Ankündigung. Ein lokaler Stack in der
+  Version der CLI kennt dann eine neue Spalte nicht, und das Zurückspielen
+  bricht ab (so geschehen am 17.11.2026, acht rote Läufe bis zur Reparatur am
+  24.11.). Ein *neuerer* Stack wäre genauso falsch: der Vergleich sähe dann
+  Spalten, die Live nicht hat. Deshalb fragt `sichern.sh` die Versionen bei
+  Live ab (`/auth/v1/health` mit dem öffentlichen Publishable Key,
+  `/storage/v1/version`) und legt sie als `plattform.json` in die Sicherung;
+  die Probe startet Auth und Storage in genau diesen Versionen
+  (`supabase/.temp/gotrue-version`, `storage-version` — derselbe Weg, den
+  `supabase link` für die lokale Entwicklung nimmt). Skript:
+  `scripts/backup/plattform.mjs`. Vor dem Zurückspielen gleicht die Probe die
+  Migrationslisten von Auth und Storage mit denen der Quelle ab und nennt jede
+  Abweichung als WARNUNG — reißt das Zurückspielen danach, steht die Ursache
+  schon im Protokoll. Ist eine Version nicht abrufbar oder ihr Image nicht zu
+  laden, startet die Probe mit den Versionen der CLI (WARNUNG); ob das reicht,
+  entscheidet wie immer der Vergleich.
 
 ### Intervall und Aufbewahrung
 
@@ -116,6 +136,7 @@ Konto aus allen Archiven verschwunden.
 | Verbindung | Benutzer gehört nicht zur Live-Ref (falsches Projekt) |
 | `verify-backup inhalt` | eine Tabelle der Quelle fehlt im Dump · eine Tabelle hat Zeilen, der Dump keine · eine eigene Tabelle fehlt in `schema.sql` · ein eigener Trigger, eine Storage-Policy oder die Realtime-Publikation fehlt in `zusatz.sql` · weniger als 10 Konten (Klinke) |
 | Storage | eine Datei lässt sich nicht laden oder hat eine andere Größe als in der Datenbank |
+| Plattform-Stand | (nur WARNUNG) Auth-/Storage-Version der Quelle nicht abrufbar · Probe kennt eine Migration der Quelle nicht oder hat eine zu viel |
 | Wiederherstellung | eine einzige SQL-Anweisung schlägt fehl (eine Transaktion) |
 | `verify-backup vergleich` | eine Datei hat nicht mehr die sha256 aus dem Manifest · ein Objekt, ein Recht, eine Policy fehlt oder ist anders · ein Recht zu viel · andere Zeilenzahl oder anderer Inhalt in einer Tabelle · ein Sequenzstand weicht ab |
 | Storage zurück | eine hochgeladene Datei kommt mit anderer sha256 zurück |
@@ -129,7 +150,12 @@ dort auf, bevor der nächste Live-Lauf es tut. Sie meldet sich zusätzlich mit
 einem Probekonto am wiederhergestellten Auth-Dienst an und führt jede Stufe
 des Vergleichs einmal absichtlich rot vor (Prüfsumme der Sicherung, Inhalt
 der Probe, Katalog). Die erfundene Quelle trägt dafür auch je einen eigenen
-Enum-, Domain-, Composite- und Range-Typ und ein Aggregat.
+Enum-, Domain-, Composite- und Range-Typ und ein Aggregat. Ihr Auth-Dienst
+läuft absichtlich in einer anderen Version als der der CLI
+(`VB_SONDE_AUTH_VERSION`), so wie Live nach einem Supabase-Update: die Sonde
+ist nur grün, wenn die Probe sich an den Stand der Quelle bindet. Wählt
+jemand die Version der CLI, reißt `probe-quelle.sh`, weil die Sonde das dann
+nicht mehr zeigt.
 
 ---
 
@@ -204,7 +230,7 @@ von `QUELLE_SHA` mitziehen.
 > zuerst in die Probe (Abschnitt C) oder in ein neues Projekt (Abschnitt A).
 
 Gebraucht wird eine Linux-Umgebung mit Docker, Node 22, `age` und der
-Supabase-CLI 3.0.0 (auf dem PC: WSL mit Docker Desktop). Alle Befehle aus
+Supabase-CLI 3.3.0 (auf dem PC: WSL mit Docker Desktop). Alle Befehle aus
 dem Wurzelordner dieses Repos.
 
 **Archiv holen und öffnen:** privates Repo → Actions → letzter grüner Lauf →
@@ -290,6 +316,14 @@ Es entsteht dann kein Archiv; das letzte grüne bleibt das aktuelle.
      anders, Projekt pausiert (Free pausiert nach 7 Tagen ohne Aktivität).
    - **`Format geaendert`**: neue Supabase-CLI-Version; `SUPABASE_CLI` in der
      Vorlage festhalten oder Skript anpassen, Sonde laufen lassen.
+   - **`column … does not exist`** beim Zurückspielen oder **`Spalten im Dump
+     der Probe anders`** bei einer `auth.`- oder `storage.`-Tabelle: Probe und
+     Live laufen auf verschiedenem Auth-/Storage-Stand. Im Abschnitt
+     „Plattform-Stand" des Protokolls steht, welche Migration fehlt und ob die
+     Versionen von Live abgefragt werden konnten. Kam keine Version (WARNUNG
+     dort): Publishable Key in der Vorlage (`LIVE_PUBLISHABLE_KEY`) prüfen;
+     ließ sich ihr Image nicht laden: `SUPABASE_CLI` auf eine Version heben,
+     die diesen Stand mitbringt.
    - **`fehlt in der Probe` / `nur in der Probe`**: die Wiederherstellung
      bringt etwas nicht mit. Das ist der Fall, für den die Probe da ist —
      Ursache klären, nicht die Prüfung lockern. Neue Ausnahmen nur benannt
@@ -334,10 +368,12 @@ selbst. Zwei Wege, beide offen:
 - **Ein Schlüssel**: geht `verse-base-backup.key` verloren, sind alle
   Archive verloren. Gegenmittel: zweite Kopie offline, optional zweiter
   Empfänger.
-- **Lokaler Stack ≠ gehostetes Projekt**: die Probe läuft gegen die
-  Auth-/Storage-Versionen der CLI, nicht gegen die von Live. Ein Ernstfall
-  in ein neues gehostetes Projekt kann an einer Stelle abweichen, die die
-  Probe nicht sieht; Schritt 1 in A verringert das, beseitigt es nicht.
+- **Lokaler Stack ≠ gehostetes Projekt**: Auth und Storage der Probe laufen
+  seit 24.11.2026 in den Versionen von Live (`plattform.json`), Postgres und
+  das Gateway weiter in denen der CLI. Ein Ernstfall in ein neues gehostetes
+  Projekt kann an einer Stelle abweichen, die die Probe nicht sieht; Schritt 1
+  in A verringert das, beseitigt es nicht. `plattform.json` im Archiv sagt,
+  auf welchem Auth-Stand die Sicherung entstand.
 - **Zweiter Faktor**: ob TOTP-Geheimnisse in einem neuen Projekt
   weiterhin gelten, ist ungeprüft; notfalls neu einrichten.
 - **Pause auf Free**: pausiert Live, schlägt der Lauf fehl (gewollt).
@@ -364,6 +400,22 @@ Gegen den Nachbau, jede einmal absichtlich gebrochen:
 | 11 | `hochladen` gegen die Live-Adresse | `… ist Live — nie ohne Freigabe des Betreibers zurueckspielen` |
 
 Dazu `verify:supply-chain` mit unangehefteter Action in der Vorlage: rot.
+
+**Nachtrag 24.11.2026, Plattform-Stand** (lokal mit Docker, erfundene Quelle;
+Docker Hub drosselte, das Postgres-Image der CLI 3.0.0 lief deshalb als
+17.12-Image unter ihrem Namen — für Auth und Storage ohne Belang):
+
+| # | Lauf | Meldung |
+|---|---|---|
+| 12 | Live-Lage nachgestellt: Quelle Auth v2.198.0, CLI 3.0.0 (Auth v2.197.0), **ohne** Bindung | `WARNUNG Auth: die Probe kennt 2 Migration(en) der Quelle nicht: 20260911120000, 20261030120000 …`, dann `ERROR: column "link_token_hash" of relation "one_time_tokens" does not exist` — derselbe Abbruch wie im Live-Lauf |
+| 13 | dasselbe **mit** Bindung | `gebunden an die Quelle: Auth v2.198.0, Storage v1.88.0`, `Auth: 84 Migrationen wie die Quelle`, Probe bestanden |
+| 14 | Gegenrichtung: Quelle Auth v2.197.0, CLI 3.3.0 (Auth v2.198.0), ohne Bindung | Zurückspielen läuft durch, dann `FEHLER auth.one_time_tokens: Spalten im Dump der Probe anders (…, "link_token_hash")` und dasselbe für `auth.saml_providers` |
+| 15 | Sonde mit `VB_SONDE_AUTH_VERSION` gleich der CLI-Version | `FEHLER: VB_SONDE_AUTH_VERSION (v2.198.0) ist die Version der CLI — die Sonde zeigt die Bindung so nicht mehr` |
+| 16 | `plattform.json` nennt ein Image, das es nicht gibt (v2.999.0) | `WARNUNG Stack startet mit den Versionen der Quelle nicht — zweiter Versuch mit den Versionen der CLI`, dann der Abgleich und die Spalten-FEHLER aus 14 |
+
+Grün danach (Sonde, CLI 3.3.0, Quelle Auth v2.197.0): `Auth: 82 Migrationen
+wie die Quelle`, `Storage: 82 Migrationen wie die Quelle`, 584
+Katalogobjekte, 56 Tabellen mit gleichem Inhalt, ganzer Lauf 48 s.
 Grün danach: 584 Katalogobjekte in 20 Kategorien gleich, 56 Tabellen mit
 gleichem Inhalt, 9 Sequenzstände, 2 Dateien mit gleicher sha256, Anmeldung
 eines Probekontos am wiederhergestellten Auth-Dienst, ganzer Lauf 44 s.

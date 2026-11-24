@@ -40,8 +40,11 @@ concurrency:
 env:
   QUELLE_REPO: cibakhun/sc-patch-archive
   QUELLE_SHA: 0000000000000000000000000000000000000000   # Commit der Skripte (siehe Kopf)
-  SUPABASE_CLI: '3.0.0'                                    # wie in probe-backup.yml
+  SUPABASE_CLI: '3.3.0'                                    # wie in probe-backup.yml
   LIVE_REF: trgjhmbnodoarnfmlcqx
+  # oeffentlicher Publishable Key von Live (steht auch in scripts/lib/supabase-ziel.mjs):
+  # nur fuer /auth/v1/health, damit die Probe auf der Auth-Version von Live laeuft
+  LIVE_PUBLISHABLE_KEY: sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J
 
 jobs:
   sichern:
@@ -76,6 +79,7 @@ jobs:
           VB_AGE_EMPFAENGER: ${{ vars.VB_AGE_EMPFAENGER }}
           VB_STORAGE_URL: https://${{ env.LIVE_REF }}.supabase.co
           VB_ERWARTETE_REF: ${{ env.LIVE_REF }}
+          VB_QUELLE_APIKEY: ${{ env.LIVE_PUBLISHABLE_KEY }}
           VB_KLINKE_KONTEN: '10'
         run: scripts/backup/lauf.sh "$RUNNER_TEMP/backup"
 
