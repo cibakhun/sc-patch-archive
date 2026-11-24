@@ -312,7 +312,8 @@ export async function ladeKataloge(root) {
           "export { __KATALOG as HANGAR } from './src/i18n/hangarText.ts';\n" +
           "export { __KATALOG as LAYOUT } from './src/i18n/layoutText.ts';\n" +
           "export { ITEM_UI as ITEM } from './src/i18n/itemText.ts';\n" +
-          "export { HELP } from './src/i18n/help.ts';\n",
+          "export { HELP } from './src/i18n/help.ts';\n" +
+          "export { WERTNAMEN_DE } from './src/i18n/craftingWerte.ts';\n",
         resolveDir: root,
         sourcefile: 'textregeln-kataloge.ts',
         loader: 'ts',
@@ -334,6 +335,17 @@ export async function ladeKataloge(root) {
       for (const [key, v] of Object.entries(k.de)) if (typeof v === 'string') de.set(`${name}:${key}`, v);
       for (const [key, v] of Object.entries(k.en)) if (typeof v === 'string') en.set(`${name}:${key}`, v);
     }
+    // Wertnamen des Craftings (24.11.2026, docs/sprachregel.md): eine Tabelle
+    // englischer Spielname -> deutscher Anzeigename, kein Schluesselkatalog.
+    // Als Katalog WERTE mit kuenstlichen Schluesseln (w0, w1 …), damit Regel 1
+    // "Recoil Smoothness" auf einer DE-Seite findet und die Schluessel weder
+    // als Rohschluessel noch als Praefix zaehlen.
+    if (!mod.WERTNAMEN_DE) throw new Error('Tabelle WERTNAMEN_DE (src/i18n/craftingWerte.ts) fehlt');
+    namen.push('WERTE');
+    Object.entries(mod.WERTNAMEN_DE).forEach(([enName, deName], i) => {
+      en.set(`WERTE:w${i}`, enName);
+      de.set(`WERTE:w${i}`, deName);
+    });
     return { de, en, namen };
   } finally {
     rmSync(tmp, { recursive: true, force: true });
@@ -385,4 +397,82 @@ export function findeRohschluessel(text, re) {
   re.lastIndex = 0;
   for (const m of text.matchAll(re)) if (!DATEIENDUNG_RE.test(m[0])) return m;
   return null;
+}
+
+/* ---------- Absaetze in der anderen Sprache (Regel 12) ----------
+   Anlass (24.11.2026, UX-Audit Heuristik B02): Englische Absaetze standen auf
+   954 deutschen Itemblaettern (eigene Fundort-Hinweise), 1.366 Missions-
+   seiten und 97 Schiffsseiten ohne lang="en" — fuer Vorleser, Uebersetzer
+   und Suchmaschinen deutscher Text. Die Sprachregel (docs/sprachregel.md):
+   eigener Text in der Sprache der Seite, Spieltext ohne Fassung in dieser
+   Sprache englisch, aber gekennzeichnet.
+
+   Erkennung wie im Audit: ein Absatz (p, li, td, dd) mit mindestens zehn
+   Woertern, darunter mindestens drei Funktionswoerter einer Sprache und mehr
+   als doppelt so viele wie der anderen. Ein Absatz zaehlt zur Sprache, die
+   sein naechstes lang-Attribut nennt (eigenes, Vorfahr oder <html>). */
+// Ohne Woerter, die in beiden Sprachen vorkommen ("was", "an", "will", "am"):
+// „Sag, was fehlt, was stört …" auf /de/support.html galt mit ihnen als
+// englisch (erste Messung 24.11.2026).
+const ABSATZ_EN = new Set('the and of with is for to this that your from it are its has have be by as on at were which their can'.split(' '));
+const ABSATZ_DE = new Set('der die das und mit ist für von zu den dem ein eine im auf sich nicht des bei wird werden oder auch nach wie aus vom zum zur'.split(' '));
+const ABSATZ_WORT = /[A-Za-zÄÖÜäöüß]+/g;
+const ABSATZ_BLOCK = new Set(['p', 'li', 'td', 'dd']);
+const LEERE_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr', 'path', 'circle', 'rect', 'use', 'line', 'polyline', 'polygon', 'ellipse', 'stop']);
+
+/** 'en', 'de' oder null (zu kurz oder nicht eindeutig). */
+export function absatzSprache(text) {
+  const w = String(text).toLowerCase().match(ABSATZ_WORT) ?? [];
+  if (w.length < 10) return null;
+  let en = 0, de = 0;
+  for (const x of w) { if (ABSATZ_EN.has(x)) en++; else if (ABSATZ_DE.has(x)) de++; }
+  if (en >= 3 && en > 2 * de) return 'en';
+  if (de >= 3 && de > 2 * en) return 'de';
+  return null;
+}
+
+/**
+ * Die Absaetze einer Seite mit erkannter Sprache und wirksamem lang:
+ * [{ text, sprache: 'en'|'de', lang: 'en'|'de'|…, tag, klasse }]. Absaetze
+ * ohne eindeutige Sprache fehlen. Text gehoert dem innersten offenen Absatz,
+ * Text in einem Kind mit anderem lang zaehlt nicht mit.
+ */
+export function absaetze(html, seitenLang) {
+  const markup = ohneNichttext(html);
+  const stapel = [{ tag: '#', lang: seitenLang }];
+  const offen = [];
+  const out = [];
+  const schliesse = (b) => {
+    const text = decodeEntities(b.teile.join(' ')).replace(/\s+/g, ' ').trim();
+    const sprache = absatzSprache(text);
+    if (sprache) out.push({ text, sprache, lang: b.lang, tag: b.tag, klasse: b.klasse });
+  };
+  for (const m of markup.matchAll(/<(\/?)([a-zA-Z][\w-]*)([^>]*)>|([^<]+)/g)) {
+    // Text eines Kindes mit eigenem lang (der deutsche Zweitname in einem
+    // englischen Absatz) gehoert nicht zur Sprache des Absatzes.
+    if (m[4] != null) {
+      const b = offen[offen.length - 1];
+      if (b && stapel[stapel.length - 1].lang === b.lang) b.teile.push(m[4]);
+      continue;
+    }
+    const tag = m[2].toLowerCase();
+    if (m[1]) {
+      const i = stapel.map((e) => e.tag).lastIndexOf(tag);
+      if (i <= 0) continue;
+      for (const e of stapel.splice(i)) if (e.block) { offen.splice(offen.indexOf(e.block), 1); schliesse(e.block); }
+      continue;
+    }
+    if (LEERE_TAGS.has(tag) || /\/\s*$/.test(m[3])) continue;
+    const l = /\slang="([^"]*)"/.exec(m[3]);
+    const lang = l ? l[1].toLowerCase().split('-')[0] : stapel[stapel.length - 1].lang;
+    const e = { tag, lang };
+    if (ABSATZ_BLOCK.has(tag)) {
+      const k = /\sclass="([^"]*)"/.exec(m[3]);
+      e.block = { tag, lang, klasse: k ? k[1] : '', teile: [] };
+      offen.push(e.block);
+    }
+    stapel.push(e);
+  }
+  for (const b of offen) schliesse(b);
+  return out;
 }
