@@ -105,6 +105,33 @@ export function blattName(cat: string, lang: Locale): string {
   return teile.slice(1).join(' · ');
 }
 
+/**
+ * Titel einer Kategorie fuer sich allein (Listenseite, Krume, Karte, Titel):
+ * Unterkategorien heissen wie in der Leiste („Helme“), die Gruppe selbst
+ * (Items ohne Unterkategorie) traegt den Gruppennamen („Waffen“), wie bisher
+ * auf ihrer Listenseite. Die Adressen bleiben die alten Schluessel.
+ */
+export function kategorieTitel(cat: string, lang: Locale): string {
+  const teile = (cat || 'Other').split('/').map((s) => s.trim()).filter(Boolean);
+  return teile.length <= 1 ? gruppenName(teile[0] || 'Other', lang) : blattName(cat, lang);
+}
+
+/**
+ * Name auf einer Kategorie-Karte unter der Gruppenueberschrift: die Items
+ * ohne Unterkategorie heissen dort „Allgemein“ (unter „Rüstung“ stuende
+ * sonst noch einmal „Rüstung“), ausser die Gruppe hat nur diese eine.
+ */
+export function kartenName(cat: string, lang: Locale, einzige: boolean): string {
+  return !cat.includes('/') && !einzige ? OHNE_UNTER[lang] : kategorieTitel(cat, lang);
+}
+
+/** Kategorien einer Gruppe in Lesereihenfolge: die Gruppe selbst vorn, dann nach Titel. */
+export function kategorienSortiert<T extends { cat: string }>(nodes: readonly T[], root: string, lang: Locale): T[] {
+  const coll = new Intl.Collator(lang === 'de' ? 'de' : 'en', { sensitivity: 'base' });
+  return [...nodes].sort((a, b) =>
+    (a.cat === root ? 0 : 1) - (b.cat === root ? 0 : 1) || coll.compare(kategorieTitel(a.cat, lang), kategorieTitel(b.cat, lang)));
+}
+
 /** Hat die Kategorie einen gepflegten Namen? (Gegenprobe fuer die Pruefung.) */
 export const blattGepflegt = (cat: string) => cat in BLATT || !cat.includes('/');
 

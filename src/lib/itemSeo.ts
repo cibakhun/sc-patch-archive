@@ -18,6 +18,7 @@ import type { BlueprintEntry } from './crafting';
 import { blueprints, craftTime, itemForBlueprint, resourceNames } from './crafting';
 import { bwT } from '../i18n/bezugswegeText';
 import { datumLang } from './datenstand';
+import { kategorieTitel } from './itemKategorien';
 
 /* ---------- Gleichnamige Seiten (UX-Audit D7) ---------- */
 
@@ -291,9 +292,11 @@ export function categorySeo(
   pages: number,
   lang: Locale
 ): { title: string; description: string } {
-  const leaf = leafCategory(cat);
+  // Lesbarer Name wie auf der Seite („Helme (Rüstung)“), nicht der
+  // Datenschluessel; die Adresse bleibt der Schluessel.
   const root = rootCategory(cat);
-  const label = leaf === root ? leaf : `${leaf} (${categoryLabel(root, lang)})`;
+  const leaf = kategorieTitel(cat, lang);
+  const label = cat === root ? leaf : `${leaf} (${categoryLabel(root, lang)})`;
   // Ab Seite 2 traegt der Titel die Seitenzahl STATT der Gesamtzahl: sonst
   // behaupten zehn URLs dieselbe Menge und sehen in der Trefferliste gleich aus.
   const pageSuffix = page > 1 ? (lang === 'de' ? ` — Seite ${page}/${pages}` : ` — page ${page}/${pages}`) : '';
@@ -302,14 +305,14 @@ export function categorySeo(
     ? {
         title: `${label}${countPart}${pageSuffix} | Star Citizen ${ITEM_PATCH} | VerseBase`,
         description: clip(
-          `Alle ${num(count, lang)} ${leaf}-Items in Star Citizen ${ITEM_PATCH} mit Kaufpreis, Verkaufsstelle und Spielwerten. Stand ${datumLang(db.pricesAsOf, lang)}.`,
+          `Alle ${num(count, lang)} Items der Kategorie ${leaf} in Star Citizen ${ITEM_PATCH} mit Kaufpreis, Verkaufsstelle und Spielwerten. Stand ${datumLang(db.pricesAsOf, lang)}.`,
           158
         ),
       }
     : {
         title: `${label}${countPart}${pageSuffix} | Star Citizen ${ITEM_PATCH} | VerseBase`,
         description: clip(
-          `All ${num(count, lang)} ${leaf} items in Star Citizen ${ITEM_PATCH} with buy price, vendor location and game stats. As of ${datumLang(db.pricesAsOf, lang)}.`,
+          `All ${num(count, lang)} items in ${leaf} in Star Citizen ${ITEM_PATCH} with buy price, vendor location and game stats. As of ${datumLang(db.pricesAsOf, lang)}.`,
           158
         ),
       };
