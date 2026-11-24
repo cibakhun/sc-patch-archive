@@ -102,7 +102,8 @@ export function makeP4kProvider(p4k) {
       try {
         const d = readDds(headBuf);
         kopfPasst = d.levels.some((L) => L.w <= maxW);
-        breite = (n) => { for (let l = 0; l < 16; l++) { const w = Math.max(1, d.width >> l), h = Math.max(1, d.height >> l); if (levelBytes(d.format, w, h) === n) return w; } return null; };
+        // nur deklarierte Stufen: einen Teil jenseits davon liest readDds nicht
+        breite = (n) => { for (let l = 0; l < d.stufen; l++) { const w = Math.max(1, d.width >> l), h = Math.max(1, d.height >> l); if (levelBytes(d.format, w, h) === n) return w; } return null; };
       } catch { /* Kopf unlesbar: readDds meldet es beim Laden */ }
       const out = {};
       let ersatz = null, kleinDa = false;

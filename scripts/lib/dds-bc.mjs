@@ -71,7 +71,8 @@ export function readDds(head, parts = {}) {
     p += n;
   }
   levels.sort((a, b) => a.level - b.level);
-  return { width, height, format, masks, gray, levels };
+  // stufen: im Kopf deklarierte Stufenzahl; nur deren Teile werden gelesen
+  return { width, height, format, masks, gray, levels, stufen: count };
 }
 
 function bc1Block(b, o, out, stride, x0, y0, w, h, alphaFree = true) {
