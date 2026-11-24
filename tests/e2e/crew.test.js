@@ -66,4 +66,32 @@ describe('Crew-Aufruf: Rechnen', () => {
     assert.match(sql, new RegExp(`slots between 1 and ${crew.CREW_MAX_SLOTS}\\b`));
     assert.equal(crew.activityLabel('kaputt', 'de'), 'Sonstiges');
   });
+
+  // Die jüngste Fassung einer Funktion zählt: die letzte Migration, die sie anlegt.
+  const letzteFassung = (name) => {
+    const ordner = 'supabase/migrations';
+    const dateien = fs.readdirSync(ordner).filter((n) => n.endsWith('.sql')).sort();
+    let rumpf = null;
+    for (const n of dateien) {
+      const sql = fs.readFileSync(path.join(ordner, n), 'utf8');
+      const m = sql.match(new RegExp(`create or replace function public\\.${name}\\(\\)[\\s\\S]*?\\$\\$([\\s\\S]*?)\\$\\$`));
+      if (m) rumpf = m[1];
+    }
+    assert.ok(rumpf, `${name} nicht gefunden`);
+    return rumpf;
+  };
+
+  test('Wächter: Sperre vor dem Zählen, Sichtbarkeit vor den Zustandsprüfungen', () => {
+    const aufruf = letzteFassung('crew_calls_guard');
+    const sperre = aufruf.indexOf('pg_advisory_xact_lock');
+    assert.ok(sperre > 0, 'crew_calls_guard sperrt nicht');
+    assert.ok(sperre < aufruf.indexOf('count(*)'), 'crew_calls_guard zählt vor der Sperre');
+
+    const zusage = letzteFassung('crew_call_members_guard');
+    const sicht = zusage.indexOf('are_friends');
+    assert.ok(sicht > 0, 'crew_call_members_guard prüft die Sichtbarkeit nicht');
+    for (const spaeter of ['for update', 'Aufruf ist vorbei', 'Crew ist voll']) {
+      assert.ok(sicht < zusage.indexOf(spaeter), `Sichtbarkeit erst nach „${spaeter}“`);
+    }
+  });
 });

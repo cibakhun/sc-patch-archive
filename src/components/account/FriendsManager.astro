@@ -905,6 +905,8 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
     const fNote = $('fmCrewNote') as HTMLInputElement;
     let crew: Crew[] = [];
     let crewOk = false;
+    // Tabelle fehlt (Migration nicht eingespielt): nicht jede Minute neu fragen.
+    let crewGone = false;
     let crewSeq = 0;
     // Zugesagte, die keine Freunde sind (Freunde des Rufenden): nur Name und Bild.
     const crewNames = new Map<string, Prof>();
@@ -920,18 +922,31 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       if (!me) return;
       const seq = ++crewSeq;
       const since = new Date(Date.now() - CREW_SHOW_AFTER_MS).toISOString();
-      const { data, error } = await supabase.from('crew_calls')
-        .select('id, owner_id, activity, starts_at, slots, note')
-        .gt('starts_at', since).order('starts_at').limit(60);
+      // Die eigenen Aufrufe (höchstens drei offene) kommen getrennt, damit das
+      // Limit für die der Freunde sie nie abschneidet.
+      const cols = 'id, owner_id, activity, starts_at, slots, note';
+      const [all, own] = await Promise.all([
+        supabase.from('crew_calls').select(cols).gt('starts_at', since).order('starts_at').limit(60),
+        supabase.from('crew_calls').select(cols).eq('owner_id', me).gt('starts_at', since),
+      ]);
       if (seq !== crewSeq) return;
       // Fehlt die Tabelle (noch nicht eingespielt), bleibt alles verborgen; ein
       // späterer Netzfehler lässt die zuletzt geladene Liste stehen.
-      if (error) { if (!crewOk) crewEl.hidden = true; return; }
-      const calls = openCrewCalls((data || []) as CrewCall[]);
+      const error = all.error || own.error;
+      if (error) {
+        if (/PGRST205|42P01/.test(String((error as { code?: string }).code || ''))) crewGone = true;
+        if (!crewOk) crewEl.hidden = true;
+        return;
+      }
+      const byId = new Map<number, CrewCall>();
+      for (const c of [...(all.data || []), ...(own.data || [])] as CrewCall[]) byId.set(c.id, c);
+      const calls = openCrewCalls([...byId.values()].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
       let mem: Array<{ call_id: number; user_id: string }> = [];
       if (calls.length) {
         const r = await supabase.from('crew_call_members').select('call_id, user_id').in('call_id', calls.map((c) => c.id));
         if (seq !== crewSeq) return;
+        // Ohne Zusagen stimmten Plätze und „Bin dabei“ nicht: die alte Liste bleibt.
+        if (r.error) { if (!crewOk) crewEl.hidden = true; return; }
         mem = (r.data || []) as typeof mem;
       }
       const unknown = [...new Set([...mem.map((m) => m.user_id), ...calls.map((c) => c.owner_id)])]
@@ -961,10 +976,11 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       if (error) toast(C.errNet); else toast(C.crewLeft);
       await loadCrew();
     };
-    const crewDrop = async (c: Crew) => {
+    const crewDrop = async (c: Crew): Promise<boolean> => {
       const { error } = await supabase.from('crew_calls').delete().eq('id', c.id);
       if (error) toast(C.errNet); else toast(C.crewDropped);
       await loadCrew();
+      return !error;
     };
 
     const crewCard = (c: Crew) => {
@@ -1006,9 +1022,13 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
             armed = window.setTimeout(() => { armed = 0; b.classList.remove('is-armed'); b.textContent = C.crewDrop; }, 4000);
             return;
           }
+          // Entschärfen, bevor neu geladen wird: sonst malt paintCrew nicht neu.
           clearTimeout(armed);
+          armed = 0;
+          b.classList.remove('is-armed');
+          b.textContent = C.crewDrop;
           b.disabled = true;
-          await crewDrop(c);
+          if (!(await crewDrop(c))) b.disabled = false;
         });
         acts.appendChild(b);
       } else {
@@ -1032,7 +1052,18 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       const mine = crew.filter((c) => c.owner_id === me).length;
       $('fmCrewN').textContent = crew.length ? String(crew.length) : '';
       crewNew.hidden = !crewForm.hidden || mine >= 3 || !friends.length;
-      $('fmCrewList').replaceChildren(...crew.map(crewCard));
+      // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
+      // Karte zurücksetzen (Tastaturbedienung), wie bei den Freundeskarten.
+      const list = $('fmCrewList');
+      const f = document.activeElement as HTMLElement | null;
+      const cardEl = f && list.contains(f) ? f.closest<HTMLElement>('.fm-crew__card') : null;
+      const key = cardEl?.dataset.id;
+      const idx = cardEl ? [...cardEl.querySelectorAll('a,button')].indexOf(f!) : -1;
+      list.replaceChildren(...crew.map(crewCard));
+      if (key && idx >= 0) {
+        const again = list.querySelector<HTMLElement>(`.fm-crew__card[data-id="${CSS.escape(key)}"]`);
+        (again?.querySelectorAll<HTMLElement>('a,button')[idx])?.focus({ preventScroll: true });
+      }
       $('fmCrewEmpty').hidden = crew.length > 0 || !crewForm.hidden;
     };
 
@@ -1071,7 +1102,8 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
     });
     // Neue Aufrufe und Zusagen der Freunde: jede Minute, solange die Liste sichtbar ist.
     setInterval(() => {
-      if (!document.hidden && crewOk && active === 'friends') loadCrew().catch(() => {});
+      // Auch nach einem ersten Fehlschlag weiter versuchen, nur nicht ohne Tabelle.
+      if (!document.hidden && !crewGone && active === 'friends') loadCrew().catch(() => {});
     }, 60000);
 
     // Flotten der Freunde: die Schiffe, die sie auf ihrer Pilotenseite zeigen
