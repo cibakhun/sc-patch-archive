@@ -48,6 +48,7 @@ Die Leiste zeigt die sieben Bereiche; ein Bereich führt auf seine erste Seite.
 | | `fracturing` | `/fracturing.html` | Fracturing | Fracturing | Bricht der Brocken? / Will the rock break? |
 | | `refinery` | `/refinery.html` | Refinery | Refinery | Erträge & Aufträge / Yields & jobs |
 | | `sprung` | `/precision-jump.html` | Precision Jump | Precision Jump | Aaron-Halo-Routen / Aaron Halo routes |
+| | `mining-start` | `/mining-guide.html` | Mining in fünf Schritten (Leiste: Einstieg) | Mining in five steps (bar: Getting started) | Vom Scan zum Verkauf / From scan to sale |
 | Wikelo's Emporium (kurz: Wikelo) | `wikelo` | `/topics/wikelo-emporium.html` | Wikelo's Emporium | Wikelo's Emporium | Banu-Handel / Banu trades |
 | Patch-Archiv / Patch archive | `archiv` | `/archiv.html` | Patch-Archiv | Patch archive | Alle Versionen / All versions |
 | | `themen` | `/archiv.html#themen` | Alle Themen | All topics | Themen-Verzeichnis / Topic directory |

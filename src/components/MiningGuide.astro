@@ -1,0 +1,244 @@
+---
+// „Mining in fünf Schritten" (UX-Audit 24.11.2026, Paket G12, Task-Flow
+// F11/V22): EIN Körper für DE und EN. Neulinge fanden vier Mining-Werkzeuge
+// nebeneinander, aber nicht ihre Reihenfolge. Diese Seite verbindet sie als
+// Ablauf Scannen → Brechen → Abbauen → Raffinieren → Verkaufen, mit einem
+// Hinweis zum Schiff und zum Aaron Halo.
+//
+// Namen und Adressen der Werkzeuge kommen aus src/lib/bereiche.ts (ziel()),
+// die Fahrzeuge aus den Schiffsdaten: Mining-Fahrzeug ist, was dort die
+// Rollenfamilie „bergbau" traegt, wie im Rollen-Filter der Schiffsliste.
+// Nichts davon ist hier von Hand gepflegt.
+import { ziel } from '../lib/bereiche';
+import { href } from '../i18n/ui';
+import vehiclesSnapshot from '../data/vehicles.json';
+import vehicleRoles from '../data/vehicle-roles.json';
+
+interface Props { lang: 'de' | 'en' }
+const { lang } = Astro.props;
+const de = lang === 'de';
+
+const COPY = {
+  de: {
+    eyebrow: 'Mining · Einstieg',
+    title: 'Mining in fünf Schritten',
+    lead: 'Vom Scan bis zum Verkauf: was bei jedem Schritt zu tun ist und welches Werkzeug dir dabei hilft. Alle Werkzeuge gehen ohne Konto.',
+    schritte: 'Der Ablauf',
+    s1t: 'Scannen',
+    s1: 'Flieg zu einem Fundort und scanne die Brocken. Jeder Scan zeigt eine Signatur, und die verrät, welches Erz drinsteckt. Mining ordnet Signaturen ihren Erzen zu und zeigt, wo jedes Erz vorkommt.',
+    s1a: 'Signaturen und Fundorte',
+    s2t: 'Brechen',
+    s2: 'Ein Brocken bricht nur, wenn dein Laser genug Kraft für seine Masse und seinen Widerstand hat. Fracturing rechnet das vorher aus, mit deinem Laser, seinen Modulen und einem Gadget.',
+    s2a: 'Bricht der Brocken?',
+    s3t: 'Abbauen',
+    s3: 'Sammle die Bruchstücke mit dem gesuchten Erz ein, bis der Erz-Laderaum voll ist. Der Platz ist knapp, also nimm, was am meisten bringt: die Preise je Erz stehen in der Erz-Tabelle der Refinery.',
+    s3a: 'Erzpreise',
+    s4t: 'Raffinieren',
+    s4: 'Bring das Roh-Erz zu einer Raffinerie. Jede Station gibt je Erz einen anderen Aufschlag auf die Ausbeute, und die Methode wägt Ausbeute, Tempo und Kosten ab. Den laufenden Auftrag verfolgst du im Tracker.',
+    s4a: 'Ertrag je Raffinerie',
+    s4b: 'Tracker',
+    s5t: 'Verkaufen',
+    s5: 'Ist der Auftrag fertig, holst du das Material an der Station ab und verkaufst es. Welcher Ort je Erz am meisten zahlt, steht ebenfalls in der Erz-Tabelle.',
+    s5a: 'Beste Verkaufsorte',
+    schiffT: 'Welches Schiff?',
+    schiff: 'Für den Anfang reicht ein Schiff mit einem Laser, das du allein fliegst. Größere Schiffe tragen mehr Erz und mehr Laser und brauchen dafür eine Crew. Bodenfahrzeuge bauen kleine Vorkommen auf Planeten und Monden ab.',
+    erz: '%n SCU Erz',
+    boden: 'Bodenfahrzeug',
+    alleSchiffe: 'Alle Mining-Fahrzeuge in der Schiffsliste',
+    haloT: 'Mining im Aaron Halo',
+    halo: 'Der Asteroidengürtel Aaron Halo in Stanton hat kein eigenes Quantum-Ziel. Precision Jump rechnet aus, wann du einen Quantensprung abbrichst, damit du im dichtesten Teil des Gürtels herauskommst.',
+    haloA: 'Route berechnen',
+    schritt: 'Schritt',
+  },
+  en: {
+    eyebrow: 'Mining · Getting started',
+    title: 'Mining in five steps',
+    lead: 'From scan to sale: what to do at each step and which tool helps you with it. Every tool works without an account.',
+    schritte: 'The loop',
+    s1t: 'Scan',
+    s1: 'Fly to a deposit area and scan the rocks. Each scan shows a signature, and the signature tells you which ore is inside. Mining matches signatures to their ores and shows where each ore is found.',
+    s1a: 'Signatures and locations',
+    s2t: 'Fracture',
+    s2: 'A rock only breaks if your laser has enough power for its mass and resistance. Fracturing works that out beforehand, with your laser, its modules and a gadget.',
+    s2a: 'Will the rock break?',
+    s3t: 'Mine',
+    s3: 'Collect the fragments carrying the ore you want until the ore hold is full. Space is tight, so take what pays most: the price per ore is in the ore table on the Refinery page.',
+    s3a: 'Ore prices',
+    s4t: 'Refine',
+    s4: 'Take the raw ore to a refinery. Each station adds a different yield bonus per ore, and the method trades yield against speed and cost. Follow the running work order in the tracker.',
+    s4a: 'Yield by refinery',
+    s4b: 'Tracker',
+    s5t: 'Sell',
+    s5: 'Once the order is done, collect the material at the station and sell it. Which place pays most for each ore is in the same ore table.',
+    s5a: 'Best places to sell',
+    schiffT: 'Which ship?',
+    schiff: 'To start, a ship with one laser that you fly alone is enough. Bigger ships carry more ore and more lasers and need a crew for it. Ground vehicles mine small deposits on planets and moons.',
+    erz: '%n SCU ore',
+    boden: 'Ground vehicle',
+    alleSchiffe: 'All mining vehicles in the ship list',
+    haloT: 'Mining in the Aaron Halo',
+    halo: 'The Aaron Halo asteroid belt in Stanton has no quantum target of its own. Precision Jump works out when to cut a quantum jump so you drop out in the densest part of the belt.',
+    haloA: 'Plan a route',
+    schritt: 'Step',
+  },
+}[lang];
+
+const mining = ziel('mining', lang);
+const fracturing = ziel('fracturing', lang);
+const refinery = ziel('refinery', lang);
+const sprung = ziel('sprung', lang);
+const schiffe = ziel('schiffe', lang);
+
+const SCHRITTE = [
+  { t: COPY.s1t, text: COPY.s1, icon: mining.icon, links: [{ href: mining.href, label: COPY.s1a, wz: mining.name }] },
+  { t: COPY.s2t, text: COPY.s2, icon: fracturing.icon, links: [{ href: fracturing.href, label: COPY.s2a, wz: fracturing.name }] },
+  { t: COPY.s3t, text: COPY.s3, icon: mining.icon, links: [{ href: refinery.href + '#erze', label: COPY.s3a, wz: refinery.name }] },
+  { t: COPY.s4t, text: COPY.s4, icon: refinery.icon, links: [
+    { href: refinery.href + '#ertrag', label: COPY.s4a, wz: refinery.name },
+    { href: refinery.href + '#tracker', label: COPY.s4b, wz: refinery.name },
+  ] },
+  { t: COPY.s5t, text: COPY.s5, icon: refinery.icon, links: [{ href: refinery.href + '#erze', label: COPY.s5a, wz: refinery.name }] },
+];
+
+// Mining-Fahrzeuge aus den Schiffsdaten: Rollenfamilie „bergbau", Schiffe
+// nach Erz-Laderaum, Bodenfahrzeuge danach.
+type Rolle = { families?: string[]; subType?: string };
+const ROLLEN = (vehicleRoles as { vehicles: Record<string, Rolle> }).vehicles;
+type Fahrzeug = { id: string; name: string; oreSCU: number | null };
+const FAHRZEUGE = (vehiclesSnapshot as { vehicles: Fahrzeug[] }).vehicles
+  .filter((v) => ROLLEN[v.id]?.families?.includes('bergbau'))
+  .map((v) => ({ ...v, boden: ROLLEN[v.id]?.subType === 'Vehicle_GroundVehicle' }))
+  .sort((a, b) => Number(a.boden) - Number(b.boden) || (a.oreSCU ?? 0) - (b.oreSCU ?? 0) || a.name.localeCompare(b.name));
+if (FAHRZEUGE.length < 3) throw new Error(`MiningGuide: nur ${FAHRZEUGE.length} Mining-Fahrzeuge in den Schiffsdaten (Rollenfamilie „bergbau"), erwartet mindestens 3`);
+const schiffHref = (id: string) => href(`/schiffe/${id}.html`, lang);
+---
+<div class="mg">
+  <header class="mg-head">
+    <p class="mg-eyebrow">{COPY.eyebrow}</p>
+    <h1>{COPY.title}</h1>
+    <p class="mg-lead">{COPY.lead}</p>
+  </header>
+
+  <section class="mg-sec" aria-labelledby="mg-steps-h">
+    <h2 class="mg-h2 mg-vh" id="mg-steps-h">{COPY.schritte}</h2>
+    <ol class="mg-steps">
+      {SCHRITTE.map((s, i) => (
+        <li class="mg-step">
+          <span class="mg-step__n" aria-hidden="true">{i + 1}</span>
+          <div class="mg-step__body">
+            <h3><span class="mg-vh">{COPY.schritt} {i + 1}: </span>{s.t}</h3>
+            <p>{s.text}</p>
+            <div class="mg-links">
+              {s.links.map((l) => (
+                <a class="mg-link" href={l.href}>
+                  {s.icon && <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={s.icon} />}
+                  <span><b>{l.wz}</b> {l.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <div class="mg-side">
+    <section class="mg-box" aria-labelledby="mg-ship-h">
+      <h2 class="mg-h2" id="mg-ship-h">{COPY.schiffT}</h2>
+      <p>{COPY.schiff}</p>
+      <ul class="mg-ships">
+        {FAHRZEUGE.map((v) => (
+          <li>
+            <a href={schiffHref(v.id)}>{v.name}</a>
+            <span>{v.boden ? COPY.boden : v.oreSCU ? COPY.erz.replace('%n', String(v.oreSCU)) : ''}</span>
+          </li>
+        ))}
+      </ul>
+      <a class="mg-more" href={schiffe.href + '?role=bergbau'}>{COPY.alleSchiffe} →</a>
+    </section>
+
+    <section class="mg-box" aria-labelledby="mg-halo-h">
+      <h2 class="mg-h2" id="mg-halo-h">{COPY.haloT}</h2>
+      <p>{COPY.halo}</p>
+      <a class="mg-link" href={sprung.href}>
+        {sprung.icon && <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={sprung.icon} />}
+        <span><b>{sprung.name}</b> {COPY.haloA}</span>
+      </a>
+    </section>
+  </div>
+</div>
+
+<style>
+  .mg {
+    max-width: var(--maxw, 1240px);
+    margin: 0 auto;
+    padding: calc(var(--nav-h, 68px) + 1.6rem) clamp(16px, 4vw, 48px) 3.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.6rem 2.4rem;
+  }
+  @media (max-width: 1180px) {
+    .mg { padding-top: calc(var(--nav-h, 116px) + 1.2rem); }
+  }
+  @media (min-width: 1000px) {
+    .mg { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+    .mg-head { grid-column: 1 / -1; }
+  }
+  .mg-vh {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .mg-eyebrow {
+    margin: 0 0 .35rem; font-family: var(--font-ui); font-weight: 700;
+    font-size: var(--fs-5); letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--accent-2);
+  }
+  .mg-head h1 {
+    margin: 0 0 .5rem; font-family: var(--font-display); font-weight: 900;
+    font-size: var(--fs-17); line-height: 1.05; letter-spacing: var(--ls-4); color: var(--text);
+  }
+  .mg-lead { margin: 0; max-width: 68ch; color: var(--muted); font-size: var(--fs-8); line-height: 1.55; }
+
+  .mg-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: none; }
+  .mg-step {
+    display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 0 1rem;
+    position: relative; padding: 0 0 1.5rem;
+  }
+  /* Verbindungslinie zwischen den Ziffern: der Ablauf ist eine Kette. */
+  .mg-step:not(:last-child)::before {
+    content: ''; position: absolute; left: calc(1.3rem - 1px); top: 2.6rem; bottom: .2rem;
+    width: 2px; background: var(--line);
+  }
+  .mg-step__n {
+    width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); background: var(--surface);
+    font-family: var(--font-num, var(--font-ui)); font-weight: 700; font-size: var(--fs-9); color: var(--accent);
+  }
+  .mg-step__body h3 {
+    margin: .45rem 0 .35rem; font-family: var(--font-ui); font-weight: 700;
+    font-size: var(--fs-10); color: var(--text); letter-spacing: normal;
+  }
+  .mg-step__body p { margin: 0 0 .7rem; max-width: 68ch; color: var(--muted); font-size: var(--fs-7); line-height: 1.6; }
+
+  .mg-links { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .mg-link {
+    display: inline-flex; align-items: center; gap: .5rem; min-height: 40px;
+    padding: .45rem .8rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+    color: var(--text); font-family: var(--font-ui); font-size: var(--fs-7); text-decoration: none;
+    transition: border-color var(--dur-fast, .15s) var(--ease-ui, ease), background var(--dur-fast, .15s) var(--ease-ui, ease);
+  }
+  .mg-link:hover, .mg-link:focus-visible { border-color: var(--accent); background: var(--surface-2); }
+  .mg-link svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+  .mg-link b { color: var(--accent); font-weight: 700; }
+
+  .mg-side { display: grid; gap: 1.2rem; align-content: start; }
+  .mg-box { padding: 1.1rem 1.2rem 1.2rem; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); }
+  .mg-h2 { margin: 0 0 .5rem; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-9); color: var(--text); letter-spacing: normal; }
+  .mg-box p { margin: 0 0 .8rem; color: var(--muted); font-size: var(--fs-7); line-height: 1.55; }
+  .mg-ships { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: 1px; background: var(--line-soft); border-radius: 6px; overflow: hidden; }
+  .mg-ships li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .5rem .7rem; background: var(--surface-2); }
+  .mg-ships a { color: var(--text); font-family: var(--font-ui); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--line-2, var(--line)); }
+  .mg-ships a:hover { color: var(--accent); border-color: var(--accent); }
+  .mg-ships span { color: var(--muted); font-size: var(--fs-6); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mg-more { color: var(--accent); font-family: var(--font-ui); font-size: var(--fs-7); text-decoration: none; }
+  .mg-more:hover { text-decoration: underline; }
+</style>

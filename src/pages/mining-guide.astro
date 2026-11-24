@@ -1,0 +1,34 @@
+---
+// Mining in fünf Schritten — EN (/mining-guide.html). Körper:
+// components/MiningGuide.astro, geteilt mit /de/mining-guide.html.
+// UX-Audit 24.11.2026, Paket G12. Palette wie die Mining-Seiten.
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+import MiningGuide from '../components/MiningGuide.astro';
+import { versioned } from '../lib/assetVersion';
+---
+<Layout
+  title={'Star Citizen mining in five steps: scan, fracture, mine, refine, sell | VerseBase'}
+  description={'New to mining in Star Citizen? The whole loop in five steps, from the first scan to the sale, with the tool for each step and which mining ship to start with.'}
+  themeColor="#14181a"
+  ogType="article"
+  ogImage="/assets/img-mole.jpg"
+  translated={true}
+>
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<style is:inline>
+:root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#A970FF;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
+</style>
+<a class="skip" href="#main">Skip to content</a>
+
+<SiteNav crumbs={[{ label: 'Mining', href: '/topics/mining.html' }, { label: 'Mining in five steps' }]} />
+
+<main id="main">
+  <MiningGuide lang="en" />
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+</Layout>

@@ -43,8 +43,12 @@ const COPY = {
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
     retry: 'Neu laden',
-    outTitle: 'Dein Tracker',
-    outText: 'Melde dich an, um Aufträge mit Countdown zu verfolgen. Der Wert erscheint auch in deinem Konto.',
+    gastTitle: 'Gespeichert in diesem Browser',
+    gastText: 'Deine Aufträge liegen ohne Konto nur hier. Mit Konto schreibt dir der Verse-Bot auf Discord, sobald ein Auftrag fertig ist, und die Aufträge stehen auf all deinen Geräten bereit. Was hier schon liegt, nimmst du bei der Anmeldung mit.',
+    gastFehler: 'Dieser Browser speichert gerade nichts, etwa in einem privaten Fenster. Mit Konto geht es trotzdem.',
+    syncOk: '%n Aufträge aus diesem Browser liegen jetzt in deinem Konto.',
+    syncOk1: 'Ein Auftrag aus diesem Browser liegt jetzt in deinem Konto.',
+    syncFehler: 'Die Aufträge aus diesem Browser ließen sich nicht ins Konto übernehmen. Sie bleiben dort, beim nächsten Laden versucht es die Seite noch einmal.',
     login: 'Anmelden', register: 'Konto erstellen',
     stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen', stPipe: 'SCU in Arbeit', stValue: 'Refinery-Wert',
     subActive: '%n aktiv', subActive1: '1 aktiv', subNoActive: 'keine aktiv',
@@ -111,8 +115,12 @@ const COPY = {
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders. Please check your connection.',
     retry: 'Reload',
-    outTitle: 'Your tracker',
-    outText: 'Sign in to track orders with a countdown. The value also shows up in your account.',
+    gastTitle: 'Saved in this browser',
+    gastText: 'Without an account, your orders live only here. With an account, Verse-Bot messages you on Discord as soon as an order is done, and your orders are on all your devices. Whatever is already saved here comes along when you sign in.',
+    gastFehler: 'This browser is not saving anything right now, for example in a private window. With an account it still works.',
+    syncOk: '%n orders from this browser are now in your account.',
+    syncOk1: 'One order from this browser is now in your account.',
+    syncFehler: 'The orders from this browser could not be moved into your account. They stay there, and the page tries again on the next load.',
     login: 'Sign in', register: 'Create account',
     stActive: 'Active orders', stReady: 'Ready to collect', stPipe: 'SCU refining', stValue: 'Refinery value',
     subActive: '%n active', subActive1: '1 active', subNoActive: 'none active',
@@ -217,7 +225,6 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       <g id="rf-ic-hex" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.7v9.6L12 21.5l-8.2-4.7V7.2z"/></g>
       <g id="rf-ic-check" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></g>
       <g id="rf-ic-gem" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3L6 9l6 12 6-12-3-6"/></g>
-      <g id="rf-ic-lock" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><path d="M12 14.5v2.5"/></g>
       <g id="rf-ic-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g>
     </defs>
   </svg>
@@ -236,18 +243,6 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       <ToolHelp tool="refinerytracker" lang={lang} steps={4} />
       <div id="rfd-loading" class="ck-col"><div class="ck-empty"><p>{COPY.loading}</p></div></div>
 
-      <div id="rfd-out" class="ck-col" hidden>
-        <h2 class="ck-h">{COPY.outTitle}</h2>
-        <div class="ck-empty">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-lock"/></svg>
-          <p>{COPY.outText}</p>
-          <div class="rf-acts">
-            <a class="btn primary" id="rfd-login" href={loginHref}>{COPY.login}</a>
-            <a class="btn" href={registerHref}>{COPY.register}</a>
-          </div>
-        </div>
-      </div>
-
       <div id="rfd" class="rf-tracker" hidden>
         <div class="ck-strip rf-strip" data-help={h('refinerytracker.ctl.stats')}>
           <a class="ck-stat" href="#rfd-active-col">
@@ -265,7 +260,22 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
           </a>
         </div>
 
-        <section class="ck-col" id="rfd-notify" aria-labelledby="rfd-notify-h" data-help={h('refinerytracker.ctl.notify')}>
+        <p class="acx-status" id="rfd-sync" role="status" aria-live="polite" hidden></p>
+
+        {/* Ohne Konto (G11): der Tracker laeuft im Browser, an der Stelle der
+            Benachrichtigungen steht, was ein Konto dazubringt. */}
+        <section class="ck-col" id="rfd-gast" aria-labelledby="rfd-gast-h" hidden>
+          <h2 class="ck-h" id="rfd-gast-h">{COPY.gastTitle}</h2>
+          <div class="rf-pad rf-gast">
+            <p>{COPY.gastText}</p>
+            <div class="rf-acts">
+              <a class="btn primary sm" id="rfd-login" href={loginHref}>{COPY.login}</a>
+              <a class="btn sm" href={registerHref}>{COPY.register}</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="ck-col" id="rfd-notify" aria-labelledby="rfd-notify-h" data-help={h('refinerytracker.ctl.notify')} hidden>
           <h2 class="ck-h" id="rfd-notify-h">{COPY.notifyTitle}</h2>
           <div class="rf-pad rf-notify">
             <label class="pf-check"><input type="checkbox" id="rfd-n-site" disabled /><span><b>{COPY.nSite}</b> {COPY.nSiteSub}</span></label>
@@ -476,8 +486,11 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         Abschnitten, ohne defer), sonst sprang die Seite nach dem Laden um
         zwei Bildschirme. Gast heisst: kein Sitzungsschluessel des
         Kontodienstes im Speicher. Ist einer da, der sich spaeter als
-        abgelaufen erweist, bleibt der Tracker oben und zeigt die Anmeldung
-        (der seltene Fall, kein Sprung). Ohne Speicherzugriff gilt Gast. */}
+        abgelaufen erweist, bleibt der Tracker oben und laeuft als Gast-Tracker
+        weiter (der seltene Fall, kein Sprung). Ohne Speicherzugriff gilt Gast.
+        Seit G11 fuehrt der Tracker auch Gaeste: wer in diesem Browser schon
+        Auftraege hat (vb.refinery.v1, src/lib/refineryGast.ts), kommt ihretwegen
+        und behaelt den Tracker oben. */}
     <script is:inline>
       (function () {
         var gast = true;
@@ -485,7 +498,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
           for (var i = 0; i < localStorage.length; i++) {
             if (/^sb-[a-z0-9]+-auth-token$/.test(localStorage.key(i) || '')) { gast = false; break; }
           }
-        } catch (e) { /* kein Speicher: Gast */ }
+          var ablage = JSON.parse(localStorage.getItem('vb.refinery.v1') || 'null');
+          if (ablage && Array.isArray(ablage.jobs) && ablage.jobs.length) gast = false;
+        } catch (e) { /* kein Speicher oder kaputte Ablage: Gast */ }
         if (!gast) return;
         var t = document.getElementById('tracker'), m = document.getElementById('methoden');
         if (t && m && m.parentNode) m.parentNode.insertBefore(t, m.nextSibling);
@@ -579,6 +594,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-notify .rf-src { margin-top: 4px; }
   .rf-notify .rf-src .btn { margin-left: 8px; vertical-align: middle; }
   .rf-notify .acx-status { margin-top: 4px; }
+  .rf-gast p { margin: 0 0 12px; color: var(--muted); line-height: 1.55; max-width: 72ch; }
+  .rf-gast .rf-acts { justify-content: flex-start; }
+  #rfd-sync { margin: 0; }
   .rf-form { padding: 14px 16px 16px; }
   .rf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .rf-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
@@ -695,6 +713,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     type RefineryJob, type RefineryItem,
   } from '../../lib/refinery';
   import { refineryValue, refinerySpark, jobValue } from '../../lib/refineryJobs';
+  import { GAST_KEY, ladeGast, speichereGast, naechsteGastId, nimmGast, zurueckLegen, kontoZeile } from '../../lib/refineryGast';
 
   const root = document.getElementById('rf') as HTMLElement | null;
   if (root) {
@@ -799,8 +818,21 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
 
     // ---- Tracker -----------------------------------------------------------
     const loadingEl = $('rfd-loading');
-    const outEl = $('rfd-out');
     const tracker = $('rfd');
+
+    // Ohne Konto (G11) liegen die Auftraege in diesem Browser
+    // (src/lib/refineryGast.ts); collect/del/update und das Formular schreiben
+    // dann dorthin statt nach refinery_jobs.
+    let gast = false;
+    const ablage = (() => { try { return window.localStorage; } catch { return null; } })();
+    const sichern = () => {
+      if (speichereGast(ablage, jobs)) return true;
+      const st = $('rfd-sync');
+      st.className = 'acx-status';
+      st.textContent = C.gastFehler;
+      st.hidden = false;
+      return false;
+    };
 
     const fmtReadyAt = (iso: string) => {
       const d = new Date(iso);
@@ -1009,26 +1041,35 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     async function collect(id: number, btn: HTMLButtonElement) {
       btn.disabled = true; btn.textContent = '…';
       const at = new Date().toISOString();
-      const { error } = await supabase.from('refinery_jobs').update({ status: 'done', collected_at: at }).eq('id', id);
-      if (error) { btn.disabled = false; btn.textContent = C.collect; return; }
+      if (!gast) {
+        const { error } = await supabase.from('refinery_jobs').update({ status: 'done', collected_at: at }).eq('id', id);
+        if (error) { btn.disabled = false; btn.textContent = C.collect; return; }
+      }
       const j = jobs.find((x) => x.id === id);
       if (j) { j.status = 'done'; j.collected_at = at; }
+      if (gast) sichern();
       renderAll();
-      tellNav();
+      if (!gast) tellNav();
     }
     async function del(id: number) {
       if (!confirm(C.confirmDel)) return;
-      const { error } = await supabase.from('refinery_jobs').delete().eq('id', id);
-      if (error) return;
+      if (!gast) {
+        const { error } = await supabase.from('refinery_jobs').delete().eq('id', id);
+        if (error) return;
+      }
       jobs = jobs.filter((x) => x.id !== id);
+      if (gast) sichern();
       renderAll();
-      tellNav();
+      if (!gast) tellNav();
     }
     async function update(id: number, patch: Partial<RefineryJob>) {
-      const { error } = await supabase.from('refinery_jobs').update(patch).eq('id', id);
-      if (error) return;
+      if (!gast) {
+        const { error } = await supabase.from('refinery_jobs').update(patch).eq('id', id);
+        if (error) return;
+      }
       const j = jobs.find((x) => x.id === id);
       if (j) Object.assign(j, patch);
+      if (gast) sichern();
       renderAll();
     }
 
@@ -1145,8 +1186,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       const est = estimateValue(items);
       const started = new Date();
 
-      submitBtn.disabled = true; submitTxt.textContent = C.submitBusy;
-      const { data, error } = await supabase.from('refinery_jobs').insert({
+      const zeile = {
         station, method, items,
         input_scu: items.reduce((s, it) => s + it.rawScu, 0),
         yield_scu: items.reduce((s, it) => s + it.yieldScu, 0),
@@ -1154,19 +1194,29 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         est_value: est > 0 ? est : null,
         started_at: started.toISOString(),
         ready_at: new Date(started.getTime() + mins * 60000).toISOString(),
-        status: 'active',
+        status: 'active' as const,
         note: note || null,
-      }).select().single();
-      submitBtn.disabled = false; submitTxt.textContent = C.submit;
-      if (error || !data) { formStatus.textContent = C.errNet; formStatus.hidden = false; return; }
+      };
+      let data: RefineryJob | null = null;
+      if (gast) {
+        data = { ...zeile, id: naechsteGastId(jobs), sold_value: null, collected_at: null, created_at: started.toISOString() };
+        jobs.unshift(data);
+        if (!sichern()) { jobs.shift(); formStatus.textContent = C.gastFehler; formStatus.hidden = false; return; }
+      } else {
+        submitBtn.disabled = true; submitTxt.textContent = C.submitBusy;
+        const r = await supabase.from('refinery_jobs').insert(zeile).select().single();
+        submitBtn.disabled = false; submitTxt.textContent = C.submit;
+        if (r.error || !r.data) { formStatus.textContent = C.errNet; formStatus.hidden = false; return; }
+        data = r.data as RefineryJob;
+        jobs.unshift(data);
+      }
       // Messereignis merken (assets/ereignisse.js): erst wenn der Auftrag
       // wirklich gespeichert ist, nur die Art, nichts aus dem Formular.
       const wEv = window as Window & { vbEreignis?: (name: string, felder?: Record<string, string>) => boolean };
       if (e.isTrusted && wEv.vbEreignis) wEv.vbEreignis('merken', { was: 'auftrag' });
 
-      jobs.unshift(data as RefineryJob);
       renderAll();
-      tellNav();
+      if (!gast) tellNav();
       form.reset();
       mtags.hidden = true;
       oresBox.textContent = ''; addOreRow();
@@ -1238,14 +1288,49 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       dc.addEventListener('change', save);
     };
 
-    // ---- Start: angemeldet → Tracker, sonst Anmelde-Knopf -----------------
-    const showOut = () => {
+    // ---- Start: angemeldet → Konto-Tracker, sonst Gast-Tracker -------------
+    const zeigeTracker = () => {
+      addOreRow();
+      renderAll();
+      updatePreview();
+      loadingEl.hidden = true;
+      tracker.hidden = false;
+    };
+    const startGast = () => {
+      gast = true;
+      jobs = ladeGast(ablage);
       ($('rfd-login') as HTMLAnchorElement).href = root.dataset.login + '?next=' + encodeURIComponent(location.pathname + '#tracker');
-      loadingEl.hidden = true; outEl.hidden = false;
+      $('rfd-gast').hidden = false;
+      // Ein zweiter Tab desselben Browsers schreibt in dieselbe Ablage.
+      addEventListener('storage', (ev) => {
+        if (ev.key !== GAST_KEY && ev.key !== null) return;
+        jobs = ladeGast(ablage);
+        renderAll();
+      });
+      zeigeTracker();
+    };
+    // Gast-Auftraege dieses Browsers einmal ins Konto (wie der Crafting-Planer):
+    // erst aus der Ablage nehmen, dann schreiben; scheitert das, liegen sie
+    // wieder dort und der naechste Start versucht es erneut.
+    const uebernimmGast = async () => {
+      const mit = nimmGast(ablage);
+      if (!mit.length) return;
+      const st = $('rfd-sync');
+      const { error } = await supabase.from('refinery_jobs').insert(mit.map(kontoZeile));
+      if (error) {
+        zurueckLegen(ablage, mit);
+        st.className = 'acx-status';
+        st.textContent = C.syncFehler;
+      } else {
+        st.className = 'acx-status acx-status--ok';
+        st.textContent = mit.length === 1 ? C.syncOk1 : C.syncOk.replace('%n', String(mit.length));
+      }
+      st.hidden = false;
+      tellNav();
     };
     const init = async () => {
       const { data } = await supabase.auth.getSession();
-      if (!data.session) { showOut(); return; }
+      if (!data.session) { startGast(); return; }
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr) {
         const st = (userErr as { status?: number }).status;
@@ -1254,19 +1339,17 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       if (userErr || !userData.user) {
         clearAccountTraces(data.session.user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
-        showOut();
+        startGast();
         return;
       }
 
+      await uebernimmGast();
       const { data: rows, error } = await supabase.from('refinery_jobs').select('*').order('ready_at', { ascending: true });
       if (error) throw error;
       jobs = (rows || []) as RefineryJob[];
 
-      addOreRow();
-      renderAll();
-      updatePreview();
-      loadingEl.hidden = true;
-      tracker.hidden = false;
+      $('rfd-notify').hidden = false;
+      zeigeTracker();
       initNotify(userData.user.id).catch((e) => {
         console.error('refinery notify init failed', e);
         const status = $('rfd-n-status');
