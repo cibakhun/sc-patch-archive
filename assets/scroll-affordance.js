@@ -76,7 +76,9 @@
   // overscroll-behavior:contain gibt, traegt ihn hier ein.
   var SEL_DURCH =
     '.vb-scrollbox,.cdb-res-list,.calc-mat-list,.cbm__mis,.mm__terms,.cdb-plan-shop,' +
-    '.cdb-sidebar,.calc-sidebar,.uif-sidebar,.cdb-modal__box';
+    '.cdb-sidebar,.calc-sidebar,.uif-sidebar,.cdb-modal__box,' +
+    // Werkzeug-Standard (src/lib/werkzeugStandard.ts): Leiste und Blatt.
+    '.wz-rail,.wz-blatt__box';
 
   var faders = [];
   var vfaders = [];

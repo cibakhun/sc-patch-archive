@@ -21,12 +21,13 @@ export interface ChatLink {
 
 const HOST = String.raw`(?:https?:\/\/(?:www\.|staging\.)?verse-base\.com)?`;
 const SLUG = String.raw`[a-z0-9][a-z0-9-]{0,80}`;
-// Vor der Adresse: Anfang, Leerraum oder Klammer; danach: Ende, Leerraum,
-// Klammer oder ein Satzzeichen, dem Ende oder Leerraum folgt. So wird
-// „/schiffe/x.html“ mitten in einem fremden Link (https://example.com/schiffe/x.html)
-// nicht erkannt, und „x.html?y=…“ bleibt Text statt halber Link.
+// Vor der Adresse: Anfang oder Leerraum, wahlweise mit öffnender Klammer;
+// danach: Ende, Leerraum, Klammer oder ein Satzzeichen, dem Ende oder
+// Leerraum folgt. So wird „/schiffe/x.html“ mitten in einem fremden Link
+// (https://example.com/schiffe/x.html, auch …/(/schiffe/x.html)) nicht
+// erkannt, und „x.html?y=…“ bleibt Text statt halber Link.
 const RE = new RegExp(
-  String.raw`(^|[\s(])(${HOST}\/(?:de\/)?(?:(schiffe|items)\/(${SLUG})\.html|(hangar|hangar-loadout)\.html\?ship=(${SLUG})(?:&layout=([A-Za-z0-9_-]{1,4000}))?))(?=$|[\s)]|[.,!?;:](?:$|[\s)]))`,
+  String.raw`(^\(?|\s\(?)(${HOST}\/(?:de\/)?(?:(schiffe|items)\/(${SLUG})\.html|(hangar|hangar-loadout)\.html\?ship=(${SLUG})(?:&layout=([A-Za-z0-9_-]{1,4000}))?))(?=$|[\s)]|[.,!?;:](?:$|[\s)]))`,
   'g',
 );
 

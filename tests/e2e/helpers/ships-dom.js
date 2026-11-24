@@ -146,6 +146,8 @@ export function makeShipsDomContext(opts = {}) {
     'sf-close': new MockElement('button', 'sf-close'),
     'sf-show': new MockElement('button', 'sf-show'),
     'sf-reset': new MockElement('button', 'sf-reset'),
+    // Knopf in der leeren Liste (Heuristik P18)
+    'sf-empty-reset': new MockElement('button', 'sf-empty-reset'),
   };
   elements['sf-toggle'].setAttribute('aria-expanded', 'false');
   elements['sf-show'].setAttribute('data-tpl', L.show);

@@ -26,7 +26,6 @@ import { getCollection } from 'astro:content';
 import { href, useTranslations, type Locale } from '../i18n/ui';
 import { mergePatchEn, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
-import { missions, repSummary, seoTitle, uec } from './missions';
 import { patchesFor } from './patchSpine';
 import { patchSeiteHref } from './patchPages';
 import { altName, displayName, itemPath, leafCategory, pageItemIds, pageItems, rootCategory } from './items';
@@ -39,6 +38,7 @@ import { shipIdForVehicleItem } from './vehicleItems';
 import { suchZiele } from './bereiche';
 import { TOOL_ALIASES, gattungsWoerter } from './searchAliases';
 import { weltEintraege } from './searchWelt';
+import { missionEintraege } from './searchMissionen';
 
 // w/wl (seit 24.11.2026): ein zweiter Weg mit eigener Beschriftung, etwa
 // „Refinery" am Erz oder „Missionen" am Ort (src/lib/searchWelt.ts). Ein
@@ -137,34 +137,9 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
     });
   }
 
-  // mission families (DataCore snapshot) — one entry per mission, not per offer.
-  // Titel/Typen/Geber sind Spieldaten (englisch) und in beiden Sprachen
-  // identisch; lokalisiert werden Zahlenformat und Ziel-URL.
-  for (const m of missions) {
-    const rep = repSummary(m)[0];
-    // Lesbarer Titel wie im <title> der Missionsseite (seoTitle): „{ReputationRank}
-    // Hauler Needed for {CargoGradeToken} Shipment" stand hier als
-    // „ReputationRank Hauler … CargoGradeToken" (UX-Audit IA C2, Paket B5).
-    // Die Platzhalter bleiben als Suchwoerter, getrennt: „rank" findet weiter.
-    const title = seoTitle(m.title) || m.title.replace(/\{([^}]*)\}/g, '$1');
-    const marken = [...m.title.matchAll(/\{([^}]*)\}/g)].map((x) => x[1].replace(/([a-z])([A-Z])/g, '$1 $2'));
-    out.push({
-      k: 'mission',
-      b: m.typeNames[0] ?? 'Mission',
-      t: title,
-      s: [
-        m.rewardMax ? `${uec(m.rewardMax, lang)} aUEC` : null,
-        rep?.factionName ?? null,
-        m.count > 1 ? `${m.count}×` : null,
-      ]
-        .filter(Boolean)
-        .join(' · '),
-      u: href(`/missionen/${m.slug}.html`, lang),
-      x: [...marken, ...m.giverNames, ...m.factionNames, ...m.localityNames, ...m.typeNames]
-        .join(' ')
-        .slice(0, 160),
-    });
-  }
+  // Missionen: eigener Baustein (src/lib/searchMissionen.ts), damit
+  // tests/e2e/suche-treffer.test.js ihn ohne astro:content pruefen kann.
+  out.push(...missionEintraege(lang));
 
   return out;
 }

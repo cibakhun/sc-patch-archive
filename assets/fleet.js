@@ -186,7 +186,8 @@
   }
   function notify() {
     // Der Text des Wiederholen-Knopfs hängt an unsaved(), das nicht im Schnappschuss steht.
-    var key = JSON.stringify(snapshot()) + (sync === 'error' && unsaved() ? '|unsaved' : '');
+    // Der Besitzer auch nicht: ein Kontowechsel mit gleicher Liste meldet sich trotzdem (owner()).
+    var key = JSON.stringify(snapshot()) + '|' + (uid || '') + (sync === 'error' && unsaved() ? '|unsaved' : '');
     if (key === lastKey) return;
     lastKey = key;
     paint();

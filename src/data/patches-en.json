@@ -1091,7 +1091,7 @@
         },
         {
           "name": "Salvage rework & Refining",
-          "system": "Mining & Industry",
+          "system": "Salvage",
           "desc": "Structural rework of the Salvage system with increased material values and an expanded refining economy. Salvage becomes economically more attractive; players benefit from an improved loot-to-credit ratio.",
           "facts": [
             {
@@ -2039,7 +2039,7 @@
         },
         {
           "name": "Mining",
-          "system": "Mining & Industry",
+          "system": "Mining",
           "desc": "Resource extraction from hand-mined gems to multicrew ship mining. The system spans the Prospector (since Alpha 3.2), the reworked ARGO MOLE (4.7/4.8), ROC and hand mining; Pyro widened the ore pool (Stileron, Riccite, Lindinium). Raw ore is refined at refinery decks using one of nine methods and sold.",
           "facts": [
             {
@@ -2521,7 +2521,7 @@
         },
         {
           "name": "Mining & Scanning",
-          "system": "Mining & Resources",
+          "system": "Mining",
           "desc": "Ship mining laser power increases by roughly 20% across the board. Experimental scanning updates make locating materials throughout the verse easier (being monitored on LIVE). In Nyx, common resource distribution was adjusted at the Glacium and Keeger HPP locations — flanked by the new Alliance mining contracts.",
           "facts": [
             {

@@ -52,36 +52,6 @@ export const EXCLUSIONS = [
       'weiterhin auf — belegt durch Bruch C der Negativkontrolle (04-01-SUMMARY.md).',
   },
   {
-    id: 'X-onepager-de-only',
-    mode: 'cut-region',
-    /* Welche EN-Pfade betroffen sind (EN-Pfad-Stamm, siehe 04-02-PLAN.md
-       <residue_argument>) — nur diese beiden Themenseiten tragen den
-       bedingten Onepager-Verweis. */
-    match: (enPath) =>
-      enPath === 'dist/topics/4-0-0-contested-zones.html' ||
-      enPath === 'dist/topics/4-2-0-storm-breaker.html',
-    /* Nur die DEUTSCHE Fassung traegt den Block — sie wird geschnitten,
-       nicht die englische (die hat ihn nie gerendert). */
-    side: 'de',
-    /* Anker: die section.opl-wrap OEFFNET den Block; tagName 'section'
-       laesst cutRegion() bis zur zugehoerigen </section> schneiden
-       (Depth-Zaehlung, siehe scripts/verify-sync.mjs cutRegion()). */
-    openTagPattern: () => /<section\s+class="opl-wrap reveal"[^>]*>/,
-    tagName: 'section',
-    reason:
-      'src/components/OnepagerLink.astro (seit 24.11.2026 dort, vorher in ' +
-      'src/components/topics/4-0-0-contested-zones.astro und 4-2-0-storm-breaker.astro): ' +
-      '{de && <section class="opl-wrap">…} — den Onepager gibt es nur auf Deutsch ' +
-      '(public/onepager/contested-zones/, public/onepager/storm-breaker/), die EN-Fassung hat ' +
-      'ihn noch nie verlinkt und soll das ausdruecklich auch nicht anfangen. Daran haengen auch ' +
-      'die vier ungepaarten Dateien aus Zusicherung 1 (dist/onepager/*/index.html, ' +
-      'dist/downloads/onepager-*.html) — dieselbe bewusste EN-Luecke, nur auf Dateiebene statt ' +
-      'auf Abschnittsebene. Die Downloads-Zeile danach (div.opl-dl) steht in beiden Fassungen. ' +
-      'Anker ist section.opl-wrap (OnepagerLink.astro); ' +
-      'verschwindet die Bedingung oder die Klasse, trifft diese Ausnahme auf kein Paar mehr zu ' +
-      'und der Zombie-Waechter (Zusicherung 5) schlaegt an.',
-  },
-  {
     id: 'X-impressum-mstv',
     mode: 'cut-region',
     match: (enPath) => enPath === 'dist/impressum.html',
@@ -106,5 +76,27 @@ export const EXCLUSIONS = [
       '(die Erklaerung "German law … requires this provider identification") ist NICHT hierueber ' +
       'abgedeckt — es war unbelegte Drift und wurde in Task 2 durch ein deutsches Gegenstueck in ' +
       'src/pages/de/impressum.astro behoben (04-02-SUMMARY.md), nicht ausgenommen.',
+  },
+  {
+    id: 'X-zwilling-je-sprache',
+    mode: 'cut-region',
+    /* Item- und Bauplan-Blaetter: nur dort steht der Zwillingshinweis. */
+    match: (enPath) => /^dist\/(?:items|crafting)\/[^/]+\.html$/.test(enPath),
+    /* Beide Seiten: ob ein Blatt einen Zwilling hat, haengt am Namen IN
+       DIESER SPRACHE — der Hinweis steht mal nur deutsch, mal nur englisch. */
+    side: 'both',
+    openTagPattern: () => /<p class="dp-note dp-zwilling"[^>]*>/,
+    tagName: 'p',
+    reason:
+      'UX-Audit D7 (24.11.2026), src/lib/itemSeo.ts itemZwillinge()/bauplanZwillinge(): ' +
+      'gleichnamige Seiten verlinken einander, und „gleichnamig" heisst gleicher Anzeigename ' +
+      'in der Sprache der Seite. Zwei Items koennen englisch verschieden heissen und deutsch ' +
+      'gleich (GCD-Army Arms: der Hinweis steht nur auf /de/), oder englisch gleich und ' +
+      'deutsch verschieden (Hellion Scattergun: nur auf /items/). Ein Hinweis auf einen ' +
+      'Zwilling, den es in der eigenen Sprache nicht gibt, waere falsch; deshalb faellt ' +
+      'p.dp-zwilling auf BEIDEN Fassungen aus dem Strukturvergleich. Was darin steht, ' +
+      'bewacht verify:bezugswege [9] (Titel je Sprache eindeutig, Zwillinge verlinkt). ' +
+      'Verschwindet die Klasse, trifft die Ausnahme nichts mehr und der Zombie-Waechter ' +
+      '(Zusicherung 5) meldet sie.',
   },
 ];

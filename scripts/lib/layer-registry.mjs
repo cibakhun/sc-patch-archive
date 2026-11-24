@@ -798,6 +798,16 @@ export const EXCLUSIONS = [
     selectorFamilies: ['.cdb--wb .cbp:not(.is-sel)::after'],
     reason: 'src/lib/werkbankDesign.ts (Crafting-Seite, siebte Runde): .cbp:not(.is-sel)::after ist ein Licht von der Oberkante der Kachel (radial-gradient, 260 px, fest in der Mitte der Oberkante, hoechstens 14 % der Kategoriefarbe, laeuft zum Rand in transparent aus). Es folgt dem Mauszeiger nicht (der mitlaufende Schein ist getilgt, verify:fx [2]). Es steht nur bei hover:hover und pointer:fine und nur waehrend die Maus auf der Kachel liegt, sonst opacity 0; es hellt die Kachelflaeche auf statt sie abzudunkeln und liegt mit pointer-events:none ueber dem Text. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter; gemessen wird er in der Ruhelage, die das Licht nicht beruehrt.',
   },
+  {
+    id: 'X-wz-streif',
+    selectorFamilies: ['.wz-k.is-sel::after'],
+    reason: 'src/lib/werkzeugStandard.ts (Werkzeug-Standard, zuerst auf der Items-Werkbank im Vorschau-Bau): .wz-k.is-sel::after ist derselbe Lichtstreif wie X-werkbank-streif, einmal in 0,7 s ueber die gerade gewaehlte Kachel (hoechstens 9 % Weiss, hellt auf statt abzudunkeln). Endstand der Animation und Stand bei prefers-reduced-motion ist background-position -60 % mit no-repeat, der Streif steht dann ausserhalb der Kachel und die Flaeche ist durchsichtig. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter.',
+  },
+  {
+    id: 'X-wz-licht',
+    selectorFamilies: ['.wz-k:not(.is-sel)::after'],
+    reason: 'src/lib/werkzeugStandard.ts (Werkzeug-Standard): .wz-k:not(.is-sel)::after ist dasselbe Oberkantenlicht wie X-werkbank-licht (radial-gradient 260 px fest in der Mitte der Oberkante, hoechstens 14 % der Kategoriefarbe, laeuft in transparent aus, folgt dem Zeiger nicht). Es steht nur bei hover:hover und pointer:fine und nur waehrend die Maus auf der Kachel liegt, sonst opacity 0, hellt auf statt abzudunkeln und liegt mit pointer-events:none ueber dem Text. Gemessen wird der Kachelkontrast in der Ruhelage, die das Licht nicht beruehrt.',
+  },
 ];
 
 /* ============================================================

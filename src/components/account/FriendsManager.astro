@@ -141,7 +141,7 @@ const JS = {
     okWithdrawn: 'Anfrage zurückgezogen',
     okDeclined: 'Anfrage abgelehnt',
     okCopied: 'Link kopiert',
-    flies: 'Fliegt %ship%', fleetHidden: '%n% deiner Freunde zeigen ihre Flotte nicht.', fleetHidden1: 'Ein Freund zeigt seine Flotte nicht.',
+    flies: 'Fliegt %ship%', fleetHidden: 'Bei %n% deiner Freunde ist keine Flotte zu sehen.', fleetHidden1: 'Bei einem Freund ist keine Flotte zu sehen.',
     nDcHow: 'Dafür musst du auf dem VerseBase-Discord sein und Direktnachrichten von Servermitgliedern erlauben.',
     nDcLink: 'Verbinde zuerst Discord in deinem Konto, dann kannst du den Hinweis anschalten.',
     nDcLinkBtn: 'Zu Discord verbinden', nSaved: 'Gespeichert.',
@@ -169,7 +169,7 @@ const JS = {
     okWithdrawn: 'Request withdrawn',
     okDeclined: 'Request declined',
     okCopied: 'Link copied',
-    flies: 'Flies %ship%', fleetHidden: '%n% of your friends do not show their fleet.', fleetHidden1: 'One friend does not show their fleet.',
+    flies: 'Flies %ship%', fleetHidden: '%n% of your friends have no visible fleet.', fleetHidden1: 'One friend has no visible fleet.',
     nDcHow: 'You need to be on the VerseBase Discord and allow direct messages from server members.',
     nDcLink: 'Link Discord in your account first, then you can switch this on.',
     nDcLinkBtn: 'Go to Link Discord', nSaved: 'Saved.',
@@ -1058,7 +1058,8 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
 
     // Flotten der Freunde: die Schiffe, die sie auf ihrer Pilotenseite zeigen
     // (public_favorites, nur mit Handle und „Flotte zeigen“). Eine Abfrage für
-    // alle; wer fehlt, zeigt seine Flotte nicht.
+    // alle. Wer fehlt, zeigt keine Schiffe: ob er keine hat oder die Flotte
+    // verbirgt, sagen diese Daten nicht, also sagt es die Seite auch nicht.
     let fleetSeq = 0;
     const loadFleets = async () => {
       const seq = ++fleetSeq;
@@ -1155,7 +1156,7 @@ const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
       // Den Filter gibt es ab acht Freunden, oder sobald ein Freund seine Flotte zeigt.
       $('fmFilterWrap').hidden = friends.length < 8 && !q && !fleets.size;
       $('fmNoneFiltered').hidden = !(friends.length && !shown.length);
-      // Wer seine Flotte nicht zeigt, kann der Schiffsfilter nicht finden: das sagt die Seite.
+      // Wer keine Schiffe zeigt, kann der Schiffsfilter nicht finden: das sagt die Seite.
       const hidden = sq && fleetsLoaded ? friends.filter((f) => !fleets.has(f.p.handle || '')).length : 0;
       const note = $('fmFleetNote');
       note.textContent = hidden === 1 ? C.fleetHidden1 : C.fleetHidden.replace('%n%', String(hidden));

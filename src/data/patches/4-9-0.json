@@ -121,7 +121,7 @@
     },
     {
       "name": "Mining & Scanning",
-      "system": "Mining & Ressourcen",
+      "system": "Mining",
       "kind": "balance",
       "desc": "Die Laserleistung aller Schiffs-Mining-Laser steigt pauschal um rund 20 %. Experimentelle Scanning-Updates erleichtern das Aufspüren von Materialien im ganzen Verse (Beobachtung auf LIVE läuft). In Nyx wurde die Verteilung häufiger Ressourcen an den Glacium- und Keeger-HPP-Standorten angepasst — flankiert von den neuen Alliance-Bergbau-Kontrakten.",
       "facts": [

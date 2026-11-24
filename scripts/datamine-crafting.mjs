@@ -387,7 +387,10 @@ try {
         if (!key || seen.has(key)) continue;
         seen.add(key);
         const arr = missionsByKey.get(key) ?? [];
-        arr.push({ id: m.slug, name: m.title, drop_chance: pool.chance ?? 1 });
+        // pool: welcher der Pools der Mission diesen Bauplan fuehrt — ohne ihn
+        // zaehlte die Bauplan-Seite bei Familien mit mehreren Pools alle
+        // zusammen (src/lib/bezugswege.ts poolSpanne).
+        arr.push({ id: m.slug, name: m.title, drop_chance: pool.chance ?? 1, ...(pool.poolKey ? { pool: pool.poolKey } : {}) });
         missionsByKey.set(key, arr);
       }
     }

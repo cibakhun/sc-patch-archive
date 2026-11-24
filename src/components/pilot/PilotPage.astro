@@ -392,7 +392,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
 <script type="application/json" id="ppCopyData" set:html={jsonForScript(COPY)}></script>
 <script type="application/json" id="ppShipData" set:html={jsonForScript(SHIPS)}></script>
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
-{/* Die Flotte des Besuchers (nur lesen): markiert die Schiffe, die beide haben. */}
+{/* Die Flotte des Besuchers: markiert die Schiffe, die beide haben (die Seite selbst schreibt nichts). */}
 <script is:inline defer src={versioned('assets/fleet.js', '/assets/fleet.js')}></script>
 
 <style is:global>
@@ -1017,13 +1017,18 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
     }
 
     // „Habt ihr beide“: Schiffe des Piloten, die auch in der Flotte des
-    // Besuchers stehen. Die Flotte liest nur assets/fleet.js (Gast: dieser
-    // Browser, angemeldet: das Konto). Auf der eigenen Seite markiert nichts;
-    // solange das für einen Angemeldeten nicht feststeht, auch nicht.
+    // Besuchers stehen. Die Flotte kommt aus assets/fleet.js (Gast: dieser
+    // Browser, angemeldet: das Konto); diese Seite schreibt nichts. fleet.js
+    // übernimmt wie auf jeder Seite mit Flotte eine Gast-Flotte ins eigene
+    // Konto, die Meldung dazu wartet auf der Flotten-Seite.
+    // Auf der eigenen Seite markiert nichts. Geprüft wird für den Besitzer der
+    // Flotte, die gerade angezeigt wird, also nach jedem Sitzungswechsel neu;
+    // bis die Antwort da ist, bleibt die Markierung aus.
     type FleetSnap = { ids: string[] };
-    type FleetApi = { subscribe: (fn: (s: FleetSnap) => void) => () => void };
+    type FleetApi = { subscribe: (fn: (s: FleetSnap) => void) => () => void; owner: () => string };
     let bothSnap: FleetSnap | null = null;
-    let bothReady = false; // false, bis klar ist, dass es nicht die eigene Seite ist
+    let bothReady = false; // true erst, wenn die Flotte sicher nicht dem Piloten gehört
+    let bothOwner: string | null = null; // für wessen Flotte bothReady gilt ('' = Gast)
     let bothHandle = '';
     const paintBoth = () => {
       const mine = new Set(bothReady && bothSnap ? bothSnap.ids : []);
@@ -1040,25 +1045,28 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       badge.title = COPY.bothTip.replace('{list}', names.join(', '));
       badge.hidden = names.length === 0;
     };
+    const checkOwner = (owner: string) => {
+      if (owner === bothOwner) return;
+      bothOwner = owner;
+      bothReady = !owner; // ein Gast besitzt keine Pilotenseite
+      if (!owner) return;
+      // Scheitert die Frage oder findet sie das Profil nicht, bleibt die
+      // Markierung aus: lieber keine als eine auf der eigenen Seite.
+      supabase.from('social_profiles').select('id').eq('handle', bothHandle).maybeSingle().then(({ data: row, error }) => {
+        if (bothOwner !== owner || error || !row || row.id === owner) return;
+        bothReady = true;
+        paintBoth();
+      }, () => { /* ohne Antwort keine Markierung */ });
+    };
     const watchBoth = (pilotHandle: string) => {
       if (bothHandle) { paintBoth(); return; }
       bothHandle = pilotHandle;
-      supabase.auth.getSession().then(async ({ data }) => {
-        const uid = data.session?.user?.id;
-        if (uid) {
-          // Scheitert die Frage, bleibt die Markierung aus: lieber keine als eine auf der eigenen Seite.
-          const { data: row, error } = await supabase.from('social_profiles').select('id').eq('handle', pilotHandle).maybeSingle();
-          if (error || (row && row.id === uid)) return;
-        }
-        bothReady = true;
-        paintBoth();
-      }).catch(() => { /* ohne Sitzung keine Markierung */ });
       let subscribed = false;
       const start = () => {
         const api = (window as unknown as { VBFleet?: FleetApi }).VBFleet;
         if (subscribed || !api) return;
         subscribed = true;
-        api.subscribe((s) => { bothSnap = s; paintBoth(); });
+        api.subscribe((s) => { bothSnap = s; checkOwner(api.owner()); paintBoth(); });
       };
       window.addEventListener('vb-fleet-ready', start);
       start();
