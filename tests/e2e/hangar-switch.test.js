@@ -210,7 +210,15 @@ test('Muster: Dateien und Links', () => {
 });
 
 test('jede Stelle, die zum Hangar fuehrt, fragt den Schalter', () => {
-  assert.match(read('src/components/SiteNav.astro'), /\.\.\.\(HAS_HANGAR\s*\?\s*\[\s*\{\s*href: L\('\/hangar\.html'\)/);
+  // Seit 24.11.2026 (UX-Audit A1) stehen Hangar und Advanced Loadout in der
+  // einen Bereichsliste; Menue und Suche lesen daraus. Die Liste filtert sie
+  // an EINER Stelle ueber den Schalter heraus, und beide tragen vorschau: true.
+  const ber = read('src/lib/bereiche.ts');
+  assert.match(ber, /const mitHangar = \(vorschau\?: boolean\) => vorschau \?\? HAS_HANGAR;/);
+  assert.match(ber, /\.filter\(\(s\) => hangar \|\| !s\.vorschau\)/);
+  for (const seite of ['hangar', 'hangar-loadout'])
+    assert.match(ber, new RegExp(`path: '/${seite}\\.html',(?:(?!key:)[\\s\\S]){0,400}?vorschau: true`), seite);
+  assert.doesNotMatch(read('src/components/SiteNav.astro'), /\/hangar(?:-loadout)?\.html/);
   assert.match(read('src/components/ShipDetail.astro'), /\{HAS_HANGAR && \(\s*<a class="favhangar"/);
   assert.match(read('src/components/ships/ShipsOverview.astro'), /\{HAS_HANGAR && <a class="sdb__hangar"/);
   const dash = read('src/components/account/AccountDashboard.astro');
@@ -226,7 +234,7 @@ test('jede Stelle, die zum Hangar fuehrt, fragt den Schalter', () => {
     const p = path.join(dir, e.name);
     return e.isDirectory() ? quellen(p) : /\.(astro|ts|js|mjs)$/.test(e.name) ? [p] : [];
   });
-  const erlaubt = new Set(['src/components/SiteNav.astro', 'src/components/ShipDetail.astro', 'src/components/ships/ShipsOverview.astro',
+  const erlaubt = new Set(['src/lib/bereiche.ts', 'src/components/ShipDetail.astro', 'src/components/ships/ShipsOverview.astro',
     'src/components/account/AccountDashboard.astro', 'src/scripts/account-layouts.ts', 'src/components/pilot/PilotPage.astro']);
   const fremd = [...quellen('src'), ...quellen('assets')]
     .map((p) => p.split(path.sep).join('/'))
