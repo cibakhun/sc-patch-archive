@@ -21,6 +21,7 @@ import { patchLinkFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
 import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
 import Item3d from './Item3d.astro';
+import Bezugswege from './Bezugswege.astro';
 import { item3dFor } from '../lib/item3d';
 
 interface Props { item: Item; lang: Locale }
@@ -128,7 +129,10 @@ const crumbs = [
   stand={standItems(lang, { preise: uexVendors > 0, schnappschuss: snapVendors > 0, fundorte: lootRecherche > 0, fundorteSpiel: lootBestaetigt > 0 })}
   melden
 >
-  <h1 slot="hero">{name}</h1>
+  {/* data-fahrzeug-item: Fahrzeug-Itemblatt — verify:bezugswege [6] prueft,
+      dass es sichtbar auf sein Schiffsblatt zeigt (Krisz 24.11.2026: beide
+      Blaetter gleichrangig, kein Canonical, gegenseitige Links). */}
+  <h1 slot="hero" data-fahrzeug-item={item.category === 'Vehicle' || undefined}>{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
   {/* Direkte Wege (Skizze 016, 09.11.2026): vom Item ins Crafting-Werkzeug
@@ -158,8 +162,12 @@ const crumbs = [
     {key && <li class="dp-key"><b>{key[0]}</b><span>{key[1]}</span></li>}
   </ul>
 
+  {/* -- So bekommst du es: alle Wege an einer Stelle, je mit naechstem
+         Schritt (UX-Audit Paket D1, src/components/Bezugswege.astro). -- */}
+  <Bezugswege item={item} lang={lang} />
+
   {/* -- Bezugsquellen: die eigentliche Antwort auf "where to buy" -- */}
-  <section class="dp-sec">
+  <section class="dp-sec" id="bezugsquellen">
     <h2>{t('sectionObtain')}</h2>
     {rows.length > 0 ? (
       <>
