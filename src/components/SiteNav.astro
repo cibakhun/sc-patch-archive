@@ -2182,14 +2182,21 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       // Zeilenabstand und wuerden zu klein skalieren.
       var dy = (b.top + b.height / 2) - (a.top + a.height / 2);
       morph = {
-        // Weglaenge = der vertikale Abstand selbst. Die Ueberschrift kommt
-        // genau dann an, wenn man so weit gescrollt hat, wie sie zu wandern
-        // hatte — das liest sich als direkte Kopplung, nicht als Effekt.
-        t: Math.max(160, Math.abs(dy))
+        // Die Ueberschrift kommt genau dann an, wenn man so weit gescrollt
+        // hat, wie sie zu wandern hatte — das liest sich als direkte
+        // Kopplung, nicht als Effekt. Ankunft ist bei p = 0,8 (--pt in
+        // src/pages/index.astro), danach folgt die Uebergabe an Ort und
+        // Stelle; deshalb die Weglaenge geteilt durch 0,8.
+        t: Math.max(160, Math.abs(dy)) / 0.8
       };
       mark.style.setProperty('--dx', ((b.left + b.width / 2) - (a.left + a.width / 2)).toFixed(2) + 'px');
       mark.style.setProperty('--dy', dy.toFixed(2) + 'px');
       mark.style.setProperty('--s', (fb / fa).toFixed(4));
+      // Laufweite des Schriftzugs in seinem eigenen em: dorthin waechst die
+      // Laufweite der Ueberschrift beim Schrumpfen (--le in index.astro). Weil
+      // --s = fb / fa ist, steht dasselbe em nach dem Schrumpfen fuer dieselbe
+      // Pixelzahl, und beide Woerter sind bei der Uebergabe gleich breit.
+      mark.style.setProperty('--le', ((parseFloat(getComputedStyle(brandText).letterSpacing) || 0) / fb).toFixed(4) + 'em');
     }
 
     function paintMorph() {

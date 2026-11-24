@@ -144,11 +144,15 @@ describe('.hero__mark h1 bleibt die benannte Ausnahme -- keine Skalen-Migration'
       );
     });
 
-    test(`${label}: traegt weiterhin letter-spacing:-.02em woertlich`, () => {
+    // Seit 24.11.2026 (UX-Audit A, WINDOWS #193 Frage 4) waechst die Laufweite
+    // beim Schrumpfen auf die des Schriftzugs (--le, gemessen in measureMorph());
+    // gepinnt bleibt der Ausgangswert im Hero, -.02em, und dass --le und --ps
+    // die Formel tragen.
+    test(`${label}: letter-spacing beginnt woertlich bei -.02em und waechst ueber --le/--ps`, () => {
       const doc = html();
       assert.ok(
-        doc.includes('font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:-.02em'),
-        `${label}: .hero__mark h1 traegt letter-spacing:-.02em nicht mehr unmittelbar nach der clamp()-Formel`
+        doc.includes('font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:calc(-.02em + (var(--le,-.02em) + .02em)*var(--ps,0))'),
+        `${label}: .hero__mark h1 traegt die Laufweiten-Formel (Start -.02em, Ziel --le ueber --ps) nicht mehr unmittelbar nach der clamp()-Formel`
       );
     });
 
