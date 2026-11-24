@@ -425,10 +425,23 @@
     }
     return best;
   }
+  // Woerter des Namens, die ein Suchwort ganz trifft (woertlich oder mit
+  // Tippfehler); ein Name mit Bindestrich deckt alle seine Glieder.
+  function decke(set, w) {
+    set = set || Object.create(null);
+    var teile = w.split('-');
+    for (var i = 0; i < teile.length; i++) set[teile[i]] = true;
+    return set;
+  }
+  function alleGedeckt(wt, set) {
+    if (!set || !wt.length) return false;
+    for (var i = 0; i < wt.length; i++) if (!set[wt[i]]) return false;
+    return true;
+  }
   function score(e, terms, whole, fz) {
     var total = 0;
     var abgedeckt = 0;
-    var ganzW = 0; // Woerter des Namens, die ein Tippfehler-Wort ganz trifft
+    var gedeckt = null; // Woerter des Namens, die ein Suchwort ganz trifft
     var ganzT = 0; // Suchwoerter, die ein ganzes Wort des Namens treffen
     for (var i = 0; i < terms.length; i++) {
       var q = terms[i];
@@ -443,6 +456,7 @@
         else if (e.nx.indexOf(q) >= 0) pts = 15;
         else if (e.ns.indexOf(q) >= 0) pts = 8;
         if (at >= 0) abgedeckt += q.length;
+        if (at >= 0 && (e.wt.indexOf(q) >= 0 || e.wk.indexOf(q) >= 0)) { gedeckt = decke(gedeckt, q); ganzT++; }
       } else {
         // Tippfehler: unter jedem woertlichen Treffer, ein ganzes Wort
         // besser als ein Wortanfang, je Abweichung weniger. Ein Name mit
@@ -455,7 +469,7 @@
           var p = d.voll <= erlaubt(q) ? 20 - 4 * d.voll : 14 - 4 * d.anfang;
           if (p > pts) pts = p;
           if (d.voll <= erlaubt(q)) {
-            ganzW += a < e.wt.length ? 1 : w.split('-').length;
+            gedeckt = decke(gedeckt, w);
             ganzHier = true;
             abgedeckt += w.length;
           }
@@ -472,9 +486,11 @@
     }
     // Wer den Namen ganz tippt, meint genau diesen Eintrag: "Arrow" soll das
     // Schiff vor "Arrow Missile Rack" zeigen, "CF-337 Panther Repeater" die
-    // Waffe vor allem, was sie im Namen fuehrt. Mit Tippfehler genauso:
-    // „Gladis" meint das Schiff Gladius.
-    if (e.nt === whole || (ganzT && ganzT === terms.length && ganzW === e.wt.length)) total += 30;
+    // Waffe vor allem, was sie im Namen fuehrt. Mit Tippfehler genauso,
+    // auch gemischt: „Gladis" meint das Schiff Gladius, „karna rilfe" die
+    // Karna Rifle. Bedingung: jedes Suchwort trifft ein ganzes Wort, und
+    // jedes Wort des Namens ist getroffen.
+    if (e.nt === whole || (ganzT === terms.length && alleGedeckt(e.wt, gedeckt))) total += 30;
     // Werkzeuge vor gleich gut passenden Daten: wer auf einer Item-Seite
     // "bruch" oder "raffinerie" tippt, sucht den Rechner, nicht jedes Teil mit
     // "(Bruch)" im Namen.

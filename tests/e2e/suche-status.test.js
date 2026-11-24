@@ -434,6 +434,9 @@ const WELT_MORE = [
   { k: 'item', b: 'Medical', t: 'AdrenaPen Xtra', s: '', u: '/items/adrena.html', x: '' },
   { k: 'item', b: 'Medical', t: 'Medi-Pen (Hemozal)', s: '', u: '/items/medipen.html', x: '' },
   { k: 'item', b: 'Weapons', t: 'P8-SC SMG', s: '', u: '/items/p8-sc.html', x: '' },
+  // Eine Liste traegt +10; das ganze Item mit Tippfehler muss trotzdem vorn stehen.
+  { k: 'liste', b: 'Liste', t: 'Arclight Pistol Parts', s: '', u: '/items/category/arclight.html', x: '' },
+  { k: 'item', b: 'Weapons', t: 'Arclight Pistol', s: '', u: '/items/arclight-pistol.html', x: 'pistole' },
 ];
 function bootWelt(lang) {
   ERSTER.splice(0, ERSTER.length, ...WELT);
@@ -553,6 +556,16 @@ for (const lang of ['de', 'en']) {
         assert.equal(mark && mark.textContent, 'P8-SC');
         // Woertlich bleibt woertlich: „P4-AR" sucht nicht unscharf.
         assert.equal((await suche(s, 'P4-AR'))[0], 'P4-AR Rifle');
+      } finally { zurueck(); }
+    });
+
+    test('ganzer Name gemischt aus woertlich und Tippfehler: „arclight pistl" zeigt die Pistole zuerst', async () => {
+      const s = bootWelt(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        assert.equal((await suche(s, 'arclight pistl'))[0], 'Arclight Pistol');
+        assert.equal((await suche(s, 'pistl arclight'))[0], 'Arclight Pistol');
       } finally { zurueck(); }
     });
 
