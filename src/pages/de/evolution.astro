@@ -126,7 +126,10 @@ a{color:inherit;text-decoration:none}
    `position:sticky` allein reicht dafuer nicht: es richtet sich am naechsten
    Scrollbereich aus, und der ist durch `overflow-x:auto` dieser Kasten. */
 .evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
-.evo__matrix.is-kopf thead th{box-shadow:0 8px 14px -8px rgba(0,0,0,.7)}
+/* --kopf-deck: der Streifen zwischen Unterkante der Leiste und --nav-h
+   (gut 3 px, mit Zurueck-Marke knapp 40). Ohne die Abdeckung schienen
+   dort die Zeilen durch, die gerade unter der Kopfzeile wegrollen. */
+.evo__matrix.is-kopf thead th{box-shadow:0 calc(-1px * var(--kopf-deck,0)) 0 var(--bg-2),0 8px 14px -8px rgba(0,0,0,.7)}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
@@ -401,15 +404,19 @@ tbody tr.is-ziel .evo__td{background:color-mix(in srgb,var(--accent) 6%,transpar
     // des Kastens und scrollen deshalb ohne Abgleich mit.
     var kopfZellen = scroller.querySelectorAll('thead th');
     var kopfJetzt = '';
+    var leiste = document.getElementById('topbar');
     var kopf = function () {
       var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
       var r = scroller.getBoundingClientRect();
       var h = kopfZellen.length ? kopfZellen[0].offsetHeight : 0;
       var off = Math.round(Math.max(0, Math.min(navH - r.top, r.height - h - 48)));
       var t = off > 0 ? 'translateY(' + off + 'px)' : '';
-      if (t === kopfJetzt) return;
-      kopfJetzt = t;
+      // 4 px Ueberlappung unter die Leiste: deren Unterkante ist nicht ganz deckend.
+      var deck = off > 0 && leiste ? Math.max(0, Math.ceil(navH - leiste.getBoundingClientRect().bottom)) + 4 : 0;
+      if (t + deck === kopfJetzt) return;
+      kopfJetzt = t + deck;
       shell.classList.toggle('is-kopf', off > 0);
+      shell.style.setProperty('--kopf-deck', String(deck));
       kopfZellen.forEach(function (c) { c.style.transform = t; });
     };
     var kopfGeplant = false;
