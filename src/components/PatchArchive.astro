@@ -101,6 +101,7 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
       <span class="mast__title-main">{t('arch.title')}</span>
     </h1>
     <p class="mast__lead">{tf('arch.lead', { latest: a.latest.codename })}</p>
+    <p class="mast__evo"><a href={L('/evolution.html')}>{t('arch.evo')} <span aria-hidden="true">→</span></a></p>
 
     {/* Telemetry — the ledger's own bookkeeping as a HUD readout row. */}
     <dl class="tele">
