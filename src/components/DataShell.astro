@@ -25,6 +25,7 @@ import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
+import { recht, ziel } from '../lib/bereiche';
 import Datenstand from './Datenstand.astro';
 import type { StandZeile } from '../lib/datenstand';
 
@@ -109,6 +110,13 @@ const searchJs = versioned('assets/search-overlay.js', '/assets/search-overlay.j
 const searchCss = versioned('assets/search-overlay.css', '/assets/search-overlay.css');
 const searchUi = href('/search-ui.json', lang);
 
+// Fuss: Ziele und Namen aus der Bereichsliste (src/lib/bereiche.ts). Vorher
+// stand hier „Preise & Fundorte“ fuer das Item-Verzeichnis und „Blaupausen &
+// Planer“ fuer das Blueprint-Verzeichnis — im Menue die Unterzeilen von Item
+// Finder und Werkbank, also zwei Namen fuer je zwei Ziele (UX-Audit A4).
+const fussZiele = ['finder', 'items', 'blueprints', 'schiffe', 'missionen'].map((k) => ziel(k, lang));
+const fussRecht = [...recht(lang), ziel('feedback', lang), ziel('support', lang)];
+
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
 const crumbLd = {
@@ -191,19 +199,12 @@ const crumbLd = {
 
     <footer class="dp-foot">
       <nav class="dp-foot-nav" aria-label={t('footer.pageNav')}>
-        <a href={href('/item-finder.html', lang)}>Item Finder</a>
-        <a href={href('/items.html', lang)}>{t('nav.deck.sub.items')}</a>
-        <a href={href('/crafting.html', lang)}>{t('nav.deck.sub.crafting')}</a>
-        <a href={href('/schiffe.html', lang)}>{t('nav.ships')}</a>
-        <a href={href('/missionen.html', lang)}>{t('nav.missions')}</a>
+        {fussZiele.map((z) => <a href={z.href}>{z.name}</a>)}
         <a href={href('/index.html', lang)}>{t('nav.home')}</a>
       </nav>
       <p class="dp-legal">{t('footer.disclaimer')}</p>
       <p class="dp-foot-nav dp-foot-legal">
-        <a href={href('/impressum.html', lang)}>{t('footer.imprint')}</a>
-        <a href={href('/datenschutz.html', lang)}>{t('footer.privacy')}</a>
-        <a href={href('/feedback.html', lang)}>{t('footer.feedback')}</a>
-        <a href={href('/support.html', lang)}>{t('footer.support')}</a>
+        {fussRecht.map((z) => <a href={z.href}>{z.name}</a>)}
       </p>
     </footer>
   </div>
