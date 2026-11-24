@@ -302,7 +302,12 @@ const RAHMEN = [
   [/<footer\b[^>]*>/g, 'footer'],
 ];
 // Gross- und Kleinschreibung, `</script >` und `--!>` wie im HTML-Parser.
-const OHNE = /<!--[\s\S]*?--!?>|<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>|<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi;
+// Dazu die Elemente, deren Inhalt der Parser als Text liest (textarea,
+// xmp, iframe, noembed, noframes): ein „<a>“ darin ist kein Link. Nicht
+// dabei: title (im SVG ein gewoehnliches Element, oft in Leisten-Links)
+// und noscript (fuer Crawler ohne Skript sind das echte Links).
+const OHNE =
+  /<!--[\s\S]*?--!?>|<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>|<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>|<(textarea|xmp|iframe|noembed|noframes)\b[^>]*>[\s\S]*?<\/\1\b[^>]*>/gi;
 // Gegenprobe: keines dieser Rahmen-Teile darf nach dem Schnitt im Inhalt
 // stehen. Aendert sich das Markup einer Leiste so, dass RAHMEN sie nicht
 // mehr trifft, zaehlten ihre Links still als Inhalt und das Tor waere

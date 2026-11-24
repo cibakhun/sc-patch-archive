@@ -1138,6 +1138,10 @@ export const CHECKS = [
     // href="/impres&lt;b&gt;sum.html" (beide kein Link aufs Impressum), eine
     // Weiterleitung hinter „<!-- <body> -->“ im Kopf (erkannt). Gleiche
     // Linkzahl wie vorher (636 832): der Tag-Lauf weicht im Bau nirgends ab.
+    // Datenblatt-Menue ebenso: letzter Link hinter dem </div> seiner Gruppe
+    // auf einem Item-Blatt -> „Link ausserhalb der Gruppen“. Dritte Runde
+    // (Live-Bau): „<a href>“ in <textarea> und <iframe> zaehlt nicht (Zombie
+    // still), ein echter Link daneben weckt ihn; Linkzahl gleich (598 732).
     id: 'verify:ia',
     npm: 'verify:ia',
     script: 'scripts/verify-ia.mjs',
