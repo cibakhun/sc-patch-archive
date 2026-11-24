@@ -36,8 +36,7 @@ export const TOOL_ALIASES: Record<string, string> = {
   '/schiffe.html': 'loadout ausstattung raumschiffe fahrzeuge vehicles',
   '/archiv.html': 'patchnotes patch notes chronik',
   '/evolution.html': 'entwicklung verlauf',
-  // Verzeichnisse: wirken, sobald die Bereichsliste sie als Werkzeug fuehrt,
-  // und bis dahin an den Listen-Eintraegen (buildSearchIndex, Art „liste").
+  // Verzeichnisse: die Bereichsliste fuehrt sie seit A1 als Werkzeug.
   '/items.html': 'verzeichnis directory kategorien categories gegenstände',
   '/crafting.html': 'verzeichnis directory blueprints baupläne blaupausen bauplan',
   '/armor-sets.html': 'rüstungssets rüstungs-sets rüstung sets armor armour',

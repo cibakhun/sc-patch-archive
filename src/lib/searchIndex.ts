@@ -36,6 +36,7 @@ import {
 import { categoryLabel } from '../i18n/itemText';
 import { priceInfo, aUEC } from './shipExtras';
 import { shipIdForVehicleItem } from './vehicleItems';
+import { suchZiele } from './bereiche';
 import { TOOL_ALIASES, gattungsWoerter } from './searchAliases';
 import { weltEintraege } from './searchWelt';
 
@@ -51,29 +52,15 @@ function mitSuchwoertern(tools: SearchEntry[], lang: Locale): SearchEntry[] {
   return tools.map((e) => (nachUrl.has(e.u) ? { ...e, x: `${e.x} ${nachUrl.get(e.u)}`.trim() } : e));
 }
 
-// Werkzeuge: dieselben Ziele und Unterzeilen wie im Navigationsdeck
-// (src/components/SiteNav.astro), ohne Konto/Service. Der Hangar fehlt mit
-// Absicht: live gibt es ihn nicht (HAS_HANGAR), und neue Links dorthin
-// entstehen in dieser Phase keine. x traegt Suchwoerter beider Sprachen; es
-// wird nie angezeigt.
+// Werkzeuge: jede Seite der Bereichsliste (src/lib/bereiche.ts) mit
+// Suchwoertern, in Leistenreihenfolge, mit demselben Namen und derselben
+// Unterzeile wie im Menue. Seit 24.11.2026 (UX-Audit A1) stehen deshalb auch
+// Item- und Blueprint-Verzeichnis, Ruestungs-Sets und Downloads hier; Hangar
+// und Advanced Loadout nur im Vorschau-Bau (bereiche() filtert sie live
+// heraus, HAS_HANGAR). x traegt Suchwoerter beider Sprachen; es wird nie
+// angezeigt.
 function toolEntries(lang: Locale): SearchEntry[] {
-  const t = useTranslations(lang);
-  const tool = (title: string, sub: string, path: string, x: string): SearchEntry => ({
-    k: 'werkzeug', b: '', t: title, s: sub, u: href(path, lang), x,
-  });
-  return [
-    tool('Item Finder', t('nav.deck.sub.items'), '/item-finder.html', 'items finder preise prices shops loot fundorte kaufen buy'),
-    tool(t('nav.missions'), t('nav.deck.sub.missions'), '/missionen.html', 'missions missionen contracts auftraege reputation ruf belohnung reward'),
-    tool('Crafting', t('nav.deck.sub.crafting'), '/topics/crafting.html', 'crafting blueprints bauplaene blaupausen planner planer herstellen'),
-    tool('Fracturing', t('nav.deck.sub.fracturing'), '/fracturing.html', 'fracturing bruchrechner mining laser module gadgets brechen'),
-    tool('Refinery', t('nav.deck.sub.refinery'), '/refinery.html', 'refinery raffinerie jobs auftraege tracker'),
-    tool('Mining', t('nav.deck.sub.mining'), '/topics/mining.html', 'mining bergbau minerals mineralien erze ores scans'),
-    tool('Precision Jump', t('nav.deck.sub.jump'), '/precision-jump.html', 'aaron halo quantum quantensprung routen routes'),
-    tool("Wikelo's Emporium", t('nav.deck.sub.wikelo'), '/topics/wikelo-emporium.html', 'wikelo banu trades tausch handel'),
-    tool(t('nav.ships'), t('nav.deck.sub.ships'), '/schiffe.html', 'ships schiffe vergleich compare specs'),
-    tool(t('nav.archive'), t('nav.deck.sub.archive'), '/archiv.html', 'patches archiv archive versionen versions'),
-    tool(t('nav.evolution'), t('nav.deck.sub.evolution'), '/evolution.html', 'evolution systeme systems'),
-  ];
+  return suchZiele(lang).map((z) => ({ k: 'werkzeug', b: '', t: z.name, s: z.sub, u: z.href, x: z.such ?? '' }));
 }
 
 export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
