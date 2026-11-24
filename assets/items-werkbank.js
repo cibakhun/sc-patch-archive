@@ -1233,7 +1233,8 @@
   // Das Zurueck aus telefonZu() selbst (Schliessen-Knopf, Gruppe, „Set-Teile
   // zeigen“): sein popstate laesst einen wartenden Schreibvorgang stehen,
   // denn den hat der Aufrufer gerade fuer die Liste angestossen.
-  var eigenesZurueck = false, zurueckTimer = 0;
+  // zurueckVerfallen: wann der Ersatz-Timer aufgegeben hat (siehe telefonZu).
+  var eigenesZurueck = false, zurueckTimer = 0, zurueckVerfallen = 0;
   // Offen deckt das Blatt die Seite ganz zu. Alles daneben wird inert,
   // damit Tab und Vorleser im Blatt bleiben; beim Schliessen kommt genau
   // das zurueck, was hier gesetzt wurde.
@@ -1255,6 +1256,7 @@
   function telefonAuf(ausHistorie) {
     if (!TELEFON.matches || el.blatt.classList.contains('is-offen')) return;
     el.blatt.classList.add('is-offen');
+    zurueckVerfallen = 0;
     aussenTraege(true);
     if (window.VBScrollLock) window.VBScrollLock.lock();
     if (ausHistorie) blattGeschoben = true;
@@ -1279,10 +1281,17 @@
       blattGeschoben = false;
       eigenesZurueck = true;
       try { history.back(); } catch (e) { eigenesZurueck = false; }
-      // Kommt kein popstate (Verlauf blockiert), darf die Adresse nicht
-      // dauerhaft stehen bleiben.
+      // Kommt nach einer Sekunde noch kein popstate, gibt der Ersatz-Timer
+      // das Warten auf, damit Schreibvorgaenge nicht dauerhaft ruhen. In den
+      // Blatteintrag schreibt er nicht: ein spaetes Zurueck landet noch auf
+      // dem Listeneintrag und schreibt dort (popstate, zurueckVerfallen).
       clearTimeout(zurueckTimer);
-      if (eigenesZurueck) zurueckTimer = setTimeout(function () { if (eigenesZurueck) { eigenesZurueck = false; schreibeUrl(); } }, 1000);
+      if (eigenesZurueck) zurueckTimer = setTimeout(function () {
+        if (!eigenesZurueck) return;
+        eigenesZurueck = false;
+        zurueckVerfallen = Date.now();
+        if (!(history.state && history.state.wzBlatt)) schreibeUrl();
+      }, 1000);
     }
     blattGeschoben = false;
     var k = markiere();
@@ -1336,6 +1345,11 @@
   // Schreibvorgang traegt sie in deren Eintrag.
   window.addEventListener('popstate', function (e) {
     var eigenes = eigenesZurueck;
+    // Ein eigenes Zurueck, das erst nach dem Ersatz-Timer ankommt (langsame
+    // Traversierung), bleibt ein eigenes: es landet binnen zehn Sekunden auf
+    // einem Eintrag ohne Blatt.
+    if (!eigenes && zurueckVerfallen && Date.now() - zurueckVerfallen < 10000 && !(e.state && e.state.wzBlatt)) eigenes = true;
+    zurueckVerfallen = 0;
     eigenesZurueck = false;
     clearTimeout(zurueckTimer);
     // Eigenes Zurueck: jetzt erst steht der Eintrag der Liste an, und dorthin
