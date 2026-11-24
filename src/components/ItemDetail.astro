@@ -403,12 +403,12 @@ const crumbs = [
   {related.length > 0 && (
     <section class="dp-sec">
       <h2>{t('sectionRelated')}</h2>
-      <ul class="dp-cards">
+      <ul class="dp-cards" data-aehnlich>
         {related.map((r) => {
           const p = minPrice(r);
           const linked = pageItemIds.has(r.id);
           return (
-            <li>
+            <li data-item={r.id}>
               {linked ? (
                 <a class="dp-card" href={href(itemPath(r), lang)}>
                   <strong>{displayName(r, lang)}</strong>

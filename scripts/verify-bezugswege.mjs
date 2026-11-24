@@ -39,6 +39,16 @@
 //      Gruppen gibt.
 //  12  D8 Bauplan-Seiten nennen je Material seine Wege und schlagen nie vor,
 //      das herzustellende Item selbst zu zerlegen. Klinke.
+//  13  P52 Eine Blueprint-Zahl: Verzeichnis (/crafting.html) und Werkbank
+//      (/topics/crafting.html) nennen je Sprache dieselbe Zahl, und sie ist
+//      die Zahl der Bauplan-Seiten; der Satz zum Spielbestand rechnet auf
+//      (gezeigt + ohne Item = alle Bauplaene in crafting-db.json). Und eine
+//      Einheit: die ausgelieferte Crafting-Datenbank (assets/crafting-app.js)
+//      zeigt Mengen in SCU wie die Bauplan-Seiten, nirgends als cSCU.
+//  14  P64 „Ähnliche Items" einer Handwaffe: gleiche Waffenart vor jeder
+//      anderen (scripts/lib/waffen-art.mjs), die erste Karte hat die Art,
+//      sobald die Kategorie eine zweite Waffe dieser Art kennt, und kein
+//      Modell steht oefter als AUSFUEHRUNGEN_JE_MODELL mal da. Klinke.
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -50,6 +60,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { doppelteZeilen } from './lib/hersteller-zeilen.mjs';
+import { AUSFUEHRUNGEN_JE_MODELL, modellName, waffenArt } from './lib/waffen-art.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = resolve(ROOT, 'dist');
@@ -60,6 +71,7 @@ const DIST = resolve(ROOT, 'dist');
 const KLINKEN = {
   itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000,
   poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10900,
+  waffenBlaetter: 700,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
@@ -217,9 +229,43 @@ const DOPPEL = [
   { kennzahl: /<b[^>]*>(?:Feuerrate|Fire rate)<\/b>/, text: /(?:^|\n|>)\s*(?:Rate of Fire|Feuerrate)\s*:/i, name: 'Feuerrate' },
   { kennzahl: /<b[^>]*>(?:Magazin|Magazine)<\/b>/, text: /(?:^|\n|>)\s*(?:Magazine Size|Battery Size|Magazingröße|Batteriegröße)\s*:/i, name: 'Magazin' },
 ];
+/* [14] P64 Aehnliche Items einer Handwaffe */
+const katalog = JSON.parse(readFileSync(resolve(ROOT, 'assets/universal-items.json'), 'utf8')).items;
+const itemNachId = new Map(katalog.map((it) => [it.id, it]));
+const artenJeKategorie = new Map(); // Kategorie|Art -> Zahl der Handwaffen
+for (const it of katalog) {
+  const art = waffenArt(it);
+  if (!art) continue;
+  const k = `${it.category}|${art}`;
+  artenJeKategorie.set(k, (artenJeKategorie.get(k) ?? 0) + 1);
+}
+let waffenBlaetter = 0;
+const aehnlichFalsch = [];
+function pruefeAehnlich(pfad, html) {
+  const item = itemNachId.get(pfad.match(/\/([^/]+)\.html$/)?.[1]);
+  const art = item && waffenArt(item);
+  if (!art) return;
+  waffenBlaetter++;
+  const kartenHtml = html.match(/<ul class="dp-cards"[^>]*data-aehnlich[^>]*>([\s\S]*?)<\/ul>/)?.[1];
+  if (kartenHtml == null) { aehnlichFalsch.push(`${pfad} (Block fehlt)`); return; }
+  const karten = [...kartenHtml.matchAll(/<li\b[^>]*data-item="([^"]+)"/g)].map((m) => itemNachId.get(m[1]));
+  const arten = karten.map((k) => (k ? waffenArt(k) : null));
+  const probleme = [];
+  const ersteFremde = arten.findIndex((a) => a !== art);
+  if (ersteFremde >= 0 && arten.slice(ersteFremde).includes(art)) probleme.push('fremde Art vor gleicher Art');
+  if ((artenJeKategorie.get(`${item.category}|${art}`) ?? 0) > 1 && arten[0] !== art) probleme.push(`erste Karte keine ${art}`);
+  const jeModell = new Map();
+  for (const k of karten) if (k) jeModell.set(modellName(k.name), (jeModell.get(modellName(k.name)) ?? 0) + 1);
+  const zuOft = [...jeModell].filter(([, n]) => n > AUSFUEHRUNGEN_JE_MODELL).map(([m, n]) => `${m} ${n}x`);
+  if (zuOft.length) probleme.push(`Modell zu oft: ${zuOft.join(', ')}`);
+  if (karten.some((k) => !k)) probleme.push('Karte ohne Katalogeintrag');
+  if (probleme.length) aehnlichFalsch.push(`${pfad} (${probleme.join('; ')})`);
+}
+
 for (const rel of ['items', 'de/items']) {
   for (const [pfad, html] of seiten(rel)) {
     blaetter++;
+    pruefeAehnlich(pfad, html);
     const block = abschnitt(html, 'so-bekommst-du-es');
     if (!block) { ohneBlock.push(pfad); continue; }
     const wege = Number(block.match(/data-wege="(\d+)"/)?.[1] ?? NaN);
@@ -348,6 +394,44 @@ console.log(`    Bauplan-Seiten mit Zutaten: ${materialSeiten} (Klinke ${KLINKEN
 need(materialSeiten >= KLINKEN.materialSeiten, `nur ${materialSeiten} Bauplan-Seiten mit Zutaten, Klinke ${KLINKEN.materialSeiten}`);
 need(!materialFehlt.length, `${materialFehlt.length} Bauplan-Seite(n) ohne „Woher die Materialien kommen" — ${liste(materialFehlt)}`);
 need(!selbstZerlegen.length, `${selbstZerlegen.length} Bauplan-Seite(n) schlagen vor, das herzustellende Item zu zerlegen — ${liste(selbstZerlegen)}`);
+
+/* ---------- [13] P52 eine Blueprint-Zahl ---------- */
+console.log('\n[13] P52 Verzeichnis und Werkbank nennen dieselbe Blueprint-Zahl, Mengen stehen ueberall in SCU');
+{
+  const zahl = (s) => (s == null ? null : Number(String(s).replace(/[.,\s]/g, '')));
+  const spielBestand = JSON.parse(readFileSync(resolve(ROOT, 'assets/crafting-db.json'), 'utf8')).blueprints.length;
+  for (const [pre, ordner] of [['', 'crafting'], ['de/', 'de/crafting']]) {
+    const seitenZahl = [...seiten(ordner)].length;
+    const hubPfad = join(DIST, `${pre}crafting.html`);
+    const wbPfad = join(DIST, `${pre}topics/crafting.html`);
+    const hub = existsSync(hubPfad) ? readFileSync(hubPfad, 'utf8') : '';
+    const wb = existsSync(wbPfad) ? readFileSync(wbPfad, 'utf8') : '';
+    const hubZahl = zahl(hub.match(/<b[^>]*>Blueprints<\/b>\s*<span[^>]*>([\d.,]+)<\/span>/)?.[1]);
+    const ohneItem = zahl(hub.match(/data-ohne-item="(\d+)"/)?.[1]) ?? 0;
+    const wbZahl = zahl(wb.match(/id="cdb-count"[^>]*>[\d.,]+<\/b>\s*\/\s*([\d.,]+)/)?.[1]);
+    console.log(`    /${pre}: Bauplan-Seiten ${seitenZahl}   Verzeichnis ${hubZahl}   Werkbank ${wbZahl}   ohne Item ${ohneItem}   Spielbestand ${spielBestand}`);
+    need(hubZahl != null && wbZahl != null, `/${pre}: Blueprint-Zahl im Verzeichnis oder auf der Werkbank nicht gefunden — Muster veraltet?`);
+    need(hubZahl === seitenZahl && wbZahl === seitenZahl, `/${pre}: Verzeichnis ${hubZahl}, Werkbank ${wbZahl}, Bauplan-Seiten ${seitenZahl} — eine Zahl fuer alle drei`);
+    need(seitenZahl + ohneItem === spielBestand, `/${pre}: ${seitenZahl} gezeigt + ${ohneItem} ohne Item ergibt nicht den Spielbestand ${spielBestand} — der Satz im Verzeichnis rechnet nicht auf`);
+  }
+  // Eine Einheit: „64 cSCU“ in der Datenbank gegen „0,64 SCU“ auf dem Bauplan
+  // war dieselbe Menge. Gezaehlt werden Zeichenketten, die cSCU anzeigen;
+  // Bezeichner wie quantity_cSCU stehen nicht in Anfuehrungszeichen.
+  const appPfad = join(DIST, 'assets/crafting-app.js');
+  const app = existsSync(appPfad) ? readFileSync(appPfad, 'utf8') : '';
+  const cscu = app.match(/(['"])(?:(?!\1)[^\\\n]|\\.)*\bcSCU\b(?:(?!\1)[^\\\n]|\\.)*\1/g) ?? [];
+  const scuAnzeigen = (app.match(/['"] SCU\b/g) ?? []).length;
+  console.log(`    Crafting-Datenbank: Mengenanzeigen in SCU ${scuAnzeigen}   in cSCU — Soll: 0   Ist: ${cscu.length}`);
+  need(app.length > 0, 'dist/assets/crafting-app.js fehlt — erst bauen');
+  need(scuAnzeigen >= 3, `nur ${scuAnzeigen} Mengenanzeigen in SCU in der Crafting-Datenbank (erwartet: Zutat, Einkaufsliste, Zerlegen) — Muster veraltet?`);
+  need(!cscu.length, `Crafting-Datenbank zeigt Mengen in cSCU, die Bauplan-Seiten in SCU — eine Einheit: ${liste(cscu)}`);
+}
+
+/* ---------- [14] P64 Aehnliche Items nach Waffenart ---------- */
+console.log('\n[14] P64 „Ähnliche Items" einer Handwaffe: gleiche Art zuerst, hoechstens ' + AUSFUEHRUNGEN_JE_MODELL + ' Ausfuehrungen je Modell');
+console.log(`    Handwaffen-Blaetter: ${waffenBlaetter} (Klinke ${KLINKEN.waffenBlaetter})   falsch geordnet — Soll: 0   Ist: ${aehnlichFalsch.length}`);
+need(waffenBlaetter >= KLINKEN.waffenBlaetter, `nur ${waffenBlaetter} Handwaffen-Blaetter erkannt, Klinke ${KLINKEN.waffenBlaetter} — Ursache klaeren, nicht die Klinke senken`);
+need(!aehnlichFalsch.length, `${aehnlichFalsch.length} Handwaffen-Blatt/Blaetter mit falsch geordneten „Ähnlichen Items" — ${liste(aehnlichFalsch)}`);
 
 console.log('\n    Selbstauskunft (kein Urteil, Fremdquelle): Blaetter mit Kaufzeilen ohne Systemangabe '
   + `${ohneSystem} von ${kaufBlaetter}`);
