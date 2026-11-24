@@ -38,6 +38,7 @@ const COPY = {
     doneNo: 'Deine Nachricht ist bei uns angekommen. Vielen Dank!',
     again: 'Weiteres Feedback senden',
     errShort: 'Bitte schreib eine kurze Nachricht (mindestens 5 Zeichen).',
+    msgRule: 'Mindestens 5 Zeichen.',
     errFail: 'Senden fehlgeschlagen. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     errNet: 'Netzwerkfehler — Senden nicht möglich. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     ratingField: 'Bewertung',
@@ -63,6 +64,7 @@ const COPY = {
     doneNo: 'Your message reached us. Thank you!',
     again: 'Send more feedback',
     errShort: 'Please write a short message (at least 5 characters).',
+    msgRule: 'At least 5 characters.',
     errFail: 'Sending failed. Please try again later or e-mail krysx141@gmail.com.',
     errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
     ratingField: 'Rating',
@@ -131,7 +133,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
     <div class="fbx-field">
       <label class="fbx-label" for="fbMsg">{COPY.msg} <span class="reqm" title={COPY.req}>*</span></label>
-      <textarea class="fbx-input fbx-textarea" id="fbMsg" name="message" required minlength="5" placeholder={COPY.msgPh}></textarea>
+      <textarea class="fbx-input fbx-textarea" id="fbMsg" name="message" required minlength="5" aria-describedby="fbMsgRule" placeholder={COPY.msgPh}></textarea>
+      {/* Regel am Feld, nicht erst nach dem Absenden (UX-Audit P97, 24.11.2026). */}
+      <p class="fbx-hint" id="fbMsgRule">{COPY.msgRule}</p>
       <p class="fbx-hint" id="fbDiscord" hidden>{COPY.discordPre} <a href={DISCORD.invite} target="_blank" rel="noopener">{COPY.discordLink}</a>{COPY.discordPost}</p>
     </div>
 
