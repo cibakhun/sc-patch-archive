@@ -266,10 +266,10 @@ const t = useTranslations(lang);
         {/* Lesbarer Titel (UX-Audit F1): Platzhalter als kursives
             allgemeines Wort; darunter, was gleichnamige Missionen
             unterscheidet. Die Vorlage mit Marken steht im Hinweis unten. */}
-        {/* Missionstitel sind englisch (im Spiel gibt es keine deutschen).
-            lang="en" laesst den Browser englisch trennen — mit der Seiten-
-            sprache wurde „Ship Mined Ore" zu „Ship Mi- / ned Ore". */}
-        <h1 class="md__h1" lang={lang === 'de' ? 'en' : undefined}>
+        {/* Missionstitel stehen in der Sprache der Auftragstexte (englisch).
+            Das lang-Attribut laesst den Browser englisch trennen — mit der
+            Seitensprache wurde „Ship Mined Ore" zu „Ship Mi- / ned Ore". */}
+        <h1 class="md__h1" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
           {name.teile.map((p) => (p.gen ? <i class="md__gen">{p.t}</i> : <span>{p.t}</span>))}
         </h1>
         {zusatz && <p class="md__sub">{zusatz}</p>}

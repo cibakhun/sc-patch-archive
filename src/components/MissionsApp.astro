@@ -264,7 +264,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
         >
           <a class="mc__link" href={L(`/missionen/${m.slug}.html`)}>
             <div class="mc__top">
-              <h3 class="mc__h" lang={lang === 'de' ? 'en' : undefined}>
+              <h3 class="mc__h" lang={fremdLang(lang, MISSIONSTEXT_LANG)}>
                 {parts.map((p) => (p.gen ? <i class="mc__gen">{p.t}</i> : <span>{p.t}</span>))}
               </h3>
               {m.count > 1 && <span class="mc__n">{m.count}&thinsp;×</span>}
