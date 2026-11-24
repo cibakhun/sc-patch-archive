@@ -392,9 +392,13 @@ a.wk-get-name{display:block;color:var(--text)}
       var cat = 'all';
       var norm = function (s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, ''); };
       // Durchsucht werden Kategorie, Materialien, Belohnung und Loadout — und
-      // der kanonische Item-Name, falls die Karte ihn anders schreibt.
+      // der kanonische Item-Name, falls die Karte ihn anders schreibt. Die
+      // Kategorie steht auf der Karte in der Einzahl („Schiff“), auf dem
+      // Filter in der Mehrzahl („Schiffe“); beide Schreibweisen finden.
+      var pillName = {};
+      pills.forEach(function (p) { pillName[p.getAttribute('data-filter')] = p.textContent; });
       var texts = cards.map(function (c) {
-        var parts = [];
+        var parts = [pillName[c.getAttribute('data-cat')] || ''];
         c.querySelectorAll('.wk-tc__cat, .wk-mats li, .wk-get-name, .wk-comps .cn, .wk-conf').forEach(function (el) { parts.push(el.textContent); });
         c.querySelectorAll('[data-item]').forEach(function (el) { parts.push(el.getAttribute('data-item')); });
         return norm(parts.join(' '));
