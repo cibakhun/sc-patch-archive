@@ -2181,7 +2181,7 @@ span.sd__ref{color:var(--muted)}
         Aggregation derselben Aussage); prop/other bekommen die neue, aber
         strukturgleiche Stueckzahl-Liste (sysKindCounts). */}
     {sysGroups.map((gr) => (
-      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} aria-label={t(`holo.grp.${gr}` as any)}>
+      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} data-kind={gr === 'arms' && armsOhneMarker ? 'inhalt' : undefined} aria-label={t(`holo.grp.${gr}` as any)}>
         <h2 class="holo__sys-h">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
           {t(`holo.grp.${gr}` as any)}
