@@ -61,7 +61,8 @@ export const SONSTIGES_REGELN = [
   { re: /\b(Keycard|Access Card|Inverter Code|Encryption Key|Comp-Board)\b/, kategorie: 'Utility / Keycards', anlass: 'Zugang' },
 
   // --- Essen und Trinken ---
-  { re: /\b(Ramian|Noodles|Pizza \(Slice\)|Ration pack|Combat Ration)\b/i, kategorie: 'Utility / Foods', anlass: 'Essen' },
+  // „(Slice)“ endet auf eine Klammer: dahinter gibt es keine Wortgrenze.
+  { re: /\b(Ramian|Noodles|Ration pack|Combat Ration)\b|\bPizza \(Slice\)/i, kategorie: 'Utility / Foods', anlass: 'Essen' },
   { re: /^Pips \w+ \(\d+ aUEC\)$/, kategorie: 'Utility / Foods', anlass: 'Knabberzeug' },
   { re: /\((3|5) aUEC\)$|^Gin & Tonic$|\(Pint\)$/, kategorie: 'Utility / Drinks', anlass: 'Getraenk' },
 

@@ -34,6 +34,7 @@ test('Namen landen in der Kategorie, die ihre Art nennt', () => {
     'Crypt Keycard': 'Utility / Keycards',
     'DCHS-01 Executive Access Protocols Comp-Board': 'Utility / Keycards',
     'Black Bean Ramian': 'Utility / Foods',
+    'Pepperoni and Peppers Pizza (Slice)': 'Utility / Foods',
     'Pips A20 (5 aUEC)': 'Utility / Foods',
     'Gin & Tonic': 'Utility / Drinks',
     'Government Cartography Agency Medal (Worn)': 'Utility / Miscellaneous',
