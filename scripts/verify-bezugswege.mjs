@@ -25,6 +25,36 @@
 //      dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs.
 //   6  Fahrzeug-Itemblaetter verlinken sichtbar ihr Schiffsblatt (Krisz,
 //      24.11.2026: gleichrangig, kein Canonical, gegenseitige Links). Klinke.
+//   Zweite Stufe (P2, gleicher Tag):
+//   7  D4 Pool statt „100 %": jede Zeile der Missionstabelle eines Bauplans
+//      nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %". Klinke.
+//      Jede Zahl (auch jedes Ende einer Spanne) ist die Groesse eines Pools
+//      genau dieser Mission (verschiedene Bauplaene, src/data/missions.json).
+//   8  D10 Der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite
+//      hoechstens einmal.
+//   9  D7 Kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer
+//      Sprache; gleichnamige Seiten verlinken einander (data-zwilling). Welche
+//      Seiten gleichnamig sind, sagt die Ueberschrift, nicht der Hinweis: jede
+//      Seite einer Namensgruppe traegt ihn und verlinkt alle anderen, keine
+//      Seite ohne Zwilling traegt ihn.
+//  10  D6 Schiffsteile verlinken ihr Schiff; die Zahl der Item-Blaetter ganz
+//      ohne Weg bleibt unter ihrer Decke (Decken wandern nur nach UNTEN).
+//  11  D5 Bezugsquellen: kein Ø-Preis je Zeile, Preisspalte nur mit Preis,
+//      keine Zelle nur mit „—", Systemfilter genau dann, wenn die Zeilen mehr
+//      als ein System (oder „ohne“) nennen.
+//  12  D8 Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf (als Weg
+//      oder ausdrueckliches „nein“) und schlagen nie vor,
+//      das herzustellende Item selbst zu zerlegen. Klinke.
+//  13  P52 Eine Blueprint-Zahl: Verzeichnis (/crafting.html) und Werkbank
+//      (/topics/crafting.html) nennen je Sprache dieselbe Zahl, und sie ist
+//      die Zahl der Bauplan-Seiten; der Satz zum Spielbestand rechnet auf
+//      (gezeigt + ohne Item = alle Bauplaene in crafting-db.json). Und eine
+//      Einheit: die ausgelieferte Crafting-Datenbank (assets/crafting-app.js)
+//      zeigt Mengen in SCU wie die Bauplan-Seiten, nirgends als cSCU.
+//  14  P64 „Ähnliche Items" einer Handwaffe: gleiche Waffenart vor jeder
+//      anderen (scripts/lib/waffen-art.mjs), die erste Karte hat die Art,
+//      sobald die Kategorie eine zweite Waffe dieser Art kennt, und kein
+//      Modell steht oefter als AUSFUEHRUNGEN_JE_MODELL mal da. Klinke.
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -36,6 +66,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { doppelteZeilen } from './lib/hersteller-zeilen.mjs';
+import { AUSFUEHRUNGEN_JE_MODELL, modellName, waffenArt } from './lib/waffen-art.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = resolve(ROOT, 'dist');
@@ -43,7 +74,14 @@ const DIST = resolve(ROOT, 'dist');
 // Klinken (Grundsatz 5): nur nach OBEN; nach unten nur per Commit, dessen
 // Botschaft die Ursache nennt. Erster Lauf 24.11.2026 (Katalog 4.10.3) —
 // Werte im Registry-Eintrag; die Klinken knapp darunter.
-const KLINKEN = { itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000 };
+const KLINKEN = {
+  itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000,
+  poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10900,
+  waffenBlaetter: 700,
+};
+// Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
+// vor D6 430 (215 je Sprache), danach 278.
+const DECKEN = { ohneWeg: 290 };
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -100,6 +138,148 @@ const h1Name = (html) => {
 const MISSION_LINK = /href="(?:\/de)?\/missionen\/[a-z0-9-]+\.html"/;
 const ALTE_VERMUTUNG = /evtl\. über Shop oder Reputation|may be obtainable via shop or reputation/;
 
+/* ---------- P2-Pruefungen je Seite: [7] [8] [9] [11] [12] ---------- */
+const PLANER_KNOPF = /Im Fabricator-Planer öffnen|Open in the fabricator planner/g;
+const titel = new Map(); // Sprache|Titel -> Pfade
+let poolTabellen = 0;
+const poolOhne = [];
+// Missionsfamilie -> Groessen ihrer Pools (verschiedene Bauplaene je Pool,
+// src/data/missions.json). Jede Zahl der Tabelle muss die Groesse eines
+// dieser Pools sein: die Summe der Familie (vorher „1 von 25“ bei Pools
+// 7 + 5 + 5 + 8) ist es nicht, und die Zahl der Bauplan-Seiten auch nicht,
+// wo sie vom Pool abweicht (Review #434).
+const poolGroessen = new Map(
+  JSON.parse(readFileSync(resolve(ROOT, 'src/data/missions.json'), 'utf8')).missions
+    .filter((m) => (m.blueprints ?? []).length > 0)
+    .map((m) => [m.slug, { mehrere: m.blueprints.length > 1, groessen: new Set(m.blueprints.map((p) => new Set(p.blueprints.map((b) => String(b.name).toLowerCase())).size)) }]),
+);
+let poolGeprueft = 0;
+let poolGeprueftMehrere = 0;
+const poolFremd = [];
+let poolTexte = 0;
+let poolZeilen = 0;
+const poolTextFalsch = [];
+const planerDoppelt = [];
+let materialSeiten = 0;
+let materialMitItem = 0;
+const materialFehlt = [];
+const selbstZerlegen = [];
+let zwillingsSeiten = 0;
+// [9] Gleichnamige Seiten werden aus der Ueberschrift ermittelt, nicht aus dem
+// Hinweis selbst: fehlt der Hinweis ganz, faellt die Seite sonst durch
+// (Review #434). Schluessel wie namensSchluessel() in src/lib/itemSeo.ts.
+const namensSchluessel = (s) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, '').replace(/\s+/g, ' ').trim();
+const ENTITAET = { amp: '&', quot: '"', '#39': "'", '#x27': "'", lt: '<', gt: '>' };
+/** Sichtbarer Text eines Schnipsels: Tags Zeichen fuer Zeichen entfernt, Entitaeten in einem Durchgang. */
+function sichtbar(schnipsel) {
+  let text = '';
+  let imTag = false;
+  for (const c of schnipsel) {
+    if (imTag) { if (c === '>') imTag = false; continue; }
+    if (c === '<') { imTag = true; continue; }
+    text += c;
+  }
+  return text.replace(/&(amp|quot|#39|#x27|lt|gt);/g, (_, e) => ENTITAET[e]);
+}
+const namensGruppen = new Map(); // Ordner|Name -> [{ pfad, hinweis, ziele }]
+function merkeTitel(pfad, html) {
+  const t = html.match(/<title>([^<]*)<\/title>/)?.[1];
+  if (!t) return;
+  const k = `${pfad.startsWith('/de/') ? 'de' : 'en'}|${t}`;
+  const l = titel.get(k);
+  if (l) l.push(pfad);
+  else titel.set(k, [pfad]);
+  const h1 = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1];
+  if (h1 == null) return;
+  const hinweis = html.includes('data-zwilling');
+  if (hinweis) zwillingsSeiten++;
+  const note = html.match(/<p class="dp-note dp-zwilling"[\s\S]*?<\/p>/)?.[0] ?? '';
+  const ziele = new Set([...note.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]));
+  const g = `${pfad.slice(0, pfad.lastIndexOf('/'))}|${namensSchluessel(sichtbar(h1))}`;
+  const eintrag = { pfad, hinweis, ziele };
+  const liste = namensGruppen.get(g);
+  if (liste) liste.push(eintrag);
+  else namensGruppen.set(g, [eintrag]);
+}
+function pruefeBauplanP2(pfad, html) {
+  merkeTitel(pfad, html);
+  // [8] Planer-Knopf einmal
+  if ((html.match(PLANER_KNOPF) ?? []).length > 1) planerDoppelt.push(pfad);
+  // [7] Pool je Missionszeile
+  const sec = abschnitt(html, 'missionen');
+  const tabelle = sec && sec.match(/<table[\s\S]*?<\/table>/)?.[0];
+  if (tabelle) {
+    poolTabellen++;
+    const zellen = [...tabelle.matchAll(/<td class="dp-num"([^>]*)>([^<]*)<\/td>/g)];
+    const zeilen = (tabelle.match(/<tr\b/g) ?? []).length - 1; // ohne Kopfzeile
+    const mitPool = zellen.filter((z) => /data-pool="\d+"/.test(z[1])).length;
+    if (!zeilen || mitPool !== zeilen || zellen.some((z) => /^\s*100\s?%\s*$/.test(z[2]))) poolOhne.push(pfad);
+    // Zeile fuer Zeile (jede traegt data-mission, auch ohne Link auf eine
+    // Missionsseite): der sichtbare Text der Pool-Zelle sagt dieselbe Zahl
+    // wie data-pool/data-pool-min („1 von 8“, „1 von 5–8“, „nur dieser“ = 1),
+    // und jede Zahl (auch jedes Ende einer Spanne) ist die Groesse eines
+    // Pools genau dieser Mission (Review #434).
+    // Alle Zeilen des Tabellenkoerpers, ohne Ausnahme nach Inhalt.
+    const koerper = tabelle.match(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/)?.[1] ?? '';
+    const reihen = [...koerper.matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)];
+    if (!reihen.length) poolTextFalsch.push(`${pfad} (Missionstabelle ohne Zeilen im Tabellenkoerper)`);
+    for (const [, trAttr, inhalt] of reihen) {
+      const slug = trAttr.match(/data-mission="([a-z0-9-]+)"/)?.[1];
+      const zelle = inhalt.match(/<td class="dp-num"([^>]*)>([^<]*)<\/td>/);
+      const pool = zelle?.[1].match(/data-pool="(\d+)"/)?.[1];
+      if (!slug || !pool) {
+        poolTextFalsch.push(`${pfad} (Zeile ohne ${!slug ? 'data-mission' : 'Pool-Zelle'})`);
+        continue;
+      }
+      // Eine Mission ohne Pool-Daten haette nur die Zahl der Bauplan-Seiten
+      // (poolGroesse) — dann laufen Crafting- und Missionsdaten auseinander.
+      if (!poolGroessen.has(slug)) {
+        poolTextFalsch.push(`${pfad} (${slug}: Mission ohne Pool-Daten in src/data/missions.json)`);
+        continue;
+      }
+      poolTexte++;
+      const poolMin = zelle[1].match(/data-pool-min="(\d+)"/)?.[1];
+      if (poolMin != null && Number(poolMin) >= Number(pool)) poolTextFalsch.push(`${pfad} (${slug}: Spanne ${poolMin}–${pool} nicht aufsteigend)`);
+      const text = zelle[2];
+      const soll = { min: Number(poolMin ?? pool), max: Number(pool) };
+      const zahl = (x) => Number(x.replace(/[.,\u00a0\u202f]/g, ''));
+      const r = text.match(/(?:von|of)\s+([\d.,\u00a0\u202f]+)(?:\s*–\s*([\d.,\u00a0\u202f]+))?\s*$/);
+      const ist = /(?:nur dieser|only this one)\s*$/.test(text) ? { min: 1, max: 1 } : r ? { min: zahl(r[1]), max: zahl(r[2] ?? r[1]) } : null;
+      if (!ist || ist.min !== soll.min || ist.max !== soll.max) poolTextFalsch.push(`${pfad} (${slug}: „${text.trim()}“, Attribute ${soll.min === soll.max ? soll.max : `${soll.min}–${soll.max}`})`);
+      const m = poolGroessen.get(slug);
+      poolGeprueft++;
+      if (m.mehrere) poolGeprueftMehrere++;
+      for (const n of [pool, poolMin].filter(Boolean)) {
+        if (!m.groessen.has(Number(n))) poolFremd.push(`${pfad} (${slug}: ${n}, Pools ${[...m.groessen].join('/')})`);
+      }
+    }
+    poolZeilen += reihen.length;
+  }
+  // [12] Materialwege
+  if (/<h2[^>]*>(?:Zutaten|Ingredients)<\/h2>/.test(html)) {
+    materialSeiten++;
+    const mat = html.match(/<ul class="bp-mat"[\s\S]*?<\/ul>/)?.[0];
+    // Jedes Material einzeln: Abbau UND Kauf stehen immer da, jeder fuer sich
+    // als Weg (data-mat-weg) oder als ausdrueckliches „nein“/„unbekannt“
+    // (data-mat-ohne); Zerlegen, wo es etwas zu sagen gibt. Ein einziges
+    // data-material reicht nicht, und Kauf + Zerlegen ersetzen den Abbau
+    // nicht (Review #434, zweimal).
+    const eintraege = mat ? [...mat.matchAll(/<li data-material="([^"]*)"[^>]*>([\s\S]*?)<\/li>/g)] : [];
+    const aussage = (li, art) => new RegExp(`data-mat-(?:weg|ohne)="${art}"`).test(li);
+    const ohneWege = eintraege
+      .map(([, name, li]) => [name, ['abbauen', 'kaufen'].filter((art) => !aussage(li, art))])
+      .filter(([, fehlt]) => fehlt.length)
+      .map(([name, fehlt]) => `${name}: ${fehlt.join(' + ')}`);
+    if (!eintraege.length) materialFehlt.push(pfad);
+    else if (ohneWege.length) materialFehlt.push(`${pfad} (${ohneWege.join(', ')})`);
+    else {
+      const eigen = html.match(/href="(?:\/de)?\/items\/([a-z0-9-]+)\.html"[^>]*>(?:Item-Datenblatt öffnen|Open item data sheet)/)?.[1];
+      if (eigen) materialMitItem++;
+      if (eigen && new RegExp(`data-mat-weg="zerlegen"[^>]*>[^<]*<a href="(?:/de)?/items/${eigen}\\.html"`).test(mat)) selbstZerlegen.push(pfad);
+    }
+  }
+}
+
 /* ---------- [3] Bauplan-Seiten (zuerst: [2] braucht ihr Ergebnis) ---------- */
 console.log('[3] Jede Bauplan-Seite verlinkt Missionen oder sagt ehrlich, woher der Bauplan kommt');
 const bauplanMitMission = new Set();
@@ -111,9 +291,13 @@ let bauplanWikelo = 0;
   const vermutung = [];
   for (const rel of ['crafting', 'de/crafting']) {
     for (const [pfad, html] of seiten(rel)) {
-      if (!html.includes('data-bp-item') && !html.includes('id="missionen"')) continue; // Kategorie- und Verzeichnisseiten
+      if (!html.includes('data-bp-item') && !html.includes('id="missionen"')) { // Kategorie- und Verzeichnisseiten
+        if ((html.match(PLANER_KNOPF) ?? []).length > 1) planerDoppelt.push(pfad);
+        continue;
+      }
       bauplaene++;
       if (ALTE_VERMUTUNG.test(html)) vermutung.push(pfad);
+      pruefeBauplanP2(pfad, html);
       const sec = abschnitt(html, 'missionen');
       if (sec && MISSION_LINK.test(sec)) { bauplanMitMission.add(pfad.replace(/^\/de/, '')); continue; }
       const quelle = sec && sec.match(/data-quelle="(unbekannt|wikelo)"/);
@@ -149,17 +333,85 @@ const missionFehlt = [];
 const doppelt = [];
 const fahrzeugOhneSchiff = [];
 const fahrzeugFalschesSchiff = [];
+let ohneWeg = 0;
+let schiffsteile = 0;
+const schiffsteilOhneLink = [];
+let tabellen = 0;
+let gefiltert = 0;
+const tabelleFalsch = [];
 const DOPPEL = [
   { kennzahl: /<b[^>]*>(?:Feuerrate|Fire rate)<\/b>/, text: /(?:^|\n|>)\s*(?:Rate of Fire|Feuerrate)\s*:/i, name: 'Feuerrate' },
   { kennzahl: /<b[^>]*>(?:Magazin|Magazine)<\/b>/, text: /(?:^|\n|>)\s*(?:Magazine Size|Battery Size|Magazingröße|Batteriegröße)\s*:/i, name: 'Magazin' },
 ];
+/* [14] P64 Aehnliche Items einer Handwaffe */
+const katalog = JSON.parse(readFileSync(resolve(ROOT, 'assets/universal-items.json'), 'utf8')).items;
+const itemNachId = new Map(katalog.map((it) => [it.id, it]));
+const artenJeKategorie = new Map(); // Kategorie|Art -> Zahl der Handwaffen
+for (const it of katalog) {
+  const art = waffenArt(it);
+  if (!art) continue;
+  const k = `${it.category}|${art}`;
+  artenJeKategorie.set(k, (artenJeKategorie.get(k) ?? 0) + 1);
+}
+let waffenBlaetter = 0;
+const aehnlichFalsch = [];
+function pruefeAehnlich(pfad, html) {
+  const item = itemNachId.get(pfad.match(/\/([^/]+)\.html$/)?.[1]);
+  const art = item && waffenArt(item);
+  if (!art) return;
+  waffenBlaetter++;
+  const kartenHtml = html.match(/<ul class="dp-cards"[^>]*data-aehnlich[^>]*>([\s\S]*?)<\/ul>/)?.[1];
+  if (kartenHtml == null) { aehnlichFalsch.push(`${pfad} (Block fehlt)`); return; }
+  // Jede Karte zaehlt, auch eine ohne data-item (Review #434): sie wird
+  // gemeldet und nimmt als unbekannte Art an der Reihenfolge teil.
+  const karten = [...kartenHtml.matchAll(/<li\b([^>]*)>/g)].map((m) => itemNachId.get(m[1].match(/\bdata-item="([^"]+)"/)?.[1] ?? ''));
+  const arten = karten.map((k) => (k ? waffenArt(k) : null));
+  const probleme = [];
+  const ersteFremde = arten.findIndex((a) => a !== art);
+  if (ersteFremde >= 0 && arten.slice(ersteFremde).includes(art)) probleme.push('fremde Art vor gleicher Art');
+  if ((artenJeKategorie.get(`${item.category}|${art}`) ?? 0) > 1 && arten[0] !== art) probleme.push(`erste Karte keine ${art}`);
+  const jeModell = new Map();
+  for (const k of karten) if (k) jeModell.set(modellName(k.name), (jeModell.get(modellName(k.name)) ?? 0) + 1);
+  const zuOft = [...jeModell].filter(([, n]) => n > AUSFUEHRUNGEN_JE_MODELL).map(([m, n]) => `${m} ${n}x`);
+  if (zuOft.length) probleme.push(`Modell zu oft: ${zuOft.join(', ')}`);
+  if (karten.some((k) => !k)) probleme.push('Karte ohne data-item oder ohne Katalogeintrag');
+  if (probleme.length) aehnlichFalsch.push(`${pfad} (${probleme.join('; ')})`);
+}
+
 for (const rel of ['items', 'de/items']) {
   for (const [pfad, html] of seiten(rel)) {
     blaetter++;
+    pruefeAehnlich(pfad, html);
     const block = abschnitt(html, 'so-bekommst-du-es');
     if (!block) { ohneBlock.push(pfad); continue; }
     const wege = Number(block.match(/data-wege="(\d+)"/)?.[1] ?? NaN);
     if (!(wege > 0) && !/href="(?:\/de)?\/feedback\.html\?wert=/.test(block)) leer.push(pfad);
+    if (wege === 0) ohneWeg++;
+    merkeTitel(pfad, html);
+    // [10] Schiffsteil -> Schiff
+    if (block.includes('data-weg="schiffsteil"')) {
+      schiffsteile++;
+      if (!/href="(?:\/de)?\/schiffe\/[a-z0-9-]+\.html"[^>]*data-weg-schiff/.test(block)) schiffsteilOhneLink.push(pfad);
+    }
+    // [11] Bezugsquellen-Tabelle
+    const bq = abschnitt(html, 'bezugsquellen');
+    const tab = bq && bq.match(/<table class="dp-table dp-bezug"[\s\S]*?<\/table>/)?.[0];
+    if (tab) {
+      tabellen++;
+      const kopf = tab.match(/<thead\b[\s\S]*?<\/thead>/)?.[0] ?? '';
+      // Filterknoepfe = alle Systeme der Zeilen (data-sys, mehrere durch Leerzeichen)
+      const optionen = new Set([...tab.matchAll(/<tr\b[^>]*\bdata-sys="([^"]*)"/g)].flatMap((m) => m[1].split(' ')));
+      const filter = bq.includes('data-sysfilter');
+      if (filter) gefiltert++;
+      const preisKopf = />(?:Preis|Price)<\/th>/.test(kopf);
+      const preise = tab.includes('class="dp-price"');
+      const probleme = [];
+      if (/>(?:Ø Preis|Avg price)<\/th>/.test(kopf)) probleme.push('Ø-Spalte');
+      if (preisKopf !== preise) probleme.push(preise ? 'Preise ohne Spalte' : 'Preisspalte ohne Preis');
+      if (filter !== optionen.size > 1) probleme.push(`Filter ${filter ? 'bei nur einem System' : 'fehlt bei mehreren Systemen'}`);
+      if (/<td\b[^>]*>\s*(?:<span[^>]*>)?\s*—\s*(?:<\/span>)?\s*<\/td>/.test(tab)) probleme.push('Leerwert „—“ statt leerer Zelle');
+      if (probleme.length) tabelleFalsch.push(`${pfad} (${probleme.join(', ')})`);
+    }
     // [2] Item -> Mission
     const bp = block.match(/href="(?:\/de)?(\/crafting\/[a-z0-9-]+\.html)"/);
     const hatMission = MISSION_LINK.test(block);
@@ -216,6 +468,107 @@ need(fahrzeuge >= KLINKEN.fahrzeugBlaetter, `nur ${fahrzeuge} Fahrzeug-Itemblaet
 need(!fahrzeugOhneSchiff.length, `${fahrzeugOhneSchiff.length} Fahrzeug-Itemblatt/-blaetter ohne sichtbaren Link zum Schiffsblatt — ${liste(fahrzeugOhneSchiff)}`);
 console.log(`    Link auf ein fremdes Schiffsblatt (Ueberschriften verschieden) — Soll: 0   Ist: ${fahrzeugFalschesSchiff.length}`);
 need(!fahrzeugFalschesSchiff.length, `${fahrzeugFalschesSchiff.length} Fahrzeug-Itemblatt/-blaetter zeigen auf ein anderes Schiffsblatt als ihr eigenes — ${liste(fahrzeugFalschesSchiff)}`);
+
+console.log('\n[7] D4 Missionstabelle eines Bauplans nennt den Pool statt „100 %"');
+console.log(`    Tabellen: ${poolTabellen} (Klinke ${KLINKEN.poolTabellen})   ohne Pool oder mit nacktem „100 %" — Soll: 0   Ist: ${poolOhne.length}`);
+need(poolTabellen >= KLINKEN.poolTabellen, `nur ${poolTabellen} Missionstabellen, Klinke ${KLINKEN.poolTabellen} — Ursache klaeren, nicht die Klinke senken`);
+need(!poolOhne.length, `${poolOhne.length} Missionstabelle(n) ohne Pool je Zeile oder mit nacktem „100 %" — ${liste(poolOhne)}`);
+console.log(`    Zeilen mit Pool-Daten: ${poolGeprueft} (davon zu Missionen mit mehreren Pools: ${poolGeprueftMehrere}; Missionen: ${poolGroessen.size})   Zahl ist keine Poolgroesse der Mission — Soll: 0   Ist: ${poolFremd.length}`);
+need(poolGeprueft > 0 && poolGeprueftMehrere > 0, 'keine Zeile mit Pool-Daten (oder keine zu einer Mission mit mehreren Pools) geprueft — Daten oder Muster veraltet?');
+need(!poolFremd.length, `${poolFremd.length} Zeile(n) nennen eine Zahl, die keine Poolgroesse ihrer Mission ist — ${liste(poolFremd)}`);
+console.log(`    sichtbarer Text gegen data-pool/data-pool-min: ${poolTexte} von ${poolZeilen} Tabellenzeilen   Befunde (Text, data-mission, Pool-Daten, Spanne) — Soll: 0   Ist: ${poolTextFalsch.length}`);
+need(poolZeilen > 0 && poolTexte === poolZeilen, `${poolTexte} Pool-Zellen geprueft, aber ${poolZeilen} Zeilen in den Missionstabellen — Muster veraltet?`);
+need(!poolTextFalsch.length, `${poolTextFalsch.length} Befund(e) in Missionszeilen (ohne data-mission oder Pool-Zelle, Mission ohne Pool-Daten, Spanne nicht aufsteigend oder Text anders als die Attribute) — ${liste(poolTextFalsch)}`);
+
+// Die Crafting-Kategorieseiten liegen eine Ebene tiefer.
+let kategorieSeiten = 0;
+for (const rel of ['crafting/category', 'de/crafting/category']) {
+  for (const [pfad, html] of seiten(rel)) {
+    kategorieSeiten++;
+    if ((html.match(PLANER_KNOPF) ?? []).length > 1) planerDoppelt.push(pfad);
+  }
+}
+console.log('\n[8] D10 Planer-Knopf hoechstens einmal je Seite');
+console.log(`    Bauplan-Seiten: ${bauplaene}   Kategorieseiten: ${kategorieSeiten}   mit doppeltem Knopf — Soll: 0   Ist: ${planerDoppelt.length}`);
+need(kategorieSeiten > 0, 'keine Crafting-Kategorieseite gefunden — Ordner verschoben? Ohne Treffer prueft [8] sie nicht');
+need(!planerDoppelt.length, `${planerDoppelt.length} Seite(n) mit zwei Planer-Knoepfen — ${liste(planerDoppelt)}`);
+
+const doppelteTitel = [...titel.entries()].filter(([, l]) => l.length > 1);
+let erwarteteZwillinge = 0;
+const zwillingFalsch = [];
+for (const eintraege of namensGruppen.values()) {
+  if (eintraege.length < 2) {
+    for (const e of eintraege) if (e.hinweis) zwillingFalsch.push(`${e.pfad} (Hinweis ohne gleichnamige Seite)`);
+    continue;
+  }
+  erwarteteZwillinge += eintraege.length;
+  for (const e of eintraege) {
+    const fehlt = eintraege.filter((o) => o !== e && !e.ziele.has(o.pfad)).map((o) => o.pfad);
+    if (!e.hinweis) zwillingFalsch.push(`${e.pfad} (kein Hinweis auf ${fehlt.join(', ')})`);
+    else if (fehlt.length) zwillingFalsch.push(`${e.pfad} (verlinkt nicht ${fehlt.join(', ')})`);
+  }
+}
+console.log('\n[9] D7 Kein Seitentitel doppelt, gleichnamige Seiten verlinken einander');
+console.log(`    Titel geprueft: ${titel.size}   doppelt — Soll: 0   Ist: ${doppelteTitel.length}   gleichnamige Seiten (aus der Ueberschrift): ${erwarteteZwillinge}   mit Hinweis: ${zwillingsSeiten}   Hinweis fehlt, unvollstaendig oder ohne Zwilling — Soll: 0   Ist: ${zwillingFalsch.length}`);
+need(titel.size >= KLINKEN.itemBlaetter, `nur ${titel.size} Titel gelesen — Muster veraltet?`);
+need(!doppelteTitel.length, `${doppelteTitel.length} Titel stehen auf mehreren Seiten — ${liste(doppelteTitel.map(([k, l]) => `„${k.split('|')[1].split(' — ')[0]}" ${l.join(' + ')}`), 5)}`);
+need(erwarteteZwillinge > 0, 'keine gleichnamigen Seiten gefunden — Ueberschrift-Muster veraltet? Ohne Treffer prueft [9] die Hinweise nicht');
+need(!zwillingFalsch.length, `${zwillingFalsch.length} gleichnamige Seite(n) ohne vollstaendigen Hinweis auf ihre Zwillinge — ${liste(zwillingFalsch)}`);
+
+console.log('\n[10] D6 Schiffsteile verlinken ihr Schiff; Blaetter ganz ohne Weg unter der Decke');
+console.log(`    Schiffsteile: ${schiffsteile} (Klinke ${KLINKEN.schiffsteile})   ohne Schiffslink — Soll: 0   Ist: ${schiffsteilOhneLink.length}   Blaetter ohne Weg: ${ohneWeg} (Decke ${DECKEN.ohneWeg})`);
+need(schiffsteile >= KLINKEN.schiffsteile, `nur ${schiffsteile} Schiffsteile erkannt, Klinke ${KLINKEN.schiffsteile} — Ursache klaeren, nicht die Klinke senken`);
+need(!schiffsteilOhneLink.length, `${schiffsteilOhneLink.length} Schiffsteil(e) ohne Link zum Schiff — ${liste(schiffsteilOhneLink)}`);
+need(ohneWeg <= DECKEN.ohneWeg, `${ohneWeg} Item-Blaetter ganz ohne Weg, Decke ${DECKEN.ohneWeg} — welcher Weg ist verloren gegangen? Decke nicht heben`);
+
+console.log('\n[11] D5 Bezugsquellen: Ø einmal, Preisspalte nur mit Preis, keine „—“-Zellen, Systemfilter bei mehr als einem System');
+console.log(`    Tabellen: ${tabellen} (Klinke ${KLINKEN.bezugsTabellen})   davon mit Systemfilter: ${gefiltert}   falsch — Soll: 0   Ist: ${tabelleFalsch.length}`);
+need(tabellen >= KLINKEN.bezugsTabellen, `nur ${tabellen} Bezugsquellen-Tabellen erkannt, Klinke ${KLINKEN.bezugsTabellen} — Muster veraltet? Ursache klaeren, nicht die Klinke senken`);
+need(!tabelleFalsch.length, `${tabelleFalsch.length} Bezugsquellen-Tabelle(n) falsch gebaut — ${liste(tabelleFalsch)}`);
+
+console.log('\n[12] D8 Rezept-Materialien nennen ihre Wege');
+console.log(`    Bauplan-Seiten mit Zutaten: ${materialSeiten} (Klinke ${KLINKEN.materialSeiten})   ohne Materialwege — Soll: 0   Ist: ${materialFehlt.length}   schlagen das eigene Item zum Zerlegen vor (geprueft ${materialMitItem}) — Soll: 0   Ist: ${selbstZerlegen.length}`);
+need(materialSeiten >= KLINKEN.materialSeiten, `nur ${materialSeiten} Bauplan-Seiten mit Zutaten, Klinke ${KLINKEN.materialSeiten}`);
+need(!materialFehlt.length, `${materialFehlt.length} Bauplan-Seite(n) ohne „Woher die Materialien kommen" — ${liste(materialFehlt)}`);
+need(!selbstZerlegen.length, `${selbstZerlegen.length} Bauplan-Seite(n) schlagen vor, das herzustellende Item zu zerlegen — ${liste(selbstZerlegen)}`);
+
+/* ---------- [13] P52 eine Blueprint-Zahl ---------- */
+console.log('\n[13] P52 Verzeichnis und Werkbank nennen dieselbe Blueprint-Zahl, Mengen stehen ueberall in SCU');
+{
+  const zahl = (s) => (s == null ? null : Number(String(s).replace(/[.,\s]/g, '')));
+  const spielBestand = JSON.parse(readFileSync(resolve(ROOT, 'assets/crafting-db.json'), 'utf8')).blueprints.length;
+  for (const [pre, ordner] of [['', 'crafting'], ['de/', 'de/crafting']]) {
+    const seitenZahl = [...seiten(ordner)].length;
+    const hubPfad = join(DIST, `${pre}crafting.html`);
+    const wbPfad = join(DIST, `${pre}topics/crafting.html`);
+    const hub = existsSync(hubPfad) ? readFileSync(hubPfad, 'utf8') : '';
+    const wb = existsSync(wbPfad) ? readFileSync(wbPfad, 'utf8') : '';
+    const hubZahl = zahl(hub.match(/<b[^>]*>Blueprints<\/b>\s*<span[^>]*>([\d.,]+)<\/span>/)?.[1]);
+    const ohneItem = zahl(hub.match(/data-ohne-item="(\d+)"/)?.[1]) ?? 0;
+    const wbZahl = zahl(wb.match(/id="cdb-count"[^>]*>[\d.,]+<\/b>\s*\/\s*([\d.,]+)/)?.[1]);
+    console.log(`    /${pre}: Bauplan-Seiten ${seitenZahl}   Verzeichnis ${hubZahl}   Werkbank ${wbZahl}   ohne Item ${ohneItem}   Spielbestand ${spielBestand}`);
+    need(hubZahl != null && wbZahl != null, `/${pre}: Blueprint-Zahl im Verzeichnis oder auf der Werkbank nicht gefunden — Muster veraltet?`);
+    need(hubZahl === seitenZahl && wbZahl === seitenZahl, `/${pre}: Verzeichnis ${hubZahl}, Werkbank ${wbZahl}, Bauplan-Seiten ${seitenZahl} — eine Zahl fuer alle drei`);
+    need(seitenZahl + ohneItem === spielBestand, `/${pre}: ${seitenZahl} gezeigt + ${ohneItem} ohne Item ergibt nicht den Spielbestand ${spielBestand} — der Satz im Verzeichnis rechnet nicht auf`);
+  }
+  // Eine Einheit: „64 cSCU“ in der Datenbank gegen „0,64 SCU“ auf dem Bauplan
+  // war dieselbe Menge. Gezaehlt werden Zeichenketten, die cSCU anzeigen;
+  // Bezeichner wie quantity_cSCU stehen nicht in Anfuehrungszeichen.
+  const appPfad = join(DIST, 'assets/crafting-app.js');
+  const app = existsSync(appPfad) ? readFileSync(appPfad, 'utf8') : '';
+  const cscu = app.match(/(['"])(?:(?!\1)[^\\\n]|\\.)*\bcSCU\b(?:(?!\1)[^\\\n]|\\.)*\1/g) ?? [];
+  const scuAnzeigen = (app.match(/['"] SCU\b/g) ?? []).length;
+  console.log(`    Crafting-Datenbank: Mengenanzeigen in SCU ${scuAnzeigen}   in cSCU — Soll: 0   Ist: ${cscu.length}`);
+  need(app.length > 0, 'dist/assets/crafting-app.js fehlt — erst bauen');
+  need(scuAnzeigen >= 3, `nur ${scuAnzeigen} Mengenanzeigen in SCU in der Crafting-Datenbank (erwartet: Zutat, Einkaufsliste, Zerlegen) — Muster veraltet?`);
+  need(!cscu.length, `Crafting-Datenbank zeigt Mengen in cSCU, die Bauplan-Seiten in SCU — eine Einheit: ${liste(cscu)}`);
+}
+
+/* ---------- [14] P64 Aehnliche Items nach Waffenart ---------- */
+console.log('\n[14] P64 „Ähnliche Items" einer Handwaffe: gleiche Art zuerst, hoechstens ' + AUSFUEHRUNGEN_JE_MODELL + ' Ausfuehrungen je Modell');
+console.log(`    Handwaffen-Blaetter: ${waffenBlaetter} (Klinke ${KLINKEN.waffenBlaetter})   falsch geordnet — Soll: 0   Ist: ${aehnlichFalsch.length}`);
+need(waffenBlaetter >= KLINKEN.waffenBlaetter, `nur ${waffenBlaetter} Handwaffen-Blaetter erkannt, Klinke ${KLINKEN.waffenBlaetter} — Ursache klaeren, nicht die Klinke senken`);
+need(!aehnlichFalsch.length, `${aehnlichFalsch.length} Handwaffen-Blatt/Blaetter mit falsch geordneten „Ähnlichen Items" — ${liste(aehnlichFalsch)}`);
 
 console.log('\n    Selbstauskunft (kein Urteil, Fremdquelle): Blaetter mit Kaufzeilen ohne Systemangabe '
   + `${ohneSystem} von ${kaufBlaetter}`);

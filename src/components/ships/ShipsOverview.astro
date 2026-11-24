@@ -26,6 +26,9 @@ import { localeFromPath } from '../../i18n/ui';
 import { HAS_HANGAR } from '../../lib/seo';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
+import { hangarT } from '../../i18n/hangarText';
+import { versioned } from '../../lib/assetVersion';
+import { HANGAR_IDS } from '../../lib/hangar/catalog';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -34,6 +37,11 @@ const localeTag = de ? 'de' : 'en';
 // keine Sprachparitaets-Falle wie bei den beiden ehemals getrennten
 // Seitendateien: siehe .planning/phases/01.2-werkzeuge-erklaeren/01.2-04-PLAN.md.
 const h = useHelp(lang);
+// Schiffsvergleich (UX-Audit E7): die Woerter des Hangar-Vergleichs, damit
+// beide Oberflaechen gleich sprechen; Daten und Logik siehe
+// src/lib/shipVergleich.ts und assets/schiff-vergleich.js.
+const hv = hangarT(lang);
+const vergleichSrc = versioned('assets/schiff-vergleich.js', '/assets/schiff-vergleich.js');
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, localeTag)
@@ -206,6 +214,9 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Flotten-Grid ---------- */
 .sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
+.sdb__empty-reset{margin-left:.35rem;padding:.35rem .7rem;border:1px solid var(--accent);background:transparent;color:var(--accent);
+  font:inherit;cursor:pointer}
+.sdb__empty-reset:hover,.sdb__empty-reset:focus-visible{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--text);outline:none}
 .sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
   font-family:var(--font-ui);font-weight:600;letter-spacing:var(--ls-9)}
 
@@ -394,8 +405,90 @@ a{color:inherit;text-decoration:none}
   .sdb__reset{border:1px solid var(--line);background:transparent;color:var(--muted)}
   .sdb__reset:hover,.sdb__reset:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
   .sdb__show{border:0;background:var(--accent);color:var(--bg)}
-  .sdb__show.is-leer{background:var(--surface);color:var(--muted)}
+  .sdb__show.is-leer{background:var(--surface);color:var(--muted);cursor:default}
 }
+
+/* ---------- Schiffsvergleich (UX-Audit E7) ----------
+   Knopf auf der Karte: ueber dem Kartenlink (z-index 1 aus .fcard__name a::after),
+   gedrueckt mit Haken und Akzentrahmen. Leiste unten fest, Tabelle als Dialog. */
+.fcard__cmp{position:relative;z-index:2;align-self:flex-start;display:inline-flex;align-items:center;gap:.45rem;margin-top:-.1rem;
+  padding:.3rem .6rem .3rem .45rem;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-8);text-transform:uppercase}
+.fcard__cmp:hover,.fcard__cmp:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+.fcard__cmp-box{width:.85rem;height:.85rem;border:1.5px solid currentColor;display:grid;place-items:center}
+.fcard__cmp[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.fcard__cmp[aria-pressed="true"] .fcard__cmp-box::after{content:"";width:.45rem;height:.25rem;margin-top:-.12rem;
+  border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg)}
+.fcard.is-cmp{border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+
+.sv-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sv-tray[hidden]{display:none}
+.sv-tray{position:fixed;left:50%;bottom:calc(.8rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9000;
+  display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .7rem;width:max-content;max-width:calc(100vw - 1.5rem);
+  padding:.5rem .55rem .5rem .8rem;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--bg-2);
+  box-shadow:0 14px 40px -12px #000;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--text)}
+.sv-tray__title{font-weight:800;letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--accent)}
+.sv-tray__list{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
+.sv-tray__list li{display:inline-flex;align-items:center;gap:.35rem;padding:.1rem .15rem .1rem .55rem;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+.sv-tray__hint{color:var(--muted)}
+.sv-tray__hint[hidden]{display:none}
+.sv-tray__acts{display:inline-flex;gap:.4rem;margin-left:auto}
+.sv-tray__clear,.sv-tray__open,.sv-dlg__close{height:2.2rem;padding:0 .8rem;font-family:var(--font-ui);font-weight:800;font-size:var(--fs-7);cursor:pointer;white-space:nowrap}
+.sv-tray__clear,.sv-dlg__close{border:1px solid var(--line);background:transparent;color:var(--muted)}
+.sv-tray__clear:hover,.sv-tray__clear:focus-visible,.sv-dlg__close:hover,.sv-dlg__close:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+.sv-tray__open{border:0;background:var(--accent);color:var(--bg)}
+.sv-tray__open[hidden]{display:none}
+.sv-x{appearance:none;border:1px solid var(--line);background:none;color:var(--muted);font:inherit;line-height:1;padding:.15rem .42rem;cursor:pointer}
+.sv-x:hover,.sv-x:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
+body.has-sv-tray .sdb__fleet{padding-bottom:5.5rem}
+
+.sv-dlg{width:min(1000px,calc(100% - 2rem));max-width:none;max-height:calc(100dvh - 2rem);margin:1rem auto;padding:0;overflow:hidden;
+  border:1px solid var(--line);background:var(--bg-2);color:var(--text)}
+.sv-dlg[open]{display:flex;flex-direction:column}
+.sv-dlg::backdrop{background:rgba(0,0,0,.78)}
+.sv-dlg__head{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;padding:.9rem 1.1rem .7rem;border-bottom:1px solid var(--line)}
+.sv-dlg__head h2{margin:0;font-family:var(--font-display);font-weight:800;font-size:var(--fs-11);color:var(--text)}
+.sv-dlg__note{flex:1 1 18rem;margin:0;font-size:var(--fs-6);color:var(--muted)}
+.sv-dlg__jump{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.25rem 1.1rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6)}
+.sv-dlg__jump a{color:var(--muted);text-decoration:none}
+.sv-dlg__jump a:hover,.sv-dlg__jump a:focus-visible{color:var(--accent)}
+.sv-dlg__scroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.sv-dlg__wait{margin:1.2rem;color:var(--muted)}
+.sv-dlg__table{width:100%;border-collapse:collapse;font-size:var(--fs-7);font-variant-numeric:tabular-nums}
+.sv-dlg__table th,.sv-dlg__table td{padding:.5rem .8rem;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+.sv-dlg__table tbody th{text-align:left;font-weight:400;color:var(--muted)}
+.sv-dlg__table thead th{position:sticky;top:0;z-index:1;background:var(--bg-2);vertical-align:bottom;font-weight:400}
+.sv-dlg__table .is-base{background:color-mix(in srgb,var(--accent) 7%,var(--bg-2))}
+.sv-dlg__table .sv-sec th{padding:.95rem .8rem .35rem;text-align:left;color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-6);
+  font-weight:800;letter-spacing:var(--ls-10);text-transform:uppercase;white-space:nowrap;background:var(--bg-2)}
+.sv-name{appearance:none;border:0;background:none;padding:0;color:var(--text);font:inherit;font-family:var(--font-ui);font-size:var(--fs-9);
+  font-weight:800;text-align:right;cursor:pointer}
+.sv-name:hover,.sv-name:focus-visible,.sv-name[aria-pressed="true"]{color:var(--accent)}
+.sv-maker{display:block;color:var(--muted);font-size:var(--fs-5)}
+.sv-badge{display:inline-block;margin-top:.25rem;padding:0 .45rem;border:1px solid var(--accent);color:var(--accent);font-size:var(--fs-5)}
+.sv-badge.is-leer{visibility:hidden}
+.sv-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.3rem .6rem;margin-top:.4rem;font-size:var(--fs-6)}
+.sv-acts a{color:var(--accent-2)}
+.sv-v{display:block;font-weight:600;white-space:nowrap}
+.sv-delta{display:block;font-size:var(--fs-5);white-space:nowrap}
+.sv-delta.is-up{color:#5ad19a}
+.sv-delta.is-down{color:#f4708a}
+.sv-delta.is-flat{color:var(--muted)}
+.sv-hp{display:block;line-height:1.35}
+.sv-hp+.sv-hp{margin-top:.2rem}
+.sv-hp b{font-weight:600;white-space:nowrap}
+.sv-hp span{color:var(--muted)}
+@media(max-width:640px){
+  .sv-tray{left:.5rem;right:.5rem;transform:none;width:auto;max-width:none}
+  .sv-tray__acts{flex:1 1 100%;justify-content:flex-end}
+  .sv-dlg{width:100%;height:100dvh;max-height:none;margin:0;border:0}
+  .sv-dlg__table{font-size:var(--fs-6)}
+  .sv-dlg__table th,.sv-dlg__table td{padding:.45rem .5rem}
+  .sv-dlg__table tbody th,.sv-v,.sv-delta{white-space:normal}
+  .sv-dlg__table tbody th,.sv-dlg__table td{hyphens:auto;overflow-wrap:anywhere}
+  body.has-sv-tray .sdb__fleet{padding-bottom:7.5rem}
+}
+@media(prefers-reduced-motion:reduce){.sv-dlg__scroll{scroll-behavior:auto}}
 </style>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Schiffe' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Ships' }]} hasEn={true} />
@@ -406,7 +499,11 @@ a{color:inherit;text-decoration:none}
     <div class="sdb__heroin">
       <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
       <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
-      {HAS_HANGAR && <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de ? 'Alle Schiffe im 3D-Hangar ansehen →' : 'See every ship in the 3D hangar →'}</a>}
+      {/* Heuristik P52: die Liste zaehlt 235 Schiffe, der Hangar 231 — er kennt
+          nur Schiffe mit 3D-Modell. Der Weg dorthin nennt die Zahl und den Grund. */}
+      {HAS_HANGAR && <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de
+        ? `Die ${HANGAR_IDS.length} Schiffe mit 3D-Modell im Hangar ansehen →`
+        : `See the ${HANGAR_IDS.length} ships with a 3D model in the hangar →`}</a>}
     </div>
   </section>
 
@@ -554,6 +651,7 @@ a{color:inherit;text-decoration:none}
     {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size, debut }) => (
       <article
         class="fcard"
+        data-id={id}
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
         data-maker={d.manufacturer ?? ''}
         data-type={vType(d, lang) ?? ''}
@@ -615,7 +713,11 @@ a{color:inherit;text-decoration:none}
           )}
           <dl class="fcard__stats">
             <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
-            <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${zahl(d.cargoSCU)} SCU` : '—'}</dd></div>
+            {/* Ohne Frachtraum, aber mit Erzbehaelter (Prospector, Golem): das
+                Erz statt "Fracht 0 SCU" (Heuristik P54), wie auf dem Datenblatt. */}
+            {!d.cargoSCU && d.oreSCU
+              ? <div class="fcard__stat"><dt>{de ? 'Erz' : 'Ore'}</dt><dd>{`${zahl(d.oreSCU)} SCU`}</dd></div>
+              : <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${zahl(d.cargoSCU)} SCU` : '—'}</dd></div>}
             <div class="fcard__stat"><dt>{de ? 'Länge' : 'Length'}</dt><dd>{d.lengthM != null ? `${zahl(d.lengthM)} m` : '—'}</dd></div>
           </dl>
           <dl class="fcard__prices">
@@ -628,10 +730,57 @@ a{color:inherit;text-decoration:none}
               <dd class={`v${buy == null ? ' none' : ''}`}>{buy != null ? <>{auecShort(buy)}<span class="fprice__u">aUEC</span></> : '—'}</dd>
             </div>
           </dl>
+          <button type="button" class="fcard__cmp" aria-pressed="false" aria-label={`${d.name}: ${de ? 'vergleichen' : 'compare'}`}>
+            <span class="fcard__cmp-box" aria-hidden="true"></span>{de ? 'Vergleichen' : 'Compare'}
+          </button>
         </div>
       </article>
     ))}
-    <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer — Filter zurücksetzen.' : 'No matches — reset the filters.'}</p>
+    {/* Ein echter Knopf statt der Bitte im Text (Heuristik P18: „Filter
+        zurücksetzen“ stand da, ein Klick tat nichts). Er nimmt auch die Suche
+        zurueck, denn oft ist sie es, die nichts mehr trifft. */}
+    <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer.' : 'No matches.'} <button type="button" class="sdb__empty-reset" id="sf-empty-reset">{de ? 'Filter und Suche zurücksetzen' : 'Reset filters and search'}</button></p>
+  </div>
+
+  {/* Schiffsvergleich (UX-Audit E7, TF B08): bis zu drei Karten markieren,
+      die Leiste unten sammelt sie, ab zwei oeffnet die Tabelle. Tabelle und
+      Sprungmarken baut assets/schiff-vergleich.js aus /schiffe-vergleich.json. */}
+  <div class="sv" id="sv"
+    data-src={de ? '/de/schiffe-vergleich.json' : '/schiffe-vergleich.json'}
+    data-open={hv('msg.cmp.open')}
+    data-remove={hv('msg.cmp.remove')}
+    data-hint={hv('cmp.hint')}
+    data-full={hv('cmp.full')}
+    data-base={hv('cmp.base')}
+    data-makebase={hv('cmp.makeBase')}
+    data-better={hv('cmp.better')}
+    data-worse={hv('cmp.worse')}
+    data-stat={hv('cmp.stat')}
+    data-loading={hv('cmp.loading')}
+    data-sheet={de ? 'Datenblatt' : 'Data sheet'}
+    data-error={de ? 'Der Vergleich ließ sich nicht laden. Bitte die Seite neu laden.' : 'The comparison could not be loaded. Please reload the page.'}
+  >
+    <div class="sv-tray" id="sv-tray" role="region" aria-label={hv('cmp.tray')} hidden>
+      <span class="sv-tray__title">{hv('cmp.tray')}</span>
+      <ul class="sv-tray__list" id="sv-tray-list"></ul>
+      <span class="sv-tray__hint" id="sv-tray-hint" aria-live="polite"></span>
+      <span class="sv-tray__acts">
+        <button type="button" class="sv-tray__clear" id="sv-clear">{de ? 'Leeren' : 'Clear'}</button>
+        <button type="button" class="sv-tray__open" id="sv-open" hidden></button>
+      </span>
+    </div>
+    <dialog class="sv-dlg" id="sv-dlg" aria-labelledby="sv-title">
+      <div class="sv-dlg__head">
+        <h2 id="sv-title">{hv('cmp.title')}</h2>
+        <p class="sv-dlg__note">{hv('cmp.note')}</p>
+        <button type="button" class="sv-dlg__close" id="sv-close">{hv('cmp.close')}</button>
+        <nav class="sv-dlg__jump" id="sv-jump" aria-label={hv('cmp.jump')}></nav>
+      </div>
+      <div class="sv-dlg__scroll" id="sv-scroll">
+        <p class="sv-dlg__wait" id="sv-wait" hidden></p>
+        <table class="sv-dlg__table" id="sv-table"></table>
+      </div>
+    </dialog>
   </div>
 
   <Datenstand lang={lang} zeilen={standFlotte(lang, vehicles.map((v) => v.data.gameVersion))} />
@@ -794,6 +943,9 @@ a{color:inherit;text-decoration:none}
     if (zeigen && SHOW_TPL) {
       zeigen.textContent = n ? SHOW_TPL.replace('{n}', String(n)) : (SHOW_NONE || '0');
       if (n) zeigen.classList.remove('is-leer'); else zeigen.classList.add('is-leer');
+      // Ohne Treffer gibt es nichts anzuzeigen: der Knopf nennt das und ist aus
+      // (schliessen bleibt ueber X, Esc, Wischen und den Verdunkler).
+      zeigen.disabled = !n;
     }
   }
   function schubladeZu() {
@@ -815,6 +967,17 @@ a{color:inherit;text-decoration:none}
     rebuildSizeOptions();
     apply();
     schreibeAdresse();
+  });
+  // Leere Liste (Heuristik P18): alles zurueck, auch die Suche. Der Knopf
+  // verschwindet mit der leeren Liste; der Fokus geht ins Suchfeld.
+  var leerZurueck = document.getElementById('sf-empty-reset');
+  if (leerZurueck) leerZurueck.addEventListener('click', function () {
+    q.value = '';
+    SCHUBLADE.forEach(function (el) { if (el !== selCompSize) el.value = ''; });
+    rebuildSizeOptions();
+    apply();
+    schreibeAdresse();
+    if (q.focus) q.focus();
   });
 
   // Sortierschluessel -> [Attribut, Richtung]. "-asc" sortiert aufsteigend
@@ -933,9 +1096,10 @@ a{color:inherit;text-decoration:none}
   // ganze Karte klickbar (innere Links funktionieren weiter)
   cards.forEach(function (c) {
     c.addEventListener('click', function (e) {
-      if (e.target.closest('a')) return;
+      if (e.target.closest('a, button')) return;
       location.href = c.getAttribute('data-href');
     });
   });
 })();
 </script>
+<script type="module" is:inline set:html={`import { start } from '${vergleichSrc}'; start(document);`}></script>

@@ -44,7 +44,10 @@ const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
    unterhalb von 1180 px veröffentlicht die Leiste ihre wirkliche Höhe als
    --nav-h und wird mit sichtbarer Zurück-Marke 116 px hoch (SiteNav:877) —
    dort steht die Werkbank ohnehin einspaltig, das Budget gilt da nicht. */
-main > .wb{padding-top:4.4rem}
+/* Seit UX-Audit A6 (24.11.2026) steht unter der Kopfleiste die lokale
+   Mining-Leiste; die Polsterung folgt deshalb --nav-h (68 px ohne, 104 px
+   mit Zeile) statt fester 4,4rem. Ohne Zeile ergibt das dieselben 79 px. */
+main > .wb{padding-top:calc(var(--nav-h,68px) + .6rem)}
 @media(max-width:1180px){main > .wb{padding-top:calc(var(--nav-h,116px) + .6rem)}}
 
 /* ══════════ EIN BILDSCHIRM, KEIN DOKUMENT ══════════

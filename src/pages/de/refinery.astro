@@ -25,6 +25,10 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <link slot="head" rel="stylesheet" href={accountCss} />
 <link slot="head" rel="stylesheet" href={dossierCss} />
+{/* Seit UX-Audit A6 (24.11.2026) steht unter der Kopfleiste die lokale
+    Mining-Leiste; der Dossier-Rahmen polstert sonst nur fest mit --nav (64 px),
+    und die Leiste laege auf der Ueberschrift. --nav-h ist 104/116 px mit Zeile. */}
+<style is:inline>main .dsr.rf{padding-top:var(--nav-h,var(--nav,64px))}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 
 <SiteNav crumbs={[{ label: 'Mining', href: '/de/topics/mining.html' }, { label: 'Raffinerie' }]} hasEn={true} />

@@ -5,9 +5,12 @@
 //
 // Darunter steht seit 24.11.2026 ein Weg zu den Downloads (UX-Audit H3): die
 // Seite hatte keinen einzigen Inhaltslink, und die Onepager als Datei gibt es
-// nur dort. Den Onepager selbst gibt es nur auf Deutsch (public/onepager/) —
-// die EN-Seite verlinkte ihn deshalb nie und soll das auch nicht anfangen;
-// sie zeigt nur den Weg zu den Downloads (Bilder und Onepager als Datei).
+// nur dort.
+//
+// Die Onepager sind englisch (public/onepager/*, lang="en"). Bis 24.11.2026
+// stand der Block deshalb irrtuemlich nur auf der DE-Seite, ohne Hinweis auf
+// Sprache und neuen Tab (UX-Audit P70). Jetzt steht er in beiden Fassungen,
+// mit Hinweis; der Guide selbst fuehrt oben zur Themenseite zurueck.
 import { localeFromPath, href as hrefLang } from '../i18n/ui';
 interface Props {
   href: string;        // z.B. "/onepager/contested-zones/index.html"
@@ -15,16 +18,13 @@ interface Props {
   note?: string;       // kurze Beschreibung
 }
 const de = localeFromPath(Astro.url.pathname) === 'de';
-// Der Onepager-Block (section.opl-wrap) steht nur in der DE-Fassung; die
-// Downloads-Zeile in beiden. verify:sync schneidet den DE-Block per
-// Ausnahme X-onepager-de-only, danach muessen beide Fassungen gleich sein.
 const {
   href,
-  title = 'Visueller Guide',
-  note = 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.',
+  title = de ? 'Visueller Guide' : 'Visual guide',
+  note = de ? 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.' : 'Standalone overview guide with maps, loot and flow.',
 } = Astro.props;
+const hinweis = de ? 'Auf Englisch · öffnet in neuem Tab' : 'Opens in a new tab';
 ---
-{de && (
 <section class="opl-wrap reveal">
   <a class="opl" href={href} target="_blank" rel="noopener">
     <span class="opl__ic" aria-hidden="true">
@@ -34,14 +34,14 @@ const {
       <span class="opl__kx">Onepager</span>
       <span class="opl__title">{title}</span>
       <span class="opl__note">{note}</span>
+      <span class="opl__hint">{hinweis}</span>
     </span>
     <span class="opl__arrow" aria-hidden="true">↗</span>
   </a>
 </section>
-)}
 <div class="opl-dl">
   <p class="opl-more">
-    <a href={hrefLang('/downloads.html', de ? 'de' : 'en')}>{de ? 'Onepager als Datei und weitere Bilder: Downloads' : 'One-pager guides (German) and images: Downloads'} →</a>
+    <a href={hrefLang('/downloads.html', de ? 'de' : 'en')}>{de ? 'Onepager als Datei und weitere Bilder: Downloads' : 'One-pager files and more images: Downloads'} →</a>
   </p>
 </div>
 
@@ -104,6 +104,15 @@ const {
   }
   .opl:hover .opl__arrow {
     transform: translate(3px, -3px);
+  }
+  .opl__hint {
+    margin-top: 0.2rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-8);
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
   }
   @media (max-width: 560px) {
     .opl__note {

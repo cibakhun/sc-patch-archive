@@ -70,6 +70,9 @@ export interface BlueprintMission {
   id: string;
   name: string;
   drop_chance: number;
+  /** Pool-Schluessel der Mission, aus dem dieser Bauplan kommt (ab dem
+   *  naechsten Datenlauf; bis dahin erschliesst poolSpanne() ihn). */
+  pool?: string;
 }
 
 export interface Blueprint {
