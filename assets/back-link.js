@@ -125,8 +125,11 @@
       }
     } catch (err) { /* abgeschotteter Speicher: bleibt „Anmelden“ */ }
     if (drin) {
+      // Ziel fest im Skript statt aus einem Attribut gelesen: ein href aus
+      // Seitentext waere ein Einfallstor, sobald je ein Fremdwert dort landet.
+      var konto = (document.documentElement.lang === 'de' ? '/de' : '') + '/account.html';
       for (var j = 0; j < accts.length; j++) {
-        accts[j].href = accts[j].getAttribute('data-in');
+        accts[j].href = konto;
         accts[j].textContent = accts[j].getAttribute('data-l-in');
         accts[j].classList.add('is-authed');
       }

@@ -156,7 +156,8 @@ const leiste = alleBereiche.map((b) => ({ key: b.key, href: b.href, label: b.kur
 const dienstZiele = dienste(lang);
 const SPRACHE: Record<Locale, string> = { de: 'Deutsch', en: 'English' };
 const loginHref = href('/account/login.html', lang);
-const kontoHref = href('/account.html', lang);
+// Mit Sitzung im Browser zeigt back-link.js „Konto“ und fuehrt nach
+// /account.html (bzw. /de/account.html); das Ziel steht dort fest.
 ---
 <Layout
   title={title}
@@ -202,7 +203,7 @@ const kontoHref = href('/account.html', lang);
         aria-keyshortcuts="Control+K"
       ><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></button>
       <a class="dp-lang" href={otherHref} hreflang={HTML_LANG[other]} rel="alternate">{LOCALE_SHORT[other]}</a>
-      <a class="dp-acct" href={loginHref} data-dp-acct data-in={kontoHref} data-l-in={t('nav.account')}>{t('nav.account.login')}</a>
+      <a class="dp-acct" href={loginHref} data-dp-acct data-l-in={t('nav.account')}>{t('nav.account.login')}</a>
       <a class="dp-discord" href={DISCORD.invite} target="_blank" rel="noopener noreferrer" aria-label={t('nav.discord.aria')}></a>
       <details class="dp-menu">
         <summary aria-label={t('nav.menu.open')}><span class="dp-menu__icon" aria-hidden="true"></span><span class="dp-menu__txt">{t('nav.menu')}</span></summary>
@@ -222,7 +223,7 @@ const kontoHref = href('/account.html', lang);
             <ul role="list">
               {dienstZiele.map((z) => (
                 z.key === 'konto'
-                  ? <li><a href={loginHref} data-dp-acct data-in={kontoHref} data-l-in={t('nav.account')}>{z.name}</a></li>
+                  ? <li><a href={loginHref} data-dp-acct data-l-in={t('nav.account')}>{z.name}</a></li>
                   : z.extern
                     ? <li><a href={z.href} target="_blank" rel="noopener noreferrer">{z.name}</a></li>
                     : <li><a href={z.href}>{z.name}</a></li>
