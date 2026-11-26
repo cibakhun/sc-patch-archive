@@ -273,7 +273,10 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   }
   if (!naht) { fehler.push(`${lang}: ${seite} laedt ${SKRIPT} nicht — Skript umbenannt? Dann SKRIPT hier nachziehen.`); p.schliesse(); continue; }
   await p.settle(3000);
-  for (const f of p.fehler) fehler.push(`${lang}: ${seite} — ${f}`);
+  // Jede Uebernahme leert p.fehler: was spaeter einlaeuft (nach dem Laden des
+  // Katalogs, beim Rendern der Blaetter), kommt genau einmal in den Bericht.
+  const uebernimm = () => { for (const f of p.fehler.splice(0)) fehler.push(`${lang}: ${seite} — ${f}`); };
+  uebernimm();
   const cfg = p.window.__WZI || {};
   katalogSchluessel[lang] = new Set(Object.keys(cfg.t || {}));
   katalogW[lang] = new Set(Object.keys(cfg.w || {}));
@@ -282,6 +285,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   if (!naht.bereit()) { fehler.push(`${lang}: der Item-Katalog ist nicht geladen${naht.ladeFehler() ? ' (Ladefehler)' : ''} — dbUrl in window.__WZI pruefen`); p.schliesse(); continue; }
   await naht.laden();
   await p.settle(500);
+  uebernimm();
   naht.leere();
   const items = naht.items();
   const sets = naht.sets();
@@ -306,6 +310,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   }
   gefragt[lang] = new Set(naht.gefragt());
   gefragtW[lang] = new Set(naht.gefragtW());
+  uebernimm();
   p.schliesse();
 }
 
