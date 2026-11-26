@@ -40,15 +40,17 @@ export const HANGAR_ROUTES = [
   { pattern: '/de/hangar-bay/[id]', entrypoint: './src/hangar-routes/de/hangar-bay/[id].astro' },
   { pattern: '/hangar-innen/[id].json', entrypoint: './src/hangar-routes/hangar-innen/[id].json.ts' },
   { pattern: '/hangar-layouts.json', entrypoint: './src/hangar-routes/hangar-layouts.json.ts' },
+  { pattern: '/hangar-item3d.json', entrypoint: './src/hangar-routes/hangar-item3d.json.ts' },
 ];
 
 /** Was im Live-Bau nicht in dist/ stehen darf, relativ zu dist/. Ordner
  *  enden auf '/'; `assets/hangar-*.js` sind die Skripte, die nur die
  *  Hangar-Seiten laden — und der Item-Betrachter (assets/hangar-item3d.js,
- *  „In 3D ansehen“ auf Item- und Blueprint-Seiten, src/lib/item3d.ts), der
- *  aus demselben Grund nur in den Vorschau-Bau gehoert. */
+ *  „In 3D ansehen“ auf Item- und Blueprint-Seiten und in der Items-Werkbank,
+ *  src/lib/item3d.ts), der aus demselben Grund nur in den Vorschau-Bau
+ *  gehoert, samt der Modell-Liste der Werkbank (hangar-item3d.json). */
 export const HANGAR_DIST_DIRS = ['hangar/', 'hangar-bay/', 'de/hangar-bay/', 'hangar-innen/'];
-export const HANGAR_DIST_FILES = /^(?:de\/)?hangar(?:-loadout)?\.html$|^hangar-layouts\.json$|^assets\/hangar-[\w-]+\.js$/;
+export const HANGAR_DIST_FILES = /^(?:de\/)?hangar(?:-loadout)?\.html$|^hangar-(?:layouts|item3d)\.json$|^assets\/hangar-[\w-]+\.js$/;
 
 /** true, wenn das GEBAUTE Artefakt den Hangar traegt (dist/build.json
  *  staging !== false). Fehlt oder bricht der Stempel, gilt der Hangar als

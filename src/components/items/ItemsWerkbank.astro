@@ -24,6 +24,8 @@ import { jsonForScript } from '../../lib/safeJson';
 import { erzKatalog } from '../../lib/miningLinks';
 import { SET_HERSTELLER } from '../../../scripts/lib/armor-sets.mjs';
 import { db, pageItems, armorSets, ITEM_PATCH, num } from '../../lib/items';
+import { ITEM3D_LISTE_URL } from '../../lib/item3d';
+import Item3dDialog from '../Item3dDialog.astro';
 
 interface Props { lang: 'de' | 'en' }
 const lang = assertLocale(Astro.props.lang, 'ItemsWerkbank');
@@ -119,6 +121,8 @@ const CFG = {
   setHersteller: SET_HERSTELLER,
   t: ITEM_UI[lang],
   w: W,
+  // „In 3D ansehen“: Liste der Modelle, nur im Vorschau-Bau (src/lib/item3d.ts).
+  i3dListe: ITEM3D_LISTE_URL,
 };
 
 // Ring um das Emblem: gestrichelte Bahn, gezogener Kreis, vier Marken.
@@ -275,5 +279,6 @@ const allePfad = href('/items-werkbank.html', lang);
   </aside>
 </div>
 
+{ITEM3D_LISTE_URL && <Item3dDialog model={null} name="" lang={lang} liste={ITEM3D_LISTE_URL} />}
 <script is:inline set:html={`window.__WZI=${jsonForScript(CFG)};`} />
 <script is:inline src={appJs}></script>

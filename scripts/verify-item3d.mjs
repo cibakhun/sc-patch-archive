@@ -21,6 +21,12 @@
            Ergebnis-Item (data-bp-item) ein Modell hat, und zwar mit genau
            dieser Datei
        [5] der Betrachter und sein Umgebungslicht liegen in dist/
+       [6] Items-Werkbank (Krisz 26.11.2026): jede ihrer Seiten traegt genau
+           einen Dialog ohne festes Modell, der auf die Modell-Liste zeigt
+           (data-i3d-liste, ebenso die Seiten-Einstellung i3dListe), und
+           sonst keine Seite; dist/hangar-item3d.json ist genau die Liste
+           mit der Ablage dieses Baus, und ihre Kennung ?v= passt zum Inhalt
+     Im Live-Bau gehoert auch die Modell-Liste nicht in dist/ ([1]).
 
    Selbstauskunft: wie viele Seiten gelesen und wie viele mit Dialog
    gefunden wurden, mit Klinken. Kein git, kein Netz, kein Kindprozess —
@@ -31,6 +37,8 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { VORSCHAU_DIST_FILES } from './lib/vorschau-seiten.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
@@ -45,6 +53,11 @@ const MIN_MODELLE = 2900;      // Eintraege der Liste (23.11.2026: 2 422 Ruestun
 // Attribut und Dialog haengen am selben linkedItem in BlueprintDetail.astro;
 // verliert eine Seite ihr Item, faellt sie hier auf statt still durchzugehen.
 const MIN_BP_MIT_ITEM = 3200;
+// Seiten der Items-Werkbank (EN und DE). Zieht sie nach der Abnahme nach
+// /items.html um, faellt sie aus der Vorschau-Liste, und [6] reisst, bis
+// diese Stelle die neuen Seiten nennt.
+const WERKBANK_SEITEN = VORSCHAU_DIST_FILES.filter((f) => /(?:^|\/)items-werkbank\.html$/.test(f));
+const LISTE_DATEI = 'hangar-item3d.json';
 
 const fehler = [];
 const fail = (m) => fehler.push(m);
@@ -110,7 +123,8 @@ if (!vorschau) {
     DIALOG.lastIndex = 0;
   }
   if (treffer > 10) fail(`[1] … und ${treffer - 10} weitere Seiten`);
-  console.log(`  [1] ${gelesen} Seiten gelesen: ${treffer} mit 3D-Dialog oder Ablage`);
+  if (existsSync(join(DIST, LISTE_DATEI))) fail(`[1] dist/${LISTE_DATEI} (Modell-Liste der Werkbank) gehoert nicht in den Live-Bau`);
+  console.log(`  [1] ${gelesen} Seiten gelesen: ${treffer} mit 3D-Dialog oder Ablage; Modell-Liste ${existsSync(join(DIST, LISTE_DATEI)) ? 'DA' : 'nicht da'}`);
 } else {
   // [2]
   // Ablage: https, Wurzelpfad, ohne Zugangsdaten, Query oder Fragment — sonst
@@ -194,6 +208,48 @@ if (!vorschau) {
   for (const f of ['assets/hangar-item3d.js', 'vendor/three/addons/environments/RoomEnvironment.js'])
     if (!existsSync(join(DIST, f))) fail(`[5] dist/${f} fehlt — ohne ihn bleibt der Dialog leer`);
   console.log('  [5] Betrachter und Umgebungslicht in dist/ nachgesehen');
+
+  // [6] Werkbank: ein Dialog fuer alle Items, das Modell kommt aus der Liste.
+  const listePfad = join(DIST, LISTE_DATEI);
+  let listeKennung = null;
+  if (!existsSync(listePfad)) fail(`[6] dist/${LISTE_DATEI} fehlt — die Werkbank faende kein Modell (src/hangar-routes/hangar-item3d.json.ts)`);
+  else {
+    const roh = readFileSync(listePfad, 'utf8');
+    listeKennung = createHash('sha1').update(roh).digest('hex').slice(0, 8);
+    let l = null;
+    try { l = JSON.parse(roh); } catch { fail(`[6] dist/${LISTE_DATEI} ist kein JSON`); }
+    if (l) {
+      if (l.base !== BASIS) fail(`[6] dist/${LISTE_DATEI} nennt die Ablage ${l.base}, erwartet ${BASIS}`);
+      const ist = Object.entries(l.items ?? {});
+      const anders = ist.filter(([id, e]) => JSON.stringify(e) !== JSON.stringify(liste.items?.[id])).map(([id]) => id);
+      if (ist.length !== eintraege.length || anders.length)
+        fail(`[6] dist/${LISTE_DATEI}: ${ist.length} Eintraege, ${anders.length} abweichend (${anders.slice(0, 5).join(', ')}), erwartet genau src/data/item-3d.json (${eintraege.length})`);
+    }
+  }
+  const LISTE_ATTR = /\sdata-i3d-liste="([^"]*)"/;
+  const CFG_LISTE = /"i3dListe":"([^"]*)"/;
+  let werkbankMitDialog = 0;
+  for (const s of WERKBANK_SEITEN) {
+    const p = join(DIST, s);
+    if (!existsSync(p)) { fail(`[6] dist/${s} fehlt — Werkbank nicht gebaut?`); continue; }
+    const html = readFileSync(p, 'utf8');
+    const tags = [...html.matchAll(DIALOG)].map((m) => m[0]);
+    if (tags.length !== 1) { fail(`[6] ${s}: ${tags.length} 3D-Dialoge, erwartet genau einer`); continue; }
+    if (MODELL.test(tags[0])) fail(`[6] ${s}: der Dialog traegt ein festes Modell; die Werkbank setzt es erst beim Oeffnen`);
+    const url = LISTE_ATTR.exec(tags[0])?.[1];
+    const soll = `/${LISTE_DATEI}?v=${listeKennung}`;
+    if (!url) fail(`[6] ${s}: Dialog ohne data-i3d-liste — die Werkbank wuesste nicht, welche Items ein Modell haben`);
+    else if (listeKennung && url !== soll) fail(`[6] ${s}: data-i3d-liste="${url}", erwartet ${soll} (Kennung passt nicht zum Inhalt der Liste)`);
+    const cfg = CFG_LISTE.exec(html)?.[1];
+    if (cfg !== url) fail(`[6] ${s}: Seiten-Einstellung i3dListe=${cfg ?? '(fehlt)'} passt nicht zum Dialog (${url ?? '(nichts)'})`);
+    if (url && cfg === url) werkbankMitDialog++;
+  }
+  // Sonst traegt keine Seite oben in dist/ (und unter de/) die Liste.
+  const fremd = [...readdirSync(DIST).filter((f) => f.endsWith('.html')), ...ordnerHtml('de')]
+    .filter((s) => !WERKBANK_SEITEN.includes(s) && LISTE_ATTR.test(readFileSync(join(DIST, s), 'utf8')));
+  for (const s of fremd.slice(0, 5)) fail(`[6] ${s}: Dialog mit Modell-Liste ausserhalb der Werkbank`);
+  if (!WERKBANK_SEITEN.length) fail('[6] keine Werkbank-Seite in scripts/lib/vorschau-seiten.mjs — umgezogen? Dann hier die neuen Seiten nennen');
+  console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste (Soll ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}, ${fremd.length} andere Seiten mit Liste`);
 
   if (eintraege.length < MIN_MODELLE) fail(`Liste: ${eintraege.length} Modelle, Klinke ${MIN_MODELLE}`);
 }

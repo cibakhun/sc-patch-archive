@@ -74,6 +74,9 @@ export const WZ_BEDIEN: Record<string, string> = {
   grid4: NEU.grid4,
   // Erze: Verweis auf die Mining-Seite (Kartenzeile und Haupthandlung im Datenblatt).
   mining: WB_GLYPHS.mining,
+  // „In 3D ansehen“ im Blatt der Items-Werkbank (dasselbe Zeichen wie der
+  // Knopf auf der Item-Seite, src/components/Item3d.astro).
+  cube: '<path d="M12 2.8 20 7.4v9.2l-8 4.6-8-4.6V7.4z"/><path d="M12 12l8-4.6M12 12v9.2M12 12 4 7.4"/>',
 };
 
 const SONDER: Record<string, [string, number, boolean]> = {

@@ -48,6 +48,7 @@ function probe() {
   put('de/hangar-loadout.html');
   put('hangar-bay/aegs-gladius.html');
   put('hangar-layouts.json', '{}');
+  put('hangar-item3d.json', '{}');
   put('assets/hangar-viewer.js');
   put('assets/account-lite.js');
   put('schiffe.html', '<a href="/schiffe/aegs-gladius.html">Gladius</a>');
@@ -60,7 +61,7 @@ test('Bauschritt: live raeumt Hangar weg, laesst den Rest, Vorschau laesst alles
   const a = probe();
   let r = run(['scripts/_hangar-switch.mjs', '--dist', a.d]);
   assert.equal(r.status, 0, r.stderr);
-  for (const gone of ['hangar', 'hangar.html', 'de/hangar-loadout.html', 'hangar-bay', 'hangar-layouts.json', 'assets/hangar-viewer.js'])
+  for (const gone of ['hangar', 'hangar.html', 'de/hangar-loadout.html', 'hangar-bay', 'hangar-layouts.json', 'hangar-item3d.json', 'assets/hangar-viewer.js'])
     assert.equal(fs.existsSync(path.join(a.d, gone)), false, gone);
   for (const kept of ['assets/account-lite.js', 'schiffe.html', 'de/schiffe.html']) assert.ok(fs.existsSync(path.join(a.d, kept)), kept);
   assert.match(r.stdout, /Hangar entfernt \(2 Ordner, \d+ Dateien\)/);

@@ -13,6 +13,7 @@
 //
 // ITEM3D_BASE (nur Bauzeit) zeigt die Seiten zum Ausprobieren auf eine andere
 // Ablage, etwa einen lokalen Ordner unter dist/.
+import { createHash } from 'node:crypto';
 import DATA from '../data/item-3d.json';
 import { HAS_HANGAR } from './seo';
 
@@ -42,3 +43,15 @@ export function item3dFor(id: string | null | undefined): Item3d | null {
 
 /** Wie viele Items ein Modell haben (für Selbstauskünfte). */
 export const ITEM3D_ANZAHL = Object.keys(items).length;
+
+/** Die ganze Liste für die Items-Werkbank, die ihr Modell erst kennt, wenn
+ *  man ein Item wählt: Ablage dieses Baus und je Item [Datei, KB], wie in
+ *  src/data/item-3d.json. Ausgeliefert als /hangar-item3d.json, nur im
+ *  Vorschau-Bau (src/hangar-routes/, scripts/lib/hangar-switch.mjs). */
+export const ITEM3D_LISTE_JSON = JSON.stringify({ base: ITEM3D_BASE, items });
+
+/** Adresse der Liste mit Inhaltskennung (darf lange im Zwischenspeicher
+ *  bleiben), oder null im Live-Bau: dort gibt es keine Liste. */
+export const ITEM3D_LISTE_URL: string | null = HAS_HANGAR
+  ? `/hangar-item3d.json?v=${createHash('sha1').update(ITEM3D_LISTE_JSON).digest('hex').slice(0, 8)}`
+  : null;
