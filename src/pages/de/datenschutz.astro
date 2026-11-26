@@ -531,25 +531,30 @@ a{color:inherit;text-decoration:none}
     <h2 id="profile">Öffentliches Piloten-Profil</h2>
     <p>
       Dein Profil ist zunächst nicht öffentlich. Erst wenn du im Dashboard ein
-      <strong>Handle</strong> setzt, ist unter /pilot/&lt;Handle&gt; für jeden sichtbar, auch
-      ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
-      Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
-      das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, alle deine
+      <strong>Handle</strong> setzt, ist /pilot/&lt;Handle&gt; über seinen Link erreichbar, auch
+      ohne Anmeldung. Ohne Anmeldung zeigt es: Handle, Anzeigename, Kurzbeschreibung, Profilbild
+      oder Symbol, Banner, Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert
+      ist, gegebenenfalls das Abzeichen „Testpilot“, seit wann du dabei bist, deinen
+      <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, alle deine
       Favoriten samt Schiffsflotte, solange im Profil „Favoriten auf meiner öffentlichen Seite
       zeigen“ eingeschaltet ist (so ist es voreingestellt), und bis zu drei Loadouts, die du unter
       „Gespeichert“ aufs öffentliche Profil heftest, jeweils mit Schiff, dem Namen, den du ihm
-      gegeben hast, den gewählten Bauteilen und Raketenhalterungen und der Lackierung. Bist
-      du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
-      Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
-      <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
-      Monat, in dem du das Konto angelegt hast, dem Tag, an dem du jeden Favoriten gespeichert
-      hast, und dem Zeitpunkt, zu dem du jedes angeheftete Loadout angelegt und zuletzt geändert
-      hast, und zwar für alle Profile mit Handle auf einmal.
+      gegeben hast, den gewählten Bauteilen und Raketenhalterungen und der Lackierung. Deine Namen
+      bei Twitch, YouTube und X und — wenn du mit Discord verknüpft und Mitglied unseres
+      Discord-Servers bist — das Rang-Abzeichen mit deinem Rang, Level und Prestige (siehe
+      <a href="#discord-server">Discord-Server</a>) sieht nur, wer angemeldet ist. Die Website ruft
+      ein Profil über seinen Handle ab, immer nur eins; ohne Anmeldung lässt sich nicht die Liste
+      aller Profile auf einmal abrufen, und der Abruf ist je Internet-Anschluss gebremst (für die
+      Zählung speichern wir nur einen aus der IP-Adresse abgeleiteten Schlüssel — einen HMAC, nie
+      die Adresse selbst — und löschen ihn nach einer Stunde). Jeder Abruf trägt außerdem den
+      Monat, in dem du das Konto angelegt hast, den Tag, an dem du jeden Favoriten gespeichert
+      hast, und den Zeitpunkt, zu dem du jedes angeheftete Loadout angelegt und zuletzt geändert
+      hast.
     </p>
     <p>
-      Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
-      Profils mit Handle lesen. Hast du ein eigenes Profilbild oder Banner hochgeladen, steht sie
+      Angemeldete Nutzer sehen auf einem Profil zusätzlich deine Namen bei Twitch, YouTube und X
+      und das Discord-Rang-Abzeichen, können Profile als Liste abrufen und über die Schnittstelle
+      zusätzlich die interne Konto-ID jedes Profils mit Handle lesen. Hast du ein eigenes Profilbild oder Banner hochgeladen, steht sie
       außerdem in dessen Adresse, zusammen mit dem Zeitpunkt des Hochladens, und ist damit für
       jeden lesbar (siehe
       <a href="#accounts">Benutzerkonto</a>). Angemeldete Nutzer, auch ohne eigenes Handle, finden

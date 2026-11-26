@@ -91,10 +91,12 @@ describe('verify:db-rights — der Vergleich reisst, wo er soll', () => {
 
   test('ein fehlendes Soll-Recht ist nur WARNUNG', () => {
     const rows = ausSoll();
-    zeile(rows, 'view public.public_profiles').anon = '';
+    // tester_credits bleibt eine der Views mit anon-SELECT; public_profiles
+    // nicht mehr (anon liest sie seit 20261126220000 nur ueber pilot_public).
+    zeile(rows, 'view public.tester_credits').anon = '';
     const erg = pruefe(rows, soll);
     assert.deepStrictEqual(erg.fehler, []);
-    assert.match(erg.warnungen.join('\n'), /public_profiles: anon fehlt SELECT/);
+    assert.match(erg.warnungen.join('\n'), /tester_credits: anon fehlt SELECT/);
   });
 
   test('neues Objekt mit Rechten ohne Soll-Eintrag ist FEHLER, ohne Rechte WARNUNG', () => {
