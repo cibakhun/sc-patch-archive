@@ -27,6 +27,16 @@
 // Material-Fenster der Wikelo-Seite und die Zellen der Evolution-Matrix
 // melden treffer-offen ueber vbEreignis, ohne neuen Wert.
 //
+// Mining-Teil derselben Freigabe (K6 Teil b, nach dem Umbau der
+// Mining-Werkbank durch Paket G): Kachel der Erzliste geoeffnet als
+// treffer-offen (Klick, Enter, Leertaste), merken „erz“ und „fundort“
+// (Erz bzw. Fundort angeheftet, nur das Anheften, nie welches) und das
+// achtzehnte Ereignis eigenes-fenster (Listen eines Werkzeugs in ein eigenes
+// Fenster geholt; heute nur Mining, Feature-Audit H9 „das Fenster ist nicht
+// gemessen“). Kein filter-Wert dafuer: filter geht je Seitenaufruf nur
+// einmal raus, nach der ersten Suche waere das Fenster unsichtbar. Die
+// Stationswahl ist seit Paket G verborgen und bekommt nichts.
+//
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
 // fuehrt die ausgelieferte Datei aus und reisst, sobald die beiden
@@ -69,7 +79,7 @@ export const EXTERN_HOSTS = {
   'youtube.com': 'youtube',
 };
 export const VON = [...DETAIL, 'sonst', ...WERKZEUGE];
-export const MERKEN = ['flotte', 'planer', 'auftrag', 'besitz'];
+export const MERKEN = ['flotte', 'planer', 'auftrag', 'besitz', 'erz', 'fundort'];
 // Downloads-Seite: Bereich mit data-ev-download="<art>" um die Links mit
 // download-Attribut (Onepager-Dateien, Bilder).
 export const DOWNLOAD = ['onepager', 'bild'];
@@ -98,6 +108,7 @@ export const EREIGNISSE = {
   hilfe: { werkzeug: HILFE_WZ, art: HILFE_ART },
   download: { art: DOWNLOAD },
   planer: { aktion: PLANER },
+  'eigenes-fenster': { werkzeug: WERKZEUGE },
 };
 
 // Seiten der Werkzeuge (ohne /de-Vorsatz) -> Wert im Feld werkzeug. Dieselben

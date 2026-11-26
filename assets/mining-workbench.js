@@ -1275,6 +1275,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
            definiert und dadurch hier bereits sichtbar (hoisting). */
         if (S.locPins.length >= LOCPIN_MAX) { preSay(T.locPinsFull); return; }
         S.locPins.push(lk);
+        /* Messung (UX-Audit K6): nur das Anheften, nie welcher Fundort. */
+        if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'fundort' });
       }
       renderAll(); return;
     }
@@ -1304,7 +1306,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     var pin = t.closest('[data-pin]');
     if (pin) {
       var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
-      if (at >= 0) S.pins.splice(at, 1); else S.pins.push(pn);
+      if (at >= 0) S.pins.splice(at, 1);
+      else {
+        S.pins.push(pn);
+        /* Messung (UX-Audit K6): nur das Anheften, nie welches Erz; das
+           Loesen zaehlt nicht. Kachelnadel und grosser Knopf gehen beide
+           hier durch. */
+        if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'erz' });
+      }
       renderAll(); return;
     }
     /* Vorschlag der Leermeldung (P42): ein Tipp korrigiert die Suche UND
@@ -1324,7 +1333,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     /* Eine Erz-Auswahl bedeutet immer Erz-Ansicht (Claudes Ermessen, in
        CONTEXT.md festgelegt) -- sonst zeigte der Kopf weiter einen Ort,
        waehrend der zugehoerige Koerper verborgen ist. */
-    if (tile) { S.sel = tile.getAttribute('data-min'); S.view = 'ore'; renderAll(); zurAnsichtAmHandy(); return; }
+    if (tile) {
+      S.sel = tile.getAttribute('data-min'); S.view = 'ore'; renderAll(); zurAnsichtAmHandy();
+      /* Messung (UX-Audit K6): ein Erz aus der Liste geoeffnet, ohne Namen.
+         Die Kachel ist ein div mit role="button", kein Link: deshalb ein
+         Aufruf statt data-ev-treffer, der auch Enter und Leertaste zaehlt. */
+      if (e.isTrusted && window.vbEreignis) window.vbEreignis('treffer-offen');
+      return;
+    }
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
@@ -1347,6 +1363,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       S.view = 'ore';
       renderAll();
       zurAnsichtAmHandy({ tastatur: true });
+      if (e.isTrusted && window.vbEreignis) window.vbEreignis('treffer-offen');
       return;
     }
     /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
@@ -1561,12 +1578,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       mount(w);
     }
 
-    function openPop() {
+    function openPop(ev) {
       if (win && !win.closed) { try { win.focus(); } catch (e) { /* egal */ } return; }
       /* Fenster weg, ohne dass pagehide durchkam — Zustand nachziehen, sonst
          zeigte die Spalte weiter den Platzhalter fuer ein Fenster, das es
          nicht mehr gibt. */
       if (win) takeBack();
+      /* Messung (UX-Audit K6): das Fenster wird geoeffnet, nicht nur nach
+         vorn geholt. Ob der Browser es dann zulaesst, weiss hier noch
+         niemand; gezaehlt wird der Wunsch. */
+      if (ev && ev.isTrusted && window.vbEreignis) window.vbEreignis('eigenes-fenster');
       var p = null;
       try {
         if (window.documentPictureInPicture && window.documentPictureInPicture.requestWindow) {
