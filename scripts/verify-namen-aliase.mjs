@@ -50,8 +50,8 @@ const DIST = arg('--dist') ? resolve(arg('--dist')) : resolve(ROOT, 'dist');
 const lies = (p) => JSON.parse(readFileSync(resolve(ROOT, p), 'utf8'));
 
 // Klinke (nur nach oben; nach unten nur per Commit, der das gestrichene Paar nennt).
-const MIN_PAARE = 56; // 24.11.2026: 12 Schreibweisen, 44 Umbenennungen
-const MIN_ALTE_ADRESSEN = 56; // 24.11.2026: verschwundene Item-Ids des Zusammenlegens
+const MIN_PAARE = 58; // 24.11.2026: 12 Schreibweisen, 44 Umbenennungen; 26.11.2026: + TruBarrier Cinnabar, + Constellation-Lackierung
+const MIN_ALTE_ADRESSEN = 58; // 24.11.2026: verschwundene Item-Ids des Zusammenlegens; 26.11.2026: + 2
 const MIN_QUELLENNAMEN = 4000; // verschiedene Namen in den drei Quellen (24.11.2026: 4.111)
 
 const fehler = [];

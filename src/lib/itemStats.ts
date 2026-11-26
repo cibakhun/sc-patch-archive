@@ -143,6 +143,13 @@ export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (s.shieldHp) out.push([t('statShieldHp'), n(s.shieldHp)]);
   if (s.regen) out.push([t('statRegen'), `${n(s.regen)}/s`]);
   if (s.driveSpeed) out.push([t('statQtSpeed'), `${n(Math.round(s.driveSpeed / 1e6))} Mm/s`]);
+  // Flugblaetter: Flugwerte wie auf dem Schiffsblatt (IA C8, 26.11.2026)
+  if (s.scmSpeed) out.push([t('statScm'), `${n(s.scmSpeed)} m/s`]);
+  if (s.maxSpeed) out.push([t('statMaxSpeed'), `${n(s.maxSpeed)} m/s`]);
+  if (s.boostForward) out.push([t('statBoost'), `${n(s.boostForward)} m/s`]);
+  if (s.pitch) out.push([t('statPitch'), `${n(s.pitch)} °/s`]);
+  if (s.yaw) out.push([t('statYaw'), `${n(s.yaw)} °/s`]);
+  if (s.roll) out.push([t('statRoll'), `${n(s.roll)} °/s`]);
   if (s.cooldown) out.push([t('statCooldown'), `${n(s.cooldown)} s`]);
   if (s.coolingRate) out.push([t('statCooling'), n(s.coolingRate)]);
   if (s.powerOutput) out.push([t('statPower'), n(s.powerOutput)]);
@@ -184,6 +191,7 @@ export function primaryStat(i: Item, lang: Locale): Row | null {
   if (s.jammerRange) return [t('statJammer'), `${n(s.jammerRange)} m`];
   if (s.empRadius) return [t('statEmpRadius'), `${n(s.empRadius)} m`];
   if (s.fuelCapacity) return [t('statFuel'), n(s.fuelCapacity)];
+  if (s.scmSpeed) return [t('statScm'), `${n(s.scmSpeed)} m/s`];
   if (s.damage) {
     let tot = 0;
     for (const k of DMG_ORDER) tot += s.damage[k] ?? 0;

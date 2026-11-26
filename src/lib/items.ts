@@ -95,6 +95,13 @@ export interface ItemStats {
   storageScu?: number;
   lifetime?: number;
   health?: number;
+  /* Flugblaetter (PHB/TSB): dieselben Flugwerte wie auf dem Schiffsblatt */
+  scmSpeed?: number;
+  maxSpeed?: number;
+  boostForward?: number;
+  pitch?: number;
+  yaw?: number;
+  roll?: number;
   [k: string]: unknown;
 }
 
@@ -155,6 +162,13 @@ export interface ItemGame {
   lootReason?: string;
   /** Verweis in `db.sets` */
   setId?: string;
+  /**
+   * Nur Identitaet: das Spiel fuehrt das Item, aber in einer Art, deren Werte
+   * die Extraktion nicht auswertet (Moebel, Pflanzen, Pluesch, Tankduesen …).
+   * Name, Hersteller, Volumen und Beschreibung stammen aus dem Spiel; Werte
+   * gibt es dazu keine (build-universal-db.mjs, IA C8 26.11.2026).
+   */
+  ohneWerte?: boolean;
 }
 
 /** Ruestungs-Set (scripts/lib/armor-sets.mjs). `slots` bildet Slot -> Teilenamen ab. */
@@ -181,6 +195,11 @@ export interface Item {
   game?: ItemGame;
   /** Index in db.fundorte.profile: bestaetigte Fundorte (scripts/apply-loot-fundorte.mjs) */
   fund?: number;
+  /**
+   * Kein Item im aktuellen Spielstand traegt diesen Namen — Preise oder
+   * Fundorte nennen ihn trotzdem (build-universal-db.mjs, IA C8 26.11.2026).
+   */
+  nichtImSpiel?: boolean;
 }
 
 /** Bestaetigte Fundorte (scripts/lib/loot-orte.mjs wendeFundorteAn). */

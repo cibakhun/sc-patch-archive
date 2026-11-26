@@ -9,7 +9,8 @@
 // aber ohne technische Daten, und eine mit Spielwerten, aber ohne Bezugswege.
 // Gefunden ueber die Item-Seiten ohne Abschnitt „Technische Daten": 56 davon
 // tragen ihre Werte im Spielbestand unter einem anderen Namen (Abgleich gegen
-// Data.p4k 4.10.3, Liste in der Projektablage ux-audit/paket-d).
+// Data.p4k 4.10.3, Liste in der Projektablage ux-audit/paket-d). Zwei weitere
+// kamen am 26.11.2026 bei den uebrigen Seiten ohne Werte dazu.
 // Krisz hat am 24.11.2026 entschieden: zusammenlegen, die alte Adresse leitet
 // per 301 auf die Seite mit dem Spielnamen (nginx/umzuege.conf).
 //
@@ -37,6 +38,9 @@ export const NAMEN_ALIASE = [
   ['TCS-4 Undersuit Black/Grey', 'TCS-4 Undersuit\u00a0Black/Grey', 'schreibweise'],
   ['TrueDef-Pro Arms White/Silver/Gray', 'TrueDef-Pro Arms White/Silver/Grey', 'schreibweise'],
   ['TrueDef-Pro Core White/Silver/Gray', 'TrueDef-Pro Core White/Silver/Grey', 'schreibweise'],
+  // 26.11.2026: die Cinnabar-Ausfuehrung schreibt das Spiel als einzige „Tru Barrier"
+  // (Cobalt, Moss, Slate … heissen „TruBarrier"); Preise kennen sie unter „TruBarrier".
+  ['TruBarrier Hazard Suit Cinnabar', 'Tru Barrier Hazard Suit Cinnabar', 'schreibweise'],
 
   // Umbenannt: alter Name aus Loot-Recherche, Preisliste oder Shop-Schnappschuss, das Spiel fuehrt das Item heute unter neuem Namen.
   ['Ace Interceptor Flight Suit', 'Ace Interceptor Racing Flight Suit', 'umbenannt'],
@@ -49,6 +53,8 @@ export const NAMEN_ALIASE = [
   ['Calva Helmet', 'Calva Racing Helmet', 'umbenannt'],
   ['Calva Helmet Red Festival', 'Calva Helmet Red Racing Festival', 'umbenannt'],
   ['Calva Helmet Year of the Rat', 'Calva Racing Helmet Year of the Rat', 'umbenannt'],
+  // 26.11.2026: wie die Aurora-Rumpfpanzer heisst die Lackierung im Spiel mit „Mk IV".
+  ['Constellation Dark Green Livery', 'Constellation Mk IV Dark Green Livery', 'umbenannt'],
   ['Emod Stabilizer 1', 'Emod Stabilizer1', 'umbenannt'],
   ['Emod Stabilizer 2', 'Emod Stabilizer2', 'umbenannt'],
   ['Emod Stabilizer 3', 'Emod Stabilizer3', 'umbenannt'],
@@ -95,7 +101,7 @@ export function katalogName(name) {
 }
 
 // Die Adressen, die beim Zusammenlegen verschwunden sind: [alte Item-Id,
-// Name im Spiel]. Festgehalten am 24.11.2026 aus dem Lauf von
+// Name im Spiel]. Festgehalten am 24.11.2026 (zwei weitere am 26.11.2026) aus dem Lauf von
 // scripts/namen-zusammenfuehren.mjs ueber den Katalog davor. Das ist nicht
 // immer die Adresse des alten Namens: bei den Zwillingen mit geschuetztem
 // Leerzeichen behaelt das zusammengelegte Item die bekannte Id, und die
@@ -117,6 +123,7 @@ export const ALTE_ADRESSEN = [
   ["calva-helmet", "Calva Racing Helmet"],
   ["calva-helmet-red-festival", "Calva Helmet Red Racing Festival"],
   ["calva-helmet-year-of-the-rat", "Calva Racing Helmet Year of the Rat"],
+  ["constellation-dark-green-livery", "Constellation Mk IV Dark Green Livery"],
   ["deadrig-noxious-shotgun-2", "Deadrig 'Noxious' Shotgun"],
   ["emod-stabilizer-1", "Emod Stabilizer1"],
   ["emod-stabilizer-2", "Emod Stabilizer2"],
@@ -154,6 +161,7 @@ export const ALTE_ADRESSEN = [
   ["sw16br2", "SW16BR2 “Sawbuck” Repeater"],
   ["sw16br3", "SW16BR3 “Shredder” Repeater"],
   ["tcs-4-undersuit-black-grey-2", "TCS-4 Undersuit\u00a0Black/Grey"],
+  ["trubarrier-hazard-suit-cinnabar", "Tru Barrier Hazard Suit Cinnabar"],
   ["truedef-pro-arms-white-silver-gray", "TrueDef-Pro Arms White/Silver/Grey"],
   ["truedef-pro-core-white-silver-gray", "TrueDef-Pro Core White/Silver/Grey"],
   ["xanthule-ascension-helmet", "Xanthule Ascension Flight Helmet"],
