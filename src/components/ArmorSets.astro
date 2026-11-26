@@ -90,14 +90,20 @@ const sizeOf = (sets: { id: string }[]) => {
      Kein Bildlauf-Kasten fuer diese Seite (Dokument mit Sprungmarken, kein
      Ergebnisraster, Begruendung im PLAN) — stattdessen klebt die Sprungleiste,
      damit sie von jeder Stelle der Seite aus erreichbar ist, ohne 20 Abschnitte
-     durchzuscrollen. Deckender Hintergrund + blur wie .dp-bar
-     (assets/data-page.css), Haarlinie als untere Kante. z-index 15,
-     ausdruecklich UNTER der Brotkrumenleiste .dp-bar (20), sonst laege die
-     Sprungleiste beim Scrollen darueber. */
+     durchzuscrollen. Haarlinie als untere Kante.
+
+     Sie klebt UNTER der Kopfleiste .dp-bar, nicht bei top:0: bis 24.11.2026
+     klebten beide bei 0, und die Kopfleiste (z-index 20) deckte die erste
+     Knopfreihe zu — 92 px am Desktop, am Telefon die ganze Leiste. Die
+     Hoehe der Kopfleiste misst assets/data-search.js (--dp-bar-h, Startwert
+     in data-page.css). z-index 15 bleibt unter der Kopfleiste: deren Schatten
+     faellt auf die Sprungleiste, nicht umgekehrt.
+     Hintergrund fast deckend: mit 88 % schienen die grossen
+     Herstellertitel beim Scrollen zwischen den Knoepfen durch. */
   .as-jump {
     display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 2.2rem;
-    position: sticky; top: 0; z-index: 15;
-    padding: .8rem 0; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    position: sticky; top: var(--dp-bar-h, 4rem); z-index: 15;
+    padding: .8rem 0; background: color-mix(in srgb, var(--bg) 96%, transparent);
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--line-soft);
   }
   .as-jump a {
@@ -111,28 +117,21 @@ const sizeOf = (sets: { id: string }[]) => {
   .as-jump a:hover { color: var(--text); border-color: var(--dp-hair); border-left-color: var(--tone-1); background: var(--dp-tint); }
   .as-jump span { font-family: var(--font-num); font-weight: 600; font-size: var(--fs-11); color: var(--tone-1); opacity: .85; }
 
-  /* mobile-ux.css (Abschnitt 6) setzt scroll-margin-top fuer [id] nur hinter
-     @media (max-width:820px) — dort reicht die feste Brotkrumenleiste .dp-bar
-     allein. Mit der nun am DESKTOP klebenden .as-jump wuerde ein Sprungziel
-     sonst unter BEIDEN Leisten landen. Diese Regel gehoert hierher statt in
-     mobile-ux.css, weil sie genau diese eine Seite und genau diese eine neue
-     Leiste betrifft (.dp-bar 4rem + .as-jump ca. 3rem = 7rem). */
-  .dp-sec[id] { scroll-margin-top: 7rem; }
-
-  /* ⚠ NACHGEMESSEN 30.08.2026 (Tiefenpruefung): das „ca. 3rem" oben stimmt
-     nur fuer die EINZEILIGE Leiste. Wo sie umbricht — ab 1181 px Breite auf
-     einem Fenster ueber 800 px Hoehe — ist sie mit 22 Herstellern vierzeilig
-     und 226 px hoch. Gemessen nach einem Klick auf die erste Sprungmarke:
-     das Ziel landete auf 126 px, die klebende Kante lag bei 226 px — die
-     Ueberschrift stand also 100 px UNTER der Leiste, auf die man gerade
-     geklickt hatte. Bei 320..1180 px (einzeilig, Kante bei 87..96 px) war
-     dieselbe Messung sauber.
-     16rem = 288 px deckt die vier Zeilen mit 62 px Luft; eine fuenfte Zeile
-     (283 px) traegt sie noch, eine sechste nicht mehr. Die Zahl haengt an
-     der Zahl der Hersteller, und die steht unter der Sperrklinke von
-     verify:metrics. */
-  @media (min-width: 1181px) and (min-height: 801px) {
-    .dp-sec[id] { scroll-margin-top: 16rem; }
+  /* Sprungziele landen unter BEIDEN klebenden Leisten: Kopfleiste
+     (--dp-bar-h, gemessen) plus Sprungleiste plus Luft. Diese Regel gehoert
+     hierher statt in mobile-ux.css, weil sie genau diese eine Seite und
+     genau diese eine Leiste betrifft.
+     Einzeilig misst die Sprungleiste 74 px (ab 821 px) bzw. 87 px (darunter,
+     44-px-Knoepfe): 5rem = 90 px deckt beides, .6rem ist die Luft.
+     Vierzeilig (umbrechend, Bedingung unten) misst sie 226 px: 13.4rem.
+     Die Zeilenzahl haengt an der Zahl der Hersteller (gemessen 24.11.2026:
+     20), und die steht unter der Sperrklinke von verify:metrics; eine
+     fuenfte Zeile (283 px) traegt die Zahl nicht mehr.
+     Geschichte: 30.08.2026 stand hier 7rem bzw. 16rem, gerechnet fuer zwei
+     Leisten, die beide bei top:0 klebten. */
+  .dp-sec[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 5.6rem); }
+  @media (min-width: 1181px) and (min-height: 1061px) {
+    .dp-sec[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 13.4rem); }
   }
 
   /* Herstellerabschnitt als Block: content-visibility:auto rechnet Stil,
@@ -247,10 +246,15 @@ const sizeOf = (sets: { id: string }[]) => {
      Zeilen ist eben nicht dasselbe wie hoch genug fuer zwei Zeilen.
      NACHGEMESSEN 30.08.2026 in der Tiefenpruefung: mit 700 px stand die
      Leiste bei 1280x720 — dem haeufigsten Laptop — weiter vierzeilig und
-     226 px hoch = 31 % des Fensters, klebend. Die Grenze ist deshalb
+     226 px hoch = 31 % des Fensters, klebend. Die Grenze war deshalb
      800 px, dieselbe Zahl wie beim Hero der Missionsseite. Einzeilig
-     misst sie dort 74 px; das sind 152 px zurueckgegebener Arbeitsplatz. */
-  @media (max-width: 1180px), (max-height: 800px) {
+     misst sie dort 74 px; das sind 152 px zurueckgegebener Arbeitsplatz.
+     24.11.2026: seit sie UNTER der Kopfleiste klebt (oben), zaehlen beide
+     zusammen — vierzeilig 92 + 226 = 318 px, bei 1280x900 waren das 35 %
+     des Fensters. Die Grenze ist deshalb 1060 px: erst darueber bleiben
+     beide zusammen unter 30 %. Ein 1920x1080-Bildschirm mit Browserleisten
+     liegt darunter und bekommt die einzeilige Leiste. */
+  @media (max-width: 1180px), (max-height: 1060px) {
     .as-jump {
       flex-wrap: nowrap;
       overflow-x: auto;
@@ -260,7 +264,9 @@ const sizeOf = (sets: { id: string }[]) => {
   }
 
   @media (max-width: 820px) {
-    .as-jump a { min-height: 44px; }
+    /* 44-px-Fingerkuppe: Name und Zahl mittig statt oben in der Kachel
+       (an der Grundlinie ausgerichtet sassen sie am oberen Rand). */
+    .as-jump a { min-height: 44px; align-items: center; }
     .as-parts li { min-height: 34px; }
   }
 </style>

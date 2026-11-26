@@ -159,3 +159,25 @@
     }
   });
 })();
+
+// Hoehe der klebenden Kopfleiste als --dp-bar-h an .dp. Was darunter klebt
+// (die Hersteller-Sprungleiste der Ruestungs-Sets), setzt sein `top` darauf
+// statt auf 0 — sonst laege es hinter der Leiste. Gemessen statt geschaetzt:
+// die Leiste ist je nach Breite ein- oder zweizeilig, ein langer Pfad bricht
+// um, und im Hangar-Terminal bleibt nur der Pfad stehen. data-page.css haelt
+// je Breitenstufe einen Startwert fuer den ersten Blick und ohne Skript.
+// Steht hier, weil diese Datei auf jeder Seite der Datenhuelle laeuft.
+(function () {
+  var bar = document.querySelector('.dp > .dp-bar');
+  if (!bar || typeof ResizeObserver !== 'function') return;
+  var dp = bar.parentElement;
+  var alt = '';
+  function messen() {
+    var h = bar.getBoundingClientRect().height.toFixed(2) + 'px';
+    if (h === alt) return;
+    alt = h;
+    dp.style.setProperty('--dp-bar-h', h);
+  }
+  new ResizeObserver(messen).observe(bar);
+  messen();
+})();
