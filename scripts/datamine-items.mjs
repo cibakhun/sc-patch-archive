@@ -499,7 +499,7 @@ const identityCandidates = [];
 // Ship Chair" hat eine Seite, steht im Spiel aber nur in einer Requisiten-
 // Datei — ohne Ersatz blieb die Seite ohne Abschnitt „Technische Daten".
 // Nur Typen ausserhalb der Allowlist: eine Waffe, die es nur als Requisite
-// gibt, bekommt keinen Hinweis „keine Leistungswerte".
+// gibt, bekommt keinen Hinweis „keine Werte-Übersicht".
 const junkIdentityCandidates = [];
 const junkNames = new Set();
 const PLACEHOLDER_NAME = /PLACEHOLDER|<=|=>/;

@@ -65,7 +65,7 @@
 //      Abschnitt „Technische Daten" (#technische-daten), und er ist nicht
 //      leer: Werte, Angaben (Hersteller/Beschreibung), der Link aufs
 //      Schiffsblatt oder ein benannter Hinweis — „hier gibt es keine
-//      Leistungswerte" (data-specs-ohne-werte) bzw. „kein Item dieses Namens
+//      Werte-Übersicht" (data-specs-ohne-werte) bzw. „kein Item dieses Namens
 //      im Spiel" (data-specs-nicht-im-spiel), im Wortlaut von
 //      src/i18n/itemText.ts. Die Hinweise stehen genau dort, wo der Katalog
 //      das Item so markiert (game.ohneWerte / nichtImSpiel). Klinke fuer die
@@ -489,11 +489,11 @@ function pruefeTechDaten(pfad, html) {
   const item = itemNachId.get(pfad.match(/\/([^/]+)\.html$/)?.[1]);
   const probleme = [];
   if (hatNichtImSpiel && notiz('data-specs-nicht-im-spiel') !== SPECS_NICHT_IM_SPIEL[sprache]) probleme.push('Hinweis „nicht im Spiel" im anderen Wortlaut');
-  if (hatOhneWerte && notiz('data-specs-ohne-werte') !== SPECS_OHNE_WERTE[sprache]) probleme.push('Hinweis „keine Leistungswerte" im anderen Wortlaut');
+  if (hatOhneWerte && notiz('data-specs-ohne-werte') !== SPECS_OHNE_WERTE[sprache]) probleme.push('Hinweis „keine Werte-Übersicht" im anderen Wortlaut');
   if (hatNichtImSpiel !== (item?.nichtImSpiel === true)) probleme.push(hatNichtImSpiel ? 'Hinweis „nicht im Spiel", der Katalog markiert es nicht' : 'Katalog: nicht im Spiel, die Seite sagt es nicht');
   if (item?.nichtImSpiel && item.game) probleme.push('Katalog: nicht im Spiel, traegt aber Spieldaten');
   if (item?.game?.ohneWerte && !hatOhneWerte) probleme.push('Katalog: ohne Werte, die Seite sagt es nicht');
-  if (hatOhneWerte && werte) probleme.push('Hinweis „keine Leistungswerte" neben Werten');
+  if (hatOhneWerte && werte) probleme.push('Hinweis „keine Werte-Übersicht" neben Werten');
   if (probleme.length) techMarkeFalsch.push(`${pfad} (${probleme.join('; ')})`);
   if (item?.game?.gameType === 'FlightController') {
     flugblaetter++;
@@ -610,7 +610,7 @@ console.log(`    Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblat
 need(!fahrzeugOhneDaten.length, `${fahrzeugOhneDaten.length} Fahrzeug-Itemblatt/-blaetter ohne Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblatt — ${liste(fahrzeugOhneDaten)}`);
 
 console.log('\n[16] IA C8 Jedes Item-Blatt hat „Technische Daten" — Werte, Angaben oder einen benannten Hinweis');
-console.log(`    Item-Blaetter: ${blaetter}   mit Werten: ${techArten.werte}   nur Angaben (Hersteller, Beschreibung): ${techArten.angaben}   Fahrzeug -> Schiffsblatt: ${techArten.schiff}   Hinweis „keine Leistungswerte": ${techArten.ohneWerte}   Hinweis „nicht im Spiel": ${techArten.nichtImSpiel} (Decke ${DECKEN.nichtImSpiel})`);
+console.log(`    Item-Blaetter: ${blaetter}   mit Werten: ${techArten.werte}   nur Angaben (Hersteller, Beschreibung): ${techArten.angaben}   Fahrzeug -> Schiffsblatt: ${techArten.schiff}   Hinweis „keine Werte-Übersicht": ${techArten.ohneWerte}   Hinweis „nicht im Spiel": ${techArten.nichtImSpiel} (Decke ${DECKEN.nichtImSpiel})`);
 console.log(`    ohne Abschnitt: ${ohneTechDaten.length} (Decke ${DECKEN.ohneTechDaten}, Ziel 0)   Abschnitt leer — Soll: 0   Ist: ${techLeer.length}   Hinweis passt nicht zum Katalog oder Wortlaut — Soll: 0   Ist: ${techMarkeFalsch.length}`);
 console.log(`    Flugblaetter: ${flugblaetter} (Klinke ${KLINKEN.flugblaetter})   ohne Flugwerte — Soll: 0   Ist: ${flugblattOhneWerte.length}`);
 need(ohneTechDaten.length <= DECKEN.ohneTechDaten, `${ohneTechDaten.length} Item-Blatt/-Blaetter ohne Abschnitt „Technische Daten", Decke ${DECKEN.ohneTechDaten} — Spieldaten fehlen und keine Marke ohneWerte/nichtImSpiel? (build-universal-db.mjs, IA C8) Decke nicht heben — ${liste(ohneTechDaten)}`);
