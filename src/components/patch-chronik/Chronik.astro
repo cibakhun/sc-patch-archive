@@ -1,0 +1,449 @@
+---
+// Chronik eines Patches: Abschnitte untereinander, jeder mit eigenem Aufbau
+// (Vollbild, Wortkapitel, Rangleiter, Kacheln, Halle, Karussell, Gruppen,
+// Reiter). Der Inhalt kommt fertig aus dem Modul des Patches
+// (src/lib/patch-chronik/<patch>.ts). Bewegung haengt am Scroll und laeuft
+// nur ueber CSS; das Skript schaltet Reiter und laedt Bilder vor. Ohne Skript
+// stehen alle Felder untereinander.
+import SiteNav from '../SiteNav.astro';
+import Auftakt from './Auftakt.astro';
+import Wortkapitel from './Wortkapitel.astro';
+import Rangleiter from './Rangleiter.astro';
+import Raster from './Raster.astro';
+import NeueSchiffe from './NeueSchiffe.astro';
+import Halle from './Halle.astro';
+import Karten from './Karten.astro';
+import Bestand from './Bestand.astro';
+import AlleListen from './AlleListen.astro';
+import { href } from '../../i18n/ui';
+import type { Chronik } from '../../lib/patch-chronik/chronik';
+
+interface Props { chronik: Chronik }
+const { chronik } = Astro.props;
+const de = chronik.lang === 'de';
+---
+<SiteNav
+  crumbs={[
+    { label: 'VerseBase', href: href('/index.html', chronik.lang) },
+    { label: de ? 'Archiv' : 'Archive', href: href('/archiv.html', chronik.lang) },
+    { label: `Alpha ${chronik.version}` },
+  ]}
+  hasEn={true}
+/>
+
+<main id="main" class="chronik">
+  {chronik.abschnitte.map((a) => {
+    switch (a.art) {
+      case 'auftakt': return <Auftakt a={a} />;
+      case 'wort': return <Wortkapitel a={a} />;
+      case 'leiter': return <Rangleiter a={a} />;
+      case 'raster': return <Raster a={a} />;
+      case 'schiffe': return <NeueSchiffe a={a} />;
+      case 'halle': return <Halle a={a} />;
+      case 'karten': return <Karten a={a} />;
+      case 'bestand': return <Bestand a={a} />;
+      case 'reiter': return <AlleListen a={a} />;
+    }
+  })}
+</main>
+
+<style is:inline>
+:root{
+  --bg:#05060b;--bg-2:#0b0c12;--text:#eef2fb;--muted:#93a0b8;--linie:rgba(255,255,255,.12);
+  --akz:#ff4b3e;--akz-2:#ffb4a3;
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
+.chronik{--rand:clamp(1.1rem,5vw,6.5rem);overflow-x:clip}
+.chronik a{color:var(--akz-2);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--akz) 60%,transparent);text-underline-offset:4px}
+.chronik a:hover{color:#fff}
+.chronik a:focus-visible{outline:2px solid var(--akz-2);outline-offset:3px;border-radius:2px}
+.chronik h2{margin:0;font-family:var(--font-display);font-weight:700;line-height:1.1;letter-spacing:var(--ls-2);font-size:clamp(1.7rem,3.2vw,3rem);color:#fff;text-wrap:balance}
+.chronik h3{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.2;color:#fff}
+.chronik p{line-height:1.55}
+.chronik picture{display:block}
+.chronik picture img{display:block;width:100%;height:100%;object-fit:cover}
+.abschnitt{position:relative;padding:clamp(4rem,10vh,7.5rem) var(--rand)}
+.abschnitt:nth-of-type(even){background:var(--bg-2)}
+.chronik p.stempel{margin:1.2rem 0 0;font-size:var(--fs-7);color:var(--muted)}
+.chronik .stempel a{color:var(--muted)}
+
+/* Kennwerte: Bezeichnung links, Wert rechts, lange Werte brechen darunter um. */
+.werte{margin:1.4rem 0 0;padding:0;border-top:1px solid var(--linie)}
+.werte div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem 1.5rem;padding:.65rem 0;border-bottom:1px solid var(--linie)}
+.werte dt{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);color:var(--muted)}
+.werte dd{margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);color:#fff;font-variant-numeric:tabular-nums}
+
+/* ---------- Vollbild ---------- */
+.auftakt{height:100vh;height:100svh;min-height:560px;padding:0;overflow:hidden;background:var(--bg)}
+.auftakt__bild{position:absolute;inset:0;-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.14) 0%,rgba(0,0,0,.4) 34%,#000 62%);mask-image:linear-gradient(90deg,rgba(0,0,0,.14) 0%,rgba(0,0,0,.4) 34%,#000 62%)}
+.auftakt__text{position:absolute;z-index:2;left:var(--rand);top:50%;translate:0 -50%;max-width:min(40rem,calc(100% - 2*var(--rand)))}
+.auftakt__patch{margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);letter-spacing:var(--ls-5);color:#e7ebf5}
+.auftakt__titel{margin:.5rem 0 0;font-family:var(--font-display);font-weight:800;line-height:1;letter-spacing:var(--ls-2);font-size:clamp(2.6rem,6vw,6rem);color:#fff;text-wrap:balance}
+.auftakt__satz{margin:1.4rem 0 0;font-size:var(--fs-14);color:#e7ebf5;max-width:30ch}
+.auftakt__notes{margin:1.6rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-12)}
+
+/* ---------- Wortkapitel ---------- */
+.wort{min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding:0}
+.wort__bild{position:absolute;top:0;right:0;bottom:0;width:64%}
+/* Verlauf als Ueberlage statt Maske: eine Maske ueber dem grossen Bild kostete beim ersten Zeichnen bis 38 ms. */
+.wort__bild::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--bg-2) 0%,rgba(11,12,18,.5) 30%,rgba(11,12,18,0) 70%)}
+.wort__bild img{object-position:60% 50%}
+.wort__wort{position:absolute;right:-.04em;top:50%;translate:0 -50%;margin:0;pointer-events:none;user-select:none;
+  font-family:var(--font-display);font-weight:900;line-height:.8;letter-spacing:var(--ls-1);font-size:clamp(4rem,15.5vw,19rem);color:rgba(255,75,62,.1);z-index:1}
+.wort__text{position:relative;z-index:2;box-sizing:border-box;width:min(46rem,100%);padding:calc(var(--nav-h,60px) + 2rem) var(--rand) 3rem}
+.wort__titel{margin:0;font-weight:normal}
+.wort__name{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-15);line-height:1.2;color:#fff}
+.wort__zahl{display:block;margin:.6rem 0 .2rem;font-family:var(--font-display);font-weight:800;font-size:clamp(3rem,6.4vw,6.4rem);line-height:1;letter-spacing:var(--ls-2);font-variant-numeric:tabular-nums;color:#fff;white-space:nowrap}
+.wort__was{display:block;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-15);color:var(--akz-2)}
+.wort__traeger{margin:1.2rem 0 0;font-size:var(--fs-11);color:#e7ebf5}
+.wort__notiz{margin:1.6rem 0 0;font-size:var(--fs-10);color:#e7ebf5;max-width:42ch}
+
+.chronik ol,.chronik ul{margin:0;padding:0;list-style:none}
+
+/* ---------- Rangleiter: Rang links, darunter freigeschaltete Auftraege; Raenge ohne neue Auftraege bleiben leise ---------- */
+.leiter__buehne{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(2rem,5vw,5rem);align-items:start}
+.leiter__text p{max-width:44ch;font-size:var(--fs-12);color:#e7ebf5}
+.leiter__rechts h3{margin-bottom:.8rem}
+.leiter__stufen{border-top:1px solid var(--linie)}
+.stufe{position:relative;display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:.3rem 1.4rem;padding:.75rem 0;border-bottom:1px solid var(--linie)}
+.stufe::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--akz);transform-origin:0 50%}
+.stufe--leer::after{content:none}
+.stufe__rang{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);color:#fff}
+.stufe--leer .stufe__rang{color:var(--muted)}
+.stufe__auftraege li{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);padding:.1rem 0}
+/* Band ueber die volle Breite vor der Leiter. */
+.leiter{padding-top:0}
+.leiter__band{position:relative;overflow:hidden;margin:0 calc(-1 * var(--rand)) clamp(3rem,7vh,5rem)}
+.leiter__band picture{height:78vh;height:78svh;min-height:420px}
+.leiter__band figcaption{position:absolute;left:var(--rand);bottom:1.4rem;max-width:40rem;padding:.5rem .8rem;background:rgba(5,6,11,.72);font-size:var(--fs-10);color:#e7ebf5}
+
+/* ---------- Kacheln: offene Spalten wie auf den Schiffsseiten, eine Linie oben statt Kasten ---------- */
+.raster__satz{max-width:60ch;font-size:var(--fs-12);color:#e7ebf5}
+.chronik .raster__kacheln{margin-top:2.6rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3rem clamp(2rem,5vw,5rem)}
+.kachel{border-top:1px solid var(--linie);padding-top:1.3rem}
+.kachel--bild{border-top:0;padding-top:0}
+.kachel__bild{aspect-ratio:16/9;margin-bottom:1.1rem}
+.kachel--breit{grid-column:1/-1}
+.kachel h3{font-size:var(--fs-15)}
+.kachel__zeile{margin:.4rem 0 0;font-size:var(--fs-12);color:#e7ebf5;max-width:52ch}
+.kachel .werte{margin-top:1rem}
+.kachel__listen{margin:1.1rem 0 0;border-top:1px solid var(--linie)}
+/* Zeilen „Titel: Eintraege“: Titel klein und gedaempft, Eintraege ohne Unterstrich, damit 16 Links keine Wand werden. */
+.kachel__listen div{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr);gap:.2rem 1.2rem;padding:.65rem 0;border-bottom:1px solid var(--linie)}
+.kachel__listen p{margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);line-height:1.45}
+.kachel__listen .kachel__zeilentitel,.kachel__listen .kachel__zeilentitel a{color:var(--muted)}
+.kachel__listen a{text-decoration-color:color-mix(in srgb,var(--akz) 35%,transparent)}
+.kachel__figur{margin:0 0 1.1rem}
+.kachel__figur .kachel__bild{margin:0}
+.kachel__figur figcaption{margin-top:.5rem;font-size:var(--fs-10);color:var(--muted)}
+.kachel__satz{margin:1rem 0 0;font-size:var(--fs-12);color:#e7ebf5;max-width:52ch}
+
+/* ---------- Vollbild je Schiff, darunter Reiter ---------- */
+.schiffe{padding-left:0;padding-right:0}
+.schiffe__titel{padding:0 var(--rand)}
+.schiff{margin-top:clamp(2.5rem,6vh,4rem)}
+.schiff__bild{height:100vh;height:100svh;max-height:62vw}
+.schiff__text{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,5vw,5rem);padding:2rem var(--rand) 0}
+.schiff__hersteller{margin:.3rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-10);color:var(--muted)}
+.module{padding:2.6rem var(--rand) 0}
+.module h4{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-15);color:#fff}
+.chronik .module ul{margin-top:1rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2rem clamp(1.5rem,4vw,4rem)}
+.modul__bild{aspect-ratio:1500/643;margin-bottom:.9rem}
+.modul__name{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14)}
+.modul__werte{margin:.3rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);color:var(--muted)}
+.modul__satz{margin:.6rem 0 0;font-size:var(--fs-12);color:#e7ebf5}
+.schiff__beschreibung{margin:1rem 0 0;font-size:var(--fs-12);color:#e7ebf5;max-width:60ch}
+
+/* Reiter: ohne Skript stehen die Felder untereinander, mit Skript zeigt die Leiste eines. */
+.reiter{margin-top:1.6rem}
+.schiff__daten .reiter{margin-top:0}
+.reiter__leiste{display:none;flex-wrap:wrap;gap:.2rem 1.4rem;border-bottom:1px solid var(--linie)}
+.reiter.ist-aktiv .reiter__leiste{display:flex}
+.reiter.ist-aktiv .reiter__titel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.reiter__leiste button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:.6rem 0;cursor:pointer;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--muted)}
+.reiter__leiste button:hover{color:#fff}
+.reiter__leiste button[aria-selected="true"]{color:#fff;border-bottom-color:var(--akz)}
+.reiter__leiste button:focus-visible{outline:2px solid var(--akz-2);outline-offset:2px}
+.reiter__feld{padding-top:.4rem}
+.reiter__feld + .reiter__feld{margin-top:1.6rem}
+.reiter.ist-aktiv .reiter__feld + .reiter__feld{margin-top:0}
+.reiter__titel{margin:1rem 0 0}
+
+/* ---------- Halle: Bildtafeln, Text unten links auf dem Bild ---------- */
+.halle{padding:0}
+.tafel{position:relative;height:100vh;height:100svh;min-height:520px;overflow:hidden}
+.tafel__bild{position:absolute;inset:0}
+.tafel::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(5,6,11,.92) 0%,rgba(5,6,11,.55) 38%,rgba(5,6,11,0) 70%);pointer-events:none}
+.tafel__text{position:absolute;z-index:1;left:var(--rand);right:var(--rand);bottom:clamp(2.5rem,8vh,5rem);max-width:44rem}
+.tafel__satz{font-size:var(--fs-13);color:#e7ebf5;max-width:46ch}
+.tafel__listen{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(17rem,100%),1fr));gap:0 2.5rem}
+.tafel h3{margin-top:1rem;font-size:var(--fs-15)}
+.chronik .tafel ul{margin-top:.6rem}
+.tafel li{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-13);padding:.12rem 0}
+
+/* ---------- Karten ---------- */
+.karten__satz{max-width:60ch;font-size:var(--fs-12);color:#e7ebf5}
+/* Karussell: waagrecht wischen oder scrollen, jede Karte rastet ein. */
+.chronik .karten__liste{margin:2rem calc(-1 * var(--rand)) 0;padding:0 var(--rand) 1rem;display:flex;gap:1.6rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--rand);overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--akz) transparent}
+.karten__liste:focus-visible{outline:2px solid var(--akz-2);outline-offset:4px}
+.karte{flex:0 0 min(24rem,82vw);scroll-snap-align:start}
+.karte__bild{aspect-ratio:16/9;margin-bottom:.9rem}
+.karte h3{font-size:var(--fs-15)}
+.karte__rolle{margin:.2rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-12);color:var(--muted)}
+.karte__laeden{margin-top:.6rem;font-size:var(--fs-12);color:#e7ebf5}
+.karte__preis{margin:.6rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);color:#fff;font-variant-numeric:tabular-nums}
+
+/* ---------- Bestehende Schiffe: das Modell gross, darunter knappe Gruppen; Schiffe mit derselben Aenderung teilen eine Zeile ---------- */
+.chronik .bestand__gruppen{margin-top:3.2rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2.6rem clamp(2rem,5vw,5rem);align-items:start}
+.bestand__gruppe h3{font-size:var(--fs-15);padding-bottom:.6rem;border-bottom:1px solid var(--linie)}
+.bzeile{padding:.75rem 0;border-bottom:1px solid var(--linie)}
+.bzeile__namen{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);line-height:1.4}
+.bzeile__wert p{margin:.25rem 0 0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-12);color:#e7ebf5;line-height:1.4}
+.bzeile__wert span,.bzeile__wert a{color:var(--muted)}
+/* Diagramm: je Schiff Name, Wert und Balken in einer Zeile. */
+.bestand__gruppe--diagramm .bzeile{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr);gap:.2rem 1rem;align-items:center;padding:.5rem 0}
+.bestand__gruppe--diagramm .bzeile__wert{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:1rem;align-items:center}
+.bestand__gruppe--diagramm .bzeile__wert p{margin:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bestand__gruppe--diagramm .balken__spur{margin:0}
+.balken__spur{position:relative;height:8px;margin-top:.35rem;background:rgba(255,255,255,.06);border:1px solid var(--linie);overflow:hidden}
+.balken__spur span{position:absolute;inset:0;transform-origin:0 50%}
+.balken__nachher{background:var(--akz)}
+.balken__vorher{background:#5d6273}
+.bestand__notiz{margin:.8rem 0 0;font-size:var(--fs-10);color:#e7ebf5;max-width:60ch}
+/* Am Schiff: Modell links und gross, Wahl rechts. Das ruhende Bild steht, bis das Modell gezeichnet ist, und hat denselben Blickwinkel. */
+.amschiff{margin-top:2.6rem;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:1.5rem clamp(2rem,4vw,4rem);align-items:center}
+.amschiff__buehne{position:relative;aspect-ratio:16/9;background:var(--bg-2)}
+.amschiff__bild{position:absolute;inset:0;transition:opacity .5s}
+.amschiff__bild img{object-fit:contain}
+.amschiff__leinwand{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .5s;cursor:grab}
+.amschiff.ist-modell .amschiff__leinwand{opacity:1}
+.amschiff.ist-modell .amschiff__bild{opacity:0}
+.amschiff__hinweis{position:absolute;left:0;bottom:0;margin:0;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-9);color:var(--muted);opacity:0;transition:opacity .5s;pointer-events:none}
+.amschiff.ist-modell .amschiff__hinweis{opacity:1}
+.amschiff__los{position:absolute;left:0;bottom:0;appearance:none;background:rgba(5,6,11,.72);border:1px solid var(--linie);border-left:2px solid var(--akz);padding:.55rem .9rem;cursor:pointer;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);color:#fff;transition:opacity var(--dur-slow)}
+.amschiff__los:hover{background:rgba(5,6,11,.9)}
+.amschiff__los:focus-visible{outline:2px solid var(--akz-2);outline-offset:2px}
+.amschiff.ist-laden .amschiff__los{opacity:.5;cursor:progress}
+.amschiff.ist-modell .amschiff__los,.amschiff.ist-gestartet .amschiff__los{display:none}
+.amschiff__wahl{border-top:1px solid var(--linie)}
+.amschiff__wahl button{appearance:none;display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--linie);border-left:2px solid transparent;padding:.9rem 0 .9rem 1rem;cursor:pointer;color:inherit;font:inherit}
+.amschiff__wahl button[aria-pressed="true"]{border-left-color:var(--akz)}
+.amschiff__wahl button:hover .amschiff__name{color:#fff}
+.amschiff__wahl button:focus-visible{outline:2px solid var(--akz-2);outline-offset:2px}
+.amschiff__name{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);color:var(--muted)}
+.amschiff__wahl button[aria-pressed="true"] .amschiff__name{color:#fff}
+.amschiff__teil{display:block;margin-top:.2rem;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-12);color:var(--muted);line-height:1.35}
+
+/* ---------- Alle Aenderungen ---------- */
+.alle .reiter__feld > p{max-width:70ch;font-size:var(--fs-10);color:#e7ebf5}
+.alle__zeilen{margin:.8rem 0 0;padding:0;list-style:none;border-top:1px solid var(--linie)}
+.alle__zeilen li{display:grid;grid-template-columns:minmax(0,10rem) minmax(0,16rem) minmax(0,1fr);gap:.3rem 1.4rem;padding:.6rem 0;border-bottom:1px solid var(--linie);font-size:var(--fs-9)}
+.alle__art{color:var(--muted);font-family:var(--font-ui);font-weight:600}
+.alle__name{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
+.alle__werte{color:#e7ebf5}
+.alle__weiter{display:flex;flex-wrap:wrap;gap:.5rem 2rem;margin:2rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11)}
+
+@media(max-width:760px){
+  .chronik{--rand:1.1rem}
+  .auftakt__bild{-webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.4) 45%,#000 75%);mask-image:linear-gradient(0deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.4) 45%,#000 75%)}
+  .auftakt__bild img{object-position:30% 50%}
+  .auftakt__text{top:auto;bottom:3rem;translate:none}
+  .wort__wort{top:calc(var(--nav-h,60px) + 1rem);translate:none;font-size:clamp(3.5rem,16vw,6rem)}
+  .wort__text{padding-top:calc(var(--nav-h,60px) + 5rem)}
+  .wort__zahl{font-size:clamp(2.6rem,13vw,4rem)}
+  /* Lange Werte stehen linksbuendig unter ihrer Bezeichnung statt rechts daneben. */
+  .werte div{flex-direction:column}
+  .leiter__buehne,.chronik .raster__kacheln{grid-template-columns:minmax(0,1fr)}
+  .stufe,.kachel__listen div{grid-template-columns:minmax(0,1fr)}
+  .wort__bild{width:100%;height:46%;bottom:auto}
+  .wort__bild::after{background:linear-gradient(0deg,var(--bg-2) 0%,rgba(11,12,18,0) 60%)}
+  .chronik .bestand__gruppen,.amschiff{grid-template-columns:minmax(0,1fr)}
+  .bestand__gruppe--diagramm .bzeile{grid-template-columns:minmax(0,7rem) minmax(0,1fr)}
+  .bestand__gruppe--diagramm .bzeile__wert{grid-template-columns:minmax(0,1fr)}
+  .schiff__bild{height:auto;max-height:none;aspect-ratio:4/3}
+  .schiff__text,.chronik .module ul{grid-template-columns:minmax(0,1fr)}
+  .alle__zeilen li{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ---------- Bewegung: nur transform und opacity, an den Scroll gebunden (laeuft im Compositor).
+   Ohne Unterstuetzung oder bei reduzierter Bewegung steht alles ruhig und vollstaendig da. ---------- */
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline:view()){
+    .auftakt{view-timeline:--auftakt block}
+    .auftakt__bild{transform-origin:70% 50%;animation:auftakt-bild linear both;animation-timeline:--auftakt;animation-range:exit 0% exit 100%}
+    .auftakt__text{animation:auftakt-text linear both;animation-timeline:--auftakt;animation-range:exit 0% exit 70%}
+
+    .wort{view-timeline:--wort block}
+    .wort__wort{animation:wort-gleiten linear both;animation-timeline:--wort;animation-range:cover 0% cover 100%}
+    .wort__vorher{display:inline-block;animation:zahl-auf linear both;animation-timeline:--wort;animation-range:cover 14% cover 28%}
+    .wort__pfeil,.wort__neu{display:inline-block;animation:zahl-auf linear both;animation-timeline:--wort;animation-range:cover 26% cover 42%}
+
+    /* Raenge schalten beim Hereinscrollen einer nach dem anderen frei. */
+    .stufe{animation:stufe-an linear both;animation-timeline:view();animation-range:entry 30% cover 40%}
+    .stufe::after{animation:strich-an linear both;animation-timeline:view();animation-range:entry 60% cover 45%}
+    .leiter__band picture{animation:band-zug linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
+    .balken__spur span{animation:balken-auf linear both;animation-timeline:view();animation-range:entry 20% cover 45%}
+    .abschnitt > h2,.kachel{animation:erscheinen linear both;animation-timeline:view();animation-range:entry 5% entry 65%}
+  }
+}
+@media (prefers-reduced-motion:no-preference) and (min-width:761px) and (min-height:760px){
+  @supports (animation-timeline:view()){
+    /* Halle: die Tafeln laufen beim Scrollen seitlich durch (eine Bildschirmhoehe je Wechsel). */
+    .halle{height:calc(var(--tafeln) * 100vh);view-timeline:--halle block}
+    .halle__buehne{position:sticky;top:0;height:100vh;overflow:hidden}
+    .halle__gang{display:flex;width:calc(var(--tafeln) * 100vw);animation:halle-gang linear both;animation-timeline:--halle;animation-range:contain 0% contain 100%}
+    .tafel{flex:0 0 100vw}
+  }
+}
+@keyframes auftakt-bild{to{transform:scale(1.07)}}
+@keyframes auftakt-text{to{opacity:0;transform:translateY(-6vh)}}
+@keyframes wort-gleiten{from{transform:translateX(6%)}to{transform:translateX(-6%)}}
+@keyframes zahl-auf{from{opacity:0;transform:translateY(.12em)}to{opacity:1;transform:none}}
+@keyframes erscheinen{from{opacity:0;transform:translateY(1.6rem)}to{opacity:1;transform:none}}
+@keyframes stufe-an{from{opacity:.28;transform:translateX(-.8rem)}to{opacity:1;transform:none}}
+@keyframes band-zug{from{transform:scale(1.08)}to{transform:scale(1)}}
+@keyframes halle-gang{to{transform:translateX(calc((1 - var(--tafeln)) * 100vw))}}
+@keyframes balken-auf{from{transform:scaleX(0)}}
+@keyframes strich-an{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+</style>
+
+<script is:inline>
+(function () {
+  function waehle(gruppe, tab, fokus) {
+    gruppe.querySelectorAll('[role="tab"]').forEach(function (t) {
+      var an = t === tab;
+      t.setAttribute('aria-selected', an ? 'true' : 'false');
+      t.tabIndex = an ? 0 : -1;
+      var feld = document.getElementById(t.getAttribute('aria-controls'));
+      if (feld) feld.hidden = !an;
+    });
+    if (fokus) tab.focus();
+  }
+  document.querySelectorAll('[data-reiter]').forEach(function (gruppe) {
+    var tabs = Array.prototype.slice.call(gruppe.querySelectorAll('[role="tab"]'));
+    if (!tabs.length) return;
+    gruppe.classList.add('ist-aktiv');
+    waehle(gruppe, tabs[0], false);
+    gruppe.addEventListener('click', function (e) {
+      var t = e.target.closest('[role="tab"]');
+      if (t) waehle(gruppe, t, false);
+    });
+    gruppe.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      var ziel = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length]
+        : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null;
+      if (ziel) { e.preventDefault(); waehle(gruppe, ziel, true); }
+    });
+  });
+  /* Ein Anker auf ein Reiterfeld (#liste-bauplaene) oeffnet dessen Reiter. */
+  function zumAnker() {
+    var id = location.hash.slice(1);
+    var feld = id && document.getElementById(id);
+    if (!feld || feld.getAttribute('role') !== 'tabpanel') return;
+    var gruppe = feld.closest('[data-reiter]');
+    var tab = document.getElementById(id + '-tab');
+    if (gruppe && tab) { waehle(gruppe, tab, false); feld.scrollIntoView(); }
+  }
+  addEventListener('hashchange', zumAnker);
+  zumAnker();
+
+  /* Die Fortschrittsleiste der Kopfzeile zeichnet ihren Verlauf erst beim ersten Scrollen;
+     die GPU uebersetzt dafuer neue Programme (gemessen bis 37 ms, RTX 3070 Ti, D3D11).
+     Ein fast durchsichtiger Abzug in einer ruhigen Pause nach dem Laden nimmt das vorweg.
+     Dasselbe bei der ersten Tafel der Halle und den Gruppen im Bestand: mit kaltem Programmspeicher hielt ihr
+     erstes Zeichnen einzelne Bilder bis 53 ms (Halle) und 89 ms (Bestand) an. */
+  function vorwaermen() {
+    function abzug(el, ort, stil) {
+      var k = el.cloneNode(true);
+      k.querySelectorAll('[id]').forEach(function (x) { x.removeAttribute('id'); });
+      k.setAttribute('aria-hidden', 'true');
+      k.style.cssText = stil + ';opacity:.01;pointer-events:none;z-index:-1';
+      ort.appendChild(k);
+      setTimeout(function () { k.remove(); }, 1500);
+      return k;
+    }
+    var leiste = document.querySelector('.snav__progress-bar');
+    if (leiste) {
+      var k = abzug(leiste, document.body, 'position:fixed;left:0;right:0;top:0');
+      var fuellung = k.querySelector('.snav__progress-fill');
+      var kopf = k.querySelector('.snav__progress-head');
+      if (fuellung) fuellung.style.transform = 'scaleX(.5)';
+      if (kopf) kopf.style.transform = 'translateX(-50%)';
+    }
+    var haupt = document.querySelector('main.chronik');
+    var tafel = document.querySelector('.tafel');
+    if (haupt && tafel) abzug(tafel, haupt, 'position:fixed;left:0;top:0;width:100vw;height:100vh');
+    document.querySelectorAll('.bestand__gruppe').forEach(function (g) {
+      var r = g.getBoundingClientRect();
+      abzug(g, g.parentNode, 'position:fixed;top:0;margin:0;left:' + r.left + 'px;width:' + r.width + 'px');
+    });
+  }
+  /* Alle Bilder der Seite nacheinander in ruhigen Pausen laden und dekodieren, bevor ihr Abschnitt kommt;
+     sonst dekodiert der erste Blick darauf und das Bild ruckelt herein. */
+  function vorladen() {
+    var bilder = Array.prototype.slice.call(document.querySelectorAll('.chronik img'));
+    var i = 0;
+    (function weiter() {
+      var b = bilder[i++];
+      if (!b) return;
+      b.loading = 'eager';
+      (b.decode ? b.decode() : Promise.resolve()).catch(function () {}).then(function () { ruhe(weiter); });
+    })();
+  }
+  /* Am Schiff: bis zum Klick steht das ruhende Bild mit dem roten Teil, ohne WebGL.
+     Naht die Buehne, holt und zerlegt das Modul beide Modelle in kurzen Stuecken (Netzwerk, Draco-Worker, Bilddekodierung
+     abseits des Hauptfadens); nach dem Klick bleibt nur die GPU-Arbeit, und auch die verteilt es auf viele Bilder. */
+  function amSchiff(box) {
+    var daten = JSON.parse(box.querySelector('.amschiff__daten').textContent);
+    var knoepfe = Array.prototype.slice.call(box.querySelectorAll('.amschiff__wahl button'));
+    var bilder = Array.prototype.slice.call(box.querySelectorAll('.amschiff__bild'));
+    var gewaehlt = 0, buehne = null, laden = null, modul = null;
+    function holeModul() { return modul || (modul = import(box.getAttribute('data-am-schiff'))); }
+    if ('IntersectionObserver' in window) {
+      var nah = new IntersectionObserver(function (e) {
+        if (!e[0].isIntersecting) return;
+        nah.disconnect();
+        ruhe(function () { holeModul().then(function (m) { return m.vorladen(daten); }).catch(function (e) { console.error(e); }); });
+      }, { rootMargin: '150% 0px' });
+      nah.observe(box);
+    }
+    /* false: ein spaeterer Klick hat dieses Modell abgeloest, sein eigenes Laden laeuft noch. */
+    function fertig(ok) {
+      if (!ok) return;
+      box.classList.remove('ist-laden');
+      /* ist-gestartet: beim Schiffswechsel steht danach das ruhende Bild, nicht wieder der Knopf. */
+      box.classList.add('ist-modell', 'ist-gestartet');
+    }
+    function starte() {
+      if (laden) return;
+      box.classList.add('ist-laden');
+      /* Zwei Bilder Vorlauf: der Ladezustand ist zu sehen, bevor die GPU-Arbeit beginnt. */
+      laden = new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); })
+        .then(holeModul)
+        .then(function (m) { buehne = m.buehne(box.querySelector('.amschiff__buehne')); return buehne.zeige(daten[gewaehlt]); })
+        .then(fertig)
+        .catch(function (e) { console.error(e); box.classList.remove('ist-laden'); laden = null; });
+    }
+    knoepfe.forEach(function (k, i) {
+      k.addEventListener('click', function () {
+        if (i === gewaehlt) return;
+        gewaehlt = i;
+        knoepfe.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+        bilder.forEach(function (b, j) { b.hidden = j !== i; });
+        box.classList.remove('ist-modell');
+        if (buehne) { box.classList.add('ist-laden'); buehne.zeige(daten[i]).then(fertig); }
+      });
+    });
+    box.querySelector('.amschiff__los').addEventListener('click', starte);
+  }
+  var ruhe = window.requestIdleCallback || function (f) { return setTimeout(f, 200); };
+  var amBox = document.querySelector('[data-am-schiff]');
+  if (amBox) amSchiff(amBox);
+  function nachLaden() { ruhe(vorwaermen); ruhe(vorladen); }
+  if (document.readyState === 'complete') nachLaden();
+  else addEventListener('load', nachLaden);
+})();
+</script>

@@ -1,0 +1,40 @@
+---
+import Bild from './Bild.astro';
+import SatzText from './SatzText.astro';
+import Werte from './Werte.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'raster' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt raster" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <h2 id={`${a.id}-h`}>{a.titel}</h2>
+  {a.satz && <p class="raster__satz"><SatzText satz={a.satz} /></p>}
+  <ul class="raster__kacheln">
+    {a.kacheln.map((k) => (
+      <li class:list={['kachel', { 'kachel--breit': k.breit, 'kachel--bild': k.bild }]}>
+        {k.bild && (
+          <figure class="kachel__figur">
+            <Bild bild={k.bild} class="kachel__bild" sizes="(max-width: 760px) 100vw, 45vw" />
+            {k.unterschrift && <figcaption><SatzText satz={k.unterschrift} /></figcaption>}
+          </figure>
+        )}
+        <h3>{k.titel.h ? <a href={k.titel.h}>{k.titel.t}</a> : k.titel.t}</h3>
+        <p class="kachel__zeile">{k.zeile}</p>
+        {k.werte.length > 0 && <Werte werte={k.werte} />}
+        {k.liste.length > 0 && (
+          <div class="kachel__listen">
+            {k.liste.map((g) => (
+              <div>
+                <p class="kachel__zeilentitel">{g.titel.h ? <a href={g.titel.h}>{g.titel.t}</a> : g.titel.t}</p>
+                <p>{g.eintraege.map((e, i) => <>{i > 0 && ' · '}{e.h ? <a href={e.h}>{e.t}</a> : e.t}</>)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {k.satz && <p class="kachel__satz"><SatzText satz={k.satz} /></p>}
+      </li>
+    ))}
+  </ul>
+  <p class="stempel"><SatzText satz={a.stempel} /></p>
+</section>

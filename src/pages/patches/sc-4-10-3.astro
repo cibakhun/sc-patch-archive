@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Chronik from '../../components/patch-chronik/Chronik.astro';
+import Vorlauf from '../../components/patch-chronik/Vorlauf.astro';
+import { chronik4103 } from '../../lib/patch-chronik/4-10-3';
+const chronik = await chronik4103('en');
+---
+<Layout title={"Star Citizen Alpha 4.10.3 — IAE 2956 & Vanduul Incursion | VerseBase"} description={"Alpha 4.10.3: Vanduul incursion missions in Nyx, the new RSI Galaxy and Anvil Liberator, size 3 radars, eight ships for aUEC and bigger salvage buffers. Live since November 12, 2026."} themeColor="#05060b" ogType="article" ogImage="/assets/img-vanduul.jpg" translated={true}>
+<Vorlauf chronik={chronik} slot="head" />
+<Chronik chronik={chronik} />
+</Layout>

@@ -11,22 +11,33 @@
 
    verify:vorschau-patches prueft beides am Artefakt. Ist die Seite
    abgenommen, faellt der Patch hier heraus und seine Seite zieht nach
-   src/pages/patches/ zurueck.
+   src/pages/patches/ zurueck. 4.10.3 ist abgenommen (26.11.2026): ihre
+   Chronik steht unter src/pages/patches/sc-4-10-3.astro, die alte
+   Vorschau-Adresse 4-10-3-film leitet per 301 dorthin (nginx/umzuege.conf).
    ============================================================ */
 
 /** Patches, deren Seite nur der Vorschau-Bau traegt (ids wie in src/data/patches/). */
-export const VORSCHAU_PATCHES = ['4-10-3'];
+export const VORSCHAU_PATCHES = [];
+
+/** Weitere Seiten, die nur der Vorschau-Bau traegt, mit noindex und in keiner Sitemap; nie verlinkt von einer Live-Seite. */
+const VORSCHAU_SEITEN = [];
 
 /** Die Routen: Muster und Datei. Bewusst NICHT unter src/pages/. */
-export const VORSCHAU_PATCH_ROUTES = VORSCHAU_PATCHES.flatMap((id) => [
-  { pattern: `/patches/sc-${id}`, entrypoint: `./src/vorschau-patches/sc-${id}.astro` },
-  { pattern: `/de/patches/sc-${id}`, entrypoint: `./src/vorschau-patches/de/sc-${id}.astro` },
+export const VORSCHAU_PATCH_ROUTES = [...VORSCHAU_PATCHES.map((id) => `sc-${id}`), ...VORSCHAU_SEITEN].flatMap((name) => [
+  { pattern: `/patches/${name}`, entrypoint: `./src/vorschau-patches/${name}.astro` },
+  { pattern: `/de/patches/${name}`, entrypoint: `./src/vorschau-patches/de/${name}.astro` },
 ]);
 
-/** Was der Vorschau-Bau tragen muss und der Live-Bau nicht tragen darf (relativ zu dist/). */
-export const VORSCHAU_PATCH_DIST_FILES = VORSCHAU_PATCHES.flatMap((id) => [`patches/sc-${id}.html`, `de/patches/sc-${id}.html`]);
+/** Die weiteren Vorschauseiten (relativ zu dist/): im Vorschau-Bau noindex und in keiner Sitemap. */
+export const VORSCHAU_SEITEN_DIST_FILES = VORSCHAU_SEITEN.flatMap((name) => [`patches/${name}.html`, `de/patches/${name}.html`]);
 
-const ALTERNATIVE = VORSCHAU_PATCHES.map((id) => `sc-${id}`).join('|');
+/** Was der Vorschau-Bau tragen muss und der Live-Bau nicht tragen darf (relativ zu dist/). */
+export const VORSCHAU_PATCH_DIST_FILES = [
+  ...VORSCHAU_PATCHES.flatMap((id) => [`patches/sc-${id}.html`, `de/patches/sc-${id}.html`]),
+  ...VORSCHAU_SEITEN_DIST_FILES,
+];
+
+const ALTERNATIVE = [...VORSCHAU_PATCHES.map((id) => `sc-${id}`), ...VORSCHAU_SEITEN].join('|');
 
 /** Der Pfad einer dieser Seiten, in HTML (href) wie in Daten-Dateien (Suchregister). */
 export const VORSCHAU_PATCH_PFAD = new RegExp(`\\/(?:de\\/)?patches\\/(?:${ALTERNATIVE})\\.html`);

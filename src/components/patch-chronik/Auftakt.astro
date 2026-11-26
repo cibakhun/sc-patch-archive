@@ -1,0 +1,17 @@
+---
+import Bild from './Bild.astro';
+import SatzText from './SatzText.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'auftakt' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt auftakt" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <Bild bild={a.bild} class="auftakt__bild" laden="eager" />
+  <div class="auftakt__text">
+    <p class="auftakt__patch">{a.unterzeile}</p>
+    <h1 class="auftakt__titel" id={`${a.id}-h`}>{a.titel}</h1>
+    <p class="auftakt__satz"><SatzText satz={a.satz} /></p>
+    <p class="auftakt__notes"><a href={a.notes.h}>{a.notes.t}</a></p>
+  </div>
+</section>

@@ -1,0 +1,34 @@
+---
+import Bild from './Bild.astro';
+import SatzText from './SatzText.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'halle' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt halle" id={a.id} aria-labelledby={`${a.id}-h`} style={`--tafeln:${a.tafeln.length}`}>
+  <div class="halle__buehne">
+    <ol class="halle__gang">
+      {a.tafeln.map((t, i) => (
+        <li class="tafel">
+          <Bild bild={t.bild} class="tafel__bild" />
+          <div class="tafel__text">
+            {i === 0 && <h2 id={`${a.id}-h`}>{a.titel}</h2>}
+            {i === 0 && <p class="tafel__satz"><SatzText satz={a.satz} /></p>}
+            {t.listen.length > 0 && (
+              <div class="tafel__listen">
+                {t.listen.map((l) => (
+                  <div>
+                    <h3>{l.titel}</h3>
+                    <ul>{l.eintraege.map((e) => <li>{e.h ? <a href={e.h}>{e.t}</a> : e.t}</li>)}</ul>
+                  </div>
+                ))}
+              </div>
+            )}
+            {i === a.tafeln.length - 1 && <p class="stempel"><SatzText satz={a.stempel} /></p>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

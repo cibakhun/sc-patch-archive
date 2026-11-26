@@ -1,0 +1,12 @@
+---
+import type { Bild } from '../../lib/patch-chronik/chronik';
+
+interface Props { bild: Bild; class?: string; sizes?: string; laden?: 'eager' | 'lazy' }
+const { bild, class: cls, sizes = '100vw', laden = 'lazy' } = Astro.props;
+const srcset = bild.quellen.map((q) => `${q.src} ${q.w}w`).join(', ');
+const groesste = bild.quellen[bild.quellen.length - 1];
+---
+<picture class={cls}>
+  {bild.avif && <source type="image/avif" srcset={`${bild.avif} ${groesste.w}w`} sizes={sizes} />}
+  <img src={groesste.src} srcset={srcset} sizes={sizes} alt={bild.alt} loading={laden} decoding="async" fetchpriority={laden === 'eager' ? 'high' : undefined} />
+</picture>

@@ -8,7 +8,7 @@
   "type": "point",
   "tagline": "Die Vanduul greifen in Nyx an, und InterSec sucht Piloten. Dazu kommen die RSI Galaxy und die Anvil Liberator.",
   "heroImage": "/assets/img-vanduul.jpg",
-  "summary": "Alpha 4.10.3 bringt die Vanduul nach Nyx. InterSec Defense Solutions vergibt zwölf neue Aufträge gegen Vanduul-Verbände, Mauler und die Shattered Blade, darunter Flottenabfang, Mauler-Jagd und eine lebende Vanduul-Probe. Neu im Bestand sind die RSI Galaxy mit austauschbarem Mittelmodul und die Anvil Liberator, ein Träger für Schiffe und Bodenfahrzeuge. Carrack, Perseus und Starlancer tragen jetzt Radare der Größe 3. Acht bereits flugfähige Schiffe sind zum ersten Mal im Spiel für aUEC zu haben. Der Reclaimer nimmt 448 statt 240 SCU Rumpfmaterial auf, Vanduul-KI hat mehr Munition, und die Mauler-Waffen treffen fast viermal so stark. Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Zur IAE 2956 gibt es Sammelmünzen, Kleidung und Best-in-Show-Lackierungen.",
+  "summary": "Alpha 4.10.3 bringt die Vanduul nach Nyx. InterSec Defense Solutions vergibt zwölf neue Aufträge gegen Vanduul-Verbände, Mauler und die Shattered Blade, darunter Flottenabfang, Mauler-Jagd und eine lebende Vanduul-Probe. Neu im Bestand sind die RSI Galaxy mit austauschbarem Mittelmodul und die Anvil Liberator, ein Träger für Schiffe und Bodenfahrzeuge. Carrack, Perseus und Starlancer tragen jetzt Radare der Größe 3. Acht bereits flugfähige Schiffe sind zum ersten Mal im Spiel für aUEC zu haben. Der Reclaimer nimmt 448 statt 240 SCU Rumpfmaterial auf, Vanduul-KI hat mehr Munition, und die Waffe des Mauler trifft fast viermal so stark. Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Zur IAE 2956 gibt es Kleidung und Best-in-Show-Lackierungen.",
   "palette": {
     "bg": "#0c0e13",
     "accent": "#e0563f",
@@ -266,7 +266,7 @@
       "name": "Neu für aUEC",
       "system": "Schiffs-Systeme",
       "kind": "gameplay",
-      "desc": "Acht Schiffe, die schon flugfähig waren, lassen sich zum ersten Mal im Spiel mit aUEC kaufen. New Deal in Lorville führt Tiburon und Starlite. Teach's Ship Shop auf Levski hat Ironclad, Pitbull und Starlite. Auf Rundown Station in Pyro stehen Ironclad Assault, Pitbull und Basher, und Astro Armada in Area18 verkauft M80 und Tyilui.",
+      "desc": "Acht Schiffe, die schon flugfähig waren, lassen sich zum ersten Mal im Spiel mit aUEC kaufen. New Deal in Lorville führt Tiburon und Starlite. Teach's Ship Shop auf Levski hat Ironclad, Pitbull und Starlite. Auf Rundown Station in Pyro stehen laut Patch Notes Ironclad Assault, Pitbull und Basher, und Astro Armada in Area18 verkauft M80 und Tyilui.",
       "facts": [
         {
           "label": "Lorville · New Deal",
@@ -277,7 +277,7 @@
           "value": "Ironclad, Pitbull, Starlite"
         },
         {
-          "label": "Pyro · Rundown Station",
+          "label": "Pyro · Rundown Station (laut Patch Notes)",
           "value": "Ironclad Assault, Pitbull, Basher"
         },
         {

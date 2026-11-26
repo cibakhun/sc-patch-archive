@@ -1,0 +1,31 @@
+---
+import ReiterLeiste from './ReiterLeiste.astro';
+import SatzText from './SatzText.astro';
+import type { Abschnitt } from '../../lib/patch-chronik/chronik';
+
+interface Props { a: Extract<Abschnitt, { art: 'reiter' }> }
+const { a } = Astro.props;
+---
+<section class="abschnitt alle" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <h2 id={`${a.id}-h`}>{a.titel}</h2>
+  <div class="reiter" data-reiter>
+    <ReiterLeiste label={a.titel} reiter={a.listen} />
+    {a.listen.map((l) => (
+      <div class="reiter__feld" role="tabpanel" id={l.id} aria-labelledby={`${l.id}-tab`} tabindex="0">
+        <h3 class="reiter__titel">{l.titel}</h3>
+        <ul class="alle__zeilen">
+          {l.zeilen.map((z) => (
+            <li>
+              <span class="alle__art">{z.art}</span>
+              <span class="alle__name">{z.name.h ? <a href={z.name.h}>{z.name.t}</a> : z.name.t}</span>
+              {z.werte.length > 0 && <span class="alle__werte">{z.werte.map((w) => (w.k ? `${w.k} ${w.v}` : w.v)).join(' · ')}</span>}
+            </li>
+          ))}
+        </ul>
+        {l.nachsatz && <p><SatzText satz={l.nachsatz} /></p>}
+      </div>
+    ))}
+  </div>
+  <p class="stempel"><SatzText satz={a.stempel} /></p>
+  <p class="alle__weiter">{a.weiter.map((w) => <a href={w.h}>{w.t}</a>)}</p>
+</section>

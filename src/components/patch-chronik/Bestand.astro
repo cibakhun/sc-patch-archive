@@ -1,0 +1,63 @@
+---
+import Bild from './Bild.astro';
+import SatzText from './SatzText.astro';
+import type { Abschnitt, Wert } from '../../lib/patch-chronik/chronik';
+import { versioned } from '../../lib/assetVersion';
+import { jsonForScript } from '../../lib/safeJson';
+
+interface Props { a: Extract<Abschnitt, { art: 'bestand' }> }
+const { a } = Astro.props;
+const schiffe = a.amSchiff.schiffe;
+/* Ein Balken je Wert: vorher hell, nachher in der Akzentfarbe; der kuerzere liegt oben, damit beide zu sehen sind. */
+const spuren = (b: NonNullable<Wert['balken']>) => [{ x: b.vorher, cls: 'balken__vorher' }, { x: b.nachher, cls: 'balken__nachher' }]
+  .sort((p, q) => q.x - p.x)
+  .map((s) => ({ cls: s.cls, style: `transform:scaleX(${(s.x / b.max).toFixed(3)})` }));
+---
+<section class="abschnitt bestand" id={a.id} aria-labelledby={`${a.id}-h`}>
+  <h2 id={`${a.id}-h`}>{a.titel}</h2>
+  {schiffe.length > 0 && (
+    <div class="amschiff" data-am-schiff={versioned('assets/patch-4-10-3/am-schiff.js', '/assets/patch-4-10-3/am-schiff.js')}>
+      <div class="amschiff__buehne">
+        {schiffe.map((s, i) => (
+          <div class="amschiff__bild" hidden={i > 0}><Bild bild={s.bild} sizes="(max-width: 760px) 100vw, 70vw" /></div>
+        ))}
+        <button type="button" class="amschiff__los">{a.amSchiff.los}</button>
+        <p class="amschiff__hinweis">{a.amSchiff.hinweis}</p>
+      </div>
+      <ul class="amschiff__wahl">
+        {schiffe.map((s, i) => (
+          <li><button type="button" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+            <span class="amschiff__name">{s.name}</span>
+            <span class="amschiff__teil">{s.aenderung}</span>
+          </button></li>
+        ))}
+      </ul>
+      <script type="application/json" class="amschiff__daten" is:inline set:html={jsonForScript(schiffe.map((s) => ({ modell: s.modell, punkte: s.punkte, hardpoints: s.hardpoints, bauteil: s.bauteil })))} />
+      <script type="importmap" is:inline>
+{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
+      </script>
+    </div>
+  )}
+  <div class="bestand__gruppen">
+    {a.gruppen.map((g) => (
+      <div class:list={['bestand__gruppe', { 'bestand__gruppe--diagramm': g.diagramm }]}>
+        <h3>{g.titel}</h3>
+        <ul class="bestand__zeilen">
+          {g.zeilen.map((z) => (
+            <li class="bzeile">
+              <p class="bzeile__namen">{z.namen.map((n, i) => <Fragment>{i > 0 && ', '}{n.h ? <a href={n.h}>{n.t}</a> : n.t}</Fragment>)}</p>
+              {z.werte.map((w) => (
+                <div class="bzeile__wert">
+                  <p>{w.k && (w.h ? <a href={w.h}>{w.k}</a> : <span>{w.k}</span>)}{w.k && ' '}{w.v}</p>
+                  {w.balken && <div class="balken__spur" aria-hidden="true">{spuren(w.balken).map((s) => <span class={s.cls} style={s.style}></span>)}</div>}
+                </div>
+              ))}
+            </li>
+          ))}
+        </ul>
+        {g.notiz && <p class="bestand__notiz"><SatzText satz={g.notiz} /></p>}
+      </div>
+    ))}
+  </div>
+  <p class="stempel"><SatzText satz={a.stempel} /></p>
+</section>
