@@ -1944,6 +1944,44 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .fm-notify .pf-check{margin:0}
 .fm-notify__hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;font-size:var(--fs-6);line-height:1.4;color:var(--muted)}
 .fm-notify__hint[hidden]{display:none}
+/* Crew-Aufruf (FriendsManager): Kopf mit Knopf, Formular, Karten mit Plätzen */
+.fm-crew{display:flex;flex-direction:column;gap:10px;min-width:0;padding:0}
+.fm-crew[hidden]{display:none}
+.fm-crew__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px}
+.fm-crew__bar .sv-sh{margin:0}
+.fm-crew__bar .fm-ibtn[hidden]{display:none}
+.fm-crew__form{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(9.5rem,100%),1fr));gap:10px 12px;padding:14px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;background:var(--surface-2)}
+.fm-crew__form[hidden]{display:none}
+.fm-crew__f{display:flex;flex-direction:column;gap:5px;min-width:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.dsr .fm-crew__f .inp{height:38px;padding:0 10px;border-radius:10px;font-family:var(--font-body);font-weight:400;font-size:var(--fs-7);color:var(--text)}
+.fm-crew__f--note{grid-column:1 / -1}
+.fm-crew__go{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px}
+.fm-crew__hint{grid-column:1 / -1;margin:0;font-size:var(--fs-6);line-height:1.4;color:var(--muted)}
+.fm-crew__list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(19rem,100%),1fr));gap:10px}
+.fm-crew__card{container-type:inline-size;display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;min-width:0;padding:12px;border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:14px;background:var(--surface-2)}
+.fm-crew__card.is-own{border-left-color:var(--accent)}
+.fm-crew__tag{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:color-mix(in srgb,var(--accent-2) 16%,transparent);color:var(--accent-2)}
+.fm-crew__card.is-own .fm-crew__tag{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.fm-crew__tag svg{width:18px;height:18px}
+.fm-crew__main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.fm-crew__t{font-weight:700;font-size:var(--fs-9);line-height:1.3;color:var(--text);overflow-wrap:anywhere}
+.fm-crew__who{font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-crew__note{margin:2px 0 0;font-size:var(--fs-7);line-height:1.4;color:var(--text);overflow-wrap:anywhere}
+.fm-crew__seats{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:6px}
+.fm-crew__seats .fm-av{width:24px;height:24px;border-width:1.5px;font-size:var(--fs-5)}
+.fm-crew__seat{width:24px;height:24px;border:1.5px dashed color-mix(in srgb,var(--muted) 70%,transparent);border-radius:50%}
+.fm-crew__free{margin-left:4px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--accent-2)}
+.fm-crew__free.is-full{color:var(--muted)}
+.fm-crew__acts{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.fm-crew__acts .fm-ib[hidden]{display:none}
+/* Schmale Karte (Handy): Knöpfe in eine Zeile unter den Text */
+@container (max-width:26rem){
+  .fm-crew__main{flex-basis:calc(100% - 50px)}
+  .fm-crew__acts{flex:1 1 100%;flex-direction:row;align-items:center;padding-left:50px}
+}
+.dsr .fm-crew__drop.is-armed{color:var(--hot);border-color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,transparent)}
+.fm-crew__empty{margin:0;padding:12px 14px;border:1px dashed var(--line);border-radius:14px;font-size:var(--fs-6);color:var(--muted)}
+.fm-crew__empty[hidden]{display:none}
 .fm-invite__in{display:flex;flex-direction:column;gap:12px}
 /* Unter der Liste (mittlere Breiten) ist die Karte breit: Link links,
    Discord-Karte rechts daneben statt eines bildschirmhohen Bilds. */
