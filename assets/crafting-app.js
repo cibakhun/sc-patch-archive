@@ -1482,11 +1482,16 @@
   }
   // Zurueck oder Vorwaerts auf ein Rezept: es steht im ersten Reiter. Ist der
   // Zerlege-Rechner davor, verbirgt er es am Schreibtisch (werkbankCss.ts),
-  // die Adresse naennte also ein Rezept, das nicht zu sehen ist.
+  // die Adresse naennte also ein Rezept, das nicht zu sehen ist. Das gilt
+  // auch, wenn es schon offen ist (der Reiterwechsel schliesst es nicht);
+  // dann bleibt nur das Oeffnen aus. Ohne Rezept in der Adresse bleibt der
+  // Reiter, wie er ist.
   function rezeptAusVerlauf() {
+    if (!DB || !DB.blueprints || !new URLSearchParams(location.search).get('bp')) return;
     var z = $('#cdb-tab-dismantle-content');
     if (z && !z.hasAttribute('hidden')) switchTab('db');
-    rezeptAusAdresse();
+    var offen = !!modal && !modal.classList.contains('is-leer');
+    if (!offen || !adresseZeigt(offenesRezept())) rezeptAusAdresse();
   }
   // Steht Rezept i in der Adresse? (Name wie in rezeptAusAdresse, bpi wenn da.)
   function adresseZeigt(i) {
@@ -1523,7 +1528,7 @@
         // Ist schon eines offen (etwa nach dem Drehen eines Tablets ueber
         // 821 px, wo Oeffnen nur die Adresse ersetzt), zaehlt die Adresse.
         wbGeschoben = true;
-        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusVerlauf(); } catch (x) {} }
+        try { rezeptAusVerlauf(); } catch (x) {}
         return;
       }
       // Ein Eintrag ohne Rezept-Marker. Am Telefon ist das die Liste: das
@@ -1540,7 +1545,7 @@
         return;
       }
       if (q.get('bp')) {
-        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusVerlauf(); } catch (x) {} }
+        try { rezeptAusVerlauf(); } catch (x) {}
         return;
       }
       if (offen && geschoben) closeModal(true);
