@@ -51,15 +51,26 @@ export function zeige(dialog) {
 
 // Gibt Geometrie, Materialien und Texturen eines entfernten Modells frei;
 // sonst sammelte die Werkbank mit jedem gezeigten Item Grafikspeicher an.
+// Texturen kommen in Browsern mit createImageBitmap als ImageBitmap; deren
+// Bilddaten gibt dispose() nicht frei, das tut erst close(). Jede Textur und
+// jedes Bild nur einmal, auch wenn Materialien sie teilen.
 function raeume(obj) {
+  const texturen = new Set();
   obj.traverse((o) => {
     if (!o.isMesh) return;
     o.geometry?.dispose();
     for (const mat of [].concat(o.material || [])) {
-      for (const k of Object.keys(mat)) if (mat[k]?.isTexture) mat[k].dispose();
+      for (const k of Object.keys(mat)) if (mat[k]?.isTexture) texturen.add(mat[k]);
       mat.dispose();
     }
   });
+  const bilder = new Set();
+  for (const t of texturen) {
+    const bild = t.source?.data;
+    if (typeof ImageBitmap !== 'undefined' && bild instanceof ImageBitmap) bilder.add(bild);
+    t.dispose();
+  }
+  for (const b of bilder) b.close();
 }
 
 function baue(dialog) {

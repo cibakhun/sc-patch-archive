@@ -302,6 +302,11 @@ export const CHECKS = [
     // dist/hangar-item3d.json geaendert -> 3 FEHLER [6] (Eintrag weicht ab,
     // Kennung passt auf EN und DE nicht mehr); je exit 1, zurueckgespielt,
     // sha256 wie vorher. Gruen: 2 Werkbank-Seiten, 0 andere mit Liste.
+    // Nach Review #478 durchsucht [6] alle Seiten rekursiv (vorher nur dist/
+    // und de/): data-i3d-liste an den Dialog von items/corbel-helmet-raider-
+    // camo.html gesetzt -> 1 FEHLER [6], exit 1; die Fassung davor blieb am
+    // selben Stand gruen. Zurueckgespielt, sha256 wie vorher. Gruen: 19.044
+    // andere Seiten durchsucht (Klinke 18.500), 0 mit Liste.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein

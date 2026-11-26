@@ -1708,7 +1708,10 @@
     var t = e.target;
     var tipp = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
     if (e.key !== '/' || tipp || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
-    if (I3D_DLG && I3D_DLG.open) return;
+    // Offener 3D-Dialog: „/“ tut nichts. Die Taste trotzdem vergeben, sonst
+    // oeffnete die Seitensuche unsichtbar hinter dem Dialog und naehme ihm
+    // das naechste Esc.
+    if (I3D_DLG && I3D_DLG.open) { e.preventDefault(); return; }
     var ueber = document.getElementById('scs');
     if (ueber && !ueber.hidden) return;
     e.preventDefault(); el.q.focus(); el.q.select();

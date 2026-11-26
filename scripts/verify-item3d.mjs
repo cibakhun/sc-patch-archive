@@ -35,7 +35,7 @@
      node scripts/verify-item3d.mjs [--dist <Ordner>]
    ============================================================ */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname, join, basename } from 'node:path';
+import { resolve, dirname, join, basename, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { VORSCHAU_DIST_FILES } from './lib/vorschau-seiten.mjs';
@@ -48,6 +48,7 @@ const LISTE = resolve(ROOT, 'src/data/item-3d.json');
 // Klinken (nur nach oben; nach unten nur per Commit mit Ursache).
 const MIN_ITEMSEITEN = 11000; // gelesene Item-Seiten EN+DE (22.11.2026: 11 642)
 const MIN_MODELLE = 2900;      // Eintraege der Liste (23.11.2026: 2 422 Ruestungsteile; mit Waffen und Aufsaetzen 2 971)
+const MIN_SEITEN = 18500;      // HTML-Seiten im Vorschau-Bau ausser der Werkbank, die [6] durchsucht (26.11.2026: 19 044)
 // Blueprint-Seiten EN+DE, die ihr Ergebnis-Item nennen (23.11.2026: 3 246 von
 // 3 252; ohne Item nur Scraper-Module und ein Antrieb ohne eigene Item-Seite).
 // Attribut und Dialog haengen am selben linkedItem in BlueprintDetail.astro;
@@ -100,16 +101,18 @@ const bpSeiten = [...ordnerHtml('crafting'), ...ordnerHtml('de/crafting')];
 let mitDialog = 0;
 let bpMitDialog = 0;
 
+// Alle HTML-Seiten unter dir, rekursiv, als absolute Pfade.
+const alle = (dir, out = []) => {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) alle(p, out);
+    else if (e.name.endsWith('.html')) out.push(p);
+  }
+  return out;
+};
+
 if (!vorschau) {
   // [1] — ueber ALLE Seiten, nicht nur Items und Blueprints.
-  const alle = (dir, out = []) => {
-    for (const e of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, e.name);
-      if (e.isDirectory()) alle(p, out);
-      else if (e.name.endsWith('.html')) out.push(p);
-    }
-    return out;
-  };
   const host = new URL(liste.base).host;
   let gelesen = 0;
   let treffer = 0;
@@ -244,12 +247,22 @@ if (!vorschau) {
     if (cfg !== url) fail(`[6] ${s}: Seiten-Einstellung i3dListe=${cfg ?? '(fehlt)'} passt nicht zum Dialog (${url ?? '(nichts)'})`);
     if (url && cfg === url) werkbankMitDialog++;
   }
-  // Sonst traegt keine Seite oben in dist/ (und unter de/) die Liste.
-  const fremd = [...readdirSync(DIST).filter((f) => f.endsWith('.html')), ...ordnerHtml('de')]
-    .filter((s) => !WERKBANK_SEITEN.includes(s) && LISTE_ATTR.test(readFileSync(join(DIST, s), 'utf8')));
+  // Sonst traegt keine Seite in dist/ die Liste, auch keine in Unterordnern
+  // (Item-, Blueprint-Seiten und alle uebrigen).
+  let durchsucht = 0;
+  const fremd = [];
+  for (const p of alle(DIST)) {
+    const s = p.slice(DIST.length + 1).split(sep).join('/');
+    if (WERKBANK_SEITEN.includes(s)) continue;
+    durchsucht++;
+    const html = readFileSync(p, 'utf8');
+    if (html.includes('data-i3d-liste') && LISTE_ATTR.test(html)) fremd.push(s);
+  }
   for (const s of fremd.slice(0, 5)) fail(`[6] ${s}: Dialog mit Modell-Liste ausserhalb der Werkbank`);
+  if (fremd.length > 5) fail(`[6] … und ${fremd.length - 5} weitere Seiten mit Modell-Liste`);
+  if (durchsucht < MIN_SEITEN) fail(`[6] nur ${durchsucht} andere Seiten durchsucht, Klinke ${MIN_SEITEN} — dist/ unvollstaendig?`);
   if (!WERKBANK_SEITEN.length) fail('[6] keine Werkbank-Seite in scripts/lib/vorschau-seiten.mjs — umgezogen? Dann hier die neuen Seiten nennen');
-  console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste (Soll ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}, ${fremd.length} andere Seiten mit Liste`);
+  console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste (Soll ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}; ${durchsucht} andere Seiten durchsucht, ${fremd.length} davon mit Liste`);
 
   if (eintraege.length < MIN_MODELLE) fail(`Liste: ${eintraege.length} Modelle, Klinke ${MIN_MODELLE}`);
 }
