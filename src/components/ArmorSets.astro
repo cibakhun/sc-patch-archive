@@ -137,6 +137,14 @@ const sizeOf = (sets: { id: string }[]) => {
   @media (min-width: 1181px) and (min-height: 1061px) {
     .dp-sec[id], .as-set[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 13.4rem); }
   }
+  /* Dieselbe Regel als genaues Gegenstueck der Einzeilen-Bedingung weiter
+     unten ((max-width: 1180px), (max-height: 1060px)): Bei gebrochenen
+     Fenstermassen durch Zoom, etwa 1060,5 px Hoehe, bricht die Leiste schon
+     um, (min-height: 1061px) greift aber noch nicht. Browser ohne
+     Bereichs-Syntax ueberspringen diese Regel und behalten die obere. */
+  @media (width > 1180px) and (height > 1060px) {
+    .dp-sec[id], .as-set[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 13.4rem); }
+  }
 
   /* Herstellerabschnitt als Block: content-visibility:auto rechnet Stil,
      Layout und Malen nur fuer die Abschnitte im Bild (8.127 Knoten auf der
