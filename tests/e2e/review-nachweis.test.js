@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
+  anforderungNoetig, anforderungAmHead, anforderungsMarke,
 } from '../../scripts/lib/review-nachweis.mjs';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -23,6 +24,7 @@ const BASIS = h('b'), A = h('1'), B = h('2'), C = h('3'), FREMD = h('f');
 const CR_FERTIG = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'success', title: 'Finished', summary: 'Result: Success - Review completed\nRun ID: `e20596f8`', started_at: '2026-11-26T07:27:45Z' };
 const CR_LIMIT = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'neutral', title: 'Review rate limited', summary: 'Result: Rate limited - Review rate limited', started_at: '2026-11-26T07:20:31Z' };
 const CR_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Review skipped: 640 files exceed the limit of 300', summary: 'Result: Skipped - Review skipped: 640 files exceed the limit of 300', started_at: '2026-11-11T10:00:00Z' };
+const CR_LABEL_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Review skipped: excluded by label configuration', summary: 'Result: Skipped - Review skipped: excluded by label configuration', started_at: '2026-11-26T17:29:09Z' };
 const CR_INKR_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Incremental review skipped', summary: 'Result: Skipped - Incremental review skipped', started_at: '2026-11-11T10:00:00Z' };
 const CR_ABBRUCH = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'cancelled', title: 'Review cancelled', summary: 'Result: Cancelled - Pull request is closed', started_at: '2026-11-11T10:00:00Z' };
 const CR_LAEUFT = { app: 'coderabbitai', name: 'CodeRabbit', status: 'in_progress', conclusion: null, title: '', summary: '', started_at: '2026-11-26T08:00:00Z' };
@@ -156,6 +158,13 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
     assert.equal(u.state, 'failure');
     assert.match(u.description, /Label review-ready fehlt/);
   });
+  test('T7 ROT live (#477): Ready ohne Label, CodeRabbit meldet Skip wegen Label, cubic am Limit', () => {
+    assert.equal(codeRabbitLauf(CR_LABEL_SKIP).art, 'uebersprungen');
+    const u = bewerte(lage({ pr: { labels: [] }, laeufeJeCommit: { [C]: [CR_LABEL_SKIP, CU_LIMIT] }, bereiche: [] }));
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /Label review-ready fehlt/);
+    assert.match(u.description, /cubic am Limit/);
+  });
   test('T4 ROT: Review nur auf aelterem Stand; mit Label wird gewartet, ohne Wartezeit rot', () => {
     const d = lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }] });
     const warten = bewerte(d);
@@ -221,6 +230,53 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
   });
   test('Ausnahme-Parser verlangt jedes Pflichtfeld', () => {
     assert.deepEqual(ausnahme({ art: 'review-ausnahme', kommentare: [AUSN(C, false)], head: C, konten: ['cibakhun'] }).fehlend, ['Zusätzliche Tests']);
+  });
+});
+
+describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
+  // Live auf #477 (26.11.2026): Ready um 17:29:09 ohne Label -> Skip
+  // "excluded by label configuration"; Label um 17:30:11. CodeRabbit prueft
+  // das Repo nicht mehr automatisch (weniger als 10 Sterne), also schreibt
+  // der Workflow `@coderabbitai review` mit Marke.
+  const anf = (sha, erstellt = '2026-11-26T17:30:20Z') => ({ author: 'github-actions[bot]', body: `@coderabbitai review\n\n${anforderungsMarke(sha)}`, erstellt });
+  const ohneReview = (x = {}) => lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }], ...x });
+  test('anfordern: Label da, kein Draft, keine Marke fuer diesen Stand, kein Review am Head', () => {
+    assert.equal(anforderungNoetig(ohneReview()), true);
+    assert.equal(anforderungNoetig(ohneReview({ kommentare: [anf(B)] })), true, 'Marke eines aelteren Stands zaehlt nicht');
+  });
+  test('nicht anfordern: Draft, ohne Label, schon angefordert, schon geprueft, Release', () => {
+    assert.equal(anforderungNoetig(ohneReview({ pr: { draft: true } })), false);
+    assert.equal(anforderungNoetig(ohneReview({ pr: { labels: [] } })), false);
+    assert.equal(anforderungNoetig(ohneReview({ kommentare: [anf(C)] })), false);
+    assert.equal(anforderungNoetig(lage()), false);
+    assert.equal(anforderungNoetig(ohneReview({ pr: { base_ref: 'main', head_ref: 'staging' } })), false);
+  });
+  test('angefordert, alter Skip am Head: warten; ohne Wartezeit rot "nicht reagiert"', () => {
+    assert.equal(anforderungAmHead([anf(C)], C), Date.parse('2026-11-26T17:30:20Z'));
+    const d = ohneReview({ kommentare: [anf(C)] });
+    const u = bewerte(d);
+    assert.equal(u.state, 'pending', u.description);
+    assert.equal(u.warten, true);
+    const ende = bewerte({ ...d, keinWarten: true });
+    assert.equal(ende.state, 'failure');
+    assert.match(ende.description, /nicht reagiert/);
+  });
+  test('Anforderung fuer einen aelteren Stand laesst am neuen nicht warten', () => {
+    const u = bewerte(ohneReview({ pr: { labels: [] }, kommentare: [anf(B)] }));
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /Label review-ready fehlt/);
+  });
+  test('Lauf nach der Anforderung: der zaehlt (Skip danach ist echt rot, fertig ist gruen)', () => {
+    const spaeterSkip = { ...CR_SKIP, started_at: '2026-11-26T17:31:00Z' };
+    const rot = bewerte(ohneReview({ kommentare: [anf(C)], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, spaeterSkip] } }));
+    assert.equal(rot.state, 'failure');
+    assert.match(rot.description, /uebersprungen/);
+    const gruen = bewerte(lage({ kommentare: [anf(C)], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, { ...CR_FERTIG, started_at: '2026-11-26T17:31:00Z' }] } }));
+    assert.equal(gruen.state, 'success', gruen.description);
+  });
+  test('die Marke allein ist nie ein Review', () => {
+    const u = bewerte(ohneReview({ kommentare: [anf(C)], keinWarten: true }));
+    assert.notEqual(u.state, 'success');
   });
 });
 

@@ -76,11 +76,14 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
 - Jeder PR nach `staging` beginnt als **Draft**. Committen und pushen beliebig
   oft; die PR-Prüfung läuft, die KI-Prüfer bleiben still.
 - Erst wenn Bau, Tor, betroffene Tests und Krisz' Test durch sind: „ready for
-  review" und Label **`review-ready`**. Nur das Label löst CodeRabbit aus.
-  Kein `@coderabbitai review` daneben (doppelte Anforderung).
-- **Vor jedem Push auf einen PR mit `review-ready` das Label selbst abnehmen**,
-  sonst startet der Push eine Runde. Der Workflow nimmt es als Rückfallebene
-  ebenfalls ab. Nach den Fixes und erneutem Tor: Label wieder setzen.
+  review" und Label **`review-ready`**. Der Workflow schreibt dann genau
+  einmal je Stand `@coderabbitai review` (CodeRabbit prüft das Repo nicht
+  mehr automatisch: weniger als 10 Sterne). Selbst kein `@coderabbitai
+  review` schreiben (doppelte Anforderung); `@coderabbitai full review` nur,
+  wenn der Nachweis eine Lücke in der Abdeckung meldet.
+- Jeder Push nimmt `review-ready` wieder ab (der Workflow), ein neuer Stand
+  wird also nie ungefragt geprüft. Nach den Fixes und erneutem Tor: Label
+  wieder setzen.
 - Höchstens **drei Runden** je PR. Danach entscheidet Krisz
   (Label `review-runde-frei` gibt eine Runde frei, nur auf seine Ansage).
 - Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst
@@ -97,6 +100,7 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   **dokumentierte Ausnahme mit Krisz' ausdrücklicher Freigabe** aus Chat oder
   AgencyOS, vorher gezielte Zusatztests. Der Ausnahme-Kommentar steht in
   `docs/review-workflow.md`; nie auf eigene Initiative, nie automatisch.
+  Danach Label `nachweis-neu` setzen, damit der Nachweis neu bewertet.
   Eine Bestätigung auf GitHub zählt nicht als Krisz' Freigabe, solange der
   Agent mit seinem Konto schreibt.
 - Releases `staging` → `main` nur auf Krisz' Ansage; der Nachweis dort prüft,

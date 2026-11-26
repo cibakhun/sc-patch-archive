@@ -35,9 +35,11 @@ export const LABEL_BEREIT = 'review-ready';
 export const LABEL_KRITISCH = 'kritisch';
 export const LABEL_RUNDE_FREI = 'review-runde-frei';
 export const LABEL_OHNE_CUBIC = 'ohne-cubic';
+export const LABEL_NEU = 'nachweis-neu'; // nur: Nachweis neu bewerten (z. B. nach einer Ausnahme)
 export const MAX_RUNDEN = 3;
 export const STATUS_KONTEXT = 'review-nachweis';
 export const BERICHT_MARKE = '<!-- review-nachweis:bericht -->';
+export const anforderungsMarke = (sha) => `<!-- review-nachweis:anforderung sha=${sha} -->`;
 
 const SHA = /^[0-9a-f]{40}$/;
 const kurz = (s) => (s || '').slice(0, 7);
@@ -155,6 +157,33 @@ export function codeRabbitAmCommit(laeufe = []) {
     return j.art === 'laeuft' ? { art: 'geprueft', nochEinLauf: true } : { art: 'geprueft' };
   }
   return codeRabbitLauf(juengster(cr));
+}
+
+/* ---------------------------------------------------------------
+   Anforderung. CodeRabbit prueft dieses Repo nicht mehr automatisch
+   (weniger als 10 Sterne, seit 25./26.11.2026); ein Review kommt nur auf
+   `@coderabbitai review`. Den Befehl schreibt der Workflow, genau einmal je
+   Stand, mit einer Marke, die den Stand nennt. Die Marke verlaengert nur
+   das Warten, sie zaehlt nie als Review.
+   --------------------------------------------------------------- */
+const anforderungen = (kommentare, head) => {
+  const re = new RegExp(`<!--\\s*review-nachweis:anforderung\\s+sha=${head}\\s*-->`);
+  return (kommentare || []).filter((k) => re.test(k.body || ''));
+};
+
+/** Zeitpunkt (ms) der juengsten Anforderung fuer genau diesen Stand, sonst null. */
+export function anforderungAmHead(kommentare, head) {
+  const t = anforderungen(kommentare, head).map((k) => Date.parse(k.erstellt || '')).filter(Number.isFinite);
+  return t.length ? Math.max(...t) : null;
+}
+
+/** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im Draft, nie doppelt. */
+export function anforderungNoetig(d) {
+  const { pr } = d;
+  if (pr.draft || (pr.base_ref === 'main' && pr.head_ref === 'staging')) return false;
+  if (!(pr.labels || []).includes(LABEL_BEREIT)) return false;
+  if (anforderungen(d.kommentare, pr.head_sha).length) return false;
+  return codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art !== 'geprueft';
 }
 
 /** Bereiche "between A and B" aus einem CodeRabbit-Text. */
@@ -296,7 +325,13 @@ export function bewerte(d) {
   const extra = { bericht, kritisch, gruende, runden, belege };
 
   // Warten, solange ein Pruefer am Head noch laeuft oder angefordert ist.
-  const crWartet = crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT));
+  // Angefordert, aber noch kein Lauf nach der Anforderung (ein Skip von
+  // davor, etwa "excluded by label configuration", ist dann veraltet).
+  const tAnf = anforderungAmHead(d.kommentare, head);
+  const crLetzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
+  const crAngefordert = tAnf !== null && crHead.art !== 'geprueft' && crHead.art !== 'laeuft'
+    && !(crLetzter && Date.parse(crLetzter.started_at || '') >= tAnf);
+  const crWartet = crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT)) || crAngefordert;
   const cuWartet = cuAbd.amHead.art === 'laeuft';
   const brauchtMehr = kritisch ? belege.length < 2 : belege.length < 1;
   if (brauchtMehr && (crWartet || cuWartet) && !d.keinWarten) {
@@ -318,7 +353,12 @@ export function bewerte(d) {
 
   // Kein Beleg. Grund so genau wie moeglich nennen.
   let grund;
-  if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';
+  /* Ohne Label ist der eigentliche Grund die fehlende Anforderung, auch
+     wenn CodeRabbit das als Skip meldet (live auf #477, 26.11.2026:
+     "Review skipped: excluded by label configuration"). */
+  if (!labels.includes(LABEL_BEREIT) && (crHead.art === 'fehlt' || /label configuration/i.test(crHead.titel || ''))) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
+  else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';
   else if (crHead.art === 'uebersprungen') grund = `CodeRabbit hat uebersprungen (${crHead.titel}): NICHT geprueft`;
   else if (crHead.art === 'abgebrochen') grund = 'CodeRabbit-Review abgebrochen: NICHT geprueft';
   else if (crHead.art === 'unbekannt') grund = `CodeRabbit meldet Unbekanntes (${crHead.titel}): NICHT gezaehlt`;

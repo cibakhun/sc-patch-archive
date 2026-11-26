@@ -15,20 +15,26 @@ ist, entscheidet Krisz, nie eine Automatik.
 
 1. **Draft-PR sofort.** Jeder PR nach `staging` beginnt als Draft. Pushen
    beliebig oft; `pr-check` und CodeQL laufen, die KI-Prüfer bleiben still
-   (CodeRabbit: `drafts: false`, cubic: `check_drafts` ist aus).
+   (CodeRabbit: kein automatischer Review, cubic: `check_drafts` ist aus).
 2. **Fertig bauen.** `npm run build && npm run gate`, betroffene Tests, bei
    Bedarf Vorschau-Bau. Danach Krisz' Test.
 3. **Review anfordern.** „Ready for review“ und Label **`review-ready`**.
-   Nur das Label löst CodeRabbit aus (`auto_review.enabled: false`,
-   `labels: ["review-ready"]` in `.coderabbit.yaml`). Kein
-   `@coderabbitai review` daneben, das wäre eine zweite Anforderung.
+   Der Workflow schreibt daraufhin genau einmal je Stand
+   `@coderabbitai review`, mit einer Marke, die den Stand nennt. Selbst
+   kein `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
+   Hintergrund: CodeRabbit prüft Repos mit weniger als 10 Sternen seit dem
+   25./26.11.2026 nicht mehr automatisch, auch nicht per Label (Meldung
+   an #477). `.coderabbit.yaml` schaltet automatische Reviews deshalb ganz
+   ab (`auto_review.enabled: false`, kein `labels`-Eintrag), damit bei 10
+   Sternen keine zweite Anforderung dazukommt.
 4. **Befunde abarbeiten.** Jeden lesen und einordnen: beheben, begründet
    ablehnen (erst nachmessen) oder als Entscheidung an Krisz. Auf jeden
    Kommentar antworten, Thread schließen.
-5. **Nachbessern.** *Vor* dem Push das Label `review-ready` abnehmen, dann
-   pushen, Tor erneut grün, Label wieder setzen. CodeRabbit prüft dann
-   inkrementell nur die neuen Commits; der Nachweis setzt die Runden
-   zusammen (siehe „Abdeckung“).
+5. **Nachbessern.** Pushen; der Workflow nimmt `review-ready` bei jedem
+   Push ab, der neue Stand wird also nicht ungefragt geprüft. Tor erneut
+   grün, Label wieder setzen: Der Workflow fordert einmal an, CodeRabbit
+   prüft inkrementell nur die neuen Commits, und der Nachweis setzt die
+   Runden zusammen (siehe „Abdeckung“).
 6. **Merge.** Nur wenn der Status **`review-nachweis`** auf dem aktuellen
    Commit grün ist. Krisz merged per Squash. Der Agent merged nie und nutzt
    nie den Bypass.
@@ -41,10 +47,11 @@ gesetztes `review-ready` wieder ab, und Krisz entscheidet: Label
 
 | Label | Wer setzt es | Wirkung |
 |---|---|---|
-| `review-ready` | Agent oder Krisz, wenn der Stand fertig ist | löst genau einen CodeRabbit-Review aus; der Workflow nimmt es bei jedem neuen Push ab |
+| `review-ready` | Agent oder Krisz, wenn der Stand fertig ist | der Workflow fordert einmal je Stand einen CodeRabbit-Review an; er nimmt das Label bei jedem neuen Push ab |
 | `kritisch` | Agent bei sicherheitsrelevanten Änderungen, die die Pfadliste nicht erkennt | macht den PR kritisch (zwei Reviews) |
 | `review-runde-frei` | nur Krisz | erlaubt eine Runde über die dritte hinaus |
 | `ohne-cubic` | der Workflow, auf normalen PRs | hält cubic für kritische PRs frei, sobald `cubic.yaml` auf `main` das Label beachtet (siehe „cubic“) |
+| `nachweis-neu` | Agent oder Krisz | nur ein Anstoß: bewertet den Nachweis neu (etwa nach einem Ausnahme-Kommentar); der Workflow nimmt es sofort ab |
 
 ## Der Status `review-nachweis`
 
@@ -62,6 +69,7 @@ Grund nennt.
 | Kritischer PR, CodeRabbit **und** cubic decken den Head lückenlos ab | ✅ success |
 | Kritischer PR, ein Review plus gültige Ausnahme von Krisz für genau diesen Commit | ✅ success, Beschreibung beginnt mit **AUSNAHME** |
 | Review läuft noch oder ist angefordert | ⏳ pending (der Lauf wartet bis zu 40 Minuten) |
+| Angefordert, aber CodeRabbit reagiert nicht innerhalb der Wartezeit | ❌ failure, „nicht reagiert“ |
 | Rate-Limit, übersprungen („files exceed the limit“, „Incremental review skipped“), abgebrochen, unbekannte Meldung | ❌ failure, „NICHT geprüft“ |
 | Runden decken den Stand nicht lückenlos ab | ❌ failure, „full review nötig“ |
 | Label fehlt, kein Review angefordert | ❌ failure |
@@ -133,7 +141,7 @@ Ausnahme ersetzt nur den *zweiten* Review, nie den ersten, und gilt nur für
 den genannten Commit: Ein neuer Push braucht eine neue Ausnahme.
 
 Kommentar im PR (volle 40-stellige SHA des Heads; jedes Feld mindestens
-drei Zeichen):
+drei Zeichen), danach Label `nachweis-neu` setzen:
 
 ```markdown
 <!-- review-ausnahme sha=<volle SHA des Heads> -->
@@ -197,7 +205,10 @@ mehr ist. Von Hand: `@cubic-dev-ai review` (voll) oder
 
 Das Ende eines CodeRabbit-Reviews ohne Kommentare löst kein Ereignis aus.
 Ist ein Review angefordert oder läuft einer, wartet der Lauf deshalb bis zu
-40 Minuten (Takt 60 s) und prüft dabei nur den Head erneut. Jedes neue
+40 Minuten (Takt 60 s) und prüft dabei nur den Head erneut. „Angefordert“
+heißt: Es gibt eine Anforderungs-Marke für genau diesen Stand, und
+CodeRabbit hat danach noch keinen Lauf begonnen (ein Skip von davor ist
+veraltet). Die Marke selbst zählt nie als Review. Jedes neue
 Ereignis bricht den wartenden Lauf ab und startet neu
 (`cancel-in-progress`). Ändert sich der Head während des Wartens, endet der
 Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
@@ -214,10 +225,13 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
   in diesem Repo bewusst verboten (`verify:supply-chain`). Endgültige
   Abhilfe: Agentenkonto plus Pflicht-Freigabe durch Krisz (CODEOWNERS)
   für `.github/`.
-- **Label-Wettlauf.** Ein Push auf einen PR, der noch `review-ready` trägt,
-  kann eine Runde starten, bevor der Workflow das Label abnimmt. Deshalb
-  nimmt der Agent es *vor* dem Push selbst ab. Die Rundenbremse hat
-  dasselbe Fenster.
+- **Bot-Befehl.** Ob CodeRabbit einen Befehl annimmt, den
+  `github-actions[bot]` schreibt, ist auf #477 zu belegen. Reagiert es
+  nicht, steht der Nachweis nach 40 Minuten auf „nicht reagiert“ (rot, nie
+  grün), und die Anforderung muss anders kommen.
+- **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
+  Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
+  Label `nachweis-neu` setzen.
 - **Abhängigkeit vom Text der Prüfer.** Titel und Bereichszeilen sind
   keine zugesicherte Schnittstelle. Ändern sie sich, zählt der Nachweis
   nichts mehr (rot, nie fälschlich grün) und muss nachgezogen werden.

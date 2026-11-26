@@ -13,6 +13,10 @@
        einmal angefordert.
      - `review-ready` nach drei abgeschlossenen Runden: Label ab, Krisz
        entscheidet (Label `review-runde-frei` gibt eine weitere frei).
+     - `review-ready` auf einem fertigen, noch nicht angeforderten Stand:
+       einmal `@coderabbitai review` schreiben (mit Marke je Stand).
+       CodeRabbit prueft das Repo nicht mehr automatisch.
+     - `nachweis-neu`: nur Anstoss fuer einen neuen Lauf, wird abgenommen.
      - Label `ohne-cubic` auf normalen PRs, nicht auf kritischen: cubic
        bleibt so den kritischen vorbehalten, sobald cubic.yaml auf main
        das Label beachtet (reviews.ignore.pr_labels). Bis dahin ohne
@@ -33,8 +37,8 @@
    ============================================================ */
 import {
   bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende,
-  LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, MAX_RUNDEN, STATUS_KONTEXT, BERICHT_MARKE,
-  codeRabbitLauf,
+  LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, MAX_RUNDEN, STATUS_KONTEXT, BERICHT_MARKE,
+  codeRabbitLauf, anforderungNoetig, anforderungsMarke,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -106,7 +110,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
   const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
   const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
   const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
-  const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url }));
+  const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
   const bereiche = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)),
@@ -178,6 +182,12 @@ console.log(`PR #${NUMMER} ${pr.base.ref} <- ${pr.head.ref}, Head ${pr.head.sha.
 if (pr.state !== 'open' && !(TROCKEN && process.argv.includes('--auch-geschlossen'))) { console.log('PR ist nicht offen — nichts zu tun.'); process.exit(0); }
 const labels = () => pr.labels.map((l) => l.name);
 
+// `nachweis-neu` ist nur der Anstoss zu diesem Lauf (z. B. nach einer Ausnahme).
+if (labels().includes(LABEL_NEU)) {
+  await labelAb(LABEL_NEU);
+  pr.labels = pr.labels.filter((l) => l.name !== LABEL_NEU);
+}
+
 // Neuer Stand: das Label gehoerte zum alten.
 if (AKTION === 'synchronize' && labels().includes(LABEL_BEREIT)) {
   await labelAb(LABEL_BEREIT);
@@ -195,6 +205,21 @@ if (AKTION === 'labeled' && LABEL === LABEL_BEREIT && !labels().includes(LABEL_R
     await labelAb(LABEL_BEREIT);
     pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
     d.pr.labels = labels();
+  }
+}
+
+// Genau eine Anforderung je Stand: CodeRabbit prueft das Repo nicht mehr
+// automatisch (weniger als 10 Sterne), ein Review kommt nur auf Befehl.
+if (anforderungNoetig(d)) {
+  const head = d.pr.head_sha;
+  const text = `@coderabbitai review\n\n${anforderungsMarke(head)}\n<sub>Angefordert vom Review-Nachweis: Label \`${LABEL_BEREIT}\` auf Stand \`${head.slice(0, 7)}\`. Eine Anforderung je Stand (docs/review-workflow.md).</sub>`;
+  if (TROCKEN) {
+    console.log('(trocken) Anforderung an CodeRabbit');
+    d.kommentare.push({ id: 0, author: BOT, body: text, url: '(trocken)', erstellt: new Date().toISOString() });
+  } else {
+    const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });
+    console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)}: ${k.html_url}`);
+    d.kommentare.push({ id: k.id, author: BOT, body: text, url: k.html_url, erstellt: k.created_at });
   }
 }
 

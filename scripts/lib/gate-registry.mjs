@@ -1491,7 +1491,7 @@ export const CHECKS = [
     script: 'scripts/review-nachweis.mjs',
     rail: null,
     checks:
-      'setzt den Status review-nachweis auf den Head-Commit eines PRs: gruen nur, wenn ein abgeschlossener KI-Review (CodeRabbit "Review completed" oder cubic "AI review completed") genau diesen Stand lueckenlos abdeckt, bei kritischen Pfaden zwei oder einer plus Krisz\' dokumentierte Ausnahme, bei Releases staging -> main jeder enthaltene PR mit Nachweis (Regeln: docs/review-workflow.md, Urteil: scripts/lib/review-nachweis.mjs)',
+      'fordert CodeRabbit mit Label review-ready genau einmal je Stand an und setzt den Status review-nachweis auf den Head-Commit eines PRs: gruen nur, wenn ein abgeschlossener KI-Review (CodeRabbit "Review completed" oder cubic "AI review completed") genau diesen Stand lueckenlos abdeckt, bei kritischen Pfaden zwei oder einer plus Krisz\' dokumentierte Ausnahme, bei Releases staging -> main jeder enthaltene PR mit Nachweis (Regeln: docs/review-workflow.md, Urteil: scripts/lib/review-nachweis.mjs)',
     why:
       'Kein Tor im Auslieferungsweg, sondern ein Merge-Gate auf GitHub: laeuft nur in .github/workflows/review-nachweis.yml, braucht die GitHub-API und das Workflow-Token. ' +
       'Seine Logik ist rein (scripts/lib/review-nachweis.mjs) und laeuft als Teil von test:e2e auf Schiene A mit echten Antworten als Testdaten.',
