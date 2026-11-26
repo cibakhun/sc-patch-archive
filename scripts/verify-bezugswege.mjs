@@ -417,6 +417,14 @@ const itemWortlaut = (schluessel) => {
 const SPECS_ON_SHIP = itemWortlaut('specsOnShip');
 const SPECS_OHNE_WERTE = itemWortlaut('specsOhneWerte');
 const SPECS_NICHT_IM_SPIEL = itemWortlaut('specsNichtImSpiel');
+// Die sechs Flugwerte eines Flugblatts, beschriftet wie auf der Seite. Die
+// Beschriftungen stehen in itemText.ts zu mehreren in einer Zeile.
+const itemBeschriftung = (schluessel) => {
+  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(new RegExp(`\\b${schluessel}: '((?:[^'\\\\]|\\\\.)*)'`, 'g'))].map((m) => m[1]);
+  if (t.length !== 2) { console.error(`verify:bezugswege: ${schluessel} steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
+  return { de: t[0], en: t[1] };
+};
+const FLUGWERTE = ['statScm', 'statMaxSpeed', 'statBoost', 'statPitch', 'statYaw', 'statRoll'].map(itemBeschriftung);
 /* [16] IA C8 Technische Daten auf jedem Item-Blatt */
 const techArten = { werte: 0, angaben: 0, schiff: 0, ohneWerte: 0, nichtImSpiel: 0 };
 const ohneTechDaten = [];
@@ -477,12 +485,18 @@ function pruefeTechDaten(pfad, html) {
   const notiz = (attr) => falte(sichtbar(sek.match(new RegExp(`<p\\b[^>]*\\b${attr}\\b[^>]*>([\\s\\S]*?)<\\/p>`))?.[1] ?? ''));
   const hatOhneWerte = sek.includes('data-specs-ohne-werte');
   const hatNichtImSpiel = sek.includes('data-specs-nicht-im-spiel');
-  const werte = sek.includes('class="dp-stats"');
+  // Bloecke nach Inhalt, nicht nach Klasse: ein leerer <p class="dp-desc">
+  // oder eine Liste ohne Eintrag ist keine Angabe (Review #476).
+  const block = (cls) => sek.match(new RegExp(`<(ul|p)\\b[^>]*\\bclass="${cls}"[^>]*>([\\s\\S]*?)<\\/\\1>`))?.[2] ?? '';
+  const wertNamen = [...block('dp-stats').matchAll(/<b\b[^>]*>([\s\S]*?)<\/b>/g)].map((m) => falte(sichtbar(m[1])));
+  const chipsDa = /<li\b/.test(block('dp-chips'));
+  const descDa = falte(sichtbar(block('dp-desc'))) !== '';
+  const werte = wertNamen.length > 0;
   const art = sek.includes('data-specs-schiff') ? 'schiff'
     : hatNichtImSpiel ? 'nichtImSpiel'
     : werte ? 'werte'
     : hatOhneWerte ? 'ohneWerte'
-    : sek.includes('class="dp-chips"') || sek.includes('class="dp-desc"') ? 'angaben'
+    : chipsDa || descDa ? 'angaben'
     : null;
   if (!art) { techLeer.push(pfad); return; }
   techArten[art]++;
@@ -494,10 +508,16 @@ function pruefeTechDaten(pfad, html) {
   if (item?.nichtImSpiel && item.game) probleme.push('Katalog: nicht im Spiel, traegt aber Spieldaten');
   if (item?.game?.ohneWerte && !hatOhneWerte) probleme.push('Katalog: ohne Werte, die Seite sagt es nicht');
   if (hatOhneWerte && werte) probleme.push('Hinweis „keine Werte-Übersicht" neben Werten');
+  // Die andere Richtung: ohne Katalog-Marke steht der Hinweis nur auf einem
+  // Blatt, das sonst gar nichts zeigt (Regel in ItemDetail.astro, Review #476).
+  if (hatOhneWerte && item?.game?.ohneWerte !== true && (!item?.game || chipsDa || descDa)) probleme.push('Hinweis „keine Werte-Übersicht" ohne Katalog-Marke');
   if (probleme.length) techMarkeFalsch.push(`${pfad} (${probleme.join('; ')})`);
+  // Flugblatt zaehlt nur mit allen sechs Flugwerten, nicht mit irgendeinem
+  // Werteblock (Review #476).
   if (item?.game?.gameType === 'FlightController') {
-    flugblaetter++;
-    if (!werte) flugblattOhneWerte.push(pfad);
+    const fehlen = FLUGWERTE.map((w) => w[sprache]).filter((l) => !wertNamen.includes(l));
+    if (fehlen.length) flugblattOhneWerte.push(`${pfad} (fehlt: ${fehlen.join(', ')})`);
+    else flugblaetter++;
   }
 }
 

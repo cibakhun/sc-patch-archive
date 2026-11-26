@@ -117,6 +117,24 @@ for (const [name, size, grade, tone] of REFERENCE) {
   }
 }
 console.log(`   geprueft: ${refChecked} | abweichend: ${refBad}`);
+// IA C8 (26.11.2026): die sechs Tankduesen-Bauplaene zeigen die Groesse aus
+// dem Spiel (Item mit game.ohneWerte, Groesse 1). Die Gesamtzahlen in
+// Abschnitt 8 zaehlen nur; diese Liste haelt Wert und Zuordnung fest, ein
+// Tausch oder eine andere Groesse fiele dort nicht auf (Review #476).
+const DUESEN = ['Bendix', 'Ezra', 'Harkin', 'Lindstrom', 'Marlin', 'Norfield'];
+let duesenChecked = 0, duesenBad = 0;
+for (const name of DUESEN) {
+  const bp = byBpName(name);
+  if (!bp) { duesenBad++; console.log(`   FEHLT: ${name} nicht in crafting-db.json`); continue; }
+  duesenChecked++;
+  const sp = blueprintSpecs(bp);
+  if (!sp || sp.sizes.length !== 1 || sp.sizes[0] !== 1) {
+    duesenBad++;
+    console.log(`   ABWEICHUNG: Tankduese ${name} erwartet Groesse [1], gemessen ${JSON.stringify(sp)}`);
+  }
+}
+console.log(`   Tankduesen: geprueft ${duesenChecked} | abweichend ${duesenBad}`);
+need(duesenChecked === DUESEN.length && duesenBad === 0, `Tankduesen-Bauplaene: ${duesenBad} abweichend, ${duesenChecked} von ${DUESEN.length} gefunden`);
 
 /* ---------- 2) SizeN-Gegenprobe ---------- */
 console.log('2) SizeN-Gegenprobe …');

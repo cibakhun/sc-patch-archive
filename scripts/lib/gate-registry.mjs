@@ -155,6 +155,9 @@ export const CHECKS = [
     script: 'scripts/verify-crafting-specs.mjs',
     rail: 'A',
     checks: 'die Kennwerte auf den Crafting-Karten stimmen mit den Spieldaten ueberein, und gleichnamige Blueprints, die in Wahrheit verschiedene Items sind, bleiben gesperrt',
+    // Tankduesen-Liste (IA C8, Review #476), VORGEFUEHRT ROT am 26.11.2026:
+    // erwartete Groesse im Skript auf 2 gestellt -> 6 Abweichungen, BEFUND
+    // „Tankduesen-Bauplaene: 6 abweichend“, exit 1; zurueckgestellt, gruen.
   },
   {
     id: 'verify:typo',
@@ -916,6 +919,16 @@ export const CHECKS = [
     // (Decke 232), 1 leerer Abschnitt, 2 Hinweise passen nicht zu Katalog
     // oder Wortlaut, 2 Flugblatt-Seiten ohne Flugwerte; exit 1. Zurueckgespielt,
     // sha256 402df490…, fa5a4322…, 2bbacbed…, 4e4b7a06… und 5ffc5a25… wie vorher, gruen.
+    // Nachgeschaerft nach Review #476 (Angaben nach Inhalt statt Klasse,
+    // Hinweis „keine Werte-Übersicht“ auch ohne Katalog-Marke, Flugblatt nur
+    // mit allen sechs Flugwerten), VORGEFUEHRT ROT am 26.11.2026 gegen den
+    // Vorschau-Bau mit Daten: auf /items/2949-intergalactic-aerospace-expo-hat.html
+    // Chips und Beschreibung geleert, auf /items/2954-luck-s-favor-tankard.html
+    // den Hinweis eingesetzt, auf /items/arrow-phb-flight-blade.html die Zeile
+    // „Yaw“ entfernt -> 4 FEHLER: 1 leerer Abschnitt, 1 Hinweis ohne
+    // Katalog-Marke, 127 Flugblatt-Seiten (Klinke 128), 1 Flugblatt ohne
+    // Flugwerte („fehlt: Yaw“); exit 1. Zurueckgespielt, sha256 394dc47c…,
+    // 6913d11d… und 9a979faf… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
