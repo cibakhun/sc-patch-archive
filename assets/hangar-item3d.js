@@ -1,5 +1,7 @@
 // Items in 3D: Betrachter für ein einzelnes Item (Rüstungsteil) im Dialog
-// der Item- und Blueprint-Seite (src/components/Item3d.astro). Wird erst
+// der Item- und Blueprint-Seite (src/components/Item3d.astro) und der
+// Items-Werkbank, die im selben Dialog nacheinander verschiedene Items
+// zeigt (data-i3d-model wechselt). Wird erst
 // beim Klick auf „In 3D ansehen“ geladen und nur im Vorschau-Bau
 // ausgeliefert: der Name beginnt mit hangar-, darum räumt
 // scripts/_hangar-switch.mjs die Datei aus dem Live-Bau, und
@@ -35,17 +37,40 @@ const offen = new WeakMap(); // Dialog -> Betrachter
 /** Öffnet (oder zeigt wieder) den Betrachter in diesem Dialog. */
 export function zeige(dialog) {
   let b = offen.get(dialog);
-  // Nach einem Ladefehler (Netz weg, Ablage kurz nicht erreichbar) beim
-  // naechsten Oeffnen ganz neu anfangen; ein geladenes Modell bleibt.
-  if (b?.kaputt) {
-    b.weg();
-    b = null;
-  }
   if (!b) {
     b = baue(dialog);
     offen.set(dialog, b);
+  } else if (b.kaputt || b.modell !== dialog.dataset.i3dModel) {
+    // Nach einem Ladefehler (Netz weg, Ablage kurz nicht erreichbar) oder
+    // für ein anderes Item (Werkbank) das Modell neu laden; Zeichenfläche,
+    // Licht und Steuerung bleiben. Ein geladenes Modell bleibt sonst stehen.
+    b.lade(dialog.dataset.i3dModel);
   }
   b?.weiter();
+}
+
+// Gibt Geometrie, Materialien und Texturen eines entfernten Modells frei;
+// sonst sammelte die Werkbank mit jedem gezeigten Item Grafikspeicher an.
+// Texturen kommen in Browsern mit createImageBitmap als ImageBitmap; deren
+// Bilddaten gibt dispose() nicht frei, das tut erst close(). Jede Textur und
+// jedes Bild nur einmal, auch wenn Materialien sie teilen.
+function raeume(obj) {
+  const texturen = new Set();
+  obj.traverse((o) => {
+    if (!o.isMesh) return;
+    o.geometry?.dispose();
+    for (const mat of [].concat(o.material || [])) {
+      for (const k of Object.keys(mat)) if (mat[k]?.isTexture) texturen.add(mat[k]);
+      mat.dispose();
+    }
+  });
+  const bilder = new Set();
+  for (const t of texturen) {
+    const bild = t.source?.data;
+    if (typeof ImageBitmap !== 'undefined' && bild instanceof ImageBitmap) bilder.add(bild);
+    t.dispose();
+  }
+  for (const b of bilder) b.close();
 }
 
 function baue(dialog) {
@@ -168,57 +193,69 @@ function baue(dialog) {
   };
   zurueck.addEventListener('click', ansichtZurueck);
   let kaputt = false;
+  let modell = null;
+  // Jeder Ladevorgang hat seine Nummer; Rückrufe eines überholten (das Item
+  // wechselte, während es noch lud) verwerfen ihr Ergebnis still.
+  let nr = 0;
 
   // Laden: ein Entpacker-Arbeiter genügt für ein Teil; danach wird er beendet.
-  const draco = new DRACOLoader().setDecoderPath(DRACO_PFAD).setWorkerLimit(1);
-  const loader = new GLTFLoader().setDRACOLoader(draco);
-  melde(d.loading);
-  loader.load(
-    d.i3dModel,
-    (gltf) => {
-      draco.dispose();
-      const s = gltf.scene;
-      s.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
-      s.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(s);
-      const mitte = box.getCenter(new THREE.Vector3());
-      s.position.sub(mitte);
-      box.translate(mitte.negate());
-      halter.add(s);
-      huelle = box;
-      zurueck.hidden = false;
-      melde(null);
-      ansichtZurueck();
-      dialog.dataset.i3dBereit = '1';
-    },
-    (e) => {
-      if (e.total) melde(`${d.loading} ${Math.min(99, Math.round((e.loaded / e.total) * 100))} %`);
-    },
-    () => {
-      draco.dispose();
-      kaputt = true;
-      melde(d.fail);
-      dialog.dataset.i3dBereit = 'fehler';
-    },
-  );
+  const lade = (url) => {
+    const meins = ++nr;
+    modell = url;
+    kaputt = false;
+    for (const alt of [...halter.children]) {
+      halter.remove(alt);
+      raeume(alt);
+    }
+    huelle = null;
+    zurueck.hidden = true;
+    delete dialog.dataset.i3dBereit;
+    dirty = true;
+    const draco = new DRACOLoader().setDecoderPath(DRACO_PFAD).setWorkerLimit(1);
+    const loader = new GLTFLoader().setDRACOLoader(draco);
+    const aktuell = () => meins === nr;
+    melde(d.loading);
+    loader.load(
+      url,
+      (gltf) => {
+        draco.dispose();
+        const s = gltf.scene;
+        if (!aktuell()) { raeume(s); return; }
+        s.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
+        s.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(s);
+        const mitte = box.getCenter(new THREE.Vector3());
+        s.position.sub(mitte);
+        box.translate(mitte.negate());
+        halter.add(s);
+        huelle = box;
+        zurueck.hidden = false;
+        melde(null);
+        ansichtZurueck();
+        dialog.dataset.i3dBereit = '1';
+      },
+      (e) => {
+        if (aktuell() && e.total) melde(`${d.loading} ${Math.min(99, Math.round((e.loaded / e.total) * 100))} %`);
+      },
+      () => {
+        draco.dispose();
+        if (!aktuell()) return;
+        kaputt = true;
+        melde(d.fail);
+        dialog.dataset.i3dBereit = 'fehler';
+      },
+    );
+  };
+  lade(d.i3dModel);
 
   return {
     get kaputt() { return kaputt; },
+    get modell() { return modell; },
+    lade,
     weiter() {
       groesse();
       dirty = true;
       if (!raf) raf = requestAnimationFrame(tick);
-    },
-    weg() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-      beobachter.disconnect();
-      zurueck.removeEventListener('click', ansichtZurueck);
-      controls.dispose();
-      scene.environment?.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
-      delete dialog.dataset.i3dBereit;
     },
   };
 }

@@ -1,0 +1,95 @@
+---
+// Der Dialog von „In 3D ansehen“ samt Aussehen und Importkarte für three.js,
+// geteilt von der Item- und Blueprint-Seite (Item3d.astro, ein festes Modell)
+// und der Items-Werkbank (ItemsWerkbank.astro), die darin nacheinander das
+// jeweils gewählte Item zeigt: dort steht anfangs kein Modell am Dialog,
+// assets/items-werkbank.js setzt data-i3d-model, Titel und Größe beim
+// Öffnen und lädt die Liste aller Modelle von data-i3d-liste.
+//
+// Der Betrachter steht als data-src am Dialog, damit verify:hangar-schalter [2]
+// ihn auf jeder Live-Seite findet, falls der Schalter einmal versagt.
+// Nur im Vorschau-Bau einbinden (src/lib/item3d.ts, HAS_HANGAR).
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import type { Locale } from '../i18n/ui';
+import { itemT, fill } from '../i18n/itemText';
+import type { Item3d } from '../lib/item3d';
+
+interface Props {
+  /** Festes Modell (Item- und Blueprint-Seite), oder null (Werkbank). */
+  model: Item3d | null;
+  /** Name des Items; leer, solange die Werkbank noch keins gewählt hat. */
+  name: string;
+  lang: Locale;
+  /** Adresse der Modell-Liste (nur Werkbank). */
+  liste?: string;
+}
+const { model, name, lang, liste } = Astro.props;
+const t = itemT(lang);
+
+let ver = 'x';
+try { ver = createHash('sha1').update(readFileSync('assets/hangar-item3d.js')).digest('hex').slice(0, 8); } catch { /* dev-Fallback */ }
+const viewerSrc = `/assets/hangar-item3d.js?v=${ver}`;
+const mb = model ? (model.kb / 1024).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '';
+const titel = name ? fill(t('i3dTitle'), { name }) : t('i3dOpen');
+---
+<dialog
+  class="i3d"
+  data-i3d
+  aria-label={titel}
+  data-src={viewerSrc}
+  data-i3d-model={model?.url}
+  data-i3d-liste={liste}
+  data-open={t('i3dOpen')}
+  data-title={t('i3dTitle')}
+  data-size={t('i3dSize')}
+  data-loading={t('i3dLoading')}
+  data-fail={t('i3dFail')}
+  data-no-gl={t('i3dNoGl')}
+>
+  <div class="i3d__box">
+    <header class="i3d__kopf">
+      <p class="i3d__titel" data-i3d-name>{name}</p>
+      <button type="button" class="i3d__zu" data-i3d-zu aria-label={t('i3dClose')} title={t('i3dClose')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+    <div class="i3d__buehne" data-i3d-stage>
+      <p class="i3d__status" data-i3d-status role="status" aria-live="polite">{t('i3dLoading')}</p>
+    </div>
+    <footer class="i3d__fuss">
+      <span class="i3d__hinweis i3d__hinweis--maus">{t('i3dHint')}</span>
+      <span class="i3d__hinweis i3d__hinweis--touch">{t('i3dHintTouch')}</span>
+      <span class="i3d__groesse" data-i3d-size>{mb ? fill(t('i3dSize'), { mb }) : ''}</span>
+      <button type="button" class="dp-btn dp-btn--ghost i3d__zurueck" data-i3d-reset hidden>{t('i3dReset')}</button>
+    </footer>
+  </div>
+</dialog>
+<style is:inline>
+.i3d-auf svg{flex:none}
+.i3d{width:min(1100px,94vw);height:min(780px,90vh);max-width:none;max-height:none;margin:auto;padding:0;border:1px solid var(--line);border-radius:14px;color:var(--text);background:radial-gradient(120% 90% at 50% 38%,#232033 0%,#15131e 55%,#0d0c14 100%);box-shadow:0 30px 90px -20px rgba(0,0,0,.8),var(--glow);overflow:hidden}
+.i3d::backdrop{background:rgba(6,5,12,.74);backdrop-filter:blur(3px)}
+.i3d__box{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%}
+.i3d__kopf{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem .5rem 1.1rem;border-bottom:1px solid var(--line-soft)}
+.i3d__titel{flex:1;min-width:0;margin:0;font-family:var(--font-display);font-size:clamp(.98rem,2.4vw,1.15rem);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.i3d__zu{display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border:1px solid var(--line-soft);border-radius:999px;background:none;color:var(--muted);cursor:pointer}
+.i3d__zu:hover,.i3d__zu:focus-visible{color:var(--text);border-color:var(--accent)}
+.i3d__buehne{position:relative;min-height:0}
+.i3d__buehne canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.i3d__buehne canvas:active{cursor:grabbing}
+.i3d__status{position:absolute;inset:auto 0 45%;margin:0;padding:0 1rem;text-align:center;color:var(--muted);font-size:var(--fs-9)}
+.i3d__fuss{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;padding:.6rem 1.1rem .8rem;border-top:1px solid var(--line-soft);color:var(--muted);font-size:var(--fs-6)}
+.i3d__hinweis{flex:1 1 16rem}
+.i3d__hinweis--touch{display:none}
+@media (pointer:coarse){.i3d__hinweis--maus{display:none}.i3d__hinweis--touch{display:inline}}
+.i3d__zurueck{margin-left:auto}
+/* Ohne die Knopf-Regeln der Datenblatt-Seiten (data-page.css, etwa in der
+   Items-Werkbank) dasselbe Aussehen; dort, wo .dp-btn gilt, gewinnt es
+   (:where zaehlt nicht). */
+:where(.i3d__zurueck){display:inline-flex;align-items:center;font:700 var(--fs-9)/1.2 var(--font-ui,inherit);letter-spacing:var(--ls-6,normal);border:1px solid var(--line-soft);border-radius:2px;padding:.5rem 1rem;color:var(--muted);background:none;cursor:pointer}
+:where(.i3d__zurueck:hover,.i3d__zurueck:focus-visible){color:var(--text);border-color:var(--accent)}
+@media (max-width:640px){.i3d{width:100vw;height:100dvh;border:0;border-radius:0}.i3d__hinweis{flex-basis:100%}}
+</style>
+<script type="importmap" is:inline>
+{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
+</script>

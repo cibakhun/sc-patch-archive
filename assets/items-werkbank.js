@@ -1177,6 +1177,71 @@
     }
   }
 
+  // „In 3D ansehen“ (nur Vorschau-Bau, src/lib/item3d.ts): der Dialog steht
+  // einmal in der Seite (Item3dDialog.astro) und zeigt nacheinander das
+  // jeweils gewaehlte Item; der Betrachter (assets/hangar-item3d.js) laedt
+  // erst beim ersten Oeffnen. Welche Items ein Modell haben, sagt die Liste
+  // (C.i3dListe); sie laedt mit dem ersten geoeffneten Item, und der Knopf
+  // erscheint im Blatt, sobald sie da ist. Scheitert der Abruf, versucht es
+  // das naechste Item neu.
+  var I3D_DLG = C.i3dListe ? document.querySelector('dialog[data-i3d]') : null;
+  var I3D = null, i3dLaeuft = null, i3dBetrachter = null;
+  function ladeI3d() {
+    if (!I3D_DLG) return null;
+    if (i3dLaeuft) return i3dLaeuft;
+    i3dLaeuft = fetch(C.i3dListe)
+      .then(function (r) {
+        if (!r.ok) throw new Error('3d list http ' + r.status);
+        return r.json();
+      })
+      .then(function (l) {
+        var basis = String((l && l.base) || '');
+        if (basis.slice(-1) !== '/') basis += '/';
+        var m = karte(), items = (l && l.items) || {};
+        Object.keys(items).forEach(function (id) {
+          var e = items[id];
+          if (Array.isArray(e) && typeof e[0] === 'string' && e[0]) m[id] = { url: basis + e[0], kb: Number(e[1]) || 0 };
+        });
+        I3D = m;
+      })
+      .catch(function () { i3dLaeuft = null; });
+    return i3dLaeuft;
+  }
+  // Knopf ins Blatt des Items, wenn es ein Modell hat: direkt hinter
+  // „Datenblatt oeffnen“, sonst an den Anfang der Handlungen. Nur in genau
+  // das Blatt, fuer das er bestellt wurde (der Rueckruf kommt spaeter).
+  function i3dEinsetzen(it, akt) {
+    if (!I3D || !I3D[it.id] || !akt || !akt.isConnected || akt.querySelector('[data-i3d-zeige]')) return;
+    var h = '<button type="button" class="wzb-neben" data-i3d-zeige="' + esc(it.id) + '" aria-haspopup="dialog">' +
+      '<span class="wi wi--cube" aria-hidden="true"></span><span>' + esc(I3D_DLG.dataset.open) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></button>';
+    var haupt = akt.querySelector('.wzb-haupt');
+    if (haupt) haupt.insertAdjacentHTML('afterend', h);
+    else akt.insertAdjacentHTML('afterbegin', h);
+  }
+  function zeigeI3d(id) {
+    var m = I3D && I3D[id], it = BYID[id], d = I3D_DLG;
+    if (!m || !it || !d) return;
+    // Titel, Groesse und Modell wie auf der Item-Seite (Item3dDialog.astro).
+    d.dataset.i3dModel = m.url;
+    d.setAttribute('aria-label', d.dataset.title.replace('{name}', it._n));
+    d.querySelector('[data-i3d-name]').textContent = it._n;
+    d.querySelector('[data-i3d-size]').textContent = m.kb
+      ? d.dataset.size.replace('{mb}', (m.kb / 1024).toLocaleString(DE ? 'de-DE' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
+      : '';
+    if (!d.open) d.showModal();
+    i3dBetrachter = i3dBetrachter || import(d.dataset.src);
+    i3dBetrachter.then(function (mod) { if (d.open) mod.zeige(d); }).catch(function () {
+      i3dBetrachter = null;
+      var s = d.querySelector('[data-i3d-status]');
+      s.textContent = d.dataset.fail;
+      s.hidden = false;
+    });
+  }
+  if (I3D_DLG) {
+    I3D_DLG.querySelector('[data-i3d-zu]').addEventListener('click', function () { I3D_DLG.close(); });
+    I3D_DLG.addEventListener('click', function (e) { if (e.target === I3D_DLG) I3D_DLG.close(); });
+  }
+
   function zeigeBlatt(html, opt) {
     opt = opt || {};
     // Lag der Fokus im alten Inhalt (etwa „Set ansehen“ per Enter), faellt er
@@ -1216,6 +1281,9 @@
     var platz = document.getElementById('wzb-craft');
     if (CRAFT) craftEinsetzen(it, platz);
     else ladeCraft().then(function () { craftEinsetzen(it, platz); });
+    var akt = document.getElementById('wzb-akt');
+    if (I3D) i3dEinsetzen(it, akt);
+    else if (I3D_DLG) { var l3 = ladeI3d(); if (l3) l3.then(function () { i3dEinsetzen(it, akt); }); }
     if (!opt.still) telefonAuf();
     if (!opt.ohneUrl) schreibeUrl();
   }
@@ -1265,7 +1333,8 @@
     }
     for (var n = el.blatt; n && n.parentElement && n !== document.body; n = n.parentElement) {
       Array.prototype.forEach.call(n.parentElement.children, function (x) {
-        if (x === n || x.inert || /^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(x.tagName)) return;
+        // Der 3D-Dialog liegt neben dem Werkzeug und oeffnet ueber dem Blatt.
+        if (x === n || x.inert || /^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(x.tagName) || x === I3D_DLG) return;
         x.inert = true;
         traege.push(x);
       });
@@ -1373,6 +1442,9 @@
   // der Aufrufer gerade Filter fuer die Liste gesetzt, und sein wartender
   // Schreibvorgang traegt sie in deren Eintrag.
   window.addEventListener('popstate', function (e) {
+    // Zurueck bei offenem 3D-Dialog (Wischgeste ohne Zurueck-Taste, die ihn
+    // selbst schliesst): er geht mit zu, sonst bliebe er ueber der Liste.
+    if (I3D_DLG && I3D_DLG.open) I3D_DLG.close();
     var eigenes = eigenesZurueck;
     // Ein eigenes Zurueck, das erst nach dem Ersatz-Timer ankommt (langsame
     // Traversierung), bleibt ein eigenes: es landet binnen zehn Sekunden auf
@@ -1435,7 +1507,9 @@
   el.inh.addEventListener('click', function (e) {
     var t = e.target.closest('button,a');
     if (!t || !el.inh.contains(t)) return;
-    if (t.hasAttribute('data-oeffne')) {
+    if (t.hasAttribute('data-i3d-zeige')) {
+      zeigeI3d(t.getAttribute('data-i3d-zeige'));
+    } else if (t.hasAttribute('data-oeffne')) {
       var it = BYID[t.getAttribute('data-oeffne')];
       if (!it || it.id === S.item) return;
       var cur = aktuellerEintrag();
@@ -1634,12 +1708,18 @@
     var t = e.target;
     var tipp = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
     if (e.key !== '/' || tipp || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    // Offener 3D-Dialog: „/“ tut nichts. Die Taste trotzdem vergeben, sonst
+    // oeffnete die Seitensuche unsichtbar hinter dem Dialog und naehme ihm
+    // das naechste Esc.
+    if (I3D_DLG && I3D_DLG.open) { e.preventDefault(); return; }
     var ueber = document.getElementById('scs');
     if (ueber && !ueber.hidden) return;
     e.preventDefault(); el.q.focus(); el.q.select();
   }, true);
   document.addEventListener('keydown', function (e) {
     var t = e.target;
+    // Der offene 3D-Dialog behaelt seine Tasten (Esc schliesst nur ihn).
+    if (I3D_DLG && I3D_DLG.open) return;
     if (e.key === 'Escape') {
       var hilfe = wz.querySelector('.wz-hilfe[open]');
       if (hilfe) { hilfe.removeAttribute('open'); return; }

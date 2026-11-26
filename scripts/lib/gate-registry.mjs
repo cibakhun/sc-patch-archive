@@ -286,7 +286,7 @@ export const CHECKS = [
     script: 'scripts/verify-item3d.mjs',
     rail: 'A',
     checks:
-      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; die Items-Werkbank (EN und DE) mit genau einem Dialog ohne festes Modell, der wie ihre Seiten-Einstellung auf die Modell-Liste dist/hangar-item3d.json zeigt (Kennung passt zum Inhalt, Inhalt = src/data/item-3d.json mit der Ablage des Baus), keine andere Seite mit Liste, live keine Liste; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
     // [2] seit IA C8 (24.11.2026): ein Modell darf die fruehere Id seines
     // Items im Dateinamen tragen, wenn nginx/umzuege.conf genau diese Adresse
     // auf das Item umleitet (6 nach dem Zusammenlegen, z. B. lynx-legs ->
@@ -296,6 +296,17 @@ export const CHECKS = [
     // fruehere Id) -> 1 FEHLER [2] oracle-helmet; je exit 1, zurueckgespielt,
     // sha256 wie vorher. Die Fassung vor der Lockerung meldet am selben Stand
     // alle 6 als FEHLER. Gruen: 2.965 Eintraege, 6 unter frueherer Adresse.
+    // [6] seit dem 26.11.2026 (3D-Ansicht in der Items-Werkbank). VORGEFUEHRT
+    // ROT im Vorschau-Bau derselben Lieferung: data-i3d-liste am Dialog der
+    // Werkbank (EN und DE) entfernt -> 2 FEHLER [6]; einen Eintrag in
+    // dist/hangar-item3d.json geaendert -> 3 FEHLER [6] (Eintrag weicht ab,
+    // Kennung passt auf EN und DE nicht mehr); je exit 1, zurueckgespielt,
+    // sha256 wie vorher. Gruen: 2 Werkbank-Seiten, 0 andere mit Liste.
+    // Nach Review #478 durchsucht [6] alle Seiten rekursiv (vorher nur dist/
+    // und de/): data-i3d-liste an den Dialog von items/corbel-helmet-raider-
+    // camo.html gesetzt -> 1 FEHLER [6], exit 1; die Fassung davor blieb am
+    // selben Stand gruen. Zurueckgespielt, sha256 wie vorher. Gruen: 19.044
+    // andere Seiten durchsucht (Klinke 18.500), 0 mit Liste.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
