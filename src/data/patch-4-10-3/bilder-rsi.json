@@ -115,6 +115,35 @@
       ]
     },
     {
+      "key": "vncl-glaive",
+      "art": "rsi",
+      "thema": "vncl-glaive",
+      "alt": {
+        "de": "Vanduul-Jäger mit zwei sichelförmigen Flügeln feuert aus beiden Flügelspitzen über einem Planetenrand",
+        "en": "Vanduul fighter with two sickle-shaped wings firing from both wingtips above the edge of a planet"
+      },
+      "quelle": "https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg",
+      "seite": "https://robertsspaceindustries.com/pledge/ships/esperia-glaive/Glaive",
+      "abgerufen": "2026-11-24",
+      "groessen": [
+        {
+          "w": 1920,
+          "h": 1080,
+          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1920.webp"
+        },
+        {
+          "w": 1200,
+          "h": 675,
+          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1200.webp"
+        },
+        {
+          "w": 640,
+          "h": 360,
+          "src": "/assets/patch-4-10-3/rsi/vncl-glaive-640.webp"
+        }
+      ]
+    },
+    {
       "key": "rsi-polaris",
       "art": "rsi",
       "thema": "rsi-polaris",
@@ -168,34 +197,6 @@
           "w": 640,
           "h": 274,
           "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
-        }
-      ]
-    },
-    {
-      "key": "rsi-galaxy-flug",
-      "art": "rsi",
-      "thema": "rsi-galaxy",
-      "alt": {
-        "de": "RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier",
-        "en": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks"
-      },
-      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy",
-      "abgerufen": "2026-11-15",
-      "groessen": [
-        {
-          "w": 1920,
-          "h": 960,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
-        },
-        {
-          "w": 1200,
-          "h": 600,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
-        },
-        {
-          "w": 640,
-          "h": 320,
-          "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
         }
       ]
     },

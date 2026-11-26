@@ -75,11 +75,14 @@ export const CHECKS = [
       'die Bestandszahlen (Items, Fahrzeuge, Blueprints, Wikelo-Vertraege und -Warenposten, gebaute Seiten je Bereich, Sitemaps) liegen ueber ihren Klinken — ein Datenlauf darf den Bestand nicht still verkleinern',
   },
   {
+    // Laeuft ueber scripts/run-e2e.mjs statt `node --test`: node zaehlt eine
+    // Suite, die beim Laden abbricht, nicht als Fehler (Anlass 24.11.2026,
+    // tests/e2e/schiff-vergleich.test.js). Der Laeufer zaehlt selbst.
     id: 'test:e2e',
     npm: 'test:e2e',
-    script: 'tests/e2e/',
+    script: 'scripts/run-e2e.mjs',
     rail: 'A',
-    checks: 'Verhalten der echten Inline-Skripte gegen ein Mock-DOM (node:vm) plus Integritaet der Item-DB',
+    checks: 'Verhalten der echten Inline-Skripte gegen ein Mock-DOM (node:vm) plus Integritaet der Item-DB (jede .test.js unter tests/e2e/); rot auch, wenn eine Suite beim Laden abbricht, und unter den Klinken fuer Dateien und bestandene Tests',
   },
   {
     id: 'verify',
@@ -280,7 +283,16 @@ export const CHECKS = [
     script: 'scripts/verify-item3d.mjs',
     rail: 'A',
     checks:
-      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+    // [2] seit IA C8 (24.11.2026): ein Modell darf die fruehere Id seines
+    // Items im Dateinamen tragen, wenn nginx/umzuege.conf genau diese Adresse
+    // auf das Item umleitet (6 nach dem Zusammenlegen, z. B. lynx-legs ->
+    // m/lynx-legs-2.….glb). VORGEFUEHRT ROT im Vorschau-Bau derselben
+    // Lieferung: den EN-Umzug lynx-legs-2 -> lynx-legs entfernt -> 1 FEHLER
+    // [2] lynx-legs; oracle-helmet auf m/lynx-legs-2.….glb gesetzt (fremde
+    // fruehere Id) -> 1 FEHLER [2] oracle-helmet; je exit 1, zurueckgespielt,
+    // sha256 wie vorher. Die Fassung vor der Lockerung meldet am selben Stand
+    // alle 6 als FEHLER. Gruen: 2.965 Eintraege, 6 unter frueherer Adresse.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
@@ -707,6 +719,48 @@ export const CHECKS = [
     // Items je Item verglichen, 0 abweichend.
   },
   {
+    // IA C8 (24.11.2026, Krisz: „Zusammenlegen mit 301“): 56 Items standen
+    // doppelt, unter einem alten Namen mit Bezugswegen und unter dem
+    // Spielnamen mit Spielwerten. Die Paare stehen in
+    // scripts/lib/item-namen-aliase.mjs. Still kaputt gehen kann: ein
+    // Datenlauf mit altem Bauskript legt die Doppel wieder an, eine Quelle
+    // benennt um und das Paar laeuft leer, eine alte Adresse verliert ihre
+    // Weiterleitung. Kein git, kein Netz, kein Kindprozess: committete JSON,
+    // nginx/umzuege.conf und dist/assets.
+    id: 'verify:namen-aliase',
+    npm: 'verify:namen-aliase',
+    script: 'scripts/verify-namen-aliase.mjs',
+    rail: 'A',
+    checks:
+      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten, und jedes Ziel einer verschwundenen Adresse (ALTE_ADRESSEN) steht im Katalog; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; jede beim Zusammenlegen verschwundene Item-Id (ALTE_ADRESSEN, auch die „-2“-Ids der Zwillinge) leitet in EN und DE auf die Seite des Spielnamens; Klinken fuer Paare, verschwundene Adressen und gelesene Quellennamen',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau dieser Lieferung, vier
+    // Eingriffe, je Datei zurueckgespielt und per sha256 geprueft:
+    // „Xanthule Helmet“ als eigenes Item in dist/assets/universal-items.json
+    // -> [2] 1 FEHLER (nur dist, assets/ blieb 0); ein Paar „Gibt Es Nicht
+    // Helmet“ -> Xanthule Flight Helmet -> [3] 1 Paar ohne Quelle und [4]
+    // 2 Adressen ohne Weiterleitung; das Paar „Xanthule Helmet“ doppelt ->
+    // [1] 1 Widerspruch; die DE-Weiterleitung von xanthule-helmet entfernt
+    // -> [4] 2 (Zielseite empfaengt keine, alte Adresse fuehrt nirgends hin).
+    // Je exit 1. Gegen den Bau VOR dem Zusammenlegen: [2] 56 alte Namen als
+    // eigenes Item. Gruen danach: 56 Paare, 9.462 Items in assets/ und
+    // dist/assets/, 4.111 Quellennamen, 318 Weiterleitungen, 112 Paare x
+    // Sprachen mit Weg zur Zielseite.
+    // Nach dem Review (CodeRabbit, PR #471) prueft [4] auch jede verschwundene
+    // Item-Id aus ALTE_ADRESSEN. Gegenprobe: nur /items/oracle-helmet-2.html
+    // aus nginx/umzuege.conf entfernt -> die vorige Fassung blieb gruen
+    // (Ist: 0, der alte Name „Oracle“ fuehrt weiter hin), die neue 1 Befund,
+    // exit 1; zurueckgespielt, sha256 0d710655… wie vorher, gruen: 112
+    // verschwundene Adressen x Sprachen.
+    // Review-Runde 2 (PR #471): das Ziel einer verschwundenen Adresse prueft
+    // [2] gegen den Katalog, nicht mehr gegen die Paare, sonst blockte [1]
+    // das Streichen eines Paars, das [3] verlangt. Gegenprobe: Paar
+    // „Xanthule Helmet“ gestrichen, Paar-Klinke 55 -> vorige Fassung [1]
+    // „ist kein Ziel der Tabelle“, exit 1; neue gruen. Dazu das Ziel von
+    // xanthule-helmet auf „Gibt Es Nicht Helmet“ -> neue [2] je 1 FEHLER in
+    // assets/ und dist/assets/, exit 1. Id „Oracle Helm“ statt oracle ->
+    // [1] „keine Item-Id“. Zurueckgespielt, gruen.
+  },
+  {
     // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
     // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
     // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen
@@ -718,7 +772,7 @@ export const CHECKS = [
     script: 'scripts/verify-bezugswege.mjs',
     rail: 'A',
     checks:
-      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“, und jede Zahl der Spalte (auch jedes Ende einer Spanne) ist die Groesse eines Pools genau dieser Mission, gezaehlt als verschiedene Bauplaene (src/data/missions.json), nicht die Summe der Familie und nicht die Zahl ihrer Bauplan-Seiten, und Zeile fuer Zeile im Tabellenkoerper (jede traegt data-mission, auch ohne Link, und die Mission hat Pool-Daten; geprueft = Zeilen der Tabellen) sagt der sichtbare Text der Zelle („1 von 8“, „1 von 5–8“, „nur dieser“) dieselbe Zahl wie data-pool/data-pool-min, und eine Spanne steigt auf; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache; gleichnamige Seiten (aus der Ueberschrift ermittelt, nicht aus dem Hinweis) tragen alle den Hinweis data-zwilling und verlinken alle anderen, keine Seite ohne Zwilling traegt ihn; [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau dann, wenn die Zeilen mehr als ein System (oder „ohne“) nennen; [12] Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf, jeden fuer sich (als Weg data-mat-weg oder ausdrueckliches „nein“/„unbekannt“ data-mat-ohne; Zerlegen ersetzt keinen der beiden) und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; [15] jeder Link auf eine Missionsseite in der Missionstabelle eines Bauplans und im Block „So bekommst du es“ traegt denselben Namen wie die Missionsseite (ihr <title> vor „ — “: Titel samt unterscheidendem Zusatz), Klinke fuer die Zahl der Missionslinks; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet), und sein Abschnitt „Technische Daten“ sagt, dass die Werte dort stehen, und verlinkt dasselbe Schiffsblatt (IA C8); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“, und jede Zahl der Spalte (auch jedes Ende einer Spanne) ist die Groesse eines Pools genau dieser Mission, gezaehlt als verschiedene Bauplaene (src/data/missions.json), nicht die Summe der Familie und nicht die Zahl ihrer Bauplan-Seiten, und Zeile fuer Zeile im Tabellenkoerper (jede traegt data-mission, auch ohne Link, und die Mission hat Pool-Daten; geprueft = Zeilen der Tabellen) sagt der sichtbare Text der Zelle („1 von 8“, „1 von 5–8“, „nur dieser“) dieselbe Zahl wie data-pool/data-pool-min, und eine Spanne steigt auf; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache; gleichnamige Seiten (aus der Ueberschrift ermittelt, nicht aus dem Hinweis) tragen alle den Hinweis data-zwilling und verlinken alle anderen, keine Seite ohne Zwilling traegt ihn; [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau dann, wenn die Zeilen mehr als ein System (oder „ohne“) nennen; [12] Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf, jeden fuer sich (als Weg data-mat-weg oder ausdrueckliches „nein“/„unbekannt“ data-mat-ohne; Zerlegen ersetzt keinen der beiden) und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; [15] jeder Link auf eine Missionsseite in der Missionstabelle eines Bauplans und im Block „So bekommst du es“ traegt denselben Namen wie die Missionsseite (ihr <title> vor „ — “: Titel samt unterscheidendem Zusatz), Klinke fuer die Zahl der Missionslinks; Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
     // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
     // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
@@ -835,6 +889,22 @@ export const CHECKS = [
     // Kill Order</a>, dazu der karna-Link aus Runde 2 -> die vorige Fassung
     // fand nur den karna-Link (1 Befund), die neue beide (2 Befunde), exit 1;
     // zurueckgespielt, sha256 540410d8… und 6e531ce0… wie vorher, gruen.
+    // [6] Abschnitt „Technische Daten“ der Fahrzeug-Items (IA C8),
+    // VORGEFUEHRT ROT am 24.11.2026: gegen den Bau davor alle 356
+    // Fahrzeug-Itemblaetter (Abschnitt fehlte), exit 1. Gegen den neuen
+    // Live-Bau zwei Eingriffe, je einzeln: auf /items/100i.html den Link auf
+    // /schiffe/orig-125a.html umgebogen -> „/items/100i.html ->
+    // /schiffe/orig-125a.html statt /schiffe/orig-100i.html“, auf
+    // /de/items/135c.html den Hinweis samt Link entfernt -> 1 Befund; je exit
+    // 1, zurueckgespielt, sha256 0545dda3… und a75be5f2… wie vorher, gruen:
+    // 356 von 356.
+    // Nach dem Review (CodeRabbit, PR #465) liest [6] das Ziel aus einem
+    // echten <a> (attribute() wie [15]) und prueft den Hinweis im Wortlaut
+    // von src/i18n/itemText.ts. Gegenprobe im Vorschau-Bau: auf
+    // /items/100i.html den Link zu <span href=… data-specs-schiff> gemacht,
+    // auf /de/items/135c.html nur den Satz entfernt -> die vorige Fassung
+    // blieb gruen (Ist: 0), die neue 2 Befunde, exit 1; zurueckgespielt,
+    // sha256 e0dde24c… und 9b96f8bd… wie vorher, gruen.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der

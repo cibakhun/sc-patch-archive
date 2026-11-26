@@ -93,6 +93,8 @@
     "apply:loot-fundorte": "node scripts/apply-loot-fundorte.mjs",
     "verify:loot-fundorte": "node scripts/verify-loot-fundorte.mjs",
     "verify:bezugswege": "node scripts/verify-bezugswege.mjs",
+    "verify:namen-aliase": "node scripts/verify-namen-aliase.mjs",
+    "apply:namen-aliase": "node scripts/namen-zusammenfuehren.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
     "verify:crafting": "node scripts/verify-crafting-specs.mjs",
     "verify:vehicles": "node scripts/verify-vehicles.mjs",
@@ -116,7 +118,7 @@
     "verify:redirects": "node scripts/verify-redirects.mjs",
     "verify:windows": "node scripts/verify-windows.mjs",
     "pretest:e2e": "node scripts/_test-prereqs.mjs",
-    "test:e2e": "node --test tests/e2e/**/*.test.js"
+    "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

@@ -35,8 +35,8 @@ export type Bild = {
 
 export type NeuesSchiff = {
   id: string; name: Verweis; hersteller: string; bild: Bild; text: Satz[]; reiter: { id: string; titel: string; werte: Wert[] }[]; stempel: Stempel;
-  /** Austauschbare Module, je eines mit Seite, Werten und dem, was es kann; dazu ein zweites Bild ueber die volle Breite. */
-  module: { titel: string; kacheln: Kachel[] } | null; zweitbild: Bild | null;
+  /** Austauschbare Module, je eines mit Seite, Werten und dem, was es kann. */
+  module: { titel: string; kacheln: Kachel[] } | null;
 };
 export type KaufbarKarte = { name: Verweis; rolle: string; bild: Bild; laeden: string[]; preis: string };
 /** Eine Zeile im Bestand: alle Schiffe mit derselben Aenderung, dazu deren Werte. */

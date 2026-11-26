@@ -11,7 +11,9 @@
        [1] keine Seite traegt den 3D-Dialog oder nennt die Ablage
      Vorschau-Bau (staging:true)
        [2] die Liste ist wohlgeformt: Dateiname mit Inhaltskennung,
-           Groesse plausibel, Ablage https und mit / am Ende
+           Groesse plausibel, Ablage https und mit / am Ende; der Name ist
+           die Id des Items oder eine fruehere, die per 301 auf das Item
+           umzieht (nginx/umzuege.conf)
        [3] jede Item-Seite (EN und DE) eines Items aus der Liste traegt
            genau einen Dialog, und der zeigt auf genau diese Datei unter
            der Ablage; keine andere Item-Seite traegt einen
@@ -22,7 +24,7 @@
 
    Selbstauskunft: wie viele Seiten gelesen und wie viele mit Dialog
    gefunden wurden, mit Klinken. Kein git, kein Netz, kein Kindprozess —
-   liest nur dist/ und die Liste.
+   liest nur dist/, die Liste und nginx/umzuege.conf.
 
      node scripts/verify-item3d.mjs [--dist <Ordner>]
    ============================================================ */
@@ -119,16 +121,32 @@ if (!vorschau) {
     basisOk = u.protocol === 'https:' && u.pathname === '/' && !u.username && !u.password && !u.search && !u.hash && u.href === liste.base;
   } catch { /* basisOk bleibt false */ }
   if (!basisOk) fail(`[2] Ablage ${liste.base}: erwartet https://<host>/ ohne Pfad, Zugangsdaten, Query oder Fragment`);
+  // Eine Datei darf auch eine fruehere Adresse ihres Items tragen, aber nur,
+  // wenn nginx/umzuege.conf genau diese Adresse auf das Item umleitet: so
+  // heissen die Modelle nach dem Zusammenlegen gleichnamiger Items (IA C8,
+  // scripts/namen-zusammenfuehren.mjs: lynx-legs-2 -> lynx-legs), bis der
+  // naechste Massenlauf sie unter der neuen Id ablegt. Eine Datei unter
+  // fremdem Namen ohne Umzug bleibt ein Fehler.
+  const frueher = new Map(); // id -> fruehere Ids laut Umzug
+  for (const z of readFileSync(resolve(ROOT, 'nginx/umzuege.conf'), 'utf8').split('\n')) {
+    const m = /^\/items\/([a-z0-9-]+)\.html \/items\/([a-z0-9-]+)\.html;$/.exec(z.trim());
+    if (m) frueher.set(m[2], [...(frueher.get(m[2]) ?? []), m[1]]);
+  }
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let unterFrueheremNamen = 0;
   const dateien = new Map();
   for (const [id, e] of eintraege) {
     if (!Array.isArray(e) || e.length !== 2) { fail(`[2] ${id}: Eintrag ist nicht [Datei, KB]`); continue; }
     const [datei, kb] = e;
-    if (!new RegExp(`^m/${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.[0-9a-f]{8}\\.glb$`).test(datei))
-      fail(`[2] ${id}: Datei ${datei} — erwartet m/${id}.<8 Hexzeichen>.glb`);
+    const passt = (x) => new RegExp(`^m/${esc(x)}\\.[0-9a-f]{8}\\.glb$`).test(datei);
+    if (!passt(id)) {
+      if ((frueher.get(id) ?? []).some(passt)) unterFrueheremNamen++;
+      else fail(`[2] ${id}: Datei ${datei} — erwartet m/${id}.<8 Hexzeichen>.glb (oder eine fruehere Adresse des Items, die nginx/umzuege.conf auf /items/${id}.html umleitet)`);
+    }
     if (!(kb > 0 && kb < 20480)) fail(`[2] ${id}: ${kb} KB ist nicht plausibel (0 bis 20 MB)`);
     dateien.set(id, BASIS + datei);
   }
-  console.log(`  [2] ${eintraege.length} Eintraege geprueft`);
+  console.log(`  [2] ${eintraege.length} Eintraege geprueft, davon ${unterFrueheremNamen} unter einer frueheren Adresse des Items (Umzug in nginx/umzuege.conf)`);
 
   // [3]
   let ohneSeite = 0;

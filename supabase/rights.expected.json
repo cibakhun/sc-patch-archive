@@ -47,6 +47,8 @@
     },
     "function public.checkout_rate_ok(p_ip_key text)": { "warum": "nur Edge Function create-checkout-session (service_role), 20261030160000" },
     "function public.direct_messages_guard()": { "warum": "Triggerfunktion; EXECUTE wird beim Feuern nicht geprueft" },
+    "function public.crew_calls_guard()": { "warum": "Triggerfunktion auf crew_calls; EXECUTE wird beim Feuern nicht geprueft (20261124110000)" },
+    "function public.crew_call_members_guard()": { "warum": "Triggerfunktion auf crew_call_members; EXECUTE wird beim Feuern nicht geprueft (20261124110000)" },
     "function public.donations_bump_progress()": { "warum": "Triggerfunktion (stripe-webhook, service_role)" },
     "function public.gate_verdict()": {
       "authenticated": ["EXECUTE"],
@@ -62,6 +64,8 @@
     "function public.notification_settings_stamp()": { "warum": "Triggerfunktion auf notification_settings (Zeitstempel, refinery_discord_since)" },
     "function public.refinery_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
     "function public.refinery_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
+    "function public.chat_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
+    "function public.chat_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
@@ -98,10 +102,12 @@
     "sequence private.register_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence private.rsi_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence public.direct_messages_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
+    "sequence public.crew_calls_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
     "sequence public.donations_id_seq": { "warum": "identity" },
     "sequence public.favorites_id_seq": { "warum": "identity" },
     "sequence public.refinery_jobs_id_seq": { "warum": "identity" },
 
+    "table private.chat_discord_notified": { "warum": "nur chat_discord_due/chat_discord_sent (security definer), 20261124100000" },
     "table private.checkout_attempts": { "warum": "nur checkout_rate_ok (security definer)" },
     "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
     "table private.rsi_attempts": { "warum": "nur rsi_rate_ok (service_role)" },
@@ -110,6 +116,19 @@
       "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
       "warum": "crafting-app: lesen, upsert (merge-duplicates), loeschen; RLS: eigene Zeilen"
     },
+    "table public.crew_calls": {
+      "authenticated": ["DELETE", "SELECT"],
+      "warum": "FriendsManager Crew-Aufruf: lesen (RLS: eigene und die von Freunden), absagen (RLS: eigene); anlegen nur ueber die Spaltenrechte darunter (20261124110000)"
+    },
+    "column public.crew_calls.activity": { "authenticated": ["INSERT"], "warum": "Crew-Aufruf anlegen; owner_id setzt der Default auth.uid(), RLS prueft ihn" },
+    "column public.crew_calls.starts_at": { "authenticated": ["INSERT"], "warum": "Crew-Aufruf anlegen; Rahmen prueft crew_calls_guard" },
+    "column public.crew_calls.slots": { "authenticated": ["INSERT"], "warum": "Crew-Aufruf anlegen; 1 bis 8 per check" },
+    "column public.crew_calls.note": { "authenticated": ["INSERT"], "warum": "Crew-Aufruf anlegen; hoechstens 80 Zeichen per check" },
+    "table public.crew_call_members": {
+      "authenticated": ["DELETE", "SELECT"],
+      "warum": "FriendsManager Crew-Aufruf: Zusagen lesen (RLS: wenn der Aufruf sichtbar ist), eigene zuruecknehmen (20261124110000)"
+    },
+    "column public.crew_call_members.call_id": { "authenticated": ["INSERT"], "warum": "zusagen; user_id setzt der Default auth.uid(), RLS: nur sichtbare fremde Aufrufe, Platz prueft crew_call_members_guard" },
     "table public.direct_messages": {
       "authenticated": ["INSERT", "SELECT"],
       "warum": "FriendsDock + Realtime: lesen, senden (RLS: nur an Freunde); gelesen-Markierung ueber mark_messages_read"
@@ -165,6 +184,10 @@
     "column public.notification_settings.lang": {
       "authenticated": ["INSERT", "UPDATE"],
       "warum": "Sprache der Discord-Nachricht; RLS: eigene Zeile"
+    },
+    "column public.notification_settings.chat_discord": {
+      "authenticated": ["INSERT", "UPDATE"],
+      "warum": "Schalter Discord-Hinweis bei ungelesenen Chat-Nachrichten (FriendsManager); RLS: eigene Zeile (20261124100000)"
     },
     "table public.support_progress": {
       "anon": ["SELECT"],

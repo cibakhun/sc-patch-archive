@@ -38,6 +38,8 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 import { ohneDoppelteZeilen } from './lib/hersteller-zeilen.mjs';
+import { katalogName } from './lib/item-namen-aliase.mjs';
+import { kategorieFuer } from './lib/kategorie-ordnung.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -161,11 +163,16 @@ function slugId(name) {
 // Diese Datei sieht nur noch das Ergebnis und kann es nicht rueckgaengig
 // machen.
 const byName = new Map(); // key: name.toLowerCase()
+// Alte oder abweichende Namen einer Quelle landen beim Namen im Spiel
+// (scripts/lib/item-namen-aliase.mjs, IA C8 24.11.2026). Ohne das entstanden
+// zwei Seiten fuer ein Item: Preise und Fundorte auf der einen, Spielwerte auf
+// der anderen.
 function entry(name) {
-  const k = name.toLowerCase().trim();
+  const ziel = katalogName(name);
+  const k = ziel.toLowerCase();
   if (!byName.has(k)) {
     byName.set(k, {
-      name: name.trim(), category: null, catSource: 99,
+      name: ziel, category: null, catSource: 99,
       obtain: [],      // loot- + vehicle-Zeilen
       shopUex: [],     // Shop-Zeilen aus UEX (Vorrang)
       shopSnap: [],    // Shop-Zeilen aus dem Dismantling-Snapshot (Fallback)
@@ -304,7 +311,7 @@ let catalogAdded = 0, catalogSkipped = 0;
     const val = line.slice(eq + 1).trim();
     if (isPlaceholder(val)) { catalogSkipped++; continue; }
     if (isCommodity && (val.length > 60 || val.includes('\\n'))) { catalogSkipped++; continue; }
-    const k = val.toLowerCase();
+    const k = katalogName(val).toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
     if (byName.has(k)) continue; // echte Quelle gewinnt
@@ -410,7 +417,8 @@ const db = {
   // Set-Seite; der Finder verlinkt je Item ueber `game.setId` hierher.
   sets: gameSets,
   items: items.map((e) => {
-    const o = { id: e.id, name: e.name, category: e.category || 'Other', obtain: e.obtain };
+    // Kategorie-Ordnung (Krisz 24.11.2026): „Other“ nach Art, Ruestung in die Slots.
+    const o = { id: e.id, name: e.name, category: kategorieFuer(e.category || 'Other', e.name), obtain: e.obtain };
     if (e.guide) o.guide = e.guide;
     if (e.game) o.game = e.game; // Spieldaten: size/grade/manufacturer/volumeScu/subType/stats/… (nur belegte Felder)
     return o;

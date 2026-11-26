@@ -20,6 +20,8 @@ interface Props {
   title: string;
 }
 
+import { CREW_ACTIVITIES, CREW_LABELS, CREW_MAX_SLOTS } from '../../lib/crew';
+
 const { lang, title } = Astro.props;
 
 const COPY = {
@@ -53,6 +55,23 @@ const COPY = {
     inviteOpen: 'Ansehen',
     inviteDc: 'So zeigt Discord deinen Link',
     more: 'Mehr dazu',
+    notifyH: 'Hinweise',
+    nDc: 'Discord-Nachricht bei neuen Nachrichten.',
+    nDcSub: 'Bist du nicht auf VerseBase und bleibt eine Nachricht 5 Minuten ungelesen, schreibt dir der Verse-Bot privat, wer dir geschrieben hat. Den Text schickt er nicht mit, und je Freund höchstens einmal in 30 Minuten.',
+    crewH: 'Crew-Aufrufe',
+    crewNew: 'Crew suchen',
+    crewWhat: 'Was',
+    crewDay: 'Tag',
+    crewTime: 'Uhrzeit',
+    crewSlots: 'Plätze',
+    crewNote: 'Notiz',
+    crewNotePh: 'z. B. Treffpunkt Port Tressler',
+    crewToday: 'Heute',
+    crewTomorrow: 'Morgen',
+    crewSend: 'Aufruf starten',
+    crewCancel: 'Abbrechen',
+    crewHint: 'Deine Freunde sehen den Aufruf hier und sagen mit einem Klick zu. Eine Stunde nach Beginn verschwindet er.',
+    crewEmpty: 'Gerade sucht keiner eine Crew. Starte eine Runde, deine Freunde sehen sie hier.',
   },
   en: {
     tabFriends: 'Friends',
@@ -84,6 +103,23 @@ const COPY = {
     inviteOpen: 'View',
     inviteDc: 'How Discord shows your link',
     more: 'More',
+    notifyH: 'Notifications',
+    nDc: 'Discord message for new messages.',
+    nDcSub: 'When you are not on VerseBase and a message stays unread for 5 minutes, Verse-Bot tells you privately who wrote to you. It does not send the text, and at most once per friend every 30 minutes.',
+    crewH: 'Crew calls',
+    crewNew: 'Find crew',
+    crewWhat: 'What',
+    crewDay: 'Day',
+    crewTime: 'Time',
+    crewSlots: 'Seats',
+    crewNote: 'Note',
+    crewNotePh: 'e.g. meet at Port Tressler',
+    crewToday: 'Today',
+    crewTomorrow: 'Tomorrow',
+    crewSend: 'Start call',
+    crewCancel: 'Cancel',
+    crewHint: 'Your friends see the call here and join with one click. It disappears an hour after the start.',
+    crewEmpty: 'Nobody is looking for crew right now. Start a session and your friends will see it here.',
   },
 }[lang];
 
@@ -106,6 +142,16 @@ const JS = {
     okDeclined: 'Anfrage abgelehnt',
     okCopied: 'Link kopiert',
     flies: 'Fliegt %ship%', fleetHidden: 'Bei %n% deiner Freunde ist keine Flotte zu sehen.', fleetHidden1: 'Bei einem Freund ist keine Flotte zu sehen.',
+    nDcHow: 'Dafür musst du auf dem VerseBase-Discord sein und Direktnachrichten von Servermitgliedern erlauben.',
+    nDcLink: 'Verbinde zuerst Discord in deinem Konto, dann kannst du den Hinweis anschalten.',
+    nDcLinkBtn: 'Zu Discord verbinden', nSaved: 'Gespeichert.',
+    crewMine: 'Dein Aufruf', crewBy: '%name% sucht Crew', crewYou: 'Du',
+    crewFree1: '1 Platz frei', crewFreeN: '%n% Plätze frei', crewFull: 'Voll',
+    crewJoin: 'Bin dabei', crewLeave: 'Doch nicht', crewDrop: 'Absagen', crewDropQ: 'Absagen?',
+    crewJoined: 'Du bist dabei.', crewLeft: 'Zusage zurückgenommen.', crewDropped: 'Aufruf abgesagt.',
+    crewSent: 'Aufruf steht. Deine Freunde sehen ihn hier.',
+    crewErrFull: 'Die Crew ist schon voll.', crewErrMany: 'Du hast schon drei offene Aufrufe.',
+    crewErrTime: 'Bitte eine Uhrzeit in den nächsten sieben Tagen wählen.',
   },
   en: {
     accept: 'Accept', decline: 'Decline', withdraw: 'Withdraw', remove: 'Remove', removeQ: 'Remove?',
@@ -124,10 +170,22 @@ const JS = {
     okDeclined: 'Request declined',
     okCopied: 'Link copied',
     flies: 'Flies %ship%', fleetHidden: '%n% of your friends have no visible fleet.', fleetHidden1: 'One friend has no visible fleet.',
+    nDcHow: 'You need to be on the VerseBase Discord and allow direct messages from server members.',
+    nDcLink: 'Link Discord in your account first, then you can switch this on.',
+    nDcLinkBtn: 'Go to Link Discord', nSaved: 'Saved.',
+    crewMine: 'Your call', crewBy: '%name% is looking for crew', crewYou: 'You',
+    crewFree1: '1 seat free', crewFreeN: '%n% seats free', crewFull: 'Full',
+    crewJoin: 'I\'m in', crewLeave: 'Not after all', crewDrop: 'Call off', crewDropQ: 'Call off?',
+    crewJoined: 'You are in.', crewLeft: 'You left the crew.', crewDropped: 'Call called off.',
+    crewSent: 'Call is up. Your friends see it here.',
+    crewErrFull: 'The crew is already full.', crewErrMany: 'You already have three open calls.',
+    crewErrTime: 'Please pick a time within the next seven days.',
   },
 }[lang];
 
 const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
+const crewActs = CREW_ACTIVITIES.map((a) => ({ v: a, t: CREW_LABELS[lang][a] }));
+const crewSeats = Array.from({ length: CREW_MAX_SLOTS }, (_, i) => i + 1);
 ---
 
 <div class="friends-manager fm" data-lang={lang} data-pilot-base={pilotBase} data-copy={JSON.stringify(JS)}>
@@ -173,6 +231,40 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
   <div id="fmPanelFriends" class="fm-panel fm-panel--friends" role="tabpanel" aria-labelledby="fmTabBtnFriends" hidden>
     <div class="fm-lists">
+      <!-- Crew-Aufruf (crew_calls, Migration 20261124110000): die eigenen und die
+           der Freunde. Bleibt verborgen, solange die Datenbank die Tabelle nicht kennt. -->
+      <section class="fm-crew" id="fmCrew" aria-labelledby="fmCrewH" hidden>
+        <div class="fm-crew__bar">
+          <h3 class="sv-sh" id="fmCrewH"><span>{COPY.crewH}</span><b id="fmCrewN"></b></h3>
+          <button type="button" class="fm-btn fm-btn--primary fm-ibtn" id="fmCrewNew" aria-expanded="false" aria-controls="fmCrewForm">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-plus"/></svg><span>{COPY.crewNew}</span>
+          </button>
+        </div>
+        <form class="fm-crew__form" id="fmCrewForm" hidden novalidate>
+          <label class="fm-crew__f"><span>{COPY.crewWhat}</span>
+            <select class="inp" id="fmCrewAct">{crewActs.map((a) => <option value={a.v}>{a.t}</option>)}</select>
+          </label>
+          <label class="fm-crew__f"><span>{COPY.crewDay}</span>
+            <select class="inp" id="fmCrewDay"><option value="0">{COPY.crewToday}</option><option value="1">{COPY.crewTomorrow}</option></select>
+          </label>
+          <label class="fm-crew__f"><span>{COPY.crewTime}</span>
+            <input class="inp" type="time" id="fmCrewTime" step="900" required />
+          </label>
+          <label class="fm-crew__f"><span>{COPY.crewSlots}</span>
+            <select class="inp" id="fmCrewSlots">{crewSeats.map((n) => <option value={String(n)} selected={n === 2}>{n}</option>)}</select>
+          </label>
+          <label class="fm-crew__f fm-crew__f--note"><span>{COPY.crewNote}</span>
+            <input class="inp" type="text" id="fmCrewNote" maxlength="80" placeholder={COPY.crewNotePh} autocomplete="off" />
+          </label>
+          <div class="fm-crew__go">
+            <button type="submit" class="fm-btn fm-btn--primary" id="fmCrewSend">{COPY.crewSend}</button>
+            <button type="button" class="fm-btn" id="fmCrewCancel">{COPY.crewCancel}</button>
+          </div>
+          <p class="fm-crew__hint">{COPY.crewHint}</p>
+        </form>
+        <ul class="fm-crew__list" id="fmCrewList"></ul>
+        <p class="fm-crew__empty" id="fmCrewEmpty" hidden>{COPY.crewEmpty}</p>
+      </section>
       <label class="sv-search fm-filter" id="fmFilterWrap" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
         <input type="search" id="fmFilterInput" class="inp" placeholder={COPY.filterPh} aria-label={COPY.filterPh} autocomplete="off" spellcheck="false" />
@@ -197,6 +289,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     <!-- Einladen (Runde 4): der eigene Pilotenlink, daneben bzw. darunter die
          Karte, die Discord beim Teilen zeigt. Dieselbe Regel setzt nginx in
          die Kopfzeilen der Pilotenseite (src/lib/pilotPreview.ts, nginx/pilot.js). -->
+    <div class="fm-side">
     <aside class="fm-invite" id="fmInvite" aria-labelledby="fmInviteH" hidden>
       <div class="fm-invite__in">
         <h3 class="fm-invite__h" id="fmInviteH">
@@ -233,6 +326,19 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         </div>
       </div>
     </aside>
+
+    <!-- Hinweis per Discord bei ungelesenen Nachrichten (notification_settings.chat_discord).
+         Bleibt verborgen, solange die Datenbank den Schalter nicht kennt. -->
+    <section class="fm-notify" id="fmNotify" aria-labelledby="fmNotifyH" hidden>
+      <h3 class="fm-invite__h" id="fmNotifyH">
+        <svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg>
+        <span>{COPY.notifyH}</span>
+      </h3>
+      <label class="pf-check"><input type="checkbox" id="fmNotifyDc" disabled /><span><b>{COPY.nDc}</b> {COPY.nDcSub}</span></label>
+      <p class="fm-notify__hint" id="fmNotifyHint" hidden></p>
+      <p class="acx-status" id="fmNotifyStatus" role="status" aria-live="polite" hidden></p>
+    </section>
+    </div>
   </div>
 
   <div id="fmPanelRequests" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnRequests" hidden>
@@ -267,6 +373,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   import { resolveStatusKey, formatActivity } from '../../lib/presence';
   import { rankBadge } from '../../lib/rankBadge';
   import { pilotPreview, HANDLE_RE, type PreviewProfile } from '../../lib/pilotPreview';
+  import { activityLabel, crewDefaultTime, crewStart, crewWhen, openCrewCalls, CREW_SHOW_AFTER_MS, type CrewCall } from '../../lib/crew';
 
   const fmWrap = document.querySelector('.friends-manager') as HTMLElement | null;
   if (fmWrap) {
@@ -600,7 +707,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     // Der eigene Pilotenlink zum Kopieren/Teilen und daneben die Karte, die
     // Discord beim Teilen zeigt (gleiche Regel wie nginx/pilot.js). Erst mit
     // gespeichertem Handle gibt es einen Link; ohne steht oben der Hinweis.
-    const MY_COLS = 'handle, org_name, role, display_name, bio, banner_url, avatar_url, avatar_color';
+    const MY_COLS = 'handle, org_name, role, display_name, bio, banner_url, avatar_url, avatar_icon, avatar_color';
     const inviteEl = $('fmInvite');
     const inviteUrl = $('fmInviteUrl') as HTMLInputElement;
     const shareBtn = $('fmInviteShare') as HTMLButtonElement;
@@ -693,7 +800,330 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       render();
       loadSuggest().catch(() => {});
       loadFleets().catch(() => {});
+      if (!notifyStarted) { notifyStarted = true; initNotify().catch(() => {}); }
+      loadCrew().catch(() => {});
     };
+
+    // Hinweis per Discord bei ungelesenen Nachrichten (notification_settings.
+    // chat_discord, Migration 20261124100000). Keine Zeile = aus. Geschrieben
+    // wird per UPDATE und nur ohne Zeile per INSERT (die Rechte erlauben kein
+    // Upsert). Kennt die Datenbank den Schalter noch nicht, bleibt der Kasten
+    // verborgen. Discord geht nur mit verbundenem Discord.
+    let notifyStarted = false;
+    const initNotify = async () => {
+      const box = $('fmNotify');
+      const dc = $('fmNotifyDc') as HTMLInputElement;
+      const hint = $('fmNotifyHint');
+      const status = $('fmNotifyStatus');
+      const [{ data: prefs, error: prefErr }, { data: dcRow }] = await Promise.all([
+        supabase.from('notification_settings').select('chat_discord').maybeSingle(),
+        supabase.from('discord_role_state').select('discord_user_id').maybeSingle(),
+      ]);
+      if (prefErr) return;
+      // Verbinden oder Trennen auf dieser Seite meldet die Discord-Karte (vb:discord).
+      let linked = !!dcRow?.discord_user_id;
+      let saved = !!prefs?.chat_discord;
+      dc.checked = saved && linked;
+      dc.disabled = !linked;
+      box.hidden = false;
+
+      const showHint = () => {
+        hint.textContent = '';
+        if (!linked) {
+          const b = el('button', 'btn sm', C.nDcLinkBtn) as HTMLButtonElement;
+          b.type = 'button';
+          // Die Discord-Karte steht in der Seitenleiste des Kontos.
+          b.addEventListener('click', () => {
+            const card = document.getElementById('discordLinkCard');
+            card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card?.querySelector<HTMLElement>('button, a')?.focus({ preventScroll: true });
+          });
+          hint.append(C.nDcLink, b);
+        } else if (dc.checked) hint.append(C.nDcHow);
+        hint.hidden = !hint.childNodes.length;
+      };
+      showHint();
+      // Die Karte meldet sich bei jedem Zeichnen, auch ohne Wechsel. Waehrend
+      // des Speicherns nur merken: Haken und Sperre setzt der Speichernde.
+      let busy = false;
+      document.addEventListener('vb:discord', (e) => {
+        const now = !!(e as CustomEvent<{ linked?: boolean }>).detail?.linked;
+        if (now === linked) return;
+        linked = now;
+        if (busy) return;
+        dc.checked = saved && linked;
+        dc.disabled = !linked;
+        status.hidden = true;
+        showHint();
+      });
+
+      let exists = !!prefs;
+      dc.addEventListener('change', async () => {
+        status.hidden = true;
+        const row = { chat_discord: dc.checked, lang };
+        busy = true;
+        dc.disabled = true;
+        let error: unknown = null;
+        if (exists) {
+          const r = await supabase.from('notification_settings').update(row).eq('user_id', me).select('user_id');
+          error = r.error;
+          if (!r.error && !r.data?.length) exists = false;
+        }
+        if (!exists && !error) {
+          const r = await supabase.from('notification_settings').insert(row);
+          error = r.error;
+          if (!error) exists = true;
+        }
+        if (!error) saved = row.chat_discord;
+        busy = false;
+        dc.checked = saved && linked;
+        dc.disabled = !linked;
+        status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
+        status.textContent = error ? C.errNet : C.nSaved;
+        status.hidden = false;
+        showHint();
+      });
+    };
+
+    /* ------------------------------------------------------ Crew-Aufruf --- */
+    // „Heute 20 Uhr Mining, 2 Plätze“ (crew_calls, crew_call_members; Migration
+    // 20261124110000). Sichtbar sind die eigenen Aufrufe und die der Freunde
+    // (RLS), zusagen kann nur ein Freund, Plätze und Rahmen prüft die
+    // Datenbank. Kennt sie die Tabelle noch nicht, bleibt der Bereich verborgen.
+    type Crew = CrewCall & { members: string[] };
+    const CREW_ICON: Record<string, string> = {
+      mining: 'ic-gem', salvage: 'ic-craft', cargo: 'ic-ship', bounty: 'ic-target',
+      combat: 'ic-shield', exploration: 'ic-pin', racing: 'ic-ship', other: 'ic-users',
+    };
+    const crewEl = $('fmCrew');
+    const crewForm = $('fmCrewForm') as HTMLFormElement;
+    const crewNew = $('fmCrewNew') as HTMLButtonElement;
+    const fAct = $('fmCrewAct') as HTMLSelectElement;
+    const fDay = $('fmCrewDay') as HTMLSelectElement;
+    const fTime = $('fmCrewTime') as HTMLInputElement;
+    const fSlots = $('fmCrewSlots') as HTMLSelectElement;
+    const fNote = $('fmCrewNote') as HTMLInputElement;
+    let crew: Crew[] = [];
+    let crewOk = false;
+    // Tabelle fehlt (Migration nicht eingespielt): nicht jede Minute neu fragen.
+    let crewGone = false;
+    let crewSeq = 0;
+    // Zugesagte, die keine Freunde sind (Freunde des Rufenden): nur Name und Bild.
+    const crewNames = new Map<string, Prof>();
+    const meProf = (): Prof => ({
+      ...fallback(me), handle: myHandle || '', display_name: C.crewYou,
+      avatar_url: myCard?.avatar_url || null, avatar_color: myCard?.avatar_color || null,
+      avatar_icon: (myCard as { avatar_icon?: string | null } | null)?.avatar_icon || null,
+    });
+    const crewProf = (id: string): Prof =>
+      (id === me ? meProf() : friends.find((f) => f.p.id === id)?.p || crewNames.get(id) || fallback(id));
+
+    const loadCrew = async () => {
+      if (!me) return;
+      const seq = ++crewSeq;
+      const since = new Date(Date.now() - CREW_SHOW_AFTER_MS).toISOString();
+      // Die eigenen Aufrufe (höchstens drei offene) kommen getrennt, damit das
+      // Limit für die der Freunde sie nie abschneidet.
+      const cols = 'id, owner_id, activity, starts_at, slots, note';
+      const [all, own] = await Promise.all([
+        supabase.from('crew_calls').select(cols).gt('starts_at', since).order('starts_at').limit(60),
+        supabase.from('crew_calls').select(cols).eq('owner_id', me).gt('starts_at', since),
+      ]);
+      if (seq !== crewSeq) return;
+      // Fehlt die Tabelle (noch nicht eingespielt), bleibt alles verborgen; ein
+      // späterer Netzfehler lässt die zuletzt geladene Liste stehen.
+      const error = all.error || own.error;
+      if (error) {
+        if (/PGRST205|42P01/.test(String((error as { code?: string }).code || ''))) crewGone = true;
+        if (!crewOk) crewEl.hidden = true;
+        return;
+      }
+      crewGone = false;
+      const byId = new Map<number, CrewCall>();
+      for (const c of [...(all.data || []), ...(own.data || [])] as CrewCall[]) byId.set(c.id, c);
+      const calls = openCrewCalls([...byId.values()].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
+      let mem: Array<{ call_id: number; user_id: string }> = [];
+      if (calls.length) {
+        const r = await supabase.from('crew_call_members').select('call_id, user_id').in('call_id', calls.map((c) => c.id));
+        if (seq !== crewSeq) return;
+        // Ohne Zusagen stimmten Plätze und „Bin dabei“ nicht: die alte Liste bleibt.
+        if (r.error) { if (!crewOk) crewEl.hidden = true; return; }
+        mem = (r.data || []) as typeof mem;
+      }
+      const unknown = [...new Set([...mem.map((m) => m.user_id), ...calls.map((c) => c.owner_id)])]
+        .filter((id) => id !== me && !friends.some((f) => f.p.id === id) && !crewNames.has(id));
+      if (unknown.length) {
+        const r = await supabase.from('social_profiles')
+          .select('id, handle, display_name, avatar_url, avatar_icon, avatar_color').in('id', unknown);
+        for (const p of (r.data || []) as Prof[]) crewNames.set(p.id, { ...fallback(p.id), ...p });
+        if (seq !== crewSeq) return;
+      }
+      crew = calls.map((c) => ({ ...c, members: mem.filter((m) => m.call_id === c.id).map((m) => m.user_id) }));
+      crewOk = true;
+      paintCrew();
+    };
+
+    const crewErr = (err: unknown) => {
+      const m = String((err as { message?: string })?.message || '');
+      toast(/voll/i.test(m) ? C.crewErrFull : /zu viele/i.test(m) ? C.crewErrMany : /vorbei|rahmen/i.test(m) ? C.crewErrTime : C.errNet);
+    };
+    const crewJoin = async (c: Crew) => {
+      const { error } = await supabase.from('crew_call_members').insert({ call_id: c.id });
+      if (error) crewErr(error); else toast(C.crewJoined);
+      await loadCrew();
+    };
+    const crewLeave = async (c: Crew) => {
+      const { error } = await supabase.from('crew_call_members').delete().eq('call_id', c.id).eq('user_id', me);
+      if (error) toast(C.errNet); else toast(C.crewLeft);
+      await loadCrew();
+    };
+    const crewDrop = async (c: Crew): Promise<boolean> => {
+      const { error } = await supabase.from('crew_calls').delete().eq('id', c.id);
+      if (error) toast(C.errNet); else toast(C.crewDropped);
+      await loadCrew();
+      return !error;
+    };
+
+    const crewCard = (c: Crew) => {
+      const own = c.owner_id === me;
+      const host = crewProf(c.owner_id);
+      const li = el('li', 'fm-crew__card' + (own ? ' is-own' : ''));
+      li.dataset.id = String(c.id);
+      const tag = el('span', 'fm-crew__tag');
+      tag.appendChild(icon(CREW_ICON[c.activity] || 'ic-users'));
+      const main = el('div', 'fm-crew__main');
+      main.append(
+        el('b', 'fm-crew__t', `${activityLabel(c.activity, lang)} · ${crewWhen(c.starts_at, lang)}`),
+        el('small', 'fm-crew__who', own ? C.crewMine : C.crewBy.replace('%name%', nameOf(host))),
+      );
+      if (c.note) main.appendChild(el('p', 'fm-crew__note', c.note));
+      // Plätze: belegt mit Bild (Name als Tooltip), frei als leerer Kreis.
+      const free = Math.max(0, c.slots - c.members.length);
+      const seats = el('div', 'fm-crew__seats');
+      for (const id of c.members) {
+        const p = crewProf(id);
+        const av = avatarNode(p, false);
+        av.title = nameOf(p);
+        seats.appendChild(av);
+      }
+      for (let i = 0; i < free; i++) seats.appendChild(el('span', 'fm-crew__seat'));
+      seats.appendChild(el('small', 'fm-crew__free' + (free ? '' : ' is-full'),
+        free === 0 ? C.crewFull : free === 1 ? C.crewFree1 : C.crewFreeN.replace('%n%', String(free))));
+      main.appendChild(seats);
+      const acts = el('div', 'fm-crew__acts');
+      if (own) {
+        // Absagen wie Entfernen: erster Klick fragt im Knopf nach, zweiter sagt ab.
+        const b = el('button', 'fm-btn fm-crew__drop', C.crewDrop) as HTMLButtonElement;
+        b.type = 'button';
+        b.dataset.act = 'drop';
+        let armed = 0;
+        b.addEventListener('click', async () => {
+          if (!armed) {
+            b.classList.add('is-armed');
+            b.textContent = C.crewDropQ;
+            armed = window.setTimeout(() => { armed = 0; b.classList.remove('is-armed'); b.textContent = C.crewDrop; }, 4000);
+            return;
+          }
+          // Entschärfen, bevor neu geladen wird: sonst malt paintCrew nicht neu.
+          clearTimeout(armed);
+          armed = 0;
+          b.classList.remove('is-armed');
+          b.textContent = C.crewDrop;
+          b.disabled = true;
+          if (!(await crewDrop(c))) b.disabled = false;
+        });
+        acts.appendChild(b);
+      } else {
+        // Zusagen und Zurückziehen sind derselbe Platz (data-act): der Fokus
+        // bleibt nach dem Umschalten auf dem Knopf.
+        let toggle: HTMLElement | null = null;
+        if (c.members.includes(me)) toggle = textBtn(C.crewLeave, '', () => crewLeave(c));
+        // Voll: kein Knopf, die Zeile der Plätze sagt es schon.
+        else if (free) toggle = textBtn(C.crewJoin, 'fm-btn--primary', () => crewJoin(c));
+        if (toggle) {
+          toggle.dataset.act = 'toggle';
+          // textBtn sperrt den Knopf beim Klick, der Browser nimmt ihm dabei den
+          // Fokus: paintCrew soll ihn trotzdem wiederfinden.
+          toggle.addEventListener('click', () => { crewRefocus = { id: String(c.id), act: 'toggle' }; }, { capture: true });
+          acts.appendChild(toggle);
+        }
+        const chat = iconBtn('ic-chat', `${C.chat}: ${nameOf(host)}`, 'fm-ib--chat');
+        chat.dataset.act = 'chat';
+        chat.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: c.owner_id })));
+        chat.hidden = !friends.some((f) => f.p.id === c.owner_id);
+        acts.appendChild(chat);
+      }
+      li.append(tag, main, acts);
+      return li;
+    };
+
+    let crewRefocus: { id: string; act: string } | null = null;
+    const paintCrew = () => {
+      crewEl.hidden = !(crewOk && (friends.length || crew.length));
+      if (crewEl.hidden) return;
+      // Während „Absagen?“ scharf ist, nicht neu malen (der Knopf ginge verloren).
+      if (crewEl.querySelector('.fm-crew__drop.is-armed')) return;
+      const mine = crew.filter((c) => c.owner_id === me).length;
+      $('fmCrewN').textContent = crew.length ? String(crew.length) : '';
+      crewNew.hidden = !crewForm.hidden || mine >= 3 || !friends.length;
+      // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
+      // Karte zurücksetzen (Tastaturbedienung). Die Knöpfe tragen eine feste
+      // Kennung (data-act), weil sich ihre Zahl ändert (voll: kein „Bin dabei“).
+      const list = $('fmCrewList');
+      const f = document.activeElement as HTMLElement | null;
+      const cardEl = f && list.contains(f) ? f.closest<HTMLElement>('.fm-crew__card') : null;
+      let key = cardEl?.dataset.id;
+      let act = f?.closest<HTMLElement>('[data-act]')?.dataset.act;
+      if (!cardEl && crewRefocus && (!f || f === document.body)) ({ id: key, act } = crewRefocus);
+      crewRefocus = null;
+      list.replaceChildren(...crew.map(crewCard));
+      if (key && act) {
+        const again = list.querySelector<HTMLElement>(`.fm-crew__card[data-id="${CSS.escape(key)}"]`);
+        const target = again?.querySelector<HTMLElement>(`[data-act="${CSS.escape(act)}"]:not([hidden])`)
+          || again?.querySelector<HTMLElement>('[data-act]:not([hidden])');
+        target?.focus({ preventScroll: true });
+      }
+      $('fmCrewEmpty').hidden = crew.length > 0 || !crewForm.hidden;
+    };
+
+    const crewOpen = (open: boolean) => {
+      crewForm.hidden = !open;
+      crewNew.setAttribute('aria-expanded', String(open));
+      if (open) {
+        const d = crewDefaultTime();
+        fDay.value = String(d.day);
+        fTime.value = d.hhmm;
+      }
+      paintCrew();
+      if (open) fAct.focus();
+    };
+    crewNew.addEventListener('click', () => crewOpen(true));
+    $('fmCrewCancel').addEventListener('click', () => { crewOpen(false); if (!crewNew.hidden) crewNew.focus(); });
+    crewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const start = crewStart(Number(fDay.value), fTime.value);
+      if (!start) { toast(C.crewErrTime); fTime.focus(); return; }
+      const send = $('fmCrewSend') as HTMLButtonElement;
+      send.disabled = true;
+      try {
+        const { error } = await supabase.from('crew_calls').insert({
+          activity: fAct.value, starts_at: start.toISOString(), slots: Number(fSlots.value) || 2,
+          note: fNote.value.trim() || null,
+        });
+        if (error) { crewErr(error); return; }
+        fNote.value = '';
+        crewOpen(false);
+        toast(C.crewSent);
+        await loadCrew();
+      } finally {
+        send.disabled = false;
+      }
+    });
+    // Neue Aufrufe und Zusagen der Freunde: jede Minute, solange die Liste sichtbar ist.
+    setInterval(() => {
+      // Auch nach einem ersten Fehlschlag weiter versuchen, nur nicht ohne Tabelle.
+      if (!document.hidden && !crewGone && active === 'friends') loadCrew().catch(() => {});
+    }, 60000);
 
     // Flotten der Freunde: die Schiffe, die sie auf ihrer Pilotenseite zeigen
     // (public_favorites, nur mit Handle und „Flotte zeigen“). Eine Abfrage für
@@ -814,6 +1244,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       const sug = suggestions.filter((s) => !relation(s.p.id));
       $('fmSuggestList').replaceChildren(...sug.map(sugCard));
       $('fmSuggestEmpty').hidden = !(loaded && sug.length === 0);
+      paintCrew();
       announce();
     };
 

@@ -29,6 +29,11 @@ const NEU: Record<string, string> = {
   livery: '<rect x="4" y="3.5" width="14" height="5" rx="1.2"/><path d="M18 6h2v5.5h-8V14"/><path d="M10.8 14h2.4v6.5h-2.4z"/>',
   arm: '<path d="M4 20.5h7"/><path d="M7.5 20.5v-4l4-6.5"/><circle cx="11.5" cy="9.5" r="1.6"/><path d="M12.8 8.5 17.5 5"/><path d="M17.5 5l2.5 1.5M17.5 5l.5-2.5"/>',
   fabr: WB_ICONS.fab,
+  seat: '<path d="M7.5 3.5H11l-1 9h6a2 2 0 0 1 2 2V16H7z"/><path d="M12 16v4.5M8.5 20.5h7"/>',
+  thruster: '<path d="M9 3.5h6v3H9z"/><path d="M10 6.5c0 3-3 5.5-3 9h10c0-3.5-3-6-3-9"/><path d="M9.5 18v1.8M12 18v2.8M14.5 18v1.8"/>',
+  // Zugang und Aussehen
+  card: '<rect x="3.5" y="6" width="17" height="12" rx="1.8"/><rect x="6.5" y="9" width="4" height="3.2" rx=".6"/><path d="M6.5 15h7M15.5 9.5h2"/>',
+  face: '<circle cx="12" cy="9" r="5"/><path d="M7.2 7.8c2.4.4 4.8-.4 6.3-2.6 1 1.3 2.3 2.1 3.8 2.4"/><path d="M5 20.5c.7-3.3 3.6-5.5 7-5.5s6.3 2.2 7 5.5"/>',
   plate: '<path d="M4 7.5 12 4l8 3.5"/><path d="M4 7.5v5L12 16l8-3.5v-5"/><path d="M4 12.5v4L12 20l8-3.5v-4"/>',
   ship: '<path d="M12 3 14.5 9.5 21 13v2.5l-6.5-1.5-1.5 6.5h-2L9.5 14 3 15.5V13l6.5-3.5z"/>',
   chip: '<rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5" rx=".6"/><path d="M9.5 6.5V4M14.5 6.5V4M9.5 20v-2.5M14.5 20v-2.5M6.5 9.5H4M6.5 14.5H4M20 9.5h-2.5M20 14.5h-2.5"/>',
