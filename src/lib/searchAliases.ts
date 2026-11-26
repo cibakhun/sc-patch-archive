@@ -26,7 +26,9 @@
 /** Basispfad -> zusaetzliche Suchwoerter (beide Sprachen, nie angezeigt). */
 export const TOOL_ALIASES: Record<string, string> = {
   '/missionen.html': 'aufträge auftrag jobs kopfgeld bounty',
-  '/topics/crafting.html': 'werkbank workbench fabricator fabrikator rezept rezepte recipe recipes herstellen herstellung',
+  // Das Blueprint-Verzeichnis ist nur fuer Google da (Krisz 26.11.2026); wer
+  // es sucht, landet in der Werkbank.
+  '/topics/crafting.html': 'werkbank workbench fabricator fabrikator rezept rezepte recipe recipes herstellen herstellung verzeichnis directory baupläne bauplan',
   '/fracturing.html': 'brechen bruch zerbrechen laser',
   '/refinery.html': 'raffinerie raffinieren veredeln refining raffinerieauftrag',
   '/topics/mining.html': 'erz erze ore ores rohstoffe abbau abbauen fundorte',
@@ -38,7 +40,6 @@ export const TOOL_ALIASES: Record<string, string> = {
   // Verzeichnisse: die Bereichsliste fuehrt sie seit A1 als Werkzeug.
   // Items-Seite: Verzeichnis und Item Finder in einem (26.11.2026).
   '/items.html': 'verzeichnis directory kategorien categories gegenstände gegenstand ausrüstung equipment läden laden shops händler kaufen kaufort finder',
-  '/crafting.html': 'verzeichnis directory blueprints baupläne blaupausen bauplan',
   '/armor-sets.html': 'rüstungssets rüstungs-sets rüstung sets armor armour',
   '/downloads.html': 'karten maps wallpaper onepager herunterladen',
   // Hangar und Advanced Loadout (nur Vorschau-Bau) tragen ihre Suchwoerter in

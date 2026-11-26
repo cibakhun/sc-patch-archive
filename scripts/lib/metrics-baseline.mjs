@@ -295,11 +295,11 @@ export const BASELINE = [
   },
   {
     id: 'sucheWerkzeuge',
-    wert: 30,
+    wert: 28,
     regel: 'min',
     toleranzProzent: 0,
     anlass:
-      'Messlauf 06.11.2026: elf Werkzeuge je Sprache im ersten Suchindex-Teil, die schwaechere Sprache doppelt (toolEntries in src/lib/searchIndex.ts: Item Finder, Missionen, Crafting, Fracturing, Refinery, Mining, Precision Jump, Wikelo, Schiffe, Patch-Archiv, Evolution; der Hangar fehlt mit Absicht). Ohne Toleranz: jedes fehlende Werkzeug ist eine Entscheidung und braucht einen Commit mit Anlass. Gehoben 24.11.2026 auf 2 x 15 (UX-Audit A1): die Werkzeuge kommen jetzt aus der Bereichsliste src/lib/bereiche.ts (suchZiele), dazu Item- und Blueprint-Verzeichnis, Ruestungs-Sets und Downloads; Hangar und Advanced Loadout nur im Vorschau-Bau, gezaehlt wird der Live-Stand. Gehoben 24.11.2026 auf 2 x 16 (UX-Audit Paket G12): der Einstieg „Mining in fuenf Schritten" steht als Seite des Bereichs Mining in der Suche. Gesenkt 26.11.2026 auf 2 x 15 (Krisz: Items-Verzeichnis und Item Finder werden eine Seite, „lass es machen“): Item Finder und Item-Verzeichnis sind ein Eintrag „Items“ auf /items.html, /item-finder.html leitet per 301 dorthin.',
+      'Messlauf 06.11.2026: elf Werkzeuge je Sprache im ersten Suchindex-Teil, die schwaechere Sprache doppelt (toolEntries in src/lib/searchIndex.ts: Item Finder, Missionen, Crafting, Fracturing, Refinery, Mining, Precision Jump, Wikelo, Schiffe, Patch-Archiv, Evolution; der Hangar fehlt mit Absicht). Ohne Toleranz: jedes fehlende Werkzeug ist eine Entscheidung und braucht einen Commit mit Anlass. Gehoben 24.11.2026 auf 2 x 15 (UX-Audit A1): die Werkzeuge kommen jetzt aus der Bereichsliste src/lib/bereiche.ts (suchZiele), dazu Item- und Blueprint-Verzeichnis, Ruestungs-Sets und Downloads; Hangar und Advanced Loadout nur im Vorschau-Bau, gezaehlt wird der Live-Stand. Gehoben 24.11.2026 auf 2 x 16 (UX-Audit Paket G12): der Einstieg „Mining in fuenf Schritten" steht als Seite des Bereichs Mining in der Suche. Gesenkt 26.11.2026 auf 2 x 15 (Krisz: Items-Verzeichnis und Item Finder werden eine Seite, „lass es machen“): Item Finder und Item-Verzeichnis sind ein Eintrag „Items“ auf /items.html, /item-finder.html leitet per 301 dorthin. Gesenkt 26.11.2026 auf 2 x 14 (Krisz: „braucht ja kein mensch sehen, soll auch nicht verlinkt werden. werkbank ist das einzige für menschen“): das Blueprint-Verzeichnis ist nur noch fuer Google da und kein Werkzeug der Suche mehr; die Suche fuehrt ueber Crafting in die Werkbank (verify:nur-werkbank).',
   },
   {
     id: 'datenSeitenMitSuche',

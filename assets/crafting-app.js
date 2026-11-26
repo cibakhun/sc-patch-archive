@@ -1214,6 +1214,31 @@
     sortResourcesList();
     apply();
   })();
+  // Weg von einem Bauplan-Blatt (Brotkrume und Knopf der Kategorie) und aus
+  // der Suche: ?kat=<Kategorie des Bauplans>, etwa „Armour / Combat / Heavy“,
+  // setzt den Kategorie-Filter. Die Werkbank filtert zwei Stufen (oben und
+  // darunter); eine tiefere Stufe landet auf ihrer zweiten.
+  (function applyKatQuery() {
+    var want;
+    try { want = new URLSearchParams(location.search).get('kat'); } catch (e) { return; }
+    if (!want) return;
+    var teile = want.split(' / ').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!teile.length) return;
+    var top = null, sub = null;
+    $$('.cdb-cat').forEach(function (cb) { if (cb.value === teile[0]) top = cb; });
+    if (!top) return;
+    if (teile[1]) $$('.cdb-sub').forEach(function (cb) { if (cb.value === teile[0] + '||' + teile[1]) sub = cb; });
+    if (sub) {
+      sub.checked = true;
+      state.subs[sub.value] = true;
+      var det = top.closest('details');
+      if (det) det.open = true;
+    } else {
+      top.checked = true;
+      state.cats[top.value] = true;
+    }
+    apply();
+  })();
   if (resSearch) {
     resSearch.addEventListener('input', function () {
       var q = this.value.trim().toLowerCase();

@@ -23,6 +23,7 @@
     "verify:fx": "node scripts/verify-fx.mjs",
     "verify:rechtsfuss": "node scripts/verify-rechtsfuss.mjs",
     "verify:ia": "node scripts/verify-ia.mjs",
+    "verify:nur-werkbank": "node scripts/verify-nur-werkbank.mjs",
     "verify:help": "node scripts/verify-help.mjs --complete",
     "verify:ausgabe": "node scripts/verify-ausgabe.mjs",
     "verify:typo": "node scripts/verify-typo-motion.mjs",

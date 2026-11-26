@@ -38,7 +38,6 @@ Die Leiste zeigt die sieben Bereiche; ein Bereich führt auf seine erste Seite.
 | Items | `items` | `/items.html` | Items | Items | Suchen, filtern, Preise & Fundorte / Search, filter, prices & locations |
 | | `sets` | `/armor-sets.html` | Rüstungs-Sets | Armor sets | Ganze Sets im Vergleich / Full sets compared |
 | Crafting | `crafting` | `/topics/crafting.html` | Crafting | Crafting | Werkbank & Planer / Workbench & planner |
-| | `blueprints` | `/crafting.html` | Blueprint-Verzeichnis | Blueprint directory | Alle Blueprints nach Kategorie / Every blueprint by category |
 | Schiffe / Ships | `schiffe` | `/schiffe.html` | Schiffe | Ships | Datenblätter & Specs / Data sheets & specs |
 | | `hangar` (nur Vorschau) | `/hangar.html` | Hangar | Hangar | Jedes Schiff in 3D / Every ship in 3D |
 | | `loadout` (nur Vorschau) | `/hangar-loadout.html` | Advanced Loadout | Advanced loadout | Ausstattung mit allen Werten / Components with every stat |
@@ -82,7 +81,8 @@ Konto und Service (rechts in der Leiste bzw. im Fuß, kein Bereich):
 **Verworfene Namen und wohin sie gehören** (heute noch an einzelnen Stellen):
 
 - „Item-Verzeichnis“ und „Item Finder“ heißen seit 26.11.2026 Items: beide sind in der Items-Werkbank auf `/items.html` aufgegangen (Krisz 26.11.2026), `/item-finder.html` leitet dorthin um. „Item Finder“ steht nur noch im Seitentitel und in der Beschreibung, damit die Suche die Seite unter dem alten Namen findet.
-- „Blaupausen & Planer“, „Crafting-Datenbank“, „Blueprint-Datenbank“, „Fabricator-Planer“ heißen Crafting (Werkbank) bzw. Blueprint-Verzeichnis.
+- „Blaupausen & Planer“, „Crafting-Datenbank“, „Blueprint-Datenbank“, „Fabricator-Planer“ heißen Crafting (Werkbank).
+- Das Blueprint-Verzeichnis (`/crafting.html`, Kategorieseiten `/crafting/category/…`) ist nur für Google da (Krisz 26.11.2026: „werkbank ist das einzige für menschen“, „keine verlinkung“): gebaut und in der Sitemap, aber in keinem Menü, keiner Brotkrume und keinem Suchtreffer. Wer eine Kategorie zeigen will, verlinkt die Werkbank mit `?kat=<Kategorie>`. `verify:nur-werkbank` prüft das.
 - „Gegenstände“ heißt Items.
 - „Raffinerie“, „Refinery-Tracker“, „Refinery-Finder“ heißen Refinery.
 - „Aaron Halo“ als Überschrift heißt Precision Jump (Aaron Halo als Untertitel).

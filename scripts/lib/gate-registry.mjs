@@ -1288,6 +1288,28 @@ export const CHECKS = [
     // Seite 1, und [1] deckt sie.
   },
   {
+    // Neuzugang 26.11.2026 (Krisz: „braucht ja kein mensch sehen, soll auch
+    // nicht verlinkt werden. werkbank ist das einzige für menschen“, „keine
+    // verlinkung“). Fuer Menschen gibt es die Werkbaenke; das
+    // Blueprint-Verzeichnis und seine Kategorieseiten sind nur fuer Google da:
+    // gebaut, indexierbar, in der Sitemap, aber kein Link von einer Seite fuer
+    // Menschen und kein Sucheintrag fuehrt hinein. Liest nur dist/.
+    // VORGEFUEHRT ROT am 26.11.2026 (Vorschau-Bau von staging 6e0b4afa mit
+    // dieser Lieferung) mit einem Sucheintrag mit u auf
+    // /de/crafting/category/armour.html. Meldungen: [3] „de/search-index.json:
+    // … u -> /de/crafting/category/armour.html“, dazu [2] die sechs Knoepfe
+    // „Blueprint-Verzeichnis“ der Items-Seiten, die die Items-Umstellung
+    // entfernt (Stand vor deren Merge), Exit 1. (Derselbe Lauf prueft noch
+    // einen Teil [4] fuer das Blatt in der Werkbank; den hat Krisz am
+    // 27.11.2026 zurueckgenommen, „es soll nichts eingebacken werden“.)
+    id: 'verify:nur-werkbank',
+    npm: 'verify:nur-werkbank',
+    script: 'scripts/verify-nur-werkbank.mjs',
+    rail: 'A',
+    checks:
+      'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (ohne Kommentare, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+  },
+  {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
     // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
     // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
