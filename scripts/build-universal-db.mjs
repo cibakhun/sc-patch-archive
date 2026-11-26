@@ -402,9 +402,11 @@ for (const e of items) e.id = slugId(e.name);
 //      dass es dafuer keine Leistungswerte gibt.
 //   2. Kein Record im Spiel traegt den Namen: `nichtImSpiel`, die Seite sagt
 //      genau das. Ein Name, den das Spiel nur in einer Neben-Datei fuehrt,
-//      zaehlt NICHT dazu — der bleibt ohne Marke und faellt im Tor auf.
+//      zaehlt NICHT dazu: Moebel und Co. bekommen die Angaben aus diesem
+//      Record (Fall 1, datamine-items nimmt ihn nur als Ersatz), alles
+//      andere bleibt ohne Marke und faellt im Tor auf.
 // Fahrzeuge sind ausgenommen: ihre Werte stehen auf dem Schiffsblatt.
-let identityRows = 0;
+let identityRows = 0, identityAusNeben = 0;
 const notInGame = [], nurNebenDatei = [];
 if (gameIdentity) {
   // Erst der exakte Name, dann derselbe Name ohne Satz- und Leerzeichen
@@ -428,6 +430,7 @@ if (gameIdentity) {
       for (const f of ['desc', 'descDe']) if (gm[f]) gm[f] = ohneDoppelteZeilen(gm[f], gm);
       e.game = gm;
       identityRows++;
+      if (g.nebenDatei) identityAusNeben++;
     } else if (gameJunkNames.has(k) || nebenLose.has(lose(e.name))) {
       nurNebenDatei.push(e.name);
     } else {
@@ -435,7 +438,7 @@ if (gameIdentity) {
       notInGame.push(e.name);
     }
   }
-  console.log(`Seiten ohne Spielwerte: ${identityRows} mit Angaben aus dem Spiel (ohneWerte), ${notInGame.length} nicht im Spiel, ${nurNebenDatei.length} nur in Neben-Dateien`);
+  console.log(`Seiten ohne Spielwerte: ${identityRows} mit Angaben aus dem Spiel (ohneWerte, davon ${identityAusNeben} aus Neben-Dateien), ${notInGame.length} nicht im Spiel, ${nurNebenDatei.length} nur in Neben-Dateien`);
   if (notInGame.length) console.log(`  nicht im Spiel: ${notInGame.join(' | ')}`);
   if (nurNebenDatei.length) console.log(`  ⚠ nur in Neben-Dateien (kein Abschnitt „Technische Daten", verify:bezugswege meldet sie): ${nurNebenDatei.join(' | ')}`);
 } else {

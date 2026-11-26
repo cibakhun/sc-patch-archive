@@ -352,6 +352,11 @@ export function isIndexable(i: Item): boolean {
   if (i.obtain.length > 0) return true;
   if (i.guide) return true;
   const g = i.game;
+  // Flugblaetter (PHB/TSB) tragen ihre Seite nur mit Bezugsweg oder Fundort.
+  // Ohne Weg nennte die Seite sechs Flugwerte fuer ein Teil, das niemand
+  // bekommt — Thin Content, und verify:bezugswege [10] (Decke ohneWeg) riss
+  // (IA C8, 26.11.2026). Im Finder steht das Blatt trotzdem, mit Werten.
+  if (g?.gameType === 'FlightController') return false;
   // Mehrdeutige Anzeigenamen ("Revenant Gatling" = S3/S4/S6) tragen ihre Werte
   // NICHT oben, sondern je Ausfuehrung in `variants`. Sie beantworten "was kann
   // das" damit sogar ausfuehrlicher als ein einzelner Wertesatz — ohne diese

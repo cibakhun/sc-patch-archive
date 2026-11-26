@@ -69,6 +69,8 @@
     if (item.obtain.length > 0) return true;
     if (item.guide) return true;
     var g = item.game;
+    // Flugblaetter: Seite nur mit Bezugsweg oder Fundort (wie isIndexable).
+    if (g && g.gameType === 'FlightController') return false;
     // Mehrdeutige Namen tragen ihre Werte je Ausfuehrung in variants (wie
     // isIndexable): auch sie haben ein Datenblatt.
     if (g && g.variants && g.variants.length) return true;

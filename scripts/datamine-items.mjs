@@ -213,14 +213,16 @@ const TYPE_CAT = {
   Container: () => 'Utility / Containers',
   Paints: () => 'Vehiclegear / Liveries',
   // Flugblaetter (PHB/TSB) sind im Spiel Flugcontroller — derselbe Typ wie der
-  // Serien-Controller jedes Schiffs. Aufgenommen werden NUR die, deren Name auf
-  // „Flight Blade" endet (siehe Pass 1); die Serien-Controller sind keine
-  // kaufbaren Items und blieben sonst als Hunderte leere Eintraege stehen.
+  // Serien-Controller jedes Schiffs. Aufgenommen werden NUR die PHB- und
+  // TSB-Blaetter (siehe Pass 1). Die Serien-Controller heissen im Spiel
+  // ebenfalls „… Flight Blade" („Flight Blade" in 164 Records, „<Schiff>
+  // Standard Flight Blade"), sind aber keine kaufbaren Items; der erste
+  // Datenlauf mit „endet auf Flight Blade" hat sie mitgenommen (26.11.2026).
   // IA C8 (26.11.2026): 46 Blatt-Seiten hatten Preise, aber keine Werte.
   FlightController: () => 'Vehiclegear / Flight Blade',
 };
 const ALLOW = new Set(Object.keys(TYPE_CAT));
-const FLIGHT_BLADE = /\bFlight Blade$/i;
+const FLIGHT_BLADE = /\b(?:PHB|TSB) Flight Blade$/i;
 
 // Junk-/Prop-/Debug-Dateien draußen halten
 const isJunk = (f) => /_test|template|dummy|_debug|placeholder|tutorial|\/ai\/|_prop(\.|_)|_collector_|deprecated|_uneditable|_dstr|_destruct/i.test(f);
@@ -492,18 +494,28 @@ const candidates = [];
 // haetten, und erkennt daran auch, welche Namen es im Spiel nicht mehr gibt
 // (IA C8, 26.11.2026). Werte werden daraus NIE abgeleitet.
 const identityCandidates = [];
+// Dasselbe aus Neben-Dateien (Requisite, Vorlage, Test): nur ERSATZ, wenn kein
+// regulaerer Record den Namen fuehrt. Erster Datenlauf (26.11.2026): „Drake
+// Ship Chair" hat eine Seite, steht im Spiel aber nur in einer Requisiten-
+// Datei — ohne Ersatz blieb die Seite ohne Abschnitt „Technische Daten".
+// Nur Typen ausserhalb der Allowlist: eine Waffe, die es nur als Requisite
+// gibt, bekommt keinen Hinweis „keine Leistungswerte".
+const junkIdentityCandidates = [];
 const junkNames = new Set();
 const PLACEHOLDER_NAME = /PLACEHOLDER|<=|=>/;
 for (const r of ECD) {
   const f = norm(r.fileName);
   if (isJunk(f)) {
     junk++;
-    // Nur der Name: build-universal-db soll einen Namen, den das Spiel allein
-    // in einer Neben-Datei (Requisite, Vorlage, Test) fuehrt, nicht fuer
-    // „gibt es im Spiel nicht" halten.
+    // Der Name: build-universal-db soll einen Namen, den das Spiel allein
+    // in einer Neben-Datei fuehrt, nicht fuer „gibt es im Spiel nicht" halten.
     let sh; try { sh = db.readRecord(r, { maxDepth: 4, typed: true }); } catch { continue; }
-    const n = locEn((first(sh, /SAttachableComponentParams/) || {}).AttachDef?.Localization?.Name);
-    if (n && !PLACEHOLDER_NAME.test(n)) junkNames.add(n.toLowerCase().trim());
+    const jAtt = (first(sh, /SAttachableComponentParams/) || {}).AttachDef;
+    const n = locEn(jAtt?.Localization?.Name);
+    if (n && !PLACEHOLDER_NAME.test(n)) {
+      junkNames.add(n.toLowerCase().trim());
+      if (!ALLOW.has(jAtt.Type)) junkIdentityCandidates.push({ r, f, att: jAtt, nameEn: n, neben: true });
+    }
     continue;
   }
   scanned++;
@@ -522,7 +534,7 @@ for (const r of ECD) {
   // Tags hängen am Record-Wurzelknoten, sind also schon im flachen Read dabei.
   candidates.push({ r, f, att, nameEn, tagPaths: TAGS.pathsOf(shallow.tags) });
 }
-if (DEBUG) console.log(`Pass1: ${candidates.length} Kandidaten (scanned ${scanned}, noAttach ${noAttach}, notAllowed ${notAllowed} davon benannt ${identityCandidates.length}, noName ${noName}, Serien-Flugcontroller ${stockController}, junk ${junk}) · ${Date.now() - t0}ms`);
+if (DEBUG) console.log(`Pass1: ${candidates.length} Kandidaten (scanned ${scanned}, noAttach ${noAttach}, notAllowed ${notAllowed} davon benannt ${identityCandidates.length}, noName ${noName}, Serien-Flugcontroller ${stockController}, junk ${junk} davon Ersatz-Identitaet ${junkIdentityCandidates.length}) · ${Date.now() - t0}ms`);
 
 // =========================================================
 //  Pass 2: Deep-Read + Stats
@@ -713,11 +725,12 @@ if (conflicts.length) {
 //  Identitaet benannter Items ausserhalb der Allowlist (IA C8)
 // =========================================================
 // Je Name EIN Eintrag, und nur fuer Namen, die oben kein echtes Item tragen.
-// Bevorzugt der Record mit Hersteller und Beschreibung, bei Gleichstand der
-// mit der kleinsten Record-Id (reproduzierbar ueber Laeufe hinweg).
+// Ein regulaerer Record schlaegt immer einen aus einer Neben-Datei; danach
+// bevorzugt der mit Hersteller und Beschreibung, bei Gleichstand der mit der
+// kleinsten Record-Id (reproduzierbar ueber Laeufe hinweg).
 // Bewusst ohne Grade und ohne Werte: hier steht nur, WAS das Ding im Spiel ist.
 const identityByName = new Map();
-for (const c of identityCandidates) {
+for (const c of [...identityCandidates, ...junkIdentityCandidates]) {
   const k = c.nameEn.toLowerCase().trim();
   if (byName.has(k)) continue;
   const man = manufacturer(c.att.Manufacturer);
@@ -739,8 +752,9 @@ for (const c of identityCandidates) {
     manufacturerCode: man?.code || null,
     volumeScu: volMicro ? round(volMicro / 1e6, 4) : null,
     file: basename(c.f),
+    nebenDatei: c.neben || null,
   });
-  const rang = (x) => (x.manufacturer ? 2 : 0) + (x.desc ? 1 : 0);
+  const rang = (x) => (x.nebenDatei ? 0 : 4) + (x.manufacturer ? 2 : 0) + (x.desc ? 1 : 0);
   const e = identityByName.get(k);
   if (!e || rang(it) > rang(e) || (rang(it) === rang(e) && it.id < e.id)) identityByName.set(k, it);
 }
@@ -783,12 +797,13 @@ const payload = {
     collapsedDiffering: collapsed.filter((c) => !c.sameSpecs).length,
     sets: setStats,
     // Flugblaetter (PHB/TSB) als eigene Items; die Serien-Flugcontroller der
-    // Schiffe bleiben draussen (Name endet nicht auf „Flight Blade").
+    // Schiffe bleiben draussen (kein „PHB/TSB Flight Blade" am Namensende).
     flightBlades: items.filter((i) => i.gameType === 'FlightController').length,
     flightBladesWithStats: items.filter((i) => i.gameType === 'FlightController' && i.stats).length,
     stockFlightControllersSkipped: stockController,
     // Benannte Items ausserhalb der Allowlist, nur Identitaet (siehe `identity`)
     identity: identity.length,
+    identityFromSideFiles: identity.filter((i) => i.nebenDatei).length,
     identityByType,
     junkOnlyNames: junkOnlyNames.length,
   },
