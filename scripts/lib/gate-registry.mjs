@@ -283,7 +283,16 @@ export const CHECKS = [
     script: 'scripts/verify-item3d.mjs',
     rail: 'A',
     checks:
-      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+    // [2] seit IA C8 (24.11.2026): ein Modell darf die fruehere Id seines
+    // Items im Dateinamen tragen, wenn nginx/umzuege.conf genau diese Adresse
+    // auf das Item umleitet (6 nach dem Zusammenlegen, z. B. lynx-legs ->
+    // m/lynx-legs-2.….glb). VORGEFUEHRT ROT im Vorschau-Bau derselben
+    // Lieferung: den EN-Umzug lynx-legs-2 -> lynx-legs entfernt -> 1 FEHLER
+    // [2] lynx-legs; oracle-helmet auf m/lynx-legs-2.….glb gesetzt (fremde
+    // fruehere Id) -> 1 FEHLER [2] oracle-helmet; je exit 1, zurueckgespielt,
+    // sha256 wie vorher. Die Fassung vor der Lockerung meldet am selben Stand
+    // alle 6 als FEHLER. Gruen: 2.965 Eintraege, 6 unter frueherer Adresse.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
@@ -708,6 +717,48 @@ export const CHECKS = [
     // (0) und a03-sniper-rifle (1) getauscht, Kopf und Zahl gleich: 1 FEHLER
     // „2 Item(s) mit anderem Fundort-Profil". Zurueckgespielt, gruen: 9.412
     // Items je Item verglichen, 0 abweichend.
+  },
+  {
+    // IA C8 (24.11.2026, Krisz: „Zusammenlegen mit 301“): 56 Items standen
+    // doppelt, unter einem alten Namen mit Bezugswegen und unter dem
+    // Spielnamen mit Spielwerten. Die Paare stehen in
+    // scripts/lib/item-namen-aliase.mjs. Still kaputt gehen kann: ein
+    // Datenlauf mit altem Bauskript legt die Doppel wieder an, eine Quelle
+    // benennt um und das Paar laeuft leer, eine alte Adresse verliert ihre
+    // Weiterleitung. Kein git, kein Netz, kein Kindprozess: committete JSON,
+    // nginx/umzuege.conf und dist/assets.
+    id: 'verify:namen-aliase',
+    npm: 'verify:namen-aliase',
+    script: 'scripts/verify-namen-aliase.mjs',
+    rail: 'A',
+    checks:
+      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten, und jedes Ziel einer verschwundenen Adresse (ALTE_ADRESSEN) steht im Katalog; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; jede beim Zusammenlegen verschwundene Item-Id (ALTE_ADRESSEN, auch die „-2“-Ids der Zwillinge) leitet in EN und DE auf die Seite des Spielnamens; Klinken fuer Paare, verschwundene Adressen und gelesene Quellennamen',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau dieser Lieferung, vier
+    // Eingriffe, je Datei zurueckgespielt und per sha256 geprueft:
+    // „Xanthule Helmet“ als eigenes Item in dist/assets/universal-items.json
+    // -> [2] 1 FEHLER (nur dist, assets/ blieb 0); ein Paar „Gibt Es Nicht
+    // Helmet“ -> Xanthule Flight Helmet -> [3] 1 Paar ohne Quelle und [4]
+    // 2 Adressen ohne Weiterleitung; das Paar „Xanthule Helmet“ doppelt ->
+    // [1] 1 Widerspruch; die DE-Weiterleitung von xanthule-helmet entfernt
+    // -> [4] 2 (Zielseite empfaengt keine, alte Adresse fuehrt nirgends hin).
+    // Je exit 1. Gegen den Bau VOR dem Zusammenlegen: [2] 56 alte Namen als
+    // eigenes Item. Gruen danach: 56 Paare, 9.462 Items in assets/ und
+    // dist/assets/, 4.111 Quellennamen, 318 Weiterleitungen, 112 Paare x
+    // Sprachen mit Weg zur Zielseite.
+    // Nach dem Review (CodeRabbit, PR #471) prueft [4] auch jede verschwundene
+    // Item-Id aus ALTE_ADRESSEN. Gegenprobe: nur /items/oracle-helmet-2.html
+    // aus nginx/umzuege.conf entfernt -> die vorige Fassung blieb gruen
+    // (Ist: 0, der alte Name „Oracle“ fuehrt weiter hin), die neue 1 Befund,
+    // exit 1; zurueckgespielt, sha256 0d710655… wie vorher, gruen: 112
+    // verschwundene Adressen x Sprachen.
+    // Review-Runde 2 (PR #471): das Ziel einer verschwundenen Adresse prueft
+    // [2] gegen den Katalog, nicht mehr gegen die Paare, sonst blockte [1]
+    // das Streichen eines Paars, das [3] verlangt. Gegenprobe: Paar
+    // „Xanthule Helmet“ gestrichen, Paar-Klinke 55 -> vorige Fassung [1]
+    // „ist kein Ziel der Tabelle“, exit 1; neue gruen. Dazu das Ziel von
+    // xanthule-helmet auf „Gibt Es Nicht Helmet“ -> neue [2] je 1 FEHLER in
+    // assets/ und dist/assets/, exit 1. Id „Oracle Helm“ statt oracle ->
+    // [1] „keine Item-Id“. Zurueckgespielt, gruen.
   },
   {
     // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
