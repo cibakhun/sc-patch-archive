@@ -283,7 +283,16 @@ export const CHECKS = [
     script: 'scripts/verify-item3d.mjs',
     rail: 'A',
     checks:
-      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste, auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+      '„In 3D ansehen“ steht genau im Vorschau-Bau: live keine Seite mit 3D-Dialog oder Modell-Ablage; in der Vorschau eine wohlgeformte Modell-Liste (Dateiname = Id des Items oder eine fruehere, die nginx/umzuege.conf auf das Item umleitet), auf jeder Item-Seite (EN und DE) eines gelisteten Items genau ein Dialog mit genau dieser Datei und auf keiner anderen, Blueprint-Seiten genau mit dem Modell ihres Ergebnis-Items (data-bp-item) oder ohne Dialog, Betrachter und Umgebungslicht in dist/; Klinken fuer Item-Seiten, Blueprint-Seiten mit Ergebnis-Item und Modelle',
+    // [2] seit IA C8 (24.11.2026): ein Modell darf die fruehere Id seines
+    // Items im Dateinamen tragen, wenn nginx/umzuege.conf genau diese Adresse
+    // auf das Item umleitet (6 nach dem Zusammenlegen, z. B. lynx-legs ->
+    // m/lynx-legs-2.….glb). VORGEFUEHRT ROT im Vorschau-Bau derselben
+    // Lieferung: den EN-Umzug lynx-legs-2 -> lynx-legs entfernt -> 1 FEHLER
+    // [2] lynx-legs; oracle-helmet auf m/lynx-legs-2.….glb gesetzt (fremde
+    // fruehere Id) -> 1 FEHLER [2] oracle-helmet; je exit 1, zurueckgespielt,
+    // sha256 wie vorher. Die Fassung vor der Lockerung meldet am selben Stand
+    // alle 6 als FEHLER. Gruen: 2.965 Eintraege, 6 unter frueherer Adresse.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein
@@ -710,6 +719,48 @@ export const CHECKS = [
     // Items je Item verglichen, 0 abweichend.
   },
   {
+    // IA C8 (24.11.2026, Krisz: „Zusammenlegen mit 301“): 56 Items standen
+    // doppelt, unter einem alten Namen mit Bezugswegen und unter dem
+    // Spielnamen mit Spielwerten. Die Paare stehen in
+    // scripts/lib/item-namen-aliase.mjs. Still kaputt gehen kann: ein
+    // Datenlauf mit altem Bauskript legt die Doppel wieder an, eine Quelle
+    // benennt um und das Paar laeuft leer, eine alte Adresse verliert ihre
+    // Weiterleitung. Kein git, kein Netz, kein Kindprozess: committete JSON,
+    // nginx/umzuege.conf und dist/assets.
+    id: 'verify:namen-aliase',
+    npm: 'verify:namen-aliase',
+    script: 'scripts/verify-namen-aliase.mjs',
+    rail: 'A',
+    checks:
+      'die Namenstabelle ist in sich stimmig (kein alter Name doppelt, keine Kette, alt und Ziel verschieden); weder assets/ noch dist/assets/universal-items.json fuehrt einen alten Namen als eigenes Item, jedes Ziel ist ein Item mit Spieldaten, und jedes Ziel einer verschwundenen Adresse (ALTE_ADRESSEN) steht im Katalog; jeder alte Name kommt noch in Loot-Recherche, Preisliste oder Shop-Schnappschuss vor (Zombie-Waechter, sonst Paar streichen); die Seite jedes Ziels empfaengt in EN und DE eine Weiterleitung aus nginx/umzuege.conf, und die Adresse des alten Namens ist die Zielseite selbst oder leitet dorthin; jede beim Zusammenlegen verschwundene Item-Id (ALTE_ADRESSEN, auch die „-2“-Ids der Zwillinge) leitet in EN und DE auf die Seite des Spielnamens; Klinken fuer Paare, verschwundene Adressen und gelesene Quellennamen',
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau dieser Lieferung, vier
+    // Eingriffe, je Datei zurueckgespielt und per sha256 geprueft:
+    // „Xanthule Helmet“ als eigenes Item in dist/assets/universal-items.json
+    // -> [2] 1 FEHLER (nur dist, assets/ blieb 0); ein Paar „Gibt Es Nicht
+    // Helmet“ -> Xanthule Flight Helmet -> [3] 1 Paar ohne Quelle und [4]
+    // 2 Adressen ohne Weiterleitung; das Paar „Xanthule Helmet“ doppelt ->
+    // [1] 1 Widerspruch; die DE-Weiterleitung von xanthule-helmet entfernt
+    // -> [4] 2 (Zielseite empfaengt keine, alte Adresse fuehrt nirgends hin).
+    // Je exit 1. Gegen den Bau VOR dem Zusammenlegen: [2] 56 alte Namen als
+    // eigenes Item. Gruen danach: 56 Paare, 9.462 Items in assets/ und
+    // dist/assets/, 4.111 Quellennamen, 318 Weiterleitungen, 112 Paare x
+    // Sprachen mit Weg zur Zielseite.
+    // Nach dem Review (CodeRabbit, PR #471) prueft [4] auch jede verschwundene
+    // Item-Id aus ALTE_ADRESSEN. Gegenprobe: nur /items/oracle-helmet-2.html
+    // aus nginx/umzuege.conf entfernt -> die vorige Fassung blieb gruen
+    // (Ist: 0, der alte Name „Oracle“ fuehrt weiter hin), die neue 1 Befund,
+    // exit 1; zurueckgespielt, sha256 0d710655… wie vorher, gruen: 112
+    // verschwundene Adressen x Sprachen.
+    // Review-Runde 2 (PR #471): das Ziel einer verschwundenen Adresse prueft
+    // [2] gegen den Katalog, nicht mehr gegen die Paare, sonst blockte [1]
+    // das Streichen eines Paars, das [3] verlangt. Gegenprobe: Paar
+    // „Xanthule Helmet“ gestrichen, Paar-Klinke 55 -> vorige Fassung [1]
+    // „ist kein Ziel der Tabelle“, exit 1; neue gruen. Dazu das Ziel von
+    // xanthule-helmet auf „Gibt Es Nicht Helmet“ -> neue [2] je 1 FEHLER in
+    // assets/ und dist/assets/, exit 1. Id „Oracle Helm“ statt oracle ->
+    // [1] „keine Item-Id“. Zurueckgespielt, gruen.
+  },
+  {
     // UX-Audit 24.11.2026, Paket D (Item- und Bauplan-Blaetter): Item ->
     // Mission war 0 %, 940 Bauplaene endeten in einer Vermutung, 190
     // Waffenblaetter zeigten zwei Feuerraten. Alle drei Luecken entstehen
@@ -1122,6 +1173,55 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'jede Mission traegt auf ihrem Blatt, im Seitentitel und auf ihrer Karte in der Liste einen lesbaren Namen ohne Marke ({…}, Pille, interner Bezeichner), und hoechstens 8 Seiten je Sprache teilen Namen samt Zusatzzeile mit einer anderen (Sperrklinke); jede Karte verlinkt genau ein Blatt und traegt dessen Namen samt Zusatz, jedes Blatt hat genau eine Karte; Klinke fuer gelesene Blaetter je Sprache',
+  },
+  {
+    // Neuzugang 24.11.2026 (UX-Audit A9, IA-Vorschlag V13), ~12 s: liest
+    // dist/ als Text und buendelt src/lib/bereiche.ts mit esbuild (dessen
+    // Dienst ist der einzige Kindprozess, wie bei verify:crafting). Kein
+    // env-Feld: kein git, kein Netz.
+    // VORGEFUEHRT ROT am 24.11.2026 gegen den Live-Bau von staging 01e1b0f9
+    // mit von Hand verbogenen Dateien in dist/: Precision-Jump-Links der
+    // Startseiten umgebogen, „Refinery“ im Datenblatt-Menue eines Items
+    // umbenannt, data-area einer Bereichsleiste geaendert, ein Werkzeug im
+    // Suchregister umbenannt, ein Inhaltslink aufs Impressum eingesetzt,
+    // id="topbar" einer Seite entfernt: 7 FEHLER (2 Waisen, Zombie-Ausnahme
+    // Impressum, Seite ohne Navigation, beide Menues, Bereichsleiste,
+    // Suchregister). Zweiter Lauf: robots-noindex auf /refinery.html und die
+    // lokale Leiste von /fracturing.html entfernt: 2 FEHLER ([1c] und die
+    // fehlende Leiste). Dritter Lauf gegen den Vorschau-Bau: id="topbar" und
+    // class="dp-bar" je einer Seite umbenannt (geaendertes Markup): 2 FEHLER
+    // (Rahmen-Filter greift nicht, Seiten ohne Navigation). Gruen nach dem
+    // Zuruecklegen. Der erste Vorschau-Lauf fand die 462 Hangar-Bucht-Seiten
+    // ohne Navigation; sie stehen jetzt als benannte Ausnahme (nur Vorschau).
+    // Nach dem CodeRabbit-Review von #463 vorgefuehrt rot: zweite
+    // Bereichsleiste in einer Kopfleiste („steht 2-mal da“), Link vor der
+    // ersten Menuegruppe („Link ausserhalb der Gruppen“), robots-noindex nur
+    // noch im Kommentar ([1c]), Feedback-Zeile ohne href (Befund statt
+    // Absturz), dist/build.json ohne staging (abgelehnt); robots mit
+    // vertauschten Attributen blieb richtig gruen.
+    // Nach der zweiten Runde (Vorschau-Bau): Bereichsleiste aus nav#topbar
+    // in den Fuss verschoben („steht nicht in nav#topbar“), letzter Link der
+    // ersten Menuegruppe hinter deren </section> („Link ausserhalb der
+    // Gruppen“, vorher gruen), echter Inhaltslink aufs Impressum (Zombie):
+    // 3 FEHLER. Richtig gruen blieben: &#x110000; in einem href (kein
+    // Absturz), „<a href>“ im Wert eines anderen Attributs und
+    // href="/impres&lt;b&gt;sum.html" (beide kein Link aufs Impressum), eine
+    // Weiterleitung hinter „<!-- <body> -->“ im Kopf (erkannt). Gleiche
+    // Linkzahl wie vorher (636 832): der Tag-Lauf weicht im Bau nirgends ab.
+    // Datenblatt-Menue ebenso: letzter Link hinter dem </div> seiner Gruppe
+    // auf einem Item-Blatt -> „Link ausserhalb der Gruppen“. Dritte Runde
+    // (Live-Bau): „<a href>“ in <textarea> und <iframe> zaehlt nicht (Zombie
+    // still), ein echter Link daneben weckt ihn; Linkzahl gleich (598 732).
+    // Vierte Runde (Vorschau-Bau): „</textarea-x>“ beendet die textarea
+    // nicht mehr (Tagnamen enden wie im Parser an Leerraum, / oder >): der
+    // Link dahinter weckte mit dem Stand davor den Zombie-Waechter, jetzt
+    // nicht; Zaehlungen unveraendert (636 832 Links, 18 662 Rahmen).
+    id: 'verify:ia',
+    npm: 'verify:ia',
+    script: 'scripts/verify-ia.mjs',
+    rail: 'A',
+    checks:
+      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal und in ihrem Rahmen (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

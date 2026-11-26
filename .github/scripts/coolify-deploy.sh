@@ -69,7 +69,12 @@ if [ -n "${PIN_TAG:-}" ]; then
   fi
 fi
 
-CODE=$(curl -sS --max-time 60 -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || CODE=000
+# POST, nicht GET: seit einem Coolify-Update (zuerst gesehen am 26.11.2026,
+# Lauf 45726034533) antwortet der Deploy-Endpunkt auf GET mit HTTP 405
+# "This endpoint has changed to a POST request." und deployt nichts.
+# --data '' statt -X POST: so schickt curl "Content-Length: 0"; ohne die
+# Angabe antworten manche Vorschaltrechner auf einen POST mit 411.
+CODE=$(curl -sS --max-time 60 --data '' -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || CODE=000
 echo "HTTP $CODE"
 # Den Antwortrumpf nur bei einem Fehler zeigen: bei Erfolg nennt er die
 # Kennungen der Anwendungen, und das Protokoll ist in einem oeffentlichen Repo
