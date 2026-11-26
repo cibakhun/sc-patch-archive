@@ -1738,6 +1738,12 @@
   // CraftingApp.astro) traegt nur Abweichungen: sonst ist die Item-Adresse
   // der Slug, den die Karte des Rezepts verlinkt (/crafting/<slug>.html).
   function itemSheetUrl(i) {
+    var id = itemSheetId(i);
+    return id ? CFG.items.base + id + '.html' : null;
+  }
+  // Item-Id zu Rezept i (Adresse des Datenblatts, Schluessel ?item= der
+  // Items-Werkbank), oder null.
+  function itemSheetId(i) {
     var L = CFG.items;
     var n = +i;
     if (!L || !L.base || isNaN(n) || (L.none || []).indexOf(n) >= 0) return null;
@@ -1747,7 +1753,7 @@
       var m = card && /\/crafting\/([^\/?#]+)\.html$/.exec(card.getAttribute('href') || '');
       id = m && m[1];
     }
-    return id ? L.base + id + '.html' : null;
+    return id || null;
   }
 
   // Werkbank: Kopf des Rezepts. Eine kleine Leiste fuer das Rollen, das
@@ -1795,6 +1801,88 @@
       btn.classList.remove('is-ok');
       btn.innerHTML = wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span>';
     }, 1600);
+  }
+
+  // Werkbank: dieselben Wege wie auf dem Bauplan-Blatt, im Rezept selbst
+  // (Krisz 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „alle drei
+  // wege auf die werkbank einbauen“ und „hier soll craftingwerkbank wie
+  // datenblatt funktionieren“). Daten und Texte aus CraftingApp.astro
+  // (window.__CRAFT.wege / .wegeT, gebaut in src/lib/bezugswege.ts).
+  var WEGE = CFG.wege || null;
+  var WEGT = CFG.wegeT || {};
+  var WEGE_OHNE = {};
+  if (WEGE && WEGE.ohne) WEGE.ohne.split(';').forEach(function (e) {
+    var m = /^(\d+):(\d*)([fsw]*)$/.exec(e);
+    if (m) WEGE_OHNE[m[1]] = { ab: +m[2] || 0, f: m[3].indexOf('f') >= 0, s: m[3].indexOf('s') >= 0, w: m[3].indexOf('w') >= 0 };
+  });
+  function fuell(s, werte) { return String(s || '').replace(/\{(\w+)\}/g, function (a, k) { return werte[k] != null ? werte[k] : a; }); }
+  // Woher die Materialien kommen: je Material eine Zeile mit drei Spalten
+  // Abbauen (Fundorte in der Mining-Werkbank), Kaufen (Rohstoff-Terminal),
+  // Zerlegen. „Zerlegen“ oeffnet den Zerlege-Rechner mit genau diesem
+  // Material: alle Items, die es hergeben, ohne die Werkbank zu verlassen.
+  // Das genannte Item ist das beste je aUEC, nie das Item dieses Rezepts.
+  // Was es nicht gibt, steht ausdruecklich da (wie auf dem Blatt).
+  function wbMaterialWege(b) {
+    if (!WEGE || !WEGE.mat) return '';
+    var namen = [];
+    (b.ingredients || []).forEach(function (ing) {
+      (ing.options || []).forEach(function (o) { if (o.name && namen.indexOf(o.name) < 0) namen.push(o.name); });
+    });
+    if (!namen.length) return '';
+    var eigen = String(b.name || '').toLowerCase();
+    var zelle = function (titel, inhalt) { return '<div class="wbm__c"><span class="wbm__l">' + esc(titel) + '</span>' + inhalt + '</div>'; };
+    var ohne = function (weg, text) { return '<span class="wbm__ohne" data-mat-ohne="' + weg + '">' + esc(text) + '</span>'; };
+    var h = '<h3 class="cbm__h" id="wb-materialwege">' + esc(WEGT.matTitle) + '</h3><ul class="wbm">';
+    namen.forEach(function (n) {
+      var w = WEGE.mat[n] || [null, null];
+      var url = mineHref(n);
+      var z = w[1];
+      var bsp = z && z !== 'x' && z.length ? (String(z[0]).toLowerCase() === eigen ? z[1] : z[0]) : null;
+      h += '<li class="wbm__z" data-material="' + esc(n) + '"><b class="wbm__n">' + esc(n) + '</b><div class="wbm__w">';
+      h += zelle(WBT.wegMine, url
+        ? '<a class="wbm__weg" data-mat-weg="abbauen" href="' + esc(url) + '" title="' + esc(mineTitle(n)) + '"><span>' + esc(WBT.wegMineLink) + '</span>' + wi('arrow') + '</a>'
+        : ohne('abbauen', WEGT.matMineNone));
+      h += zelle(WBT.wegBuy, w[0] === 1
+        ? '<span class="wbm__txt" data-mat-weg="kaufen">' + esc(WBT.wegBuyYes) + '</span>'
+        : ohne('kaufen', w[0] === 0 ? WEGT.matBuyNone : WEGT.matBuyUnknown));
+      h += zelle(WBT.wegSalvage, z === 'x'
+        ? ohne('zerlegen', WEGT.matSalvageNone)
+        : bsp
+          ? '<button type="button" class="wbm__weg" data-mat-weg="zerlegen" data-mat-zerlegen="' + esc(n) + '" title="' + esc(fuell(WBT.wegSalvageTitle, { mat: n })) + '"><span>' + esc(fuell(WBT.wegSalvageFrom, { item: bsp })) + '</span>' + wi('arrow') + '</button>'
+          : ohne('zerlegen', WBT.wegSalvageNone));
+      h += '</div></li>';
+    });
+    return h + '</ul>';
+  }
+  // Woher kommt der Bauplan: mit Mission nur der Wikelo-Tausch, falls es ihn
+  // gibt; ohne Mission ehrlich „Quelle unbekannt“ (oder Wikelo), dazu was man
+  // stattdessen tun kann: das fertige Item auf anderem Weg (Items-Werkbank)
+  // und ein Hinweis zum Bauplan.
+  function wbQuelle(b, i, mitMission) {
+    var wik = !!(WEGE && WEGE.wik && WEGE.wik.indexOf(+i) >= 0);
+    var wikBtn = wik
+      ? '<div class="cbm__meta wbq-wikelo"><a class="cbm__xlink" data-quelle-weg="wikelo" href="' + esc(WEGE.wikelo + '?item=' + encodeURIComponent(b.name + ' Blueprint')) + '"><span>' + esc(WEGT.bpSourceWikelo) + '</span>' + wi('arrow') + '</a></div>'
+      : '';
+    if (mitMission) return wikBtn;
+    var h = '<h3 class="cbm__h">' + esc(WEGT.bpSourceTitle) + '</h3>';
+    h += wik
+      ? '<p class="cbm__note wbq" data-quelle="wikelo">' + esc(fuell(WEGT.bpSourceWikeloText, { patch: WEGE.patch })) + '</p>' + wikBtn
+      : '<p class="cbm__note wbq" data-quelle="unbekannt"><b>' + esc(WEGT.bpSourceUnknown) + '</b> ' + esc(fuell(WEGT.bpSourceUnknownText, { patch: WEGE.patch })) + '</p>';
+    h += '<h3 class="cbm__h">' + esc(WEGT.bpNextTitle) + '</h3><ul class="wbq-next">';
+    var o = WEGE_OHNE[String(+i)];
+    if (o) {
+      var wege = [];
+      if (o.ab > 0) wege.push(fuell(WEGT.bpNextItemBuy, { p: fmtNum(o.ab) + ' aUEC' }));
+      if (o.f) wege.push(WEGT.bpNextItemFind);
+      if (o.s) wege.push(WEGT.bpNextItemStock);
+      if (o.w) wege.push(WEGT.bpNextItemWikelo);
+      var id = itemSheetId(i);
+      h += '<li>' + esc(fuell(WEGT.bpNextItem, { wege: wege.join(', ') })) + ' <a data-quelle-weg="item" href="' + esc(WEGE.items + '?item=' + encodeURIComponent(id || b.name)) + '">' + esc(WEGT.bpNextItemOpen) + wi('arrow') + '</a></li>';
+    }
+    var slug = SLUG_BY_I[i];
+    var melden = WEGE.melden + (slug ? '?wert=' + (CFG.lang === 'de' ? '/de' : '') + '/crafting/' + encodeURIComponent(slug) + '.html' : '');
+    h += '<li>' + esc(WEGT.bpNextReport) + ' <a data-hinweis rel="nofollow" href="' + esc(melden) + '">' + esc(WEGT.report) + wi('arrow') + '</a></li></ul>';
+    return h;
   }
 
   function renderBlueprint(i) {
@@ -1865,6 +1953,7 @@
         html += '</div>';
       });
       html += '</div>';
+      if (WB) html += wbMaterialWege(b);
       html += '<h3 class="cbm__h">' + tr('simOut', 'Simulierte Ausgabe-Werte') + '</h3>';
       html += '<div class="cbm__out" id="cbm-out"></div>';
       html += '<p class="cbm__note" id="cbm-out-note"></p>';
@@ -1884,6 +1973,9 @@
         html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(missionName(m.name)) + '</span></button>' + (dc ? '<b' + (dc === '100%' ? ' class="is-voll"' : '') + '>' + dc + '</b>' : '') + '</li>';
       });
       html += '</ul>';
+      if (WB) html += wbQuelle(b, i, true);
+    } else if (WB && WEGE) {
+      html += wbQuelle(b, i, false);
     } else {
       html += '<p class="cbm__note">' + tr('noMission', 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.') + '</p>';
     }
@@ -2028,6 +2120,9 @@
 
     var gd = $('[data-goto-dismantle]', modalBody);
     if (gd) gd.addEventListener('click', function () { gotoDismantle(gd.getAttribute('data-goto-dismantle')); });
+    $$('[data-mat-zerlegen]', modalBody).forEach(function (btn) {
+      btn.addEventListener('click', function () { gotoDismantleMat(btn.getAttribute('data-mat-zerlegen')); });
+    });
 
     $$('.cbm__mlink', modalBody).forEach(function (btn) {
       btn.addEventListener('click', function () { go({ t: 'pool', key: btn.dataset.mkey }); });
@@ -2867,6 +2962,31 @@
       target.classList.add('is-jump');
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(function () { target.classList.remove('is-jump'); }, 1800);
+    }
+  }
+  // Werkbank: Material -> Zerlege-Rechner mit genau diesem Material gewaehlt
+  // (Krisz 27.11.2026, „alle drei wege auf die werkbank einbauen“). Eine
+  // Item-Suche von vorher wird geleert: hier geht es um das Material.
+  function gotoDismantleMat(material) {
+    closeModal();
+    switchTab('dismantle');
+    var mid = String(material).trim().toLowerCase();
+    var input = $('#calc-item-search');
+    if (input) input.value = '';
+    calcState.q = '';
+    calcState.res = {};
+    calcState.res[mid] = true;
+    $$('.calc-mat-cb').forEach(function (cb) { cb.checked = cb.value === mid; });
+    sortCalcMatsList();
+    calcApply();
+    // Oben anfangen: Reiter, gewaehltes Material (steht nach dem Sortieren
+    // oben in seiner Liste) und die ersten Treffer im Blick.
+    $$('.calc-mat-list, #calc-results').forEach(function (el) { el.scrollTop = 0; });
+    var reiter = $('.cdb-tab-btn');
+    if (reiter && window.scrollTo) {
+      var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+      var y = reiter.getBoundingClientRect().top + (window.scrollY || 0) - navH - 12;
+      if (y < (window.scrollY || 0)) window.scrollTo({ top: Math.max(0, y), behavior: mqRuhig.matches ? 'auto' : 'smooth' });
     }
   }
   function findCalcCard(lowName) {

@@ -13,8 +13,8 @@
 //   Ab Werk    Schiffe, auf denen das Teil serienmaessig sitzt
 //   Sonderweg  Exklusiv-Zeilen (Promo, Concierge …)
 // Nur lesen, nichts erfinden: ein Weg ohne Daten fehlt, statt geraten zu werden.
-import { minPrice, pageItems, sortedObtain, type Item, type Obtain } from './items';
-import { blueprintsByMission, craftDb, recipeForItem, type BlueprintEntry } from './crafting';
+import { minPrice, pageItemIds, pageItems, sortedObtain, type Item, type Obtain } from './items';
+import { blueprints, blueprintsByMission, craftDb, itemForBlueprint, recipeForItem, type BlueprintEntry } from './crafting';
 import ZERLEGEN from '../../assets/dismantling-items.json';
 import ROHSTOFFE from '../data/commodity-prices.json';
 import type { Locale } from '../i18n/ui';
@@ -330,4 +330,61 @@ export function materialWege(material: string, ohne?: string | null): MaterialWe
     kaufen: kaufbar.has(k) ? kaufbar.get(k)! : null,
     zerlegen: sperrliste.has(k) ? 'gesperrt' : quellen.length ? { item: quellen[0], anzahl: quellen.length } : null,
   };
+}
+
+/* ---------- Crafting-Werkbank: dieselben Wege im Rezept ---------- */
+
+// Krisz 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „alle drei wege
+// auf die werkbank einbauen“ (zum Material) und „hier soll craftingwerkbank
+// wie datenblatt funktionieren“ (Bauplan ohne Mission). Die Werkbank rendert
+// im Browser; sie bekommt hier dieselben Antworten wie das Bauplan-Blatt,
+// knapp verpackt fuer window.__CRAFT.wege (CraftingApp.astro):
+//   mat   Material -> [kaufen, zerlegen]
+//         kaufen   1 am Rohstoff-Terminal kaufbar, 0 nicht, null unbekannt
+//         zerlegen 'x' gibt das Spiel nie zurueck, null kein Item, sonst die
+//                  zwei besten Items je aUEC (wie materialWege). Zwei, damit
+//                  die Werkbank das Item des Rezepts selbst ueberspringt: es
+//                  zu zerlegen, um es zu bauen, waere kein Weg.
+//   wik   Rezepte (Index), deren Bauplan Wikelo tauscht. Wikelo gibt heute
+//         keinen Rezept-Rohstoff her (er verlangt nur welche); am Material
+//         steht er deshalb nicht, sondern am Bauplan und am fertigen Item.
+//   ohne  Rezepte ohne Mission -> Wege zum fertigen Item, wie „Was du
+//         stattdessen tun kannst“ auf dem Blatt. Eine Zeichenkette statt
+//         eines Objekts (rund 8 statt 17 KB je Seite): Eintraege durch „;“,
+//         je Eintrag „<Index>:<Kaufpreis ab><Marken>“, Preis weggelassen,
+//         wenn nicht kaufbar; Marken f finden, s ab Werk, w Wikelo.
+//         Beispiel „18:1097f;21:fs“. Nur Rezepte mit mindestens einem Weg.
+export interface WerkbankWege {
+  mat: Record<string, [1 | 0 | null, 'x' | string[] | null]>;
+  wik: number[];
+  ohne: string;
+}
+
+export function werkbankWege(): WerkbankWege {
+  const mat: WerkbankWege['mat'] = {};
+  const wik: number[] = [];
+  const ohne: string[] = [];
+  for (const b of blueprints) {
+    for (const ing of b.ingredients ?? []) {
+      for (const o of ing.options ?? []) {
+        if (!o.name || mat[o.name]) continue;
+        const k = klein(o.name);
+        const quellen = zerlegQuellen.get(k) ?? [];
+        mat[o.name] = [
+          kaufbar.has(k) ? (kaufbar.get(k) ? 1 : 0) : null,
+          sperrliste.has(k) ? 'x' : quellen.length ? quellen.slice(0, 2).map((it) => it.name) : null,
+        ];
+      }
+    }
+    if (wikeloBlueprintTrades(b.name) > 0) wik.push(b.index);
+    if (b.missions?.length) continue;
+    const it = itemForBlueprint(b);
+    if (!it || !pageItemIds.has(it.id)) continue;
+    const w = bezugswege(it, 'en');
+    const finden = !!w.finden && (w.finden.bestaetigt.length > 0 || w.finden.recherche.length > 0);
+    const marken = (finden ? 'f' : '') + (w.abWerk.length ? 's' : '') + (w.wikelo > 0 ? 'w' : '');
+    const ab = w.kaufen?.ab && w.kaufen.ab > 0 ? String(Math.round(w.kaufen.ab)) : '';
+    if (ab || marken) ohne.push(`${b.index}:${ab}${marken}`);
+  }
+  return { mat, wik, ohne: ohne.join(';') };
 }
