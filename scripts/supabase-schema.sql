@@ -116,11 +116,5 @@ ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Nutzer koennen eigene Rolle lesen" ON public.user_roles
   FOR SELECT USING (auth.uid() = user_id);
 
--- Admin-Eintrag fuer KrysX141 (krysx141@gmail.com).
--- Ersetze die UUID falls noetig — diese Abfrage findet sie automatisch.
-INSERT INTO public.user_roles (user_id, role)
-SELECT id, 'admin'
-FROM auth.users
-WHERE email = 'krysx141@gmail.com'
-ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+-- Admin-Rolle: wird von Hand fuer eine Konto-ID vergeben, nicht hier.
 */
