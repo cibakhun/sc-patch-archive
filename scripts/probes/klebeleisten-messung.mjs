@@ -269,6 +269,10 @@ async function sprungMessen(page, leiste, href, marke) {
       return cs.display !== 'none' && cs.visibility === 'visible' && r.width > 0 && r.height > 0
         && cs.pointerEvents !== 'none' && (typeof e.checkVisibility !== 'function' || e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }));
     };
+    // Nur was horizontal ueber dem Ziel liegt, kann es verdecken: eine
+    // klebende Filterspalte links neben dem Ziel zaehlt nicht mit.
+    const zr = ziel.getBoundingClientRect();
+    const ueberZiel = (q) => q.right > zr.left && q.left < zr.right;
     let kante = 0, wo = '';
     for (const o of document.querySelectorAll('body *')) {
       const pos = getComputedStyle(o).position;
@@ -276,17 +280,26 @@ async function sprungMessen(page, leiste, href, marke) {
       if (!zu(o)) continue;
       const q = o.getBoundingClientRect();
       if (q.height >= vh * 0.45 || !(q.top <= 2 + (parseFloat(getComputedStyle(o).top) || 0) && q.bottom < vh * 0.6)) continue;
-      if (q.bottom > kante) { kante = q.bottom; wo = name(o); }
+      if (ueberZiel(q) && q.bottom > kante) { kante = q.bottom; wo = name(o); }
       for (const k of o.querySelectorAll('a[href], button, input, select, summary')) {
         const w = k.getBoundingClientRect();
-        if (w.height && w.top < vh * 0.5 && w.bottom < vh * 0.6 && w.bottom > kante && zu(k)) { kante = w.bottom; wo = name(k); }
+        if (w.height && ueberZiel(w) && w.top < vh * 0.5 && w.bottom < vh * 0.6 && w.bottom > kante && zu(k)) { kante = w.bottom; wo = name(k); }
       }
     }
-    return { zt: Math.round(ziel.getBoundingClientRect().top), kante: Math.round(kante), wo };
+    return { zt: Math.round(zr.top), kante: Math.round(kante), wo };
   }, { leiste, href, marke });
 }
 
 /* ---------- Lauf ---------- */
+/* page.goto wirft bei 404 oder 500 nicht: ohne diese Pruefung zaehlte eine
+   Fehlerseite ohne Leisten als gemessen und befundfrei. Ein HTTP-Fehler
+   geht in den Fehlerzweig des Arbeiters (fehlgeschlagen++). null kommt nur
+   bei einer Navigation im selben Dokument und ist hier kein Fehler. */
+async function laden(page, url) {
+  const antwort = await page.goto(url, { waitUntil: 'load', timeout: 45000 });
+  if (antwort && antwort.status() >= 400) throw new Error(`HTTP ${antwort.status()} fuer ${url}`);
+  return antwort;
+}
 const browser = await chromium.launch({ executablePath: BROWSER, headless: true });
 if (BILDER) mkdirSync(BILDER, { recursive: true });
 const ergebnisse = [];
@@ -303,7 +316,7 @@ async function arbeiter() {
     try {
      for (const marke of [false, true]) {
       await page.setViewportSize(f);
-      await page.goto(BASE + s, { waitUntil: 'load', timeout: 45000 });
+      await laden(page, BASE + s);
       await page.waitForTimeout(400);
       const m = await messen(page, marke);
       if (!m) continue;
@@ -314,7 +327,7 @@ async function arbeiter() {
         if (b.geklebt && b.sprungLinks?.length) {
           const sp = { geprueft: 0, versteckt: 0, schlimmst: 0, kanteVon: '' };
           for (const href of b.sprungLinks) {
-            await page.goto(BASE + s, { waitUntil: 'load', timeout: 45000 });
+            await laden(page, BASE + s);
             await page.waitForTimeout(300);
             const j = await sprungMessen(page, b.leiste, href, marke);
             if (!j) continue;
@@ -325,7 +338,7 @@ async function arbeiter() {
             }
           }
           b.sprung = sp;
-          await page.goto(BASE + s, { waitUntil: 'load', timeout: 45000 });
+          await laden(page, BASE + s);
           if (marke) await messen(page, true).catch(() => null);
         }
         delete b.sprungLinks;

@@ -128,10 +128,14 @@ const sizeOf = (sets: { id: string }[]) => {
      20), und die steht unter der Sperrklinke von verify:metrics; eine
      fuenfte Zeile (283 px) traegt die Zahl nicht mehr.
      Geschichte: 30.08.2026 stand hier 7rem bzw. 16rem, gerechnet fuer zwei
-     Leisten, die beide bei top:0 klebten. */
-  .dp-sec[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 5.6rem); }
+     Leisten, die beide bei top:0 klebten.
+     Dasselbe gilt fuer die einzelnen Sets (.as-set[id]): Item-Seiten
+     verlinken direkt auf /armor-sets.html#<set>, und mit dem allgemeinen
+     Abstand aus data-page.css (6.5rem) lag der Set-Titel 49 bis 201 px
+     unter der Sprungleiste (gemessen 26.11.2026). */
+  .dp-sec[id], .as-set[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 5.6rem); }
   @media (min-width: 1181px) and (min-height: 1061px) {
-    .dp-sec[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 13.4rem); }
+    .dp-sec[id], .as-set[id] { scroll-margin-top: calc(var(--dp-bar-h, 4rem) + 13.4rem); }
   }
 
   /* Herstellerabschnitt als Block: content-visibility:auto rechnet Stil,
