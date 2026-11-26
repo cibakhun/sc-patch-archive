@@ -31,7 +31,10 @@ ist, entscheidet Krisz, nie eine Automatik.
    ablehnen (erst nachmessen) oder als Entscheidung an Krisz. Auf jeden
    Kommentar antworten, Thread schließen.
 5. **Nachbessern.** Pushen; der Workflow nimmt `review-ready` bei jedem
-   Push ab, der neue Stand wird also nicht ungefragt geprüft. Tor erneut
+   Push ab, der neue Stand wird also nicht ungefragt geprüft. Wird der Lauf
+   zum Push abgebrochen, bevor er das Label abnimmt (cubic schreibt die
+   PR-Beschreibung kurz nach jedem Push neu), erkennt der nächste Lauf ein
+   Label, das vor dem Push gesetzt wurde, und nimmt es ebenfalls ab. Tor erneut
    grün, Label wieder setzen: Der Workflow fordert einmal an, CodeRabbit
    prüft inkrementell nur die neuen Commits, und der Nachweis setzt die
    Runden zusammen (siehe „Abdeckung“).

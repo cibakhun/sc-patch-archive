@@ -353,10 +353,11 @@ export function bewerte(d) {
 
   // Kein Beleg. Grund so genau wie moeglich nennen.
   let grund;
-  /* Ohne Label ist der eigentliche Grund die fehlende Anforderung, auch
-     wenn CodeRabbit das als Skip meldet (live auf #477, 26.11.2026:
-     "Review skipped: excluded by label configuration"). */
-  if (!labels.includes(LABEL_BEREIT) && (crHead.art === 'fehlt' || /label configuration/i.test(crHead.titel || ''))) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  /* Ohne Label und ohne Anforderung ist der eigentliche Grund die fehlende
+     Anforderung, auch wenn CodeRabbit das als Skip meldet (live auf #477,
+     26.11.2026: "excluded by label configuration", nach dem Umbau
+     "automatic reviews are disabled"). */
+  if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
   else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
   else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';
   else if (crHead.art === 'uebersprungen') grund = `CodeRabbit hat uebersprungen (${crHead.titel}): NICHT geprueft`;

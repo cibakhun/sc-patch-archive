@@ -25,6 +25,7 @@ const CR_FERTIG = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed'
 const CR_LIMIT = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'neutral', title: 'Review rate limited', summary: 'Result: Rate limited - Review rate limited', started_at: '2026-11-26T07:20:31Z' };
 const CR_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Review skipped: 640 files exceed the limit of 300', summary: 'Result: Skipped - Review skipped: 640 files exceed the limit of 300', started_at: '2026-11-11T10:00:00Z' };
 const CR_LABEL_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Review skipped: excluded by label configuration', summary: 'Result: Skipped - Review skipped: excluded by label configuration', started_at: '2026-11-26T17:29:09Z' };
+const CR_AUS_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Review skipped: automatic reviews are disabled', summary: 'Result: Skipped - Review skipped: automatic reviews are disabled', started_at: '2026-11-26T17:45:40Z' };
 const CR_INKR_SKIP = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'skipped', title: 'Incremental review skipped', summary: 'Result: Skipped - Incremental review skipped', started_at: '2026-11-11T10:00:00Z' };
 const CR_ABBRUCH = { app: 'coderabbitai', name: 'CodeRabbit', status: 'completed', conclusion: 'cancelled', title: 'Review cancelled', summary: 'Result: Cancelled - Pull request is closed', started_at: '2026-11-11T10:00:00Z' };
 const CR_LAEUFT = { app: 'coderabbitai', name: 'CodeRabbit', status: 'in_progress', conclusion: null, title: '', summary: '', started_at: '2026-11-26T08:00:00Z' };
@@ -164,6 +165,8 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
     assert.equal(u.state, 'failure');
     assert.match(u.description, /Label review-ready fehlt/);
     assert.match(u.description, /cubic am Limit/);
+    const nachUmbau = bewerte(lage({ pr: { labels: [] }, laeufeJeCommit: { [C]: [CR_AUS_SKIP, CU_LIMIT] }, bereiche: [] }));
+    assert.match(nachUmbau.description, /Label review-ready fehlt/, 'live #477 nach dem Umbau: "automatic reviews are disabled"');
   });
   test('T4 ROT: Review nur auf aelterem Stand; mit Label wird gewartet, ohne Wartezeit rot', () => {
     const d = lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }] });

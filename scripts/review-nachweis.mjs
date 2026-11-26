@@ -188,8 +188,24 @@ if (labels().includes(LABEL_NEU)) {
   pr.labels = pr.labels.filter((l) => l.name !== LABEL_NEU);
 }
 
+/* Wurde `review-ready` vor dem Push des heutigen Heads gesetzt? Dann gehoert
+   es zu einem aelteren Stand. Ankerzeit ist die erste Check-Suite des Heads
+   (GitHub-Uhr, entsteht beim Push), sonst das Commit-Datum. Faengt den
+   Fall, dass der Lauf zum Push abgebrochen wurde, bevor er das Label abnahm
+   (cubic schreibt die PR-Beschreibung ~30 s nach jedem Push neu, das
+   `edited` bricht den laufenden Lauf ab). */
+async function labelAelterAlsHead(head) {
+  const ev = await alle(`${R}/issues/${NUMMER}/events`, 5);
+  const gesetzt = ev.filter((e) => e.event === 'labeled' && e.label?.name === LABEL_BEREIT).map((e) => Date.parse(e.created_at)).filter(Number.isFinite);
+  if (!gesetzt.length) return false;
+  const suiten = (await api(`${R}/commits/${head}/check-suites?per_page=100`)).check_suites || [];
+  let anker = Math.min(...suiten.map((x) => Date.parse(x.created_at)).filter(Number.isFinite));
+  if (!Number.isFinite(anker)) anker = Date.parse((await api(`${R}/commits/${head}`)).commit?.committer?.date || '');
+  return Number.isFinite(anker) && Math.max(...gesetzt) < anker;
+}
+
 // Neuer Stand: das Label gehoerte zum alten.
-if (AKTION === 'synchronize' && labels().includes(LABEL_BEREIT)) {
+if (labels().includes(LABEL_BEREIT) && (AKTION === 'synchronize' || await labelAelterAlsHead(pr.head.sha))) {
   await labelAb(LABEL_BEREIT);
   pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
 }
