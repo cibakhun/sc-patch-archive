@@ -69,7 +69,8 @@ if [ -n "${PIN_TAG:-}" ]; then
   fi
 fi
 
-CODE=$(curl -sS --max-time 60 -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || CODE=000
+# POST: seit dem 26.11.2026 lehnt Coolify GET auf den Webhook mit HTTP 405 ab.
+CODE=$(curl -sS --max-time 60 -o "$BODY" -w '%{http_code}' -X POST "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || CODE=000
 echo "HTTP $CODE"
 # Den Antwortrumpf nur bei einem Fehler zeigen: bei Erfolg nennt er die
 # Kennungen der Anwendungen, und das Protokoll ist in einem oeffentlichen Repo
