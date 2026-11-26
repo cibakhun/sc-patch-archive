@@ -442,21 +442,16 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(n+5){animation-delay:calc(250ms*var(--zt))}
 .cdb--wb .cdb-modal__body.is-neu .wbr-emb .wg{animation:wb-emb calc(.5s*var(--zt)) var(--feder) both}
 .cdb--wb .cdb-modal__body.is-neu .wb-ring__b{stroke-dasharray:277;animation:wb-zieh calc(.7s*var(--zt)) var(--out) both}
-/* R7: Wechsel von Rezept zu Rezept (is-wechsel setzt crafting-app.js, wenn
-   schon ein Rezept dasteht). Vorher baute sich die ganze Mitte jedes Mal neu
-   auf und war fuer zwei Bilder leer, samt dem Knopf, der doch derselbe
-   bleibt. Jetzt bleibt stehen, was gleich bleibt (die Felder der Kennwerte,
-   „Zum Planer“ und die Verweise); die Werte rucken, Name und Zutaten kommen
-   knapper und mit kuerzerem Weg. */
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > *{animation:wb-nach calc(.3s*var(--zo)) var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > .cbm__meta{animation:none}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn b{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(2){animation-delay:calc(25ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(3){animation-delay:calc(50ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(4){animation-delay:calc(75ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(n+5){animation-delay:calc(100ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-emb .wg{animation-duration:calc(.38s*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wb-ring__b{animation-duration:calc(.45s*var(--zo))}
+/* Wechsel von Rezept zu Rezept (Krisz 27.11.2026: „wenn man das erste mal
+   ein blueprint asuwählt und wie das alles da rechts erscheint ist sehr
+   smooth aber danach wenn man andere blueprints auswählt iwi gar nicht so“).
+   R7 hatte den Wechsel knapper gemacht: Felder blieben stehen, nur Name und
+   Zutaten rueckten 6 px nach, und der Inhalt wechselte ohne Uebergang. Das
+   las sich wie ein harter Schnitt. Jetzt blendet das alte Rezept kurz aus
+   (is-geht, crafting-app.js), und das neue baut sich auf wie das erste, nur
+   im Tempo der Wiederholung (--zo statt --zt). Der Rahmen des Kopfs bleibt. */
+.cdb--wb .cdb-modal__body.is-wechsel{--zt:var(--zo)}
+.cdb--wb .cdb-modal__body.is-geht .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-geht .wbr-emb > :not(.wb-ring),.cdb--wb .cdb-modal__body.is-geht .wb-ring__b,.cdb--wb .cdb-modal__body.is-geht .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-geht .wbr-inh > *{animation:wb-weg calc(.13s*var(--zo)) cubic-bezier(.4,0,1,1) both}
 /* Leere Mitte: Bauplan im Fadenkreuz. */
 .cdb--wb .cdb-wb-leer{gap:.55rem;padding:2rem 1.4rem}
 .cdb--wb .cdb-wb-leer__i{position:relative;width:132px;height:132px;margin-bottom:.9rem;border:0;background:radial-gradient(closest-side,color-mix(in srgb,var(--o) 16%,transparent),transparent)}
@@ -719,6 +714,7 @@ ${AUFTAKT_VERZUG}
    neu an, statt hart umzuspringen (is-frisch setzt crafting-app.js). */
 .cdb--wb .is-frisch{animation:wb-nach calc(.26s*var(--zt)) var(--out)}
 .cdb--wb .cdb-grid.is-frisch{animation:wb-frisch calc(.22s*var(--zo)) var(--out)}
+@keyframes wb-weg{to{opacity:0;transform:translateY(-4px)}}
 @keyframes wb-nach{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes wb-frisch{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes wb-atem{from{opacity:.3}to{opacity:.75}}

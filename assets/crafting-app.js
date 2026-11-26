@@ -1390,6 +1390,7 @@
   // Adresse ist schon die der Liste. Als Klick-Handler kommt hier ein Ereignis.
   function closeModal(ausHistorie) {
     if (!modal) return;
+    wbGehtAbbrechen();
     var von = dlgAn() ? dlgVon : null;
     dlgVon = null;
     modalStack = []; currentEntry = null;
@@ -1643,13 +1644,47 @@
   }
 
   // Navigation
+  // Werkbank: Wechsel von Rezept zu Rezept (Krisz 27.11.2026: „wenn man das
+  // erste mal ein blueprint asuwählt und wie das alles da rechts erscheint
+  // ist sehr smooth aber danach wenn man andere blueprints auswählt iwi gar
+  // nicht so“). Steht schon etwas in der Mitte, blendet es erst kurz aus
+  // (.is-geht, werkbankDesign.ts), dann baut sich das neue so auf wie das
+  // erste. Die Karte ist sofort markiert; wer schnell weiterklickt, bekommt
+  // das zuletzt Gewaehlte. Ohne Bewegung (prefers-reduced-motion) sofort.
+  var WB_GEHT_MS = 130, wbGehtTimer = 0, wbGehtZiel = null;
+  function wbGehtAbbrechen() {
+    if (wbGehtTimer) { clearTimeout(wbGehtTimer); wbGehtTimer = 0; }
+    wbGehtZiel = null;
+    if (modalBody) modalBody.classList.remove('is-geht');
+  }
+  // Wer waehrend des Ausblendens den Reiter wechselt, bekommt das gewaehlte
+  // Rezept sofort hingestellt; switchTab raeumt danach dessen is-neu ab.
+  function wbGehtSofort() {
+    var ziel = wbGehtZiel;
+    if (!wbGehtTimer) return;
+    wbGehtAbbrechen();
+    if (ziel) zeichneEintrag(ziel);
+  }
   function renderEntry(entry) {
-    // Werkbank R7: steht schon ein Rezept da, ist das ein Wechsel. Dann
-    // bleibt stehen, was gleich bleibt (Knopf, Verweise), und der Rest
-    // kommt knapper (.is-wechsel, werkbankDesign.ts). Beim ersten Rezept
-    // baut sich die Mitte ganz auf. .is-neu setzt jede Wahl neu: der
-    // Reiterwechsel raeumt es ab (switchTab), damit sich dort nichts
-    // wiederholt.
+    var wechsel = WB && modal && modalBody && !modal.classList.contains('is-leer') && !mqRuhig.matches;
+    if (!wechsel) { wbGehtAbbrechen(); zeichneEintrag(entry); return; }
+    wbGehtZiel = entry;
+    if (entry.t === 'bp') markSel(entry.i);
+    if (wbGehtTimer) return;
+    modalBody.classList.remove('is-neu', 'is-wechsel');
+    modalBody.classList.add('is-geht');
+    wbGehtTimer = setTimeout(function () {
+      var ziel = wbGehtZiel;
+      wbGehtTimer = 0; wbGehtZiel = null;
+      modalBody.classList.remove('is-geht');
+      if (ziel) zeichneEintrag(ziel);
+    }, Math.round(WB_GEHT_MS * WB_ZO));
+  }
+  function zeichneEintrag(entry) {
+    // Werkbank: steht schon ein Rezept da, ist das ein Wechsel (.is-wechsel:
+    // derselbe Aufbau wie beim ersten Rezept, im Tempo der Wiederholung).
+    // .is-neu setzt jede Wahl neu: der Reiterwechsel raeumt es ab
+    // (switchTab), damit sich dort nichts wiederholt.
     if (WB && modalBody) {
       modalBody.classList.add('is-neu');
       modalBody.classList.toggle('is-wechsel', !modal.classList.contains('is-leer'));
@@ -2777,6 +2812,7 @@
     // mitten in der Bewegung des Reiters. Was hereinkommen soll, bekommt die
     // Klasse unten neu.
     if (WB && wbRoot) {
+      wbGehtSofort();
       $$('.is-neu, .is-tick, .is-puls, .is-spaet, .is-wechsel, .is-frisch', wbRoot).forEach(function (el) {
         el.classList.remove('is-neu', 'is-tick', 'is-puls', 'is-spaet', 'is-wechsel', 'is-frisch');
       });
