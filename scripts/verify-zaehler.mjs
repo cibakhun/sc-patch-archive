@@ -112,8 +112,8 @@ const MIN_EREIGNIS_MARKEN = 108;
 // 11.11.2026 (Ereignis extern): 8 Proben mehr, 32 Laeufe; Bedienung auf
 // der Seite: 13 Proben mehr, 45 Laeufe; Review: Pilotenprofil und mittlere
 // Taste, 3 Proben mehr, 48 Laeufe. 24.11.2026 (Messluecken K6): 4 Proben
-// mehr, 52 Laeufe.
-const MIN_EREIGNIS_PROBEN = 52;
+// mehr, 52 Laeufe; Mining-Teil (K6 Teil b): 2 Proben mehr, 55 Laeufe gemessen.
+const MIN_EREIGNIS_PROBEN = 55;
 // Melde-Links (data-ev-melden, „Falschen Wert melden“ im Datenstand), Stand
 // 06.11.2026 (Build der Melde-Aenderung): 17.190 Detailseiten (Items,
 // Blueprints, Schiffe, Missionen, je DE und EN). Knapp darunter, ein Datenlauf
@@ -133,9 +133,11 @@ const MIN_BILD_AUSLOESER = 900;
 // Messluecken (UX-Audit K6, 24.11.2026, Build der Aenderung): 4
 // Download-Bereiche (Onepager + Bilder je Sprache) um 2 x 291 Links mit
 // download-Attribut; 3 Stellen, die treffer-offen selbst melden
-// (assets/wikelo-bridge.js, Evolution DE und EN).
+// (assets/wikelo-bridge.js, Evolution DE und EN). Mining-Teil (K6 Teil b):
+// 2 Stellen mehr in assets/mining-workbench.js (Kachel per Klick und per
+// Taste), 5.
 const MIN_DOWNLOAD_BEREICHE = 4;
-const MIN_TREFFER_AUFRUFE = 3;
+const MIN_TREFFER_AUFRUFE = 5;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -636,6 +638,9 @@ const aufrufNamen = new Set(ereignisAufrufe.map((a) => a.name));
 console.log(`    Aufrufe von vbEreignis: ${ereignisAufrufe.length} an ${new Set(ereignisAufrufe.map((a) => a.wo)).size} Stellen (${[...aufrufNamen].sort().join(', ') || '—'})   nicht freigegeben — Soll: 0   Ist: ${fremdeAufrufe.length}`);
 for (const a of fremdeAufrufe.slice(0, 10)) fail(`${a.wo}: vbEreignis('${a.name}') — kein freigegebenes Ereignis`);
 for (const n of ['suche-offen', 'suche-treffer']) if (!aufrufNamen.has(n)) fail(`kein Aufruf von vbEreignis('${n}') im gebauten Stand — die Suche meldet ihr Ereignis nicht mehr`);
+// eigenes-fenster hat keinen Ausloeser in assets/ereignisse.js, nur den
+// Aufruf der Mining-Werkbank: fehlt er, steht das Ereignis ohne Anlass da.
+if (!aufrufNamen.has('eigenes-fenster')) fail(`kein Aufruf von vbEreignis('eigenes-fenster') im gebauten Stand — die Mining-Werkbank meldet ihr eigenes Fenster nicht mehr, oder das Ereignis ist ohne Anlass (Zombie)`);
 // merken: jeder was-Wert aus MERKEN hat einen Aufruf, und jeder Aufruf nennt einen aus MERKEN.
 const merkenSet = new Set(MERKEN);
 const merkenFremd = merkenAufrufe.filter((a) => !merkenSet.has(a.was));
@@ -834,6 +839,19 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       [{ name: 'treffer-offen', data: { werkzeug: 'wikelo' }, url: '/de/topics/wikelo-emporium.html' }]],
     ['treffer-offen per Aufruf auf der Evolution-Seite', { pfad: '/evolution.html' }, (p) => p.ctx.vbEreignis('treffer-offen'),
       [{ name: 'treffer-offen', data: { werkzeug: 'evolution' }, url: '/evolution.html' }]],
+    // Mining-Teil (K6 Teil b): Kachel, Erz und Fundort angeheftet, eigenes Fenster
+    ['Mining: Kachel geoeffnet, Erz und Fundort angeheftet, eigenes Fenster; fremder Wert und Zusatzfeld', { pfad: '/de/topics/mining.html' },
+      (p) => {
+        p.ctx.vbEreignis('treffer-offen');
+        p.ctx.vbEreignis('merken', { was: 'erz' });
+        p.ctx.vbEreignis('merken', { was: 'fundort' });
+        p.ctx.vbEreignis('merken', { was: 'station' });
+        p.ctx.vbEreignis('eigenes-fenster');
+        p.ctx.vbEreignis('eigenes-fenster', { erz: 'Quantainium' });
+      },
+      [{ name: 'treffer-offen', data: { werkzeug: 'mining' }, url: '/de/topics/mining.html' }, { name: 'merken', data: { was: 'erz' }, url: '/de/topics/mining.html' },
+        { name: 'merken', data: { was: 'fundort' }, url: '/de/topics/mining.html' }, { name: 'eigenes-fenster', data: { werkzeug: 'mining' }, url: '/de/topics/mining.html' }]],
+    ['eigenes-fenster ausserhalb eines Werkzeugs', { pfad: '/support.html' }, (p) => p.ctx.vbEreignis('eigenes-fenster'), []],
     ['merken besitz, dann planer menge, leeren, abbau; fremde Aktion und Zusatzfeld', { pfad: '/de/topics/crafting.html' },
       (p) => {
         p.ctx.vbEreignis('merken', { was: 'besitz' });
@@ -908,7 +926,7 @@ console.log(`    Download-Bereiche: ${downloadMarken.length} (Klinke ${MIN_DOWNL
 console.log(`    Hilfe-Marken: ${hilfeMarken.length} (Klinke ${MIN_HILFE_MARKEN})   Trefferbereiche: ${trefferMarken.length} (Klinke ${MIN_TREFFER_BEREICHE})   Video-Fassaden: ${videoFassaden} (Klinke ${MIN_VIDEO_FASSADEN})   Bild-Ausloeser: ${bildAusloeser} (Klinke ${MIN_BILD_AUSLOESER})`);
 if (hilfeMarken.length < MIN_HILFE_MARKEN) fail(`nur ${hilfeMarken.length} Hilfe-Marken data-ev-hilfe, Klinke ${MIN_HILFE_MARKEN} — ToolHelp hat die Marke verloren oder Werkzeuge ihre Hilfe; Ursache klaeren, nicht die Klinke senken`);
 if (downloadMarken.length < MIN_DOWNLOAD_BEREICHE) fail(`nur ${downloadMarken.length} Download-Bereiche data-ev-download, Klinke ${MIN_DOWNLOAD_BEREICHE} — die Downloads-Seite hat die Marke verloren, Downloads zaehlen dann nicht; Ursache klaeren, nicht die Klinke senken`);
-if (trefferAufrufe.length < MIN_TREFFER_AUFRUFE) fail(`nur ${trefferAufrufe.length} Stellen mit vbEreignis('treffer-offen'), Klinke ${MIN_TREFFER_AUFRUFE} — das Wikelo-Fenster oder die Evolution-Zellen melden ihr Oeffnen nicht mehr; Ursache klaeren, nicht die Klinke senken`);
+if (trefferAufrufe.length < MIN_TREFFER_AUFRUFE) fail(`nur ${trefferAufrufe.length} Stellen mit vbEreignis('treffer-offen'), Klinke ${MIN_TREFFER_AUFRUFE} — das Wikelo-Fenster, die Evolution-Zellen oder die Kacheln der Mining-Werkbank melden ihr Oeffnen nicht mehr; Ursache klaeren, nicht die Klinke senken`);
 if (trefferMarken.length < MIN_TREFFER_BEREICHE) fail(`nur ${trefferMarken.length} Trefferbereiche data-ev-treffer, Klinke ${MIN_TREFFER_BEREICHE} — Item Finder oder Crafting haben die Marke am Ergebnisraster verloren`);
 if (videoFassaden < MIN_VIDEO_FASSADEN) fail(`nur ${videoFassaden} Video-Fassaden auf gezaehlten Seiten, Klinke ${MIN_VIDEO_FASSADEN} — das Ereignis video erkennt sie an data-yt, data-lb="yt:…" und #holoytgo; haben sie ein neues Merkmal?`);
 if (bildAusloeser < MIN_BILD_AUSLOESER) fail(`nur ${bildAusloeser} Bild-Ausloeser auf gezaehlten Seiten, Klinke ${MIN_BILD_AUSLOESER} — das Ereignis bilder erkennt sie an data-lb und #btnimg; haben sie ein neues Merkmal?`);

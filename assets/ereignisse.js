@@ -60,6 +60,10 @@
 //      mittleren Taste; nur die Art.
 //    planer: ruft assets/crafting-app.js (Menge geaendert, je Seitenaufruf
 //      einmal; Planer geleert; Einkaufsliste -> Fundorte).
+//    Mining (assets/mining-workbench.js): Kachel der Erzliste geoeffnet als
+//      treffer-offen (auch Enter und Leertaste), merken „erz“ bzw. „fundort“
+//      beim Anheften (nie welches), eigenes-fenster beim Oeffnen der Listen
+//      in einem eigenen Fenster.
 //  - Erste Bedienung eines Elements mit data-ev-filter="<name>" (filter) bzw.
 //    in einem Bereich mit data-ev-rechnung (rechnung) je Seitenaufruf, Klick
 //    auf data-ev-kopieren (kopieren-teilen). Nur echte Bedienung
@@ -88,12 +92,13 @@
     'wert-melden': { seite: DETAIL },
     extern: { seite: SEITE, ziel: 'discord spende wiki uex rsi fleetyards youtube sonst' },
     'treffer-offen': { werkzeug: WZ },
-    merken: { was: 'flotte planer auftrag besitz' },
+    merken: { was: 'flotte planer auftrag besitz erz fundort' },
     video: { seite: SEITE },
     bilder: { seite: SEITE },
     hilfe: { werkzeug: WZ + ' sonst', art: 'anleitung elemente' },
     download: { art: 'onepager bild' },
     planer: { aktion: 'menge leeren abbau' },
+    'eigenes-fenster': { werkzeug: WZ },
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
@@ -181,7 +186,7 @@
     var f = {};
     for (var k in felder || {}) f[k] = felder[k];
     if (name === 'suche-offen' || name === 'video' || name === 'bilder') f.seite = hierArt;
-    if (name === 'treffer-offen') f.werkzeug = hierWz;
+    if (name === 'treffer-offen' || name === 'eigenes-fenster') f.werkzeug = hierWz;
     if (name === 'hilfe') f.werkzeug = hierWz || 'sonst';
     return senden(name, f);
   };
