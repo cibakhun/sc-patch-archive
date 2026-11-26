@@ -61,6 +61,15 @@
 //      Missionstabelle eines Bauplans und im Block „So bekommst du es" traegt
 //      denselben Namen wie die Missionsseite selbst (ihr <title> vor „ — "),
 //      also Titel samt unterscheidendem Zusatz statt des Arbeitsnamens. Klinke.
+//  16  IA C8 (26.11.2026): JEDES Item-Blatt beider Sprachen traegt den
+//      Abschnitt „Technische Daten" (#technische-daten), und er ist nicht
+//      leer: Werte, Angaben (Hersteller/Beschreibung), der Link aufs
+//      Schiffsblatt oder ein benannter Hinweis — „hier gibt es keine
+//      Werte-Übersicht" (data-specs-ohne-werte) bzw. „kein Item dieses Namens
+//      im Spiel" (data-specs-nicht-im-spiel), im Wortlaut von
+//      src/i18n/itemText.ts. Die Hinweise stehen genau dort, wo der Katalog
+//      das Item so markiert (game.ohneWerte / nichtImSpiel). Klinke fuer die
+//      Flugblaetter mit Werten, Decke fuer die Blaetter „nicht im Spiel".
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -88,10 +97,17 @@ const KLINKEN = {
   itemBlaetter: 11500, mitMission: 1350, bauplanSeiten: 3200, fahrzeugBlaetter: 350, katalogItems: 9000,
   poolTabellen: 1350, materialSeiten: 3200, schiffsteile: 210, bezugsTabellen: 10850,
   waffenBlaetter: 700, missionsNamen: 10700,
+  // [16] IA C8 26.11.2026: Flugblaetter (PHB/TSB) mit Flugwerten, beide
+  // Sprachen. Steigt mit dem Datenlauf, der den Typ FlightController liest.
+  flugblaetter: 128,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
-const DECKEN = { ohneWeg: 290 };
+// [16] IA C8 26.11.2026: Item-Blaetter ohne Abschnitt „Technische Daten"
+// (vor dem Datenlauf mit Flugblaettern und Identitaet 232 = 116 je Sprache) und
+// Blaetter mit dem Hinweis „nicht im Spiel" (erwartet nach dem Datenlauf:
+// 11 Items, die kein Record im Spiel traegt, je Sprache).
+const DECKEN = { ohneWeg: 290, ohneTechDaten: 0, nichtImSpiel: 22 };
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -393,11 +409,29 @@ const fahrzeugOhneSchiff = [];
 const fahrzeugFalschesSchiff = [];
 const fahrzeugOhneDaten = [];
 // Wortlaut des Hinweises je Sprache, aus derselben Quelle wie die Seite.
-const SPECS_ON_SHIP = (() => {
-  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(/^\s*specsOnShip: '((?:[^'\\]|\\.)*)',$/gm)].map((m) => m[1]);
-  if (t.length !== 2) { console.error(`verify:bezugswege: specsOnShip steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
+const itemWortlaut = (schluessel) => {
+  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(new RegExp(`^\\s*${schluessel}: '((?:[^'\\\\]|\\\\.)*)',$`, 'gm'))].map((m) => m[1]);
+  if (t.length !== 2) { console.error(`verify:bezugswege: ${schluessel} steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
   return { de: t[0], en: t[1] };
-})();
+};
+const SPECS_ON_SHIP = itemWortlaut('specsOnShip');
+const SPECS_OHNE_WERTE = itemWortlaut('specsOhneWerte');
+const SPECS_NICHT_IM_SPIEL = itemWortlaut('specsNichtImSpiel');
+// Die sechs Flugwerte eines Flugblatts, beschriftet wie auf der Seite. Die
+// Beschriftungen stehen in itemText.ts zu mehreren in einer Zeile.
+const itemBeschriftung = (schluessel) => {
+  const t = [...readFileSync(resolve(ROOT, 'src/i18n/itemText.ts'), 'utf8').matchAll(new RegExp(`\\b${schluessel}: '((?:[^'\\\\]|\\\\.)*)'`, 'g'))].map((m) => m[1]);
+  if (t.length !== 2) { console.error(`verify:bezugswege: ${schluessel} steht ${t.length}-mal in src/i18n/itemText.ts, erwartet je einmal fuer de und en`); process.exit(1); }
+  return { de: t[0], en: t[1] };
+};
+const FLUGWERTE = ['statScm', 'statMaxSpeed', 'statBoost', 'statPitch', 'statYaw', 'statRoll'].map(itemBeschriftung);
+/* [16] IA C8 Technische Daten auf jedem Item-Blatt */
+const techArten = { werte: 0, angaben: 0, schiff: 0, ohneWerte: 0, nichtImSpiel: 0 };
+const ohneTechDaten = [];
+const techLeer = [];
+const techMarkeFalsch = [];
+let flugblaetter = 0;
+const flugblattOhneWerte = [];
 let ohneWeg = 0;
 let schiffsteile = 0;
 const schiffsteilOhneLink = [];
@@ -441,6 +475,50 @@ function pruefeAehnlich(pfad, html) {
   if (zuOft.length) probleme.push(`Modell zu oft: ${zuOft.join(', ')}`);
   if (karten.some((k) => !k)) probleme.push('Karte ohne data-item oder ohne Katalogeintrag');
   if (probleme.length) aehnlichFalsch.push(`${pfad} (${probleme.join('; ')})`);
+}
+
+function pruefeTechDaten(pfad, html) {
+  const sek = abschnitt(html, 'technische-daten');
+  const h2 = sichtbar(sek?.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/)?.[1] ?? '').trim();
+  if (!sek || !/^(Technische Daten|Technical data)$/.test(h2)) { ohneTechDaten.push(pfad); return; }
+  const sprache = pfad.startsWith('/de/') ? 'de' : 'en';
+  const notiz = (attr) => falte(sichtbar(sek.match(new RegExp(`<p\\b[^>]*\\b${attr}\\b[^>]*>([\\s\\S]*?)<\\/p>`))?.[1] ?? ''));
+  const hatOhneWerte = sek.includes('data-specs-ohne-werte');
+  const hatNichtImSpiel = sek.includes('data-specs-nicht-im-spiel');
+  // Bloecke nach Inhalt, nicht nach Klasse: ein leerer <p class="dp-desc">
+  // oder eine Liste ohne Eintrag ist keine Angabe (Review #476).
+  const block = (cls) => sek.match(new RegExp(`<(ul|p)\\b[^>]*\\bclass="${cls}"[^>]*>([\\s\\S]*?)<\\/\\1>`))?.[2] ?? '';
+  const wertNamen = [...block('dp-stats').matchAll(/<b\b[^>]*>([\s\S]*?)<\/b>/g)].map((m) => falte(sichtbar(m[1])));
+  const chipsDa = /<li\b/.test(block('dp-chips'));
+  const descDa = falte(sichtbar(block('dp-desc'))) !== '';
+  const werte = wertNamen.length > 0;
+  const art = sek.includes('data-specs-schiff') ? 'schiff'
+    : hatNichtImSpiel ? 'nichtImSpiel'
+    : werte ? 'werte'
+    : hatOhneWerte ? 'ohneWerte'
+    : chipsDa || descDa ? 'angaben'
+    : null;
+  if (!art) { techLeer.push(pfad); return; }
+  techArten[art]++;
+  const item = itemNachId.get(pfad.match(/\/([^/]+)\.html$/)?.[1]);
+  const probleme = [];
+  if (hatNichtImSpiel && notiz('data-specs-nicht-im-spiel') !== SPECS_NICHT_IM_SPIEL[sprache]) probleme.push('Hinweis „nicht im Spiel" im anderen Wortlaut');
+  if (hatOhneWerte && notiz('data-specs-ohne-werte') !== SPECS_OHNE_WERTE[sprache]) probleme.push('Hinweis „keine Werte-Übersicht" im anderen Wortlaut');
+  if (hatNichtImSpiel !== (item?.nichtImSpiel === true)) probleme.push(hatNichtImSpiel ? 'Hinweis „nicht im Spiel", der Katalog markiert es nicht' : 'Katalog: nicht im Spiel, die Seite sagt es nicht');
+  if (item?.nichtImSpiel && item.game) probleme.push('Katalog: nicht im Spiel, traegt aber Spieldaten');
+  if (item?.game?.ohneWerte && !hatOhneWerte) probleme.push('Katalog: ohne Werte, die Seite sagt es nicht');
+  if (hatOhneWerte && werte) probleme.push('Hinweis „keine Werte-Übersicht" neben Werten');
+  // Die andere Richtung: ohne Katalog-Marke steht der Hinweis nur auf einem
+  // Blatt, das sonst gar nichts zeigt (Regel in ItemDetail.astro, Review #476).
+  if (hatOhneWerte && item?.game?.ohneWerte !== true && (!item?.game || chipsDa || descDa)) probleme.push('Hinweis „keine Werte-Übersicht" ohne Katalog-Marke');
+  if (probleme.length) techMarkeFalsch.push(`${pfad} (${probleme.join('; ')})`);
+  // Flugblatt zaehlt nur mit allen sechs Flugwerten, nicht mit irgendeinem
+  // Werteblock (Review #476).
+  if (item?.game?.gameType === 'FlightController') {
+    const fehlen = FLUGWERTE.map((w) => w[sprache]).filter((l) => !wertNamen.includes(l));
+    if (fehlen.length) flugblattOhneWerte.push(`${pfad} (fehlt: ${fehlen.join(', ')})`);
+    else flugblaetter++;
+  }
 }
 
 for (const rel of ['items', 'de/items']) {
@@ -496,6 +574,8 @@ for (const rel of ['items', 'de/items']) {
       else magGeprueft++;
       if (d.text.test(desc)) doppelt.push(`${pfad} (${d.name})`);
     }
+    // [16] Technische Daten: der Abschnitt steht, und er sagt etwas
+    pruefeTechDaten(pfad, html);
     // [6] Fahrzeug-Itemblatt -> Schiffsblatt
     // Das Ziel muss SEIN Schiffsblatt sein: dieselbe Zuordnung wie die Seite
     // (src/lib/vehicleItems.ts, Name ohne Gross/Klein und Satzzeichen) —
@@ -548,6 +628,17 @@ console.log(`    Link auf ein fremdes Schiffsblatt (Ueberschriften verschieden) 
 need(!fahrzeugFalschesSchiff.length, `${fahrzeugFalschesSchiff.length} Fahrzeug-Itemblatt/-blaetter zeigen auf ein anderes Schiffsblatt als ihr eigenes — ${liste(fahrzeugFalschesSchiff)}`);
 console.log(`    Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblatt (IA C8) fehlt — Soll: 0   Ist: ${fahrzeugOhneDaten.length}`);
 need(!fahrzeugOhneDaten.length, `${fahrzeugOhneDaten.length} Fahrzeug-Itemblatt/-blaetter ohne Abschnitt „Technische Daten" mit Link aufs eigene Schiffsblatt — ${liste(fahrzeugOhneDaten)}`);
+
+console.log('\n[16] IA C8 Jedes Item-Blatt hat „Technische Daten" — Werte, Angaben oder einen benannten Hinweis');
+console.log(`    Item-Blaetter: ${blaetter}   mit Werten: ${techArten.werte}   nur Angaben (Hersteller, Beschreibung): ${techArten.angaben}   Fahrzeug -> Schiffsblatt: ${techArten.schiff}   Hinweis „keine Werte-Übersicht": ${techArten.ohneWerte}   Hinweis „nicht im Spiel": ${techArten.nichtImSpiel} (Decke ${DECKEN.nichtImSpiel})`);
+console.log(`    ohne Abschnitt: ${ohneTechDaten.length} (Decke ${DECKEN.ohneTechDaten}, Ziel 0)   Abschnitt leer — Soll: 0   Ist: ${techLeer.length}   Hinweis passt nicht zum Katalog oder Wortlaut — Soll: 0   Ist: ${techMarkeFalsch.length}`);
+console.log(`    Flugblaetter: ${flugblaetter} (Klinke ${KLINKEN.flugblaetter})   ohne Flugwerte — Soll: 0   Ist: ${flugblattOhneWerte.length}`);
+need(ohneTechDaten.length <= DECKEN.ohneTechDaten, `${ohneTechDaten.length} Item-Blatt/-Blaetter ohne Abschnitt „Technische Daten", Decke ${DECKEN.ohneTechDaten} — Spieldaten fehlen und keine Marke ohneWerte/nichtImSpiel? (build-universal-db.mjs, IA C8) Decke nicht heben — ${liste(ohneTechDaten)}`);
+need(!techLeer.length, `${techLeer.length} Item-Blatt/-Blaetter mit leerem Abschnitt „Technische Daten" — ${liste(techLeer)}`);
+need(!techMarkeFalsch.length, `${techMarkeFalsch.length} Item-Blatt/-Blaetter: Hinweis in „Technische Daten" passt nicht zum Katalog oder zu src/i18n/itemText.ts — ${liste(techMarkeFalsch)}`);
+need(techArten.nichtImSpiel <= DECKEN.nichtImSpiel, `${techArten.nichtImSpiel} Item-Blaetter „nicht im Spiel", Decke ${DECKEN.nichtImSpiel} — fehlt im Datenlauf die Identitaetsliste, oder hat ein Patch Items umbenannt? Paare in scripts/lib/item-namen-aliase.mjs pruefen, Decke nicht heben`);
+need(flugblaetter >= KLINKEN.flugblaetter, `nur ${flugblaetter} Flugblatt-Seiten, Klinke ${KLINKEN.flugblaetter} — liest datamine-items.mjs den Typ FlightController noch? Ursache klaeren, nicht die Klinke senken`);
+need(!flugblattOhneWerte.length, `${flugblattOhneWerte.length} Flugblatt-Seite(n) ohne Flugwerte — ${liste(flugblattOhneWerte)}`);
 
 console.log('\n[7] D4 Missionstabelle eines Bauplans nennt den Pool statt „100 %"');
 console.log(`    Tabellen: ${poolTabellen} (Klinke ${KLINKEN.poolTabellen})   ohne Pool oder mit nacktem „100 %" — Soll: 0   Ist: ${poolOhne.length}`);

@@ -193,9 +193,18 @@ function setCategory(e, cat, rank) {
 //    kommen weiter aus UEX (serverseitig, nicht in der p4k) und werden per Name gejoint.
 //    Existenz von gameDbPath ist oben bereits Pflicht-geprueft (lauter Abbruch sonst).
 let gameRows = 0, gameStats = 0, gameSets = [];
+// Identitaet benannter Spiel-Items ohne ausgewertete Werte und die Namen, die
+// das Spiel nur in Neben-Dateien fuehrt (datamine-items.mjs, IA C8). Fehlen
+// beide (Spieldaten aelter als der 26.11.2026), bleibt der Schritt unten aus —
+// sonst hielte er jeden Namen ohne Werte fuer „gibt es im Spiel nicht".
+let gameIdentity = null, gameJunkNames = null;
 {
   const gameDb = readJson(gameDbPath);
   gameSets = gameDb.sets || [];
+  if (Array.isArray(gameDb.identity) && Array.isArray(gameDb.junkOnlyNames)) {
+    gameIdentity = gameDb.identity;
+    gameJunkNames = new Set(gameDb.junkOnlyNames);
+  }
   for (const g of gameDb.items) {
     if (isPlaceholder(g.name)) continue;
     const e = entry(g.name);
@@ -266,9 +275,11 @@ for (const [name, info] of Object.entries(lootDb)) {
 const vehicles = readJson(resolve(ROOT, 'src', 'data', 'vehicles.json')).vehicles || [];
 const vehPrices = readJson(resolve(ROOT, 'src', 'data', 'vehicle-prices.json')).prices || {};
 let vehicleRows = 0;
+const fahrzeugNamen = new Set();
 for (const v of vehicles) {
   if (!v.name || isPlaceholder(v.name)) continue;
   const e = entry(v.name);
+  fahrzeugNamen.add(e.name.toLowerCase());
   setCategory(e, 'Vehicle', 1);
   for (const p of vehPrices[v.id]?.buy || []) {
     if (Number(p.price) > 0) { e.obtain.push({ kind: 'vehicle', loc: `${p.shop} - ${p.where}`, price: Number(p.price) }); vehicleRows++; }
@@ -381,6 +392,59 @@ for (const e of byName.values()) {
 items.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 for (const e of items) e.id = slugId(e.name);
 
+// --- Items mit eigener Seite, aber ohne Spieldaten (IA C8, 26.11.2026) ----
+// Eine Seite entsteht schon mit einem Bezugsweg oder einem Fundort-Guide
+// (isIndexable in src/lib/items.ts). Fehlen die Spieldaten, fehlte bisher der
+// ganze Abschnitt „Technische Daten". Zwei ehrliche Faelle:
+//   1. Das Spiel kennt den Namen, wertet aber keine Werte dafuer aus (Moebel,
+//      Pflanzen, Pluesch, Tankduesen …): Hersteller, Groesse, Volumen und
+//      Beschreibung aus dem Spiel, markiert mit `ohneWerte` — die Seite sagt,
+//      dass es dafuer keine Leistungswerte gibt.
+//   2. Kein Record im Spiel traegt den Namen: `nichtImSpiel`, die Seite sagt
+//      genau das. Ein Name, den das Spiel nur in einer Neben-Datei fuehrt,
+//      zaehlt NICHT dazu: Moebel und Co. bekommen die Angaben aus diesem
+//      Record (Fall 1, datamine-items nimmt ihn nur als Ersatz), alles
+//      andere bleibt ohne Marke und faellt im Tor auf.
+// Fahrzeuge sind ausgenommen: ihre Werte stehen auf dem Schiffsblatt.
+let identityRows = 0, identityAusNeben = 0;
+const notInGame = [], nurNebenDatei = [];
+if (gameIdentity) {
+  // Erst der exakte Name, dann derselbe Name ohne Satz- und Leerzeichen
+  // („Self-Storage" = „Self Storage"): lieber ein Treffer ueber die
+  // Schreibweise als ein falsches „gibt es im Spiel nicht".
+  const lose = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const nachName = new Map(gameIdentity.map((g) => [katalogName(g.name).toLowerCase(), g]));
+  const nachLose = new Map();
+  for (const g of gameIdentity) { const k = lose(katalogName(g.name)); if (!nachLose.has(k)) nachLose.set(k, g); }
+  const nebenLose = new Set([...gameJunkNames].map(lose));
+  for (const e of items) {
+    if (e.game || (!e.obtain.length && !e.guide)) continue;
+    const k = e.name.toLowerCase();
+    if (fahrzeugNamen.has(k)) continue;
+    const g = nachName.get(k) ?? nachLose.get(lose(e.name));
+    if (g) {
+      const gm = {};
+      for (const f of ['gameType', 'subType', 'size', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'nameDe', 'desc', 'descDe']) if (g[f] != null) gm[f] = g[f];
+      gm.guid = g.id;
+      gm.ohneWerte = true;
+      for (const f of ['desc', 'descDe']) if (gm[f]) gm[f] = ohneDoppelteZeilen(gm[f], gm);
+      e.game = gm;
+      identityRows++;
+      if (g.nebenDatei) identityAusNeben++;
+    } else if (gameJunkNames.has(k) || nebenLose.has(lose(e.name))) {
+      nurNebenDatei.push(e.name);
+    } else {
+      e.nichtImSpiel = true;
+      notInGame.push(e.name);
+    }
+  }
+  console.log(`Seiten ohne Spielwerte: ${identityRows} mit Angaben aus dem Spiel (ohneWerte, davon ${identityAusNeben} aus Neben-Dateien), ${notInGame.length} nicht im Spiel, ${nurNebenDatei.length} nur in Neben-Dateien`);
+  if (notInGame.length) console.log(`  nicht im Spiel: ${notInGame.join(' | ')}`);
+  if (nurNebenDatei.length) console.log(`  ⚠ nur in Neben-Dateien (kein Abschnitt „Technische Daten", verify:bezugswege meldet sie): ${nurNebenDatei.join(' | ')}`);
+} else {
+  console.warn('⚠ items-gamefiles.json ohne identity/junkOnlyNames (aelterer Datenlauf) — Seiten ohne Spieldaten bleiben ohne Abschnitt „Technische Daten". npm run datamine:items neu laufen lassen.');
+}
+
 const counts = {
   items: items.length,
   withObtain: items.filter((i) => i.obtain.length).length,
@@ -396,6 +460,10 @@ const counts = {
   inSet: items.filter((i) => i.game?.setId).length,
   withWeight: items.filter((i) => i.game?.weight).length,
   withRarity: items.filter((i) => i.game?.rarity).length,
+  // IA C8: Seiten ohne ausgewertete Spielwerte (siehe oben)
+  identityRows,
+  notInGame: notInGame.length,
+  junkOnlyPages: nurNebenDatei.length,
 };
 
 const db = {
@@ -421,6 +489,7 @@ const db = {
     const o = { id: e.id, name: e.name, category: kategorieFuer(e.category || 'Other', e.name), obtain: e.obtain };
     if (e.guide) o.guide = e.guide;
     if (e.game) o.game = e.game; // Spieldaten: size/grade/manufacturer/volumeScu/subType/stats/… (nur belegte Felder)
+    if (e.nichtImSpiel) o.nichtImSpiel = true; // kein Record im Spiel traegt den Namen (IA C8)
     return o;
   }),
 };

@@ -69,6 +69,8 @@
     if (item.obtain.length > 0) return true;
     if (item.guide) return true;
     var g = item.game;
+    // Flugblaetter: Seite nur mit Bezugsweg oder Fundort (wie isIndexable).
+    if (g && g.gameType === 'FlightController') return false;
     // Mehrdeutige Namen tragen ihre Werte je Ausfuehrung in variants (wie
     // isIndexable): auch sie haben ein Datenblatt.
     if (g && g.variants && g.variants.length) return true;
@@ -169,6 +171,7 @@
     if (s.jammerRange) return { l: tr('statJammer', 'Jammer'), v: fmtNum(s.jammerRange) + ' m', n: s.jammerRange };
     if (s.empRadius) return { l: tr('statEmpRadius', 'EMP'), v: fmtNum(s.empRadius) + ' m', n: s.empRadius };
     if (s.fuelCapacity) return { l: tr('statFuel', 'Treibstoff'), v: fmtNum(s.fuelCapacity), n: s.fuelCapacity };
+    if (s.scmSpeed) return { l: tr('statScm', 'SCM'), v: fmtNum(s.scmSpeed) + ' m/s', n: s.scmSpeed };
     if (s.damage) { var tot = 0; for (var k in s.damage) tot += s.damage[k]; return { l: tr('statDamage', 'Schaden'), v: fmtNum(tot), n: tot }; }
     if (s.resist && typeof s.resist.physical === 'number') { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
     if (s.ndr) return { l: tr('statNdr', 'NDR'), v: fmtNum(s.ndr) + ' NDR', n: s.ndr };
@@ -786,6 +789,13 @@
     if (s.shieldHp) out.push([tr('statShieldHp', 'Schild-HP'), fmtNum(s.shieldHp)]);
     if (s.regen) out.push([tr('statRegen', 'Schild-Regen'), fmtNum(s.regen) + '/s']);
     if (s.driveSpeed) out.push([tr('statQtSpeed', 'QT-Geschwindigkeit'), fmtNum(Math.round(s.driveSpeed / 1e6)) + ' Mm/s']);
+    // Flugblaetter: Flugwerte wie auf dem Schiffsblatt (wie src/lib/itemStats.ts)
+    if (s.scmSpeed) out.push([tr('statScm', 'SCM-Geschwindigkeit'), fmtNum(s.scmSpeed) + ' m/s']);
+    if (s.maxSpeed) out.push([tr('statMaxSpeed', 'Höchstgeschwindigkeit'), fmtNum(s.maxSpeed) + ' m/s']);
+    if (s.boostForward) out.push([tr('statBoost', 'Boost vorwärts'), fmtNum(s.boostForward) + ' m/s']);
+    if (s.pitch) out.push([tr('statPitch', 'Nicken'), fmtNum(s.pitch) + ' °/s']);
+    if (s.yaw) out.push([tr('statYaw', 'Gieren'), fmtNum(s.yaw) + ' °/s']);
+    if (s.roll) out.push([tr('statRoll', 'Rollen'), fmtNum(s.roll) + ' °/s']);
     if (s.cooldown) out.push([tr('statCooldown', 'Abklingzeit'), fmtNum(s.cooldown) + ' s']);
     if (s.coolingRate) out.push([tr('statCooling', 'Kühlleistung'), fmtNum(s.coolingRate)]);
     if (s.powerOutput) out.push([tr('statPower', 'Leistung'), fmtNum(s.powerOutput)]);

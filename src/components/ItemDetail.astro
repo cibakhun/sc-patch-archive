@@ -97,6 +97,11 @@ const schwankend = rows.some((o) => o.kind !== 'exclusive');
 const bp = recipeForItem(item);
 // Fahrzeug-Item -> Schiffsdatenblatt (Skizze 016, 09.11.2026).
 const shipId = await shipIdForVehicleItem(item);
+// Spieldaten ohne einen einzigen Wert: Identitaet aus dem Spiel (ohneWerte)
+// oder eine Art, die zwar ausgewertet wird, hier aber keine Werte traegt
+// (der generische „Container": nur Groessen, nirgends ein Wert).
+const ohneWerte = !shipId && !!item.game && stats.length === 0 && !variants.some((v) => v.stats && statRows(v.stats, lang).length > 0)
+  && (item.game.ohneWerte === true || (chips.length === 0 && !desc));
 // Drehbares Modell (nur Vorschau-Bau, src/lib/item3d.ts).
 const model3d = item3dFor(item.id);
 const related = relatedItems(item, 12);
@@ -275,13 +280,19 @@ const crumbs = [
 
   {/* -- Spielwerte. Fahrzeug-Items tragen keine eigenen Werte, die stehen
          auf dem Schiffsblatt (IA C8, 24.11.2026): der Abschnitt sagt das und
-         verlinkt es, statt zu fehlen. verify:bezugswege [6] prueft den Link. -- */}
-  {(chips.length > 0 || stats.length > 0 || desc || shipId) && (
-    <section class="dp-sec">
+         verlinkt es, statt zu fehlen. verify:bezugswege [6] prueft den Link.
+         Ebenso fehlt er nicht bei Items, fuer die es keine Werte gibt, und
+         bei Namen, die das Spiel nicht mehr fuehrt (IA C8, 26.11.2026): er
+         sagt es. verify:bezugswege [16] verlangt den Abschnitt auf JEDEM
+         Item-Blatt. -- */}
+  {(chips.length > 0 || stats.length > 0 || desc || shipId || ohneWerte || item.nichtImSpiel) && (
+    <section class="dp-sec" id="technische-daten">
       <h2>{t('sectionSpecs')}</h2>
       {shipId && (
         <p class="dp-note">{t('specsOnShip')} <a href={href(`/schiffe/${shipId}.html`, lang)} data-specs-schiff>{t('headShip')} →</a></p>
       )}
+      {item.nichtImSpiel && <p class="dp-note" data-specs-nicht-im-spiel>{t('specsNichtImSpiel')}</p>}
+      {ohneWerte && <p class="dp-note" data-specs-ohne-werte>{t('specsOhneWerte')}</p>}
       {chips.length > 0 && (
         <ul class="dp-chips">
           {chips.map(([l, v]) => <li class="dp-chip"><b>{l}</b>{v}</li>)}

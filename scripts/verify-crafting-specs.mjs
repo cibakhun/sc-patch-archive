@@ -117,6 +117,24 @@ for (const [name, size, grade, tone] of REFERENCE) {
   }
 }
 console.log(`   geprueft: ${refChecked} | abweichend: ${refBad}`);
+// IA C8 (26.11.2026): die sechs Tankduesen-Bauplaene zeigen die Groesse aus
+// dem Spiel (Item mit game.ohneWerte, Groesse 1). Die Gesamtzahlen in
+// Abschnitt 8 zaehlen nur; diese Liste haelt Wert und Zuordnung fest, ein
+// Tausch oder eine andere Groesse fiele dort nicht auf (Review #476).
+const DUESEN = ['Bendix', 'Ezra', 'Harkin', 'Lindstrom', 'Marlin', 'Norfield'];
+let duesenChecked = 0, duesenBad = 0;
+for (const name of DUESEN) {
+  const bp = byBpName(name);
+  if (!bp) { duesenBad++; console.log(`   FEHLT: ${name} nicht in crafting-db.json`); continue; }
+  duesenChecked++;
+  const sp = blueprintSpecs(bp);
+  if (!sp || sp.sizes.length !== 1 || sp.sizes[0] !== 1) {
+    duesenBad++;
+    console.log(`   ABWEICHUNG: Tankduese ${name} erwartet Groesse [1], gemessen ${JSON.stringify(sp)}`);
+  }
+}
+console.log(`   Tankduesen: geprueft ${duesenChecked} | abweichend ${duesenBad}`);
+need(duesenChecked === DUESEN.length && duesenBad === 0, `Tankduesen-Bauplaene: ${duesenBad} abweichend, ${duesenChecked} von ${DUESEN.length} gefunden`);
 
 /* ---------- 2) SizeN-Gegenprobe ---------- */
 console.log('2) SizeN-Gegenprobe …');
@@ -351,14 +369,19 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // alten Antium-Namen entfallen.
 // 1557 -> 1593 am 19.11.2026 (4.10.3): die Sprachdatei-Schluessel mit ",P"
 // werden jetzt gelesen, 36 Bauplaene finden ihr Item und damit ihre Groesse.
-need(totalWithSpec === 1593, `Chip-Reihen: erwartet 1593, gemessen ${totalWithSpec}`);
+// 1593 -> 1599 am 26.11.2026 (IA C8): die Items der sechs Tankduesen-Bauplaene
+// (Bendix, Ezra, Harkin, Lindstrom, Marlin, Norfield) tragen jetzt die Angaben
+// aus dem Spiel ohne Leistungswerte (game.ohneWerte), darunter Groesse 1. Die
+// Karte zeigt „S1" wie das Item-Blatt.
+need(totalWithSpec === 1599, `Chip-Reihen: erwartet 1599, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1593, `Groesse: erwartet 1593, gemessen ${totalSize}`);
+// 1593 -> 1599 am 26.11.2026: dieselben sechs Tankduesen wie bei den Chip-Reihen.
+need(totalSize === 1599, `Groesse: erwartet 1599, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
@@ -381,7 +404,8 @@ need(toneFromPath === 103, `Ton aus dem Pfad: erwartet 103, gemessen ${toneFromP
 // Zahlen aneinander, eine allein koennte still auseinanderlaufen.
 // 65 -> 67 im 4.10.2-Datenlauf 11.10.2026: die zwei neuen Monolith-Helme tragen keine Chip-Angabe.
 // 77 -> 41 am 19.11.2026: dieselben 36 Bauplaene wie bei den Chip-Reihen.
-need(totalNone === 41, `ohne jede Angabe: erwartet 41, gemessen ${totalNone}`);
+// 41 -> 35 am 26.11.2026: dieselben sechs Tankduesen wie bei den Chip-Reihen.
+need(totalNone === 35, `ohne jede Angabe: erwartet 35, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 10) Zwei gleiche Chips nebeneinander ---------- */

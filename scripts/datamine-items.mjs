@@ -212,8 +212,17 @@ const TYPE_CAT = {
   Battery: () => 'Utility / Batteries',
   Container: () => 'Utility / Containers',
   Paints: () => 'Vehiclegear / Liveries',
+  // Flugblaetter (PHB/TSB) sind im Spiel Flugcontroller — derselbe Typ wie der
+  // Serien-Controller jedes Schiffs. Aufgenommen werden NUR die PHB- und
+  // TSB-Blaetter (siehe Pass 1). Die Serien-Controller heissen im Spiel
+  // ebenfalls „… Flight Blade" („Flight Blade" in 164 Records, „<Schiff>
+  // Standard Flight Blade"), sind aber keine kaufbaren Items; der erste
+  // Datenlauf mit „endet auf Flight Blade" hat sie mitgenommen (26.11.2026).
+  // IA C8 (26.11.2026): 46 Blatt-Seiten hatten Preise, aber keine Werte.
+  FlightController: () => 'Vehiclegear / Flight Blade',
 };
 const ALLOW = new Set(Object.keys(TYPE_CAT));
+const FLIGHT_BLADE = /\b(?:PHB|TSB) Flight Blade$/i;
 
 // Junk-/Prop-/Debug-Dateien draußen halten
 const isJunk = (f) => /_test|template|dummy|_debug|placeholder|tutorial|\/ai\/|_prop(\.|_)|_collector_|deprecated|_uneditable|_dstr|_destruct/i.test(f);
@@ -402,6 +411,13 @@ function extractStats(type, deep) {
     if (type === 'WeaponGun') gunStats(s, deep);
   } else if (type === 'WeaponPersonal' || type === 'WeaponMining') {
     weaponStats(s, deep, /* direct */ false);
+  } else if (type === 'FlightController') {
+    // Flugblatt: dieselben Flugwerte wie auf dem Schiffsblatt
+    // (datamine-vehicles.mjs liest den Serien-Controller genauso).
+    // maxAngularVelocity ist (x = Nicken, y = Rollen, z = Gieren).
+    const p = first(deep, /^IFCSParams$/);
+    const ang = p?.maxAngularVelocity;
+    if (p) Object.assign(s, clean({ scmSpeed: round(num(p.scmSpeed)), maxSpeed: round(num(p.maxSpeed)), boostForward: round(num(p.boostSpeedForward)), pitch: round(num(ang?.x)), yaw: round(num(ang?.z)), roll: round(num(ang?.y)) }));
   }
   if (RESOURCE_TYPES.has(type)) resourceStats(s, deep);
   return s;
@@ -469,27 +485,61 @@ function weaponStats(s, deep, direct) {
 //  Pass 1: Kandidaten (Typ erlaubt + auflösbarer EN-Name)
 // =========================================================
 const t0 = Date.now();
-let scanned = 0, noAttach = 0, notAllowed = 0, noName = 0, junk = 0;
+let scanned = 0, noAttach = 0, notAllowed = 0, noName = 0, junk = 0, stockController = 0;
 const candidates = [];
+// Benannte Spiel-Items AUSSERHALB der Allowlist (Moebel, Pflanzen, Pluesch,
+// Tankduesen …): sie tragen keine Werte, die dieses Skript liest, aber einen
+// echten Namen, Hersteller, Volumen und eine Beschreibung. build-universal-db
+// haengt diese Angaben an Katalog-Eintraege, die sonst gar keine Spieldaten
+// haetten, und erkennt daran auch, welche Namen es im Spiel nicht mehr gibt
+// (IA C8, 26.11.2026). Werte werden daraus NIE abgeleitet.
+const identityCandidates = [];
+// Dasselbe aus Neben-Dateien (Requisite, Vorlage, Test): nur ERSATZ, wenn kein
+// regulaerer Record den Namen fuehrt. Erster Datenlauf (26.11.2026): „Drake
+// Ship Chair" hat eine Seite, steht im Spiel aber nur in einer Requisiten-
+// Datei — ohne Ersatz blieb die Seite ohne Abschnitt „Technische Daten".
+// Nur Typen ausserhalb der Allowlist: eine Waffe, die es nur als Requisite
+// gibt, bekommt keinen Hinweis „keine Werte-Übersicht".
+const junkIdentityCandidates = [];
+const junkNames = new Set();
+const PLACEHOLDER_NAME = /PLACEHOLDER|<=|=>/;
 for (const r of ECD) {
   const f = norm(r.fileName);
-  if (isJunk(f)) { junk++; continue; }
+  if (isJunk(f)) {
+    junk++;
+    // Der Name: build-universal-db soll einen Namen, den das Spiel allein
+    // in einer Neben-Datei fuehrt, nicht fuer „gibt es im Spiel nicht" halten.
+    let sh; try { sh = db.readRecord(r, { maxDepth: 4, typed: true }); } catch { continue; }
+    const jAtt = (first(sh, /SAttachableComponentParams/) || {}).AttachDef;
+    const n = locEn(jAtt?.Localization?.Name);
+    if (n && !PLACEHOLDER_NAME.test(n)) {
+      junkNames.add(n.toLowerCase().trim());
+      if (!ALLOW.has(jAtt.Type)) junkIdentityCandidates.push({ r, f, att: jAtt, nameEn: n, neben: true });
+    }
+    continue;
+  }
   scanned++;
   let shallow; try { shallow = db.readRecord(r, { maxDepth: 4, typed: true }); } catch { continue; }
   const att = (first(shallow, /SAttachableComponentParams/) || {}).AttachDef;
   if (!att || !att.Type) { noAttach++; continue; }
-  if (!ALLOW.has(att.Type)) { notAllowed++; continue; }
   const nameEn = locEn(att.Localization?.Name);
+  if (!ALLOW.has(att.Type)) {
+    notAllowed++;
+    if (nameEn && !PLACEHOLDER_NAME.test(nameEn)) identityCandidates.push({ r, f, att, nameEn });
+    continue;
+  }
   if (!nameEn) { noName++; continue; }
+  // Serien-Flugcontroller der Schiffe: kein Item, siehe TYPE_CAT.FlightController
+  if (att.Type === 'FlightController' && !FLIGHT_BLADE.test(nameEn)) { stockController++; continue; }
   // Tags hängen am Record-Wurzelknoten, sind also schon im flachen Read dabei.
   candidates.push({ r, f, att, nameEn, tagPaths: TAGS.pathsOf(shallow.tags) });
 }
-if (DEBUG) console.log(`Pass1: ${candidates.length} Kandidaten (scanned ${scanned}, noAttach ${noAttach}, notAllowed ${notAllowed}, noName ${noName}, junk ${junk}) · ${Date.now() - t0}ms`);
+if (DEBUG) console.log(`Pass1: ${candidates.length} Kandidaten (scanned ${scanned}, noAttach ${noAttach}, notAllowed ${notAllowed} davon benannt ${identityCandidates.length}, noName ${noName}, Serien-Flugcontroller ${stockController}, junk ${junk} davon Ersatz-Identitaet ${junkIdentityCandidates.length}) · ${Date.now() - t0}ms`);
 
 // =========================================================
 //  Pass 2: Deep-Read + Stats
 // =========================================================
-const NEED_DEEP = new Set(['WeaponPersonal', 'WeaponMining', 'WeaponGun', 'Turret', 'WeaponDefensive', 'MissileLauncher', 'Missile', 'Bomb', 'FuelTank', 'QuantumFuelTank', 'ExternalFuelTank', 'EMP', 'QuantumInterdictionGenerator', 'Radar', ...RESOURCE_TYPES]);
+const NEED_DEEP = new Set(['WeaponPersonal', 'WeaponMining', 'WeaponGun', 'Turret', 'WeaponDefensive', 'MissileLauncher', 'Missile', 'Bomb', 'FuelTank', 'QuantumFuelTank', 'ExternalFuelTank', 'EMP', 'QuantumInterdictionGenerator', 'Radar', 'FlightController', ...RESOURCE_TYPES]);
 const built = [];
 for (const c of candidates) {
   const { r, f, att, nameEn, tagPaths } = c;
@@ -671,6 +721,49 @@ if (conflicts.length) {
   for (const c of show) console.warn(`   „${c.name}" (${c.source}) vs. Tag ${c.tagPath} · ${c.tagCoverage} Teile · z. B. ${c.sample.join(', ')}`);
 }
 
+// =========================================================
+//  Identitaet benannter Items ausserhalb der Allowlist (IA C8)
+// =========================================================
+// Je Name EIN Eintrag, und nur fuer Namen, die oben kein echtes Item tragen.
+// Ein regulaerer Record schlaegt immer einen aus einer Neben-Datei; danach
+// bevorzugt der mit Hersteller und Beschreibung, bei Gleichstand der mit der
+// kleinsten Record-Id (reproduzierbar ueber Laeufe hinweg).
+// Bewusst ohne Grade und ohne Werte: hier steht nur, WAS das Ding im Spiel ist.
+const identityByName = new Map();
+for (const c of [...identityCandidates, ...junkIdentityCandidates]) {
+  const k = c.nameEn.toLowerCase().trim();
+  if (byName.has(k)) continue;
+  const man = manufacturer(c.att.Manufacturer);
+  const volMicro = num(findKey(c.att, 'inventoryOccupancyVolume') && c.att.inventoryOccupancyVolume?.microSCU);
+  const descRaw = cleanDesc(locEn(c.att.Localization?.Description));
+  // Platzhalter-Texte („<= PLACEHOLDER =>") sind keine Beschreibung
+  const echt = (t) => (t && !PLACEHOLDER_NAME.test(t) ? t : null);
+  const it = clean({
+    id: c.r.id,
+    name: c.nameEn,
+    nameDe: echt(locDe(c.att.Localization?.Name)),
+    desc: echt(stripHeader(descRaw)),
+    descDe: echt(stripHeader(cleanDesc(locDe(c.att.Localization?.Description)))),
+    gameType: c.att.Type,
+    subType: c.att.SubType && c.att.SubType !== 'UNDEFINED' ? c.att.SubType : null,
+    size: num(c.att.Size),
+    class: classFrom(descRaw),
+    manufacturer: man?.name || null,
+    manufacturerCode: man?.code || null,
+    volumeScu: volMicro ? round(volMicro / 1e6, 4) : null,
+    file: basename(c.f),
+    nebenDatei: c.neben || null,
+  });
+  const rang = (x) => (x.nebenDatei ? 0 : 4) + (x.manufacturer ? 2 : 0) + (x.desc ? 1 : 0);
+  const e = identityByName.get(k);
+  if (!e || rang(it) > rang(e) || (rang(it) === rang(e) && it.id < e.id)) identityByName.set(k, it);
+}
+const identity = [...identityByName.values()].sort((a, b) => a.name.localeCompare(b.name, 'en'));
+// Namen, die NUR in Neben-Dateien stehen (weder Item noch Identitaet)
+const junkOnlyNames = [...junkNames].filter((k) => !byName.has(k) && !identityByName.has(k)).sort();
+const identityByType = {};
+for (const it of identity) identityByType[it.gameType] = (identityByType[it.gameType] || 0) + 1;
+
 // Zählungen
 const byCat = {};
 for (const it of items) { const root = it.category.split('/')[0].trim(); byCat[root] = (byCat[root] || 0) + 1; }
@@ -703,6 +796,16 @@ const payload = {
     // UNTERSCHEIDEN — nur dort geht wirklich eine Aussage verloren.
     collapsedDiffering: collapsed.filter((c) => !c.sameSpecs).length,
     sets: setStats,
+    // Flugblaetter (PHB/TSB) als eigene Items; die Serien-Flugcontroller der
+    // Schiffe bleiben draussen (kein „PHB/TSB Flight Blade" am Namensende).
+    flightBlades: items.filter((i) => i.gameType === 'FlightController').length,
+    flightBladesWithStats: items.filter((i) => i.gameType === 'FlightController' && i.stats).length,
+    stockFlightControllersSkipped: stockController,
+    // Benannte Items ausserhalb der Allowlist, nur Identitaet (siehe `identity`)
+    identity: identity.length,
+    identityFromSideFiles: identity.filter((i) => i.nebenDatei).length,
+    identityByType,
+    junkOnlyNames: junkOnlyNames.length,
   },
   // Vollstaendige Liste, damit downstream (build-universal-db.mjs) die
   // Record-Ids der weggefallenen Geschwister als `guidAliases` anhaengen kann —
@@ -710,6 +813,13 @@ const payload = {
   collapsed,
   sets,
   items,
+  // Name, Hersteller, Volumen, Beschreibung benannter Spiel-Items, deren Typ
+  // dieses Skript nicht auswertet. KEINE Werte. Liest build-universal-db.mjs
+  // (Katalog-Eintraege ohne Spieldaten, und welche Namen das Spiel kennt).
+  identity,
+  // Kleingeschriebene Namen, die das Spiel nur in Neben-Dateien fuehrt
+  // (isJunk oben) — fuer build-universal-db: diese Namen gibt es im Spiel.
+  junkOnlyNames,
 };
 writeFileSync(OUT, JSON.stringify(payload));
 console.log(`OK: ${OUT}`);
