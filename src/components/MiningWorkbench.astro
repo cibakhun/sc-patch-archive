@@ -248,7 +248,10 @@ const S_DE = {
   presetUpdate: 'Mit der aktuellen Auswahl überschreiben', presetUpdated: 'Überschrieben.',
   presetShow: 'Inhalt anzeigen', presetHide: 'Inhalt ausblenden',
   presetRemoveEntry: 'Aus dem Preset entfernen', presetNoEntries: 'Dieses Preset ist leer.',
-  presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
+  presetGuest: 'Vorlagen liegen in diesem Browser.', presetLogin: 'Mit Konto überall dabei',
+  presetSynced: '%n Vorlagen aus diesem Browser liegen jetzt in deinem Konto.', presetSynced1: 'Die Vorlage aus diesem Browser liegt jetzt in deinem Konto.',
+  presetSyncFail: 'Die Vorlagen aus diesem Browser konnten nicht ins Konto. Sie bleiben hier, nächster Versuch beim nächsten Laden.',
+  presetSyncLost: 'Die Vorlagen aus diesem Browser ließen sich weder ins Konto übernehmen noch hier zurücklegen. Speichere sie bitte neu.',
   /* Eigenes Fenster (16.08.2026). „Popout" bleibt unuebersetzt stehen, weil
      es im Deutschen keinen kuerzeren Begriff gibt, der dasselbe meint —
      „Abdocken" waere geraten, „Eigenes Fenster" passt in keinen Knopf. */
@@ -271,6 +274,8 @@ const S_DE = {
   chance: 'in %p der Brocken', upTo: 'bis %p Anteil', yieldAvg: 'Ø-Anteil',
   locKey: 'Rechts der zu erwartende Anteil des Erzes am Gestein. Darunter: wie oft ein Brocken das Erz enthält und wie viel höchstens.',
   locKeyCh: 'Rechts: wie oft ein Brocken hier das Erz enthält.',
+  locSortLbl: 'Fundorte sortieren', sortEf: 'Ertrag', sortCh: 'Chance',
+  locSame: 'An allen %n Orten gleich: %w. Nimm den, der am nächsten liegt.',
   // UX-Audit 24.11.2026 (P42): eine leere Liste ohne Meldung sah aus wie ein Fehler.
   noHit: 'Kein Erz und kein Fundort passt zu „%q“.', noHitSys: 'Gefiltert auf %s.',
   didYou: 'Meintest du', noHitHelp: 'Gesucht wird im Erznamen (englisch oder deutsch) und in den Fundorten.',
@@ -295,7 +300,10 @@ const S_EN = {
   presetUpdate: 'Overwrite with the current selection', presetUpdated: 'Overwritten.',
   presetShow: 'Show contents', presetHide: 'Hide contents',
   presetRemoveEntry: 'Remove from preset', presetNoEntries: 'This preset is empty.',
-  presetGuest: 'Save your sets:', presetLogin: 'sign in',
+  presetGuest: 'Presets are kept in this browser.', presetLogin: 'Sign in to have them everywhere',
+  presetSynced: '%n presets from this browser are now in your account.', presetSynced1: 'The preset from this browser is now in your account.',
+  presetSyncFail: 'The presets from this browser could not move to your account. They stay here; next try on the next load.',
+  presetSyncLost: 'The presets from this browser could neither move to your account nor be put back here. Please save them again.',
   popout: 'Own window', popoutBack: 'Back into the column',
   popoutOut: 'The lists are in their own window.',
   popoutTitle: 'Signatures & locations — verse-base',
@@ -313,6 +321,8 @@ const S_EN = {
   chance: 'in %p of rocks', upTo: 'up to %p share', yieldAvg: 'avg share',
   locKey: 'Right: the expected share of the ore in the rock. Below: how often a rock contains it and the most it can hold.',
   locKeyCh: 'Right: how often a rock here contains the ore.',
+  locSortLbl: 'Sort locations', sortEf: 'Yield', sortCh: 'Chance',
+  locSame: 'The same at all %n places: %w. Pick the closest one.',
   noHit: 'No ore or location matches “%q”.', noHitSys: 'Filtered to %s.',
   didYou: 'Did you mean', noHitHelp: 'The search looks at ore names and locations.',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
@@ -1018,6 +1028,16 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
 .wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
 /* Lesehilfe unter der Ueberschrift (P43): eine Zeile, leise, aber lesbar. */
 .wb__key{margin:-1px 0 7px;font-size:var(--fs-2);line-height:1.4;color:var(--muted)}
+/* Kopf der Fundorte mit Umschalter Ertrag/Chance (F01): die Gravur unter
+   der Ueberschrift endet vor dem Umschalter. */
+.wb__sechd{display:flex;align-items:flex-start;gap:8px}
+.wb__sechd h4{flex:1 1 auto;min-width:0}
+.wb__sort{display:inline-flex;flex:none;border:1px solid color-mix(in srgb,var(--text) 16%,transparent);border-radius:999px;padding:2px;gap:2px}
+.wb__sort[hidden]{display:none}
+.wb__sort button{font:inherit;font-size:var(--fs-2);line-height:1;padding:4px 9px;border:0;border-radius:999px;
+  background:none;color:var(--muted);cursor:pointer}
+.wb__sort button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--text)}
+.wb__sort button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* Leermeldung der Erzsuche (P42) mit Vorschlag als Knopf. */
 .wb__empty.wb__nohit{margin:10px 2px;line-height:1.45}
 .wb__nohit[hidden]{display:none}
@@ -1856,7 +1876,9 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
         </div>
       </div>
       <div class="wb__scroll" id="wb-oreview">
-        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><p class="wb__key" set:text={S.locKey} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
+        {/* Umschalter Ertrag/Chance (UX-Audit F01): mining-workbench.js zeigt ihn,
+            sobald ein Erz mehrere Fundorte mit verschiedenen Zahlen hat. */}
+        <div class="wb__sec"><div class="wb__sechd"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__sort" id="wb-locsort" role="group" aria-label={S.locSortLbl} hidden><button type="button" data-locsort="ef" aria-pressed="true" set:text={S.sortEf} /><button type="button" data-locsort="ch" aria-pressed="false" set:text={S.sortCh} /></div></div><p class="wb__key" id="wb-lockey" set:text={S.locKey} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
         <div class="wb__sec"><h4 set:text={`${S.bestRef} · ${S.bestRefStand.replace('%v', ausbeuteStand())}`} /><div class="wb__refs" id="wb-refs"></div></div>
         <div class="wb__sec" id="wb-sellsec" hidden><h4 set:text={`${S.sellH} · ${S.sellStand.replace('%d', sellDate)}`} /><div class="wb__refs" id="wb-sell"></div></div>
         <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
@@ -1868,8 +1890,9 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
     <div class="wb__pane wb__pane--sig chamf">
       {/* AUSLAGERN (16.08.2026). Der Knopf sitzt absolut in der oberen rechten
           Ecke der SPALTE, nicht in der Presetzeile darunter: die Presetzeile
-          (#wb-pre-pick) ist fuer Gaeste verborgen, ein Knopf darin waere ohne
-          Konto unerreichbar. Absolut positioniert, weil die Spalte sonst eine
+          (#wb-pre-pick) war bis zum UX-Audit (9.3) fuer Gaeste verborgen, und
+          sie bleibt es, bis die Sitzung geprueft ist; ein Knopf darin waere
+          so lange unerreichbar. Absolut positioniert, weil die Spalte sonst eine
           vierte Kopfzeile bekaeme und die Presets ihren dokumentierten Platz
           „an oberster Stelle" (D-04) verlieren wuerden; .wb__pane traegt
           bereits position:relative. Die Polsterung von .wb__pre ist rechts
@@ -1891,8 +1914,9 @@ const sellDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, la
           an .wb__pre/.wb__stack gegen die Spalte wirkten (s. Stilblock);
           ohne das faellt die Hoehenkette und die Listen scrollen nicht mehr. */}
       <div class="wb__popbody" id="wb-pop-body">
-      {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
-          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst AN
+      {/* Presets — benannte Zusammenstellungen BEIDER Listen, mit Konto in der
+          Tabelle mining_sig_presets (RLS wie crafting_entries), ohne Konto seit
+          dem UX-Audit (9.3) in diesem Browser (vb.mining.presets.v1). Bewusst AN
           OBERSTER STELLE der Spalte: das ist die sichtbare Form von „ein
           gemeinsames Preset-System" (D-04). Seit Phase 10 (D-03) steht hier
           kein Reiter mehr darueber — die Kopfpolsterung dieses Blocks ist
