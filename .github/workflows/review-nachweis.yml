@@ -1,0 +1,77 @@
+# Review-Nachweis: setzt den Status `review-nachweis` auf den Head-Commit
+# jedes PRs nach staging oder main. Gruen nur, wenn ein abgeschlossener
+# KI-Review GENAU diesen Stand lueckenlos abdeckt (kritische PRs: zwei, oder
+# einer plus Krisz' dokumentierte Ausnahme; Releases: jeder enthaltene PR mit
+# Nachweis). Regeln und Ablauf: docs/review-workflow.md. Das Urteil faellt
+# scripts/lib/review-nachweis.mjs, getestet in tests/e2e/review-nachweis.test.js.
+#
+# Welche Auswertung laeuft: die aus dem ZIELZWEIG (erster Elternteil des
+# Merge-Commits), nicht die aus dem PR. Ein PR, der das Gate aendert, wird so
+# noch nach den alten Regeln beurteilt; seine Aenderung wirkt erst nach dem
+# Merge. Nur wenn der Zielzweig die Auswertung noch nicht kennt (der erste
+# PR, der sie einfuehrt), laeuft die aus dem PR, und der Bericht sagt das.
+# Grenze: diese Datei selbst kommt bei `pull_request` aus dem PR. Deshalb
+# zaehlt jede Aenderung unter .github/ als kritisch (zwei Pruefungen oder
+# Krisz' Freigabe). Ausgefuehrt wird kein Code aus dem PR ausser im
+# genannten Erstfall; Fork-PRs laufen gar nicht (kein Schreibrecht, kein
+# Status, also kein Merge ohne Krisz).
+#
+# Warten: Das Ende eines CodeRabbit-Reviews ohne Kommentare loest kein
+# Ereignis aus. Ist ein Review angefordert, wartet der Lauf deshalb bis zu
+# 40 Minuten darauf (oeffentliches Repo: Actions-Minuten kosten nichts).
+# Jedes neue Ereignis bricht den wartenden Lauf ab und startet neu.
+name: Review-Nachweis
+
+on:
+  pull_request:
+    branches: [staging, main]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled, edited]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions: {}
+
+concurrency:
+  group: review-nachweis-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  nachweis:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      checks: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Auswertung aus dem Zielzweig waehlen
+        run: |
+          mkdir -p "$RUNNER_TEMP/gate"
+          if git cat-file -e HEAD^1:scripts/lib/review-nachweis.mjs 2>/dev/null; then
+            git archive HEAD^1 scripts/review-nachweis.mjs scripts/lib/review-nachweis.mjs | tar -x -C "$RUNNER_TEMP/gate"
+            echo "QUELLE=Zielzweig" >> "$GITHUB_ENV"
+          else
+            git archive HEAD scripts/review-nachweis.mjs scripts/lib/review-nachweis.mjs | tar -x -C "$RUNNER_TEMP/gate"
+            echo "QUELLE=diesem PR (Erstfall: Zielzweig kennt das Gate noch nicht)" >> "$GITHUB_ENV"
+          fi
+      - name: Nachweis bewerten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMMER: ${{ github.event.pull_request.number }}
+          EREIGNIS: ${{ github.event_name }}
+          AKTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+          LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FREIGABE_KONTEN: cibakhun
+        run: node "$RUNNER_TEMP/gate/scripts/review-nachweis.mjs"

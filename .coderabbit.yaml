@@ -11,21 +11,33 @@
 # branches other than the default branch“, gesehen an #339).
 #
 # Vor jedem Merge werden alle Review-Kommentare abgearbeitet, auch die von
-# CodeRabbit (CLAUDE.md, Abschnitt Liefern).
+# CodeRabbit (CLAUDE.md, Abschnitt Liefern). Ob der aktuelle Stand wirklich
+# geprueft ist, entscheidet der Status `review-nachweis`, nicht der
+# CodeRabbit-Haken: der wird laut Schema auch bei Skip und Rate-Limit gruen.
 language: de-DE
 
 reviews:
   profile: chill
   auto_review:
-    enabled: true
+    # Draft-First (Krisz, 26.11.2026, docs/review-workflow.md): kein Review
+    # bei jedem Push mehr. Ausgeloest wird nur ueber das Label
+    # `review-ready`, das der Agent setzt, wenn Bau, Tor und Krisz' Test
+    # durch sind. Laut CodeRabbit-Schema loest bei `enabled: false` ein
+    # passendes positives Label den Review aus. Jeder neue Push nimmt das
+    # Label wieder ab (.github/workflows/review-nachweis.yml); der Agent
+    # nimmt es vor dem Push selbst ab, damit der Push keine Runde startet.
+    enabled: false
+    labels:
+      - "review-ready"
     drafts: false
     # Jede PR geht nach staging; main ist ohnehin dabei (Standard-Zweig).
     base_branches:
       - "staging"
-    # Nach jedem Push neu prüfen, damit auch der letzte Stand vor dem Merge
-    # gesehen wird. Ohne die zweite Zeile pausiert CodeRabbit nach fünf
-    # geprüften Commits (Vorgabe 5), und der letzte Stand bliebe ungeprüft
-    # (Hinweis von CodeRabbit selbst an #339).
+    # Eine erneute Runde (Label wieder gesetzt) prueft inkrementell nur den
+    # neuen Teil; ob alle Runden zusammen den Stand abdecken, prueft
+    # review-nachweis anhand der Bereiche "between A and B". Ohne die zweite
+    # Zeile pausiert CodeRabbit nach fünf geprüften Commits (Vorgabe 5), und
+    # der letzte Stand bliebe ungeprüft (Hinweis von CodeRabbit an #339).
     auto_incremental_review: true
     auto_pause_after_reviewed_commits: 0
   # Wie cubic.yaml: Von Skripten geschriebene Daten nicht prüfen; geprüft

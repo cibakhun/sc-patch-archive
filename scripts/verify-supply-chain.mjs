@@ -59,9 +59,11 @@ const KLINKE = {
   pakete: 480, // Summe ueber alle drei Lockfiles (gemessen 402 + 25 + 75 = 502)
   // 05.11.2026 angehoben: probe-backup.yml und die Vorlage des Backup-Repos
   // (VORLAGEN) kamen dazu — 11/35/14/58 -> 13/40/16/69.
-  workflows: 13,
-  actions: 40, // fremde `uses:`-Zeilen ueber alle Workflows und Vorlagen
-  checkouts: 16,
+  // 26.11.2026 angehoben auf den Ist-Stand mit review-nachweis.yml
+  // (Merge-Gate, docs/review-workflow.md): 13/40/16/69 -> 14/43/18/74.
+  workflows: 14,
+  actions: 43, // fremde `uses:`-Zeilen ueber alle Workflows und Vorlagen
+  checkouts: 18,
   // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026) = 59. Am
   // 01.11.2026 auf 58 GESENKT: der Live-Deploy hat seine Kopfzeilen-Pruefung
   // abgegeben, weil Cloudflare den Runner vor verse-base.com nicht nur sperrt,
@@ -69,7 +71,7 @@ const KLINKE = {
   // rot. Das Urteil liegt jetzt auf Schiene C (npm run check:headers:live).
   // Die Pruefung nach dem Vorschau-Deploy bleibt und zaehlt weiter mit.
   // 05.11.2026 + 11 fuer die Sicherung (probe-backup.yml und Vorlage) = 69.
-  runBloecke: 69,
+  runBloecke: 74,
   basisImages: 4,
 };
 
