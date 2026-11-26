@@ -225,7 +225,7 @@ export function holoDaten(d: CollectionEntry<'vehicles'>['data'], id: string, la
     grpLabels: Object.fromEntries(HOLO_GRP_ORDER.map((g) => [g, t(`holo.grp.${g}` as any)])),
     icons: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].filter((k) => HOLO_ICON[k]).map((k) => [k, HOLO_ICON[k]])),
     loc,
-    finder: L('/item-finder.html'),
+    finder: L('/items.html'),
     /* Masskette der Gruppe „Ausstattung" (Phase 17): fertige Zeichenketten,
        weil die Sprache und die Einheit hier bekannt sind und im Viewer
        nicht. NUR wenn beide Masse wirklich vorliegen — eine 0 ist kein Mass

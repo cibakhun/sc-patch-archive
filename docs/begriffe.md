@@ -35,8 +35,7 @@ Die Leiste zeigt die sieben Bereiche; ein Bereich führt auf seine erste Seite.
 
 | Bereich | Seite (Schlüssel) | Pfad | DE | EN | Unterzeile DE / EN |
 |---|---|---|---|---|---|
-| Items | `items` | `/items.html` | Item-Verzeichnis | Item directory | Alle Items nach Kategorie / Every item by category |
-| | `finder` | `/item-finder.html` | Item Finder | Item Finder | Preise & Fundorte / Prices & locations |
+| Items | `items` | `/items.html` | Items | Items | Suchen, filtern, Preise & Fundorte / Search, filter, prices & locations |
 | | `sets` | `/armor-sets.html` | Rüstungs-Sets | Armor sets | Ganze Sets im Vergleich / Full sets compared |
 | Crafting | `crafting` | `/topics/crafting.html` | Crafting | Crafting | Werkbank & Planer / Workbench & planner |
 | | `blueprints` | `/crafting.html` | Blueprint-Verzeichnis | Blueprint directory | Alle Blueprints nach Kategorie / Every blueprint by category |
@@ -82,7 +81,7 @@ Konto und Service (rechts in der Leiste bzw. im Fuß, kein Bereich):
 
 **Verworfene Namen und wohin sie gehören** (heute noch an einzelnen Stellen):
 
-- „Preise & Fundorte“ ist die Unterzeile des Item Finders, nie der Name des Item-Verzeichnisses.
+- „Item-Verzeichnis“ und „Item Finder“ heißen seit 26.11.2026 Items: beide sind in der Items-Werkbank auf `/items.html` aufgegangen (Krisz 26.11.2026), `/item-finder.html` leitet dorthin um. „Item Finder“ steht nur noch im Seitentitel und in der Beschreibung, damit die Suche die Seite unter dem alten Namen findet.
 - „Blaupausen & Planer“, „Crafting-Datenbank“, „Blueprint-Datenbank“, „Fabricator-Planer“ heißen Crafting (Werkbank) bzw. Blueprint-Verzeichnis.
 - „Gegenstände“ heißt Items.
 - „Raffinerie“, „Refinery-Tracker“, „Refinery-Finder“ heißen Refinery.

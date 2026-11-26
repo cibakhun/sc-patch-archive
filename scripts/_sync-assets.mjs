@@ -32,9 +32,18 @@ await cp('assets', 'public/assets', {
   filter: (src) => !IS_BUILD_INPUT.test(src),
 });
 
+// Aus assets/ entfernte Dateien: cp() legt nur an, und public/assets lebt
+// auf jedem Arbeitsplatz weiter. Ohne diese Liste lieferte ein lokaler Bau
+// die alte Datei weiter aus (Docker und CI bauen frisch und merken nichts).
+// Nur benannte Dateien, weil spaetere Bauschritte eigene Dateien in
+// public/assets ablegen, die es in assets/ nicht gibt.
+const AUSGEMUSTERT = [
+  'item-finder-app.js', // 26.11.2026: der Item Finder ist in der Items-Seite aufgegangen
+];
+
 let pruned = 0;
 for (const name of await readdir('public/assets').catch(() => [])) {
-  if (!IS_BUILD_INPUT.test(name)) continue;
+  if (!IS_BUILD_INPUT.test(name) && !AUSGEMUSTERT.includes(name)) continue;
   await rm(join('public/assets', name), { force: true });
   pruned++;
 }

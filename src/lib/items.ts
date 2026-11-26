@@ -238,7 +238,7 @@ export const fundorte: Fundorte | null = db.fundorte ?? null;
 /**
  * Loot-Zeilen eines Fundort-Profils. `loc` traegt den englischen Namen der
  * Ortsart (Suche, Sortierung, Dedupe); angezeigt wird ueber obtainLabel() in
- * der Seitensprache. Zwilling: lootZeilen() in assets/item-finder-app.js.
+ * der Seitensprache. Zwilling: lootZeilen() in assets/items-werkbank.js.
  */
 export function lootZeilen(fund: number | undefined): Obtain[] {
   const p = fund == null ? null : fundorte?.profile[fund];
@@ -621,7 +621,7 @@ export function hasGradeSemantics(i: Item): boolean {
  * andere Achse — Light/Medium/Heavy, und die steht bereits in `game.weight`
  * bzw. im Kategorie-Pfad.
  *
- * ⚠ Gespiegelt in `assets/item-finder-app.js` (clientseitiges Rendern) und in
+ * ⚠ Gespiegelt in `assets/items-werkbank.js` (clientseitiges Rendern) und in
  * `scripts/verify-crafting-specs.mjs` (Datengatter). Aendert sich die Regel
  * hier, muessen beide nachgezogen werden.
  */

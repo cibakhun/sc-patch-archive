@@ -115,7 +115,9 @@ export const EREIGNISSE = {
 // Ziele wie die Werkzeug-Eintraege der Suche (toolEntries in
 // src/lib/searchIndex.ts); der Hangar fehlt mit Absicht.
 export const WERKZEUG_SEITEN = {
-  '/item-finder.html': 'finder',
+  // Items-Seite (Werkbank): seit 26.11.2026 Verzeichnis und Item Finder in
+  // einem; der Wert bleibt „finder“, damit die Reihe der Auswertung weiterlaeuft.
+  '/items.html': 'finder',
   '/missionen.html': 'missionen',
   '/topics/crafting.html': 'crafting',
   '/fracturing.html': 'fracturing',

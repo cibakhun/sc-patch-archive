@@ -1755,11 +1755,11 @@
       html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
     }
     // Zum Item-Datenblatt, wo es eines gibt (09.11.2026, Skizze 016: Preise,
-    // Fundorte und Werte stehen dort); sonst wie bisher in den Item Finder.
+    // Fundorte und Werte stehen dort); sonst auf die Items-Seite mit dem Item.
     // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
     var itemUrl = itemSheetUrl(i);
     if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + (WB && WBT.itemSheet ? '<span>' + esc(WBT.itemSheet) + '</span>' : tr('openItem', 'Item-Datenblatt öffnen')) + pfeil + '</a>';
-    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + pfeil + '</a>';
+    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/items.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Item ansehen') + pfeil + '</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
       html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + (WB && WBT.dismantle ? '<span>' + esc(WBT.dismantle) + '</span>' : tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen')) + pfeil + '</button>';

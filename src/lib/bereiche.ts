@@ -68,7 +68,6 @@ export interface BereichQuelle {
 
 const ICON = {
   items: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
-  finder: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
   sets: '<path d="M12 2 4 5v6c0 5.2 3.4 9.4 8 11 4.6-1.6 8-5.8 8-11V5z"/>',
   crafting: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
   blueprints: '<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/>',
@@ -108,27 +107,19 @@ export const BEREICHE: BereichQuelle[] = [
     name: { de: 'Items', en: 'Items' },
     seiten: [
       {
+        // Verzeichnis und Item Finder in einem Werkzeug, der Items-Werkbank
+        // (Krisz 26.11.2026 „lass es machen“). /item-finder.html leitet
+        // hierher (nginx/umzuege.conf).
         key: 'items',
         path: '/items.html',
-        name: { de: 'Item-Verzeichnis', en: 'Item directory' },
-        sub: { de: 'Alle Items nach Kategorie', en: 'Every item by category' },
+        name: { de: 'Items', en: 'Items' },
+        sub: { de: 'Suchen, filtern, Preise & Fundorte', en: 'Search, filter, prices & locations' },
         pre: ['/items.html', '/items/'],
-        such: 'items gegenstaende verzeichnis directory kategorien categories alle all',
+        such: 'items gegenstaende verzeichnis directory kategorien categories alle all finder item-finder preise prices shops loot fundorte kaufen buy',
         icon: ICON.items,
-      },
-      {
-        key: 'finder',
-        path: '/item-finder.html',
-        name: { de: 'Item Finder', en: 'Item Finder' },
-        sub: { de: 'Preise & Fundorte', en: 'Prices & locations' },
-        pre: ['/item-finder.html'],
-        such: 'items finder preise prices shops loot fundorte kaufen buy',
-        icon: ICON.finder,
         bild: 't-supply-1',
-        // Klebende Seitenleiste und Trefferkopf haengen an einer festen Hoehe
-        // unter der Kopfleiste (--uif-stick), nicht an --nav-h; die Seite
-        // geht ohnehin im neuen Item-Verzeichnis auf (Items-Thread).
-        ohneLeiste: 'Item Finder: feste Klebehoehe, wird mit dem Verzeichnis zusammengelegt',
+        // Das Werkzeug fuellt die Seite wie die Crafting-Werkbank.
+        ohneLeiste: 'Items-Werkbank: keine Zeile unter der Kopfleiste, wie die Crafting-Werkbank',
       },
       {
         key: 'sets',
@@ -591,7 +582,7 @@ export function krumen(pathname: string, seite: Krume[], lang: Locale): Krume[] 
  * Startseite: xl zwei Zeilen hoch, w halbe Breite, t ein Drittel.
  */
 const START: ReadonlyArray<readonly [string, 'xl' | 'w' | 't']> = [
-  ['finder', 'xl'],
+  ['items', 'xl'],
   ['crafting', 'w'],
   ['missionen', 'w'],
   ['schiffe', 't'],

@@ -11,7 +11,7 @@
 //      Spielernamen (DE/EN) und benennt die Himmelskoerper.
 //   3. apply:loot-fundorte traegt das Ergebnis in assets/universal-items.json
 //      ein (Kopf `fundorte`, je Item `fund`); src/lib/items.ts und
-//      assets/item-finder-app.js machen daraus Zeilen.
+//      assets/items-werkbank.js machen daraus Zeilen.
 // Ein neuer Patch bringt neue Belegungen (Glied 2 kennt sie nicht), ein
 // sync:items baut den Katalog ohne `fund` neu (Glied 3 fehlt), eine Umbenennung
 // in loot-orte.mjs erreicht den Katalog nicht. Jedes davon sieht auf der Seite

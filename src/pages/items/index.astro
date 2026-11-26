@@ -1,5 +1,18 @@
 ---
-// Item-Verzeichnis (EN) — /items.html
-import ItemsHub from '../../components/ItemsHub.astro';
+// Items (EN) — /items.html: die Items-Werkbank, Verzeichnis und Item Finder
+// in einem Werkzeug (Krisz 24.11.2026 „zusammen bauen zu 1“, umgestellt am
+// 26.11.2026). /item-finder.html leitet hierher (nginx/umzuege.conf).
+// Koerper: components/items/ItemsWerkbankPage.astro, geteilt mit der anderen
+// Sprache.
+import { versioned } from '../../lib/assetVersion';
+import Layout from '../../layouts/Layout.astro';
+import Body from '../../components/items/ItemsWerkbankPage.astro';
+import { db, ITEM_PATCH, num } from '../../lib/items';
+
+const total = num(db.counts.items, 'en');
+const sourced = num(db.counts.withObtain, 'en');
 ---
-<ItemsHub lang="en" />
+<Layout title={`Star Citizen Items & Item Finder — all ${total} items, prices & locations | VerseBase`} description={`Every Star Citizen ${ITEM_PATCH} item in one item finder: browse ${total} items by category, filter and search, with stats, buy prices and loot spots; ${sourced} with verified in-game sources.`} themeColor="#0d0c14" ogType="article" ogImage="/assets/cz-loot.jpg" translated={true} itemPage={{ modified: db.generatedAt, name: 'Star Citizen Items' }}>
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<Body />
+</Layout>

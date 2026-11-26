@@ -1,6 +1,6 @@
 ---
-// Items-Werkbank — EIN Koerper fuer DE und EN (Huellen unter
-// src/vorschau-routes/, nur im Vorschau-Bau; scripts/lib/vorschau-seiten.mjs).
+// Items-Werkbank — EIN Koerper fuer DE und EN (Huellen: src/pages/items/
+// index.astro und src/pages/de/items/index.astro, also /items.html).
 //
 // Aufbau wie die Crafting-Seite (components/topics/crafting.astro): kein
 // Kopfband, das Werkzeug ist die Seite. Die Ueberschrift bleibt fuer
@@ -17,7 +17,6 @@ import { standItems, datumLang } from '../../lib/datenstand';
 import { localeFromPath, href } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
 import { ITEM_KENNUNG, db, num, roots } from '../../lib/items';
-import { craftHubPath } from '../../lib/crafting';
 import { patchLinkFromKennung } from '../../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -31,7 +30,7 @@ const nKat = roots.reduce((s, r) => s + r.nodes.length, 0);
 const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
 const patchHref = patchLink.href;
 const crumbPatch = patchHref ? [{ label: patchLink.label, href: patchHref }] : [];
-// Dieselben Wertegruppen wie im Finder (ItemFinderPage.astro).
+// Dieselben Wertegruppen wie im bisherigen Finder (bis 26.11.2026).
 const mitSchnappschuss = db.items.some((i) => i.obtain.some((o) => o.src === 'schnappschuss'));
 const mitFundortSpiel = db.items.some((i) => i.fund != null);
 ---
@@ -86,10 +85,9 @@ body{background:var(--bg)}
   <ItemsWerkbank lang={lang} />
 
   <aside class="wz-about">
-    <p class="wz-about__lead">{de ? 'Jedes Item in Star Citizen an einem Ort: Spielwerte, Kaufpreise, Shop-Orte und Loot-Fundorte. Jede Kategorie der Leiste ist auch eine eigene Liste mit Datenblättern.' : 'Every item in Star Citizen in one place: stats, buy prices, shop locations and loot spots. Every category in the sidebar is also a list of its own with data sheets.'}</p>
+    <p class="wz-about__lead">{de ? 'Jedes Item in Star Citizen an einem Ort: Spielwerte, Kaufpreise, Shop-Orte und Loot-Fundorte.' : 'Every item in Star Citizen in one place: stats, buy prices, shop locations and loot spots.'}</p>
     <div class="qbar"><span>Items <b>{n(total)}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{n(sourced)}</b></span><span>{de ? 'Kategorien' : 'Categories'} <b>{n(nKat)}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
     <p class="wz-about__links">
-      <a href={href(craftHubPath, lang)}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
       <a href={href('/armor-sets.html', lang)}>{de ? 'Rüstungssets →' : 'Armor sets →'}</a>
       <a href={href('/topics/crafting.html', lang)}>Crafting →</a>
     </p>
@@ -98,7 +96,6 @@ body{background:var(--bg)}
         ? <><b>{n(unsourced)} von {n(total)} Items ({unsourcedPct} %)</b> haben noch keine verifizierte Shop- oder Loot-Quelle. Ihr Blatt sagt das offen, statt einen Fundort zu raten; der Filter „Nur Katalog" listet sie.</>
         : <><b>{n(unsourced)} of {n(total)} items ({unsourcedPct}%)</b> have no verified shop or loot source yet. Their sheet says so instead of guessing a location; the "Catalog only" filter lists them.</>}</p>
       <p class="wz-about__note">{de ? 'Preise und Fundorte sind ' : 'Prices and locations are '}<b>{de ? 'Patch-volatil, ingame prüfen' : 'patch-volatile, verify in game'}</b> {de ? `(Preisstand: ${datumLang(db.pricesAsOf, lang)}).` : `(prices as of ${datumLang(db.pricesAsOf, lang)}).`}</p>
-      <p class="wz-about__note"><b>{de ? 'Prototyp.' : 'Prototype.'}</b> {de ? 'Diese Seite fasst ' : 'This page combines '}<a href={href('/items.html', lang)}>{de ? 'Item-Verzeichnis' : 'Item directory'}</a>{de ? ' und ' : ' and '}<a href={href('/item-finder.html', lang)}>Item Finder</a>{de ? ' zusammen. Beide bleiben, bis die Werkbank abgenommen ist.' : '. Both stay until the workbench is signed off.'}</p>
     </div>
     <Datenstand lang={lang} innen zeilen={standItems(lang, { preise: true, schnappschuss: mitSchnappschuss, fundorte: true, fundorteSpiel: mitFundortSpiel })} />
   </aside>

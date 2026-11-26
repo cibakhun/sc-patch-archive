@@ -21,10 +21,10 @@
            Ergebnis-Item (data-bp-item) ein Modell hat, und zwar mit genau
            dieser Datei
        [5] der Betrachter und sein Umgebungslicht liegen in dist/
-       [6] Items-Werkbank (Krisz 26.11.2026): jede ihrer Seiten traegt genau
-           einen Dialog ohne festes Modell, der auf die Modell-Liste zeigt
-           (data-i3d-liste, ebenso die Seiten-Einstellung i3dListe), und
-           sonst keine Seite; dist/hangar-item3d.json ist genau die Liste
+       [6] Items-Werkbank (/items.html, Krisz 26.11.2026): jede ihrer
+           Seiten traegt genau einen Dialog ohne festes Modell, der auf die
+           Modell-Liste zeigt (data-i3d-liste, ebenso die Seiten-Einstellung
+           i3dListe), und sonst keine Seite; dist/hangar-item3d.json ist genau die Liste
            mit der Ablage dieses Baus, und ihre Kennung ?v= passt zum Inhalt
      Im Live-Bau gehoert auch die Modell-Liste nicht in dist/ ([1]).
 
@@ -38,7 +38,6 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join, basename, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { VORSCHAU_DIST_FILES } from './lib/vorschau-seiten.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
@@ -54,10 +53,10 @@ const MIN_SEITEN = 18500;      // HTML-Seiten im Vorschau-Bau ausser der Werkban
 // Attribut und Dialog haengen am selben linkedItem in BlueprintDetail.astro;
 // verliert eine Seite ihr Item, faellt sie hier auf statt still durchzugehen.
 const MIN_BP_MIT_ITEM = 3200;
-// Seiten der Items-Werkbank (EN und DE). Zieht sie nach der Abnahme nach
-// /items.html um, faellt sie aus der Vorschau-Liste, und [6] reisst, bis
-// diese Stelle die neuen Seiten nennt.
-const WERKBANK_SEITEN = VORSCHAU_DIST_FILES.filter((f) => /(?:^|\/)items-werkbank\.html$/.test(f));
+// Seiten der Items-Werkbank (EN und DE): seit dem 26.11.2026 /items.html
+// (vorher der Prototyp /items-werkbank.html). Zieht sie um, reisst [6] an
+// „fehlt“, bis diese Stelle die neuen Seiten nennt.
+const WERKBANK_SEITEN = ['items.html', 'de/items.html'];
 const LISTE_DATEI = 'hangar-item3d.json';
 
 const fehler = [];
@@ -261,7 +260,6 @@ if (!vorschau) {
   for (const s of fremd.slice(0, 5)) fail(`[6] ${s}: Dialog mit Modell-Liste ausserhalb der Werkbank`);
   if (fremd.length > 5) fail(`[6] … und ${fremd.length - 5} weitere Seiten mit Modell-Liste`);
   if (durchsucht < MIN_SEITEN) fail(`[6] nur ${durchsucht} andere Seiten durchsucht, Klinke ${MIN_SEITEN} — dist/ unvollstaendig?`);
-  if (!WERKBANK_SEITEN.length) fail('[6] keine Werkbank-Seite in scripts/lib/vorschau-seiten.mjs — umgezogen? Dann hier die neuen Seiten nennen');
   console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste (Soll ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}; ${durchsucht} andere Seiten durchsucht, ${fremd.length} davon mit Liste`);
 
   if (eintraege.length < MIN_MODELLE) fail(`Liste: ${eintraege.length} Modelle, Klinke ${MIN_MODELLE}`);

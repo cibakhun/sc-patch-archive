@@ -427,7 +427,7 @@
 
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -438,7 +438,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
 
 // Klinken
-const MIN_BEREICHE = 7;    // Reiter des Terminals je Seite (13.11.2026: 7)
+const MIN_BEREICHE = 6;    // Reiter des Terminals je Seite (13.11.2026: 7; 26.11.2026: 6, der Item Finder ist in Items aufgegangen)
 const MIN_FIT_PROBEN = 1200; // Stellungen der Kamera, die [5] nachrechnet (13.11.2026: 432, mit hohen Fenstern 624; 14.11.2026 mit der Large-Halle 1248)
 const MIN_FIT_ENG = 130;     // davon mit begrenztem Bildwinkel: dort schrumpft der Schirm (13.11.2026: 66; 14.11.2026 mit der Large-Halle 144)
 const MIN_WEG_PROBEN = 14;  // Links, die [4] durch termRoute schickt
@@ -451,7 +451,7 @@ const MIN_GAST_WEGE = 6;     // Wege des Gasts auf dem Sperrbild, beschriftet un
 const MIN_SITZ_PROBEN = 37;  // Pfade, Zeitstempel und Sitzungen, die [4] durch termKonto, termAnmeldung, termGruss und termBlende schickt (15.11.2026: 9 + 10 + 8 + 10)
 const MIN_START_PROBEN = 141; // Adressen und Besuche, die [6] durch startAmSchirm schickt (15.11.2026: 17 + 23 Schluessel) und durch den Vorentscheid im Geruest beider Seiten (je 15 + 23 + 7; 16.11.2026 je 15 + 23 + 10, mit der Sitzung, die sich nur lesen laesst), dazu die Frage von guess3d nach dem Telefon und 4 Laeufe des Erstbesuchs in tool-help.js
 const MIN_UEB_ZAHLEN = 4;    // Werkzeug-Kacheln, deren Zahl [3] gegen den Titel ihrer Seite haelt (23.11.2026: Items und Missionen je Sprache)
-const MIN_UEB_ZIELE = 30;    // Links des Ueberblicks mit Ziel in dist/, die [3] prueft (23.11.2026: 7 Werkzeuge, 4 Zahlen, Patch, 2 Wege des Gasts, wer davor sitzt, je Seite)
+const MIN_UEB_ZIELE = 28;    // Links des Ueberblicks mit Ziel in dist/, die [3] prueft (23.11.2026: 7 Werkzeuge, 4 Zahlen, Patch, 2 Wege des Gasts, wer davor sitzt, je Seite = 30; 26.11.2026: 28, die Werkzeug-Kachel Item Finder ist in Items aufgegangen)
 const MIN_UEB_PROBEN = 39;   // Proben, die [4] durch termErste, termRest, termRaffinerie, termCrafting, termFreunde und termGespeichert schickt (23.11.2026: 9 + 7 + 8 + 4 + 6 + 5)
 const MIN_KONTO_SEITEN = 6;  // Kontoseiten (Anmelden, Registrieren, Konto, je Sprache), deren ausgelieferte Skripte [6] nach dem Kennzeichen des Terminals durchsucht (15.11.2026: 6)
 
@@ -765,10 +765,15 @@ if (term) {
   for (const v of kontoAbstand) if (!new RegExp(`${v}:0`).test(TERM_CSS ?? '')) fail(`[4] TERM_CSS setzt ${v} nicht auf 0: Die Kontoseite (.dsr{padding-top:var(${v})}) stuende im Fenster unter einem leeren Streifen, so hoch wie die Kopfzeile, die es dort nicht gibt`);
   // Schlanke Datenseiten (DataShell): der Pfad bleibt, Startlink, Suchknopf
   // und Sprachschalter gehen. Die Suche holt das Terminal ueber den Knopf
-  // der Seite (data-scs-boot), also muss es ihn dort geben.
-  const daten = existsSync(join(DIST, 'de/items.html')) ? readFileSync(join(DIST, 'de/items.html'), 'utf8') : '';
+  // der Seite (data-scs-boot), also muss es ihn dort geben. Probe: die erste
+  // Kategorieliste (bis 26.11.2026 /de/items.html; seitdem ist das die
+  // Items-Werkbank mit voller Kopfleiste).
+  const listenOrdner = join(DIST, 'de/items/category');
+  const liste = existsSync(listenOrdner) ? readdirSync(listenOrdner).filter((f) => f.endsWith('.html')).sort()[0] : null;
+  const datenSeite = liste ? `de/items/category/${liste}` : 'de/items/category/*.html';
+  const daten = liste ? readFileSync(join(listenOrdner, liste), 'utf8') : '';
   const kopf = /<header class="dp-bar"[^>]*>([\s\S]*?)<\/header>/.exec(daten)?.[1] ?? '';
-  if (!kopf) fail('[4] dist/de/items.html traegt keine Kopfleiste .dp-bar mehr: TERM_CSS und die Suche des Terminals griffen auf den Datenseiten ins Leere');
+  if (!kopf) fail(`[4] dist/${datenSeite} traegt keine Kopfleiste .dp-bar mehr: TERM_CSS und die Suche des Terminals griffen auf den Datenseiten ins Leere`);
   for (const [was, klasse] of [['den Startlink', 'dp-home'], ['den Suchknopf', 'dp-search'], ['den Sprachschalter', 'dp-lang']]) {
     if (!new RegExp(`\\.dp-bar>\\.${klasse}[^{]*\\{[^}]*display:none`).test(TERM_CSS ?? '')) fail(`[4] TERM_CSS nimmt ${was} der Datenseiten (.${klasse}) nicht heraus: er stuende doppelt unter der Leiste des Terminals`);
     if (kopf && !new RegExp(`class="${klasse}"`).test(kopf)) fail(`[4] die Kopfleiste der Datenseiten traegt .${klasse} nicht mehr als Kind: TERM_CSS faende es nicht`);

@@ -36,22 +36,25 @@ export const HELP = {
     'ui.elementsOff': 'Erklärung beenden',
     'ui.bubbleLabel': 'Erklärung',
 
-    // -- Item Finder --
-    'itemfinder.title': 'Wie funktioniert der Item Finder?',
+    // -- Items (/items.html, die Items-Werkbank; die Kennung „itemfinder“
+    //    stammt vom Item Finder, der seit 26.11.2026 darin aufgegangen ist) --
+    'itemfinder.title': 'So funktioniert’s',
     'itemfinder.purpose':
-      'Durchsucht alle Gegenstände des Spiels und zeigt zu jedem Größe, Werte und Bezugsquellen.',
-    'itemfinder.step1': 'Suchbegriff eingeben oder Filter in der Seitenleiste wählen.',
-    'itemfinder.step2': 'Nach Fundart, Größe, Panzerungsklasse oder Seltenheit einschränken.',
-    'itemfinder.step3': 'Ergebnisse sortieren oder zwischen Einzelteilen und Sets wechseln.',
-    'itemfinder.step4': 'Auf eine Karte klicken für Details, Werte und Fundorte.',
-    'itemfinder.ctl.search': 'Freitextsuche über Namen und Beschreibung.',
+      'Alle Items des Spiels an einem Ort: links die Gruppen, in der Mitte die Treffer, rechts das gewählte Item mit Werten, Preisen und Fundorten.',
+    'itemfinder.step1': 'Gruppe oder Kategorie links wählen, oder einfach suchen.',
+    'itemfinder.step2': 'Mit „Filter“ nach Fundart, Größe, Panzerungsklasse oder Seltenheit eingrenzen.',
+    'itemfinder.step3': 'Ein Item anklicken: rechts stehen Werte, Bezugsquellen, Set und Rezept.',
+    'itemfinder.step4': 'Tastatur: / sucht, ↑ ↓ blättert durch die Treffer, Esc schließt.',
+    'itemfinder.ctl.search': 'Sucht in Namen, Herstellern, Kategorien und Fundorten.',
+    'itemfinder.ctl.filter': 'Öffnet die Filter: Fundart, Größe, Panzerungsklasse und Seltenheit.',
     'itemfinder.ctl.kind': 'Schränkt auf eine Fundart ein, etwa kaufbar, Loot oder nur Katalog.',
     'itemfinder.ctl.size': 'Schränkt auf eine Größenklasse ein.',
     'itemfinder.ctl.weight': 'Schränkt auf eine Panzerungsklasse ein.',
     'itemfinder.ctl.rarity': 'Schränkt auf eine Seltenheitsstufe ein.',
-    'itemfinder.ctl.category': 'Wählt eine Kategorie aus der Liste.',
-    'itemfinder.ctl.view': 'Wechselt zwischen Einzelteilen und vollständigen Sets.',
-    'itemfinder.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
+    'itemfinder.ctl.category': 'Wählt eine Gruppe oder Kategorie; jede ist auch eine eigene Liste.',
+    'itemfinder.ctl.view': 'Wechselt zwischen einzelnen Items und vollständigen Rüstungs-Sets.',
+    'itemfinder.ctl.layout': 'Zeigt die Treffer als Kacheln oder als Liste.',
+    'itemfinder.ctl.sort': 'Legt die Sortierung der Treffer fest.',
 
     // -- Crafting --
     'crafting.title': 'Wie funktioniert die Crafting-Datenbank?',
@@ -265,21 +268,23 @@ export const HELP = {
     'ui.elementsOff': 'Stop explaining',
     'ui.bubbleLabel': 'Explanation',
 
-    // -- Item Finder --
-    'itemfinder.title': 'How does the Item Finder work?',
+    // -- Items (/items.html, the items workbench) --
+    'itemfinder.title': 'How it works',
     'itemfinder.purpose':
-      'Searches every item in the game and shows size, stats and where to get it for each one.',
-    'itemfinder.step1': 'Type a search term or pick filters in the sidebar.',
-    'itemfinder.step2': 'Narrow down by availability, size, armor class or rarity.',
-    'itemfinder.step3': 'Sort the results or switch between individual pieces and sets.',
-    'itemfinder.step4': 'Click a card for details, stats and where to find it.',
-    'itemfinder.ctl.search': 'Free-text search across name and description.',
+      'Every item in the game in one place: groups on the left, results in the middle, the chosen item with stats, prices and locations on the right.',
+    'itemfinder.step1': 'Pick a group or category on the left, or just search.',
+    'itemfinder.step2': 'Use “Filter” to narrow by availability, size, armor class or rarity.',
+    'itemfinder.step3': 'Click an item: stats, sources, set and recipe appear on the right.',
+    'itemfinder.step4': 'Keyboard: / searches, ↑ ↓ steps through results, Esc closes.',
+    'itemfinder.ctl.search': 'Searches names, manufacturers, categories and locations.',
+    'itemfinder.ctl.filter': 'Opens the filters: availability, size, armor class and rarity.',
     'itemfinder.ctl.kind': 'Narrows down to an availability type, such as purchasable, loot or catalog only.',
     'itemfinder.ctl.size': 'Narrows down to a size class.',
     'itemfinder.ctl.weight': 'Narrows down to an armor class.',
     'itemfinder.ctl.rarity': 'Narrows down to a rarity tier.',
-    'itemfinder.ctl.category': 'Picks a category from the list.',
-    'itemfinder.ctl.view': 'Switches between individual pieces and complete sets.',
+    'itemfinder.ctl.category': 'Picks a group or category; each one is also a list of its own.',
+    'itemfinder.ctl.view': 'Switches between single items and complete armor sets.',
+    'itemfinder.ctl.layout': 'Shows the results as tiles or as a list.',
     'itemfinder.ctl.sort': 'Sets the sort order of the results.',
 
     // -- Crafting --

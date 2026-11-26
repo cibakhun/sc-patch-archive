@@ -24,7 +24,6 @@ import { LOCALES, type Locale } from '../i18n/ui';
 import { HANGAR_ON } from './hangarFlag';
 import { HANGAR_ROUTES } from '../../scripts/lib/hangar-switch.mjs';
 import { VORSCHAU_PATCH_ROUTES } from '../../scripts/lib/vorschau-patches.mjs';
-import { VORSCHAU_ROUTES } from '../../scripts/lib/vorschau-seiten.mjs';
 
 /** Alle Seiten-Dateien, absolut ab Projektwurzel ("/src/pages/de/archiv.astro"). */
 const PAGE_FILES = Object.keys(
@@ -33,9 +32,8 @@ const PAGE_FILES = Object.keys(
 
 /**
  * Seiten, die NICHT unter src/pages/ liegen, sondern beim Bauen eingehaengt
- * werden: der Hangar, die Patch-Seiten vor der Abnahme und die Prototypen
- * (Items-Werkbank, scripts/lib/vorschau-seiten.mjs), alle nur im Vorschau-Bau
- * (astro.config.mjs). Die Dateiliste oben kennt sie nicht.
+ * werden: der Hangar und die Patch-Seiten vor der Abnahme, beide nur im
+ * Vorschau-Bau (astro.config.mjs). Die Dateiliste oben kennt sie nicht.
  *
  * ANLASS (24.11.2026, UX-Audit Task-Flows T9): genau deshalb fuehrte DE/EN auf
  * /patches/sc-4-10-3, der Chronik 4.10.3, im Hangar und im Advanced Loadout
@@ -46,7 +44,7 @@ const PAGE_FILES = Object.keys(
  * verify:sprachweiche prueft das Ergebnis am fertigen dist/.
  */
 const INJECTED_PAGES: string[] = HANGAR_ON
-  ? [...HANGAR_ROUTES, ...VORSCHAU_PATCH_ROUTES, ...VORSCHAU_ROUTES]
+  ? [...HANGAR_ROUTES, ...VORSCHAU_PATCH_ROUTES]
       .filter((r: { entrypoint: string }) => r.entrypoint.endsWith('.astro'))
       .map((r: { pattern: string }) => r.pattern)
   : [];

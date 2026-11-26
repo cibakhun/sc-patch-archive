@@ -36,6 +36,9 @@ export const AUSGELASSEN = [
 /* Zeitlimit fuer jeden synchronen Lauf (Skriptstart, Ereignis, Zeitgeber):
    eine Endlosschleife ist ein Befund, kein haengendes Tor. */
 const ZEITLIMIT_MS = 5000;
+// IntersectionObserver: so oft meldet ein Element je Beobachter „sichtbar“
+// (siehe den Ersatz im Fenster unten).
+const IO_MELDUNGEN = 4;
 
 /* Dateien aus dist/ einmal je Lauf lesen: dieselben Daten (Rezepte,
    Spieldaten) laden viele Seiten. */
@@ -216,7 +219,7 @@ export const TEXT_ATTRS = ['alt', 'title', 'aria-label', 'aria-description', 'ar
  * Oeffnet `seite` (Pfad relativ zu dist/) und fuehrt ihre Skripte aus.
  * Rueckgabe: Seitenobjekt mit document, settle(), fire(), ernte(), fehler …
  */
-export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache }) {
+export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache, umbau = null, antworten = null, skripte = null }) {
   const html = lies(join(dist, seite));
   const { window: lw, document } = parseHTML(html);
   ergaenze(lw);
@@ -282,6 +285,13 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     const ziel = new URL(String(u && u.url ? u.url : u), url);
     if (ziel.origin !== url.origin) throw new TypeError('Failed to fetch (Pruefstand: kein Netz)');
     geladen.push(ziel.pathname);
+    // `antworten` (Pfad -> Text oder { status, body }) ersetzt einzelne
+    // Abrufe, etwa den Item-Katalog durch ein Fixture in den Tests.
+    if (antworten && antworten.has(ziel.pathname)) {
+      const a = antworten.get(ziel.pathname);
+      if (a instanceof Error) throw a;
+      return typeof a === 'string' ? antwort(200, a) : antwort(a.status ?? 200, a.body ?? '');
+    }
     const pfad = join(dist, decodeURIComponent(ziel.pathname));
     if (!existsSync(pfad)) return antwort(404, '');
     return antwort(200, lies(pfad));
@@ -330,10 +340,20 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     addEventListener: winOn, removeEventListener: winOff, dispatchEvent: winFire,
     CSS: { escape: (s) => String(s).replace(/([^\w-])/g, '\\$1'), supports: () => false },
     // Was beobachtet wird, gilt als sichtbar — sonst rendert kein Werkzeug,
-    // das erst beim Hineinscrollen baut.
+    // das erst beim Hineinscrollen baut. Hoechstens IO_MELDUNGEN Mal je
+    // Element und Beobachter: eine Nachlade-Marke, die nach jedem Schub neu
+    // beobachtet wird (Items-Seite, 26.11.2026), sah sonst einen unendlich
+    // hohen Schirm — das Gitter legte alle 9.462 Kacheln an, jeder
+    // Bedienschritt baute sie neu, und der Zeitgeber kam nicht zur Ruhe.
     IntersectionObserver: class {
-      constructor(cb) { this.cb = cb; this.els = new Set(); }
-      observe(el) { this.els.add(el); setT(() => { if (this.els.has(el)) this.cb([{ target: el, isIntersecting: true, intersectionRatio: 1, boundingClientRect: {}, rootBounds: {}, intersectionRect: {} }], this); }, 1); }
+      constructor(cb) { this.cb = cb; this.els = new Set(); this.n = new Map(); }
+      observe(el) {
+        this.els.add(el);
+        const n = (this.n.get(el) ?? 0) + 1;
+        this.n.set(el, n);
+        if (n > IO_MELDUNGEN) return;
+        setT(() => { if (this.els.has(el)) this.cb([{ target: el, isIntersecting: true, intersectionRatio: 1, boundingClientRect: {}, rootBounds: {}, intersectionRect: {} }], this); }, 1);
+      }
       unobserve(el) { this.els.delete(el); } disconnect() { this.els.clear(); } takeRecords() { return []; }
     },
     ResizeObserver: class { observe() {} unobserve() {} disconnect() {} },
@@ -471,8 +491,15 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   st.laeuft = true;
   // document.currentScript wie im Browser: das laufende klassische Skript,
   // bei Modulen null (support.html liest seine Texte aus data-* am Tag).
+  // `umbau(name, code)` darf den Code eines Skripts vor dem Lauf ersetzen
+  // (verify:clienttext setzt so seine Pruefnaht in die Items-Werkbank, nur
+  // in die geladene Kopie). `skripte({ name, code, modul })` waehlt aus,
+  // welche Skripte ueberhaupt laufen (die Werkbank-Tests laden nur ihr
+  // eigenes). Ohne beides laeuft, was dist/ ausliefert.
   const fuehreAus = async (e) => {
-    const c = await codeVon(e);
+    if (skripte && !skripte({ name: e.name, code: e.code ?? null, modul: e.modul })) return;
+    const roh = await codeVon(e);
+    const c = umbau ? umbau(e.name, roh) : roh;
     quellen.push(c);
     aktuellesSkript = e.modul ? null : e.el;
     imKontext(() => vm.runInContext(c, ctx, { filename: e.name }), `Skript ${e.name}`);

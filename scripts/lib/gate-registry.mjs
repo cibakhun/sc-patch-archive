@@ -955,7 +955,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss und so viele als bestaetigten Fundort, wie der Katalog fuehrt, und jedes Item mit Fundort-Profil hat ein Datenblatt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items-Seite, Item-Datenblaetter, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss und so viele als bestaetigten Fundort, wie der Katalog fuehrt, und jedes Item mit Fundort-Profil hat ein Datenblatt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -1039,6 +1039,11 @@ export const CHECKS = [
     // Fracturing"; de/fracturing.html umbenannt -> "nur 1 Seiten ..., Klinke
     // 2"; mining-model.json auf 4.10.1 -> "steht auf 4.10.1, mining-db.json
     // auf 4.10.2". Danach wiederhergestellt und gruen.
+    // Gruppe „Items-Seite" (26.11.2026, statt „Item-Finder": /items.html ist
+    // die Items-Werkbank) VORGEFUEHRT ROT am Vorschau-Bau desselben Abends:
+    // Zeile fundorte aus dem Datenstand von dist/de/items.html entfernt ->
+    // "[6] de/items.html: Pflichtzeile „fundorte" fehlt im Datenstand".
+    // Danach per Sicherung wiederhergestellt (sha256 gleich) und gruen.
   },
 
   {
@@ -1129,13 +1134,15 @@ export const CHECKS = [
     // git, kein Netz — fuehrt die ausgelieferten Skripte aus und liest
     // dist/; fuer die Kataloge und die Astro-Module wie verify:sprache
     // esbuild (dessen Dienst ist der einzige Kindprozess, Temp-Ordner wird
-    // geloescht). Laufzeit gut 95 s, davon 55 s der Crafting-Rechner.
+    // geloescht). Laufzeit gut 95 s, davon 55 s der Crafting-Rechner;
+    // seit der Items-Werkbank (26.11.2026) gut 230 s in der Cloud (Teil 1
+    // 62 s, Teil 2 168 s).
     id: 'verify:clienttext',
     npm: 'verify:clienttext',
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders und des Crafting-Rechners steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
+      'die Items-Seite (Items-Werkbank auf /items.html, seit 26.11.2026 statt des Item Finders) rendert im Pruefstand aus dem ausgelieferten Skript, Katalog und Datenstand jede Kachel, jedes Blatt (mit Crafting-Abschnitt) und jedes Set als Kachel und Blatt beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel der Items-Seite und des Crafting-Rechners steht im Katalog beider Sprachen, jeder woertliche oder beim Rendern gefragte w()-Schluessel im Textsatz der Werkbank beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) tr()-Schluessel steht in beiden oder in keinem; Klinken fuer Items, Blaetter mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -1187,6 +1194,17 @@ export const CHECKS = [
     // Kaufort: …", auch live. Teil 2 sah es nicht: die Karten entstehen erst
     // mit angekreuztem Material und geladener Rezept-DB, und keines der
     // Woerter traegt einen Umlaut. Gruen mit beiden Schluesseln im Katalog.
+    // Teil 1 an der Items-Werkbank (26.11.2026, der Item Finder ist darin
+    // aufgegangen) VORGEFUEHRT ROT am Vorschau-Bau desselben Abends mit
+    // --js auf eine Kopie von items-werkbank.js mit w('hCraftX') und
+    // tr('craftTimeX', …): 4 FEHLER, je Sprache "tr('craftTimeX') steht
+    // nicht im ausgelieferten Katalog" und "w('hCraftX') steht nicht im
+    // Textsatz der Werkbank". Gruen mit dem ausgelieferten Skript. Zwei
+    // Pruefstand-Luecken beim Umzug behoben: der IntersectionObserver-Ersatz
+    // meldete eine neu beobachtete Nachlade-Marke endlos sichtbar (jetzt
+    // hoechstens 4 Mal, tests/e2e/pruefstand.test.js, rot mit unbegrenzter
+    // Zahl: "Schub 2000"), und ohne Ernte je Blatt hielt Teil 1 alle
+    // ersetzten Blaetter fest (3,7 GB, Teil 2 kam danach nicht voran).
   },
   {
     // Neuzugang 24.11.2026 (UX-Audit Paket F1, Missionen lesbar machen).
@@ -1256,7 +1274,18 @@ export const CHECKS = [
     script: 'scripts/verify-ia.mjs',
     rail: 'A',
     checks:
-      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal und in ihrem Rahmen (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation und lokale Leisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+      'Informationsarchitektur: jede indexierbare Seite hat mindestens einen eingehenden Inhaltslink von einer anderen indexierbaren Seite (Menue, Leisten, Brotkrumen, Zurueck-Marke, Fuss, Skripte zaehlen nicht; Startseiten sind die Wurzel; Impressum als benannte Ausnahme mit Zombie-Waechter), im Live-Bau decken sich Indexier-Regel und robots-Marken; jede Bereichsleiste, jedes Menue, jede lokale Leiste, die Bereichs-Pillen der Startseiten und die Werkzeuge beider Suchregister zeigen genau src/lib/bereiche.ts, jede genau einmal und in ihrem Rahmen (Adresse, Name, Reihenfolge; dazu der Schluessel, wo das Markup ihn traegt: Bereichsleisten und Pillen; die markierte Seite der lokalen Leiste; Unterzeile der Suchwerkzeuge), keine Links ausserhalb der Menuegruppen, jede Seite ohne Navigation ist benannt (404, Testpiloten-Tor, Onepager, im Vorschau-Bau die Hangar-Bucht), und kein Leisten-Teil bleibt nach dem Schnitt im Inhalt stehen; die Items-Seite (/items.html je Sprache, seit 26.11.2026 die Items-Werkbank) ist nach der Regel indexierbar, traegt ItemPage-JSON-LD und verlinkt im Inhalt die erste Seite jeder indexierbaren Kategorieliste, im Live-Bau ohne noindex-Marke und in einer Sitemap; Klinken fuer Seiten, Zielseiten, Inhaltslinks, Seiten mit Navigation, lokale Leisten und Kategorielisten; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+    // [3] (Neuzugang 26.11.2026, mit der Umstellung von /items.html auf die
+    // Items-Werkbank; Zusage an Krisz: der Crawlweg zu den Kategorielisten
+    // bleibt) VORGEFUEHRT ROT am Vorschau-Bau desselben Abends: in
+    // dist/items.html den Leisten-Link auf armour-helmets entfernt und
+    // ItemPage zu WebPage gemacht -> 2 FEHLER: "[3] /items.html verlinkt 1
+    // Kategorieliste(n) nicht im Inhalt: /items/category/armour-helmets.html"
+    // und "[3] /items.html traegt kein ItemPage-JSON-LD". Danach per
+    // Sicherung wiederhergestellt (sha256 gleich) und gruen. Erster Lauf
+    // zaehlte auch die 65 Folgeseiten (-2, -3 …) als unverlinkt; geprueft
+    // wird deshalb die erste Seite jeder Liste, die Folgeseiten erreicht
+    // Seite 1, und [1] deckt sie.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

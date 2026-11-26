@@ -2451,8 +2451,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         // JEDE Bildlaufleiste aus, also sagte das niemandem etwas. Der Kasten
         // steht seit demselben Tag in SEL_VFADE; er kann dort aber erst
         // erfasst werden, wenn er GEOEFFNET ist — beim ersten scan() ist er
-        // 0x0 gross. Deshalb hier der erneute Anlauf, wie ihn
-        // assets/item-finder-app.js fuer sein Modal schon macht.
+        // 0x0 gross. Deshalb hier der erneute Anlauf (wie ihn der Item Finder
+        // fuer sein Modal machte).
         if (window.VBScrollAffordance) window.VBScrollAffordance();
       };
       requestAnimationFrame(arm);

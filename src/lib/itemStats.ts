@@ -1,8 +1,9 @@
 // Spielwerte eines Items in anzeigbare Label/Wert-Paare uebersetzen.
 //
-// Spiegelt bewusst 1:1 die Logik in assets/item-finder-app.js (specChips /
-// statEntries / primaryStat): dasselbe Item muss im Finder-Modal und auf seiner
-// Detailseite dieselben Zeilen mit denselben Woertern zeigen. Die Woerter selbst
+// Spiegelt bewusst 1:1 die Logik in assets/items-werkbank.js (statEntries /
+// primaryStat; bis 26.11.2026 im Item Finder): dasselbe Item muss im Blatt der
+// Items-Seite und auf seiner Detailseite dieselben Zeilen mit denselben
+// Woertern zeigen. Die Woerter selbst
 // kommen aus i18n/itemText.ts — beide Seiten ziehen aus demselben Katalog.
 //
 // Grundregel wie ueberall auf der Seite: nur ausgeben, was in den Spieldaten
@@ -97,7 +98,7 @@ export function specChips(i: Item, lang: Locale): Row[] {
 /* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
    Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
    interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
-   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
+   04.11.2026). Gleiche Regel in assets/items-werkbank.js (mfrName). */
 const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
 export function mfrName(m: string | null | undefined): string | null {
   return m && !INTERN_NAME.test(m) ? m : null;

@@ -61,7 +61,7 @@ export const FAV_PATH: Record<string, string> = {
   ship: '/schiffe/%s.html',
   mission: '/missionen/%s.html',
   mineral: '/topics/mining.html#%s',
-  item: '/item-finder.html#%s',
+  item: '/items.html?item=%s',
   patch: '/patches/sc-%s.html',
   topic: '/topics/%s.html',
 };

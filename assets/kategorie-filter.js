@@ -6,7 +6,7 @@
  * Kategorieliste), data-kf-gruppe optional die Abschnitte darum: ein
  * Abschnitt ohne sichtbaren Eintrag verschwindet samt seiner Sprungmarke.
  * Auf Listen mit mehreren Seiten fuehrt ein Link mit derselben Suche in den
- * Item Finder (?q=), der alle Items durchsucht. Ohne Skript bleibt das Feld
+ * die Items-Seite (?q=), die alle Items durchsucht. Ohne Skript bleibt das Feld
  * verborgen und die Liste wie bisher. Texte kommen aus data-Attributen in
  * der Sprache der Seite.
  */
@@ -57,7 +57,7 @@
       if (roh) {
         alle.textContent = tAlle.replace('{q}', roh);
         // Nur die Abfrage aendert sich; Ziel ist die Adresse, die der Link
-        // schon aus dem Seitenbau traegt (Item Finder der Seitensprache).
+        // schon aus dem Seitenbau traegt (Items-Seite der Seitensprache).
         alle.search = '?q=' + encodeURIComponent(roh);
       }
     }

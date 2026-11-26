@@ -116,9 +116,13 @@ if (!BROWSER) {
    Inhalt gar nicht geladen hat. */
 const SEITEN = [
   { id: 'start', en: '/', de: '/de.html', leit: 'main', schwer: true, probe: probeSuche },
+  // Die Items-Seite ist die Items-Werkbank (seit 26.11.2026; bis dahin
+  // stand hier der Item Finder unter /item-finder.html, der jetzt dorthin
+  // umleitet). Leitelement die Kachel: das Suchfeld steht auch, wenn der
+  // Katalog nicht geladen hat.
   {
-    id: 'item-finder', en: '/item-finder.html', de: '/de/item-finder.html',
-    leit: '#uif-search-input', schwer: true, probe: probeItemFinder,
+    id: 'items', en: '/items.html', de: '/de/items.html',
+    leit: '#wz-gitter .wz-k', minAnzahl: 20, schwer: true, probe: probeItems,
   },
   {
     id: 'schiffe', en: '/schiffe.html', de: '/de/schiffe.html',
@@ -306,13 +310,13 @@ async function alteHellwahl(page) {
 /* ---------- Interaktionsproben ----------
    Wenige, dafuer scharfe: filtert das Werkzeug wirklich, oder sieht es nur
    so aus? Beides liest den Ergebniszaehler der Seite, nicht ein Textfeld. */
-async function probeItemFinder(page) {
-  const zaehler = page.locator('#uif-stats-count');
+async function probeItems(page) {
+  const zaehler = page.locator('#wz-n');
   const vorher = (await zaehler.textContent().catch(() => '')) ?? '';
-  await page.fill('#uif-search-input', 'arrow');
+  await page.fill('#wz-q', 'arrow');
   await page.waitForTimeout(600); // die Liste baut sich clientseitig neu auf
   const nachher = (await zaehler.textContent().catch(() => '')) ?? '';
-  const treffer = await page.locator('#uif-results-grid > *').count();
+  const treffer = await page.locator('#wz-gitter .wz-k').count();
   if (nachher === vorher) return `Suche "arrow" aenderte den Ergebniszaehler nicht (${vorher})`;
   if (!treffer) return 'Suche "arrow" ergab 0 gerenderte Treffer';
   return null;

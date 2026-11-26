@@ -14,7 +14,8 @@
 //     Text in ihnen schon,
 //   - Module wie die Hangar-Seiten: Import mit ?v=hash, top-level await,
 //     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar),
-//   - Date laeuft mit der Pruefstand-Uhr, das Zeitbudget beendet erkunde().
+//   - Date laeuft mit der Pruefstand-Uhr, das Zeitbudget beendet erkunde(),
+//   - IntersectionObserver meldet „sichtbar“, je Element hoechstens 4 Mal.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -168,4 +169,26 @@ test('seitenArten fasst gleiche Skripte zusammen', () => {
   const w = arten.find((a) => a.seite === 'werkzeug.html');
   assert.equal(w.anzahl, 2);
   assert.ok(!arten.some((a) => a.seite === 'werkzeug2.html'));
+});
+
+// Anlass 26.11.2026: die Items-Werkbank beobachtet ihre Nachlade-Marke nach
+// jedem Schub neu. Meldete der Pruefstand jedes Mal „sichtbar", legte das
+// Gitter alle 9.462 Kacheln an und der Zeitgeber kam nicht zur Ruhe.
+test('IntersectionObserver: was beobachtet wird, ist sichtbar, aber nicht endlos', async () => {
+  fs.writeFileSync(path.join(dist, 'nachladen.html'), seite('<div id="liste"></div><i id="mehr"></i>', `<script>
+    var n = 0, m = document.getElementById('mehr');
+    var io = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      n++;
+      document.getElementById('liste').textContent = 'Schub ' + n;
+      io.unobserve(m); io.observe(m);
+    });
+    io.observe(m);
+  </script>`));
+  const p = await oeffneSeite({ ...opts, seite: 'nachladen.html' });
+  await p.settle(2000);
+  const texte = p.ernte().flatMap((el) => texteAus(el, p.seitenLang).map((x) => x.t));
+  assert.ok(texte.includes('Schub 4'), texte.join(' | '));
+  assert.deepEqual(p.fehler, []);
+  p.schliesse();
 });
