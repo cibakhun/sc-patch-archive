@@ -91,4 +91,9 @@ jobs:
           LABEL: ${{ github.event.label.name }}
           LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           FREIGABE_KONTEN: cibakhun
+          # Token des Agentenkontos (nur public_repo, kein Mitarbeiter im
+          # Repo): schreibt `@coderabbitai review`. CodeRabbit ignoriert
+          # Befehle von github-actions[bot] (live auf #477, 26.11.2026).
+          # Fehlt es, fordert der Lauf nichts an und sagt das im Status.
+          ANFORDERUNG_TOKEN: ${{ secrets.REVIEW_ANFORDERUNG_TOKEN }}
         run: node "$RUNNER_TEMP/gate/scripts/review-nachweis.mjs"

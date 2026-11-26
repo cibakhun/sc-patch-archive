@@ -77,8 +77,9 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   oft; die PR-Prüfung läuft, die KI-Prüfer bleiben still.
 - Erst wenn Bau, Tor, betroffene Tests und Krisz' Test durch sind: „ready for
   review" und Label **`review-ready`**. Der Workflow schreibt dann genau
-  einmal je Stand `@coderabbitai review` (CodeRabbit prüft das Repo nicht
-  mehr automatisch: weniger als 10 Sterne). Selbst kein `@coderabbitai
+  einmal je Stand `@coderabbitai review` mit dem Token des Agentenkontos
+  (CodeRabbit prüft das Repo nicht mehr automatisch: weniger als 10 Sterne;
+  Befehle von Bots ignoriert es). Selbst kein `@coderabbitai
   review` schreiben (doppelte Anforderung); `@coderabbitai full review` nur,
   wenn der Nachweis eine Lücke in der Abdeckung meldet.
 - Jeder Push nimmt `review-ready` wieder ab (der Workflow), ein neuer Stand

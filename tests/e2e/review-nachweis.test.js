@@ -277,6 +277,15 @@ describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
     const gruen = bewerte(lage({ kommentare: [anf(C)], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, { ...CR_FERTIG, started_at: '2026-11-26T17:31:00Z' }] } }));
     assert.equal(gruen.state, 'success', gruen.description);
   });
+  test('ohne Token keine Anforderung: rot mit Grund, nie gruen (live #477: Bot-Befehl wird ignoriert)', () => {
+    const u = bewerte(ohneReview({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_AUS_SKIP] }, anforderungUnmoeglich: 'Secret REVIEW_ANFORDERUNG_TOKEN fehlt' }));
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /nicht angefordert: Secret REVIEW_ANFORDERUNG_TOKEN fehlt/);
+    // Noch gar kein CodeRabbit-Lauf am Head: nicht ewig "Warte", sondern rot mit Grund.
+    const leer = bewerte(ohneReview({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [] }, anforderungUnmoeglich: 'Anforderung gescheitert (HTTP 401), Token pruefen' }));
+    assert.equal(leer.state, 'failure', leer.description);
+    assert.match(leer.description, /HTTP 401/);
+  });
   test('die Marke allein ist nie ein Review', () => {
     const u = bewerte(ohneReview({ kommentare: [anf(C)], keinWarten: true }));
     assert.notEqual(u.state, 'success');

@@ -46,6 +46,9 @@ const TROCKEN = process.argv.includes('--trocken');
 const REPO = process.env.REPO || 'cibakhun/sc-patch-archive';
 const NUMMER = Number(arg('--pr') || process.env.PR_NUMMER);
 const TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+// Token des Agentenkontos, nur fuer `@coderabbitai review`: CodeRabbit
+// ignoriert Befehle von github-actions[bot] (live auf #477, 26.11.2026).
+const ANFORDERUNG_TOKEN = process.env.ANFORDERUNG_TOKEN || '';
 const EREIGNIS = process.env.EREIGNIS || '';
 const AKTION = process.env.AKTION || '';
 const LABEL = process.env.LABEL || '';
@@ -61,12 +64,12 @@ if (!Number.isInteger(NUMMER) || NUMMER <= 0) { console.error('PR-Nummer fehlt (
 if (!TOKEN) { console.error('GH_TOKEN fehlt'); process.exit(2); }
 
 let anfragen = 0;
-async function api(pfad, { method = 'GET', body } = {}) {
+async function api(pfad, { method = 'GET', body, token = TOKEN } = {}) {
   anfragen++;
   const res = await fetch(`https://api.github.com/${pfad}`, {
     method,
     headers: {
-      Authorization: `Bearer ${TOKEN}`,
+      Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'User-Agent': 'review-nachweis',
@@ -225,17 +228,27 @@ if (AKTION === 'labeled' && LABEL === LABEL_BEREIT && !labels().includes(LABEL_R
 }
 
 // Genau eine Anforderung je Stand: CodeRabbit prueft das Repo nicht mehr
-// automatisch (weniger als 10 Sterne), ein Review kommt nur auf Befehl.
+// automatisch (weniger als 10 Sterne), ein Review kommt nur auf Befehl, und
+// nur von einem echten Konto (Secret REVIEW_ANFORDERUNG_TOKEN, Agentenkonto).
 if (anforderungNoetig(d)) {
   const head = d.pr.head_sha;
   const text = `@coderabbitai review\n\n${anforderungsMarke(head)}\n<sub>Angefordert vom Review-Nachweis: Label \`${LABEL_BEREIT}\` auf Stand \`${head.slice(0, 7)}\`. Eine Anforderung je Stand (docs/review-workflow.md).</sub>`;
   if (TROCKEN) {
     console.log('(trocken) Anforderung an CodeRabbit');
-    d.kommentare.push({ id: 0, author: BOT, body: text, url: '(trocken)', erstellt: new Date().toISOString() });
+    d.kommentare.push({ id: 0, author: '(trocken)', body: text, url: '(trocken)', erstellt: new Date().toISOString() });
+  } else if (!ANFORDERUNG_TOKEN) {
+    d.anforderungUnmoeglich = 'Secret REVIEW_ANFORDERUNG_TOKEN fehlt';
+    console.log(`Keine Anforderung moeglich: ${d.anforderungUnmoeglich}.`);
   } else {
-    const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });
-    console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)}: ${k.html_url}`);
-    d.kommentare.push({ id: k.id, author: BOT, body: text, url: k.html_url, erstellt: k.created_at });
+    try {
+      const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
+      console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
+      d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
+    } catch (e) {
+      // Abgelaufener oder entzogener Token: der Lauf setzt trotzdem seinen Status.
+      d.anforderungUnmoeglich = `Anforderung gescheitert (${String(e.message).match(/HTTP \d+/)?.[0] || 'Fehler'}), Token pruefen`;
+      console.log(`Keine Anforderung: ${e.message}`);
+    }
   }
 }
 

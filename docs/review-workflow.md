@@ -20,8 +20,13 @@ ist, entscheidet Krisz, nie eine Automatik.
    Bedarf Vorschau-Bau. Danach Krisz' Test.
 3. **Review anfordern.** „Ready for review“ und Label **`review-ready`**.
    Der Workflow schreibt daraufhin genau einmal je Stand
-   `@coderabbitai review`, mit einer Marke, die den Stand nennt. Selbst
-   kein `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
+   `@coderabbitai review`, mit einer Marke, die den Stand nennt, und zwar
+   mit dem Token des Agentenkontos (Secret `REVIEW_ANFORDERUNG_TOKEN`):
+   Befehle von `github-actions[bot]` ignoriert CodeRabbit (live auf #477
+   gemessen: 40 Minuten keine Reaktion, während ein Befehl von `cibakhun`
+   auf #479 sofort lief). Fehlt das Secret oder ist der Token abgelaufen,
+   fordert der Lauf nichts an und nennt das im Status. Selbst kein
+   `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
    Hintergrund: CodeRabbit prüft Repos mit weniger als 10 Sternen seit dem
    25./26.11.2026 nicht mehr automatisch, auch nicht per Label (Meldung
    an #477). `.coderabbit.yaml` schaltet automatische Reviews deshalb ganz
@@ -228,10 +233,17 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
   in diesem Repo bewusst verboten (`verify:supply-chain`). Endgültige
   Abhilfe: Agentenkonto plus Pflicht-Freigabe durch Krisz (CODEOWNERS)
   für `.github/`.
-- **Bot-Befehl.** Ob CodeRabbit einen Befehl annimmt, den
-  `github-actions[bot]` schreibt, ist auf #477 zu belegen. Reagiert es
-  nicht, steht der Nachweis nach 40 Minuten auf „nicht reagiert“ (rot, nie
-  grün), und die Anforderung muss anders kommen.
+- **Token des Agentenkontos.** Der Workflow bekommt bei `pull_request`
+  ein Secret, und seine YAML-Datei kommt aus dem PR: Wer pushen darf,
+  könnte den Token auslesen. Deshalb hat er nur `public_repo`, und das
+  Konto ist kein Mitarbeiter im Repo; ein abhandengekommener Token kann
+  kommentieren, nicht pushen. Ablauf 90 Tage, dann neu erzeugen. Das
+  Agentenkonto steht nie in `FREIGABE_KONTEN`.
+- **Reaktion von CodeRabbit.** Reagiert CodeRabbit nicht auf die
+  Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
+  (rot, nie grün). Die Marke der Anforderung kann jeder schreiben, der den
+  PR kommentieren darf; eine gefälschte Marke unterdrückt höchstens die
+  echte Anforderung (der Status bleibt rot), sie macht nie grün.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.

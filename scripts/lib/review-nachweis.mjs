@@ -331,7 +331,10 @@ export function bewerte(d) {
   const crLetzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
   const crAngefordert = tAnf !== null && crHead.art !== 'geprueft' && crHead.art !== 'laeuft'
     && !(crLetzter && Date.parse(crLetzter.started_at || '') >= tAnf);
-  const crWartet = crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT)) || crAngefordert;
+  // Label gesetzt, aber keine Anforderung moeglich (Token fehlt/abgelaufen):
+  // dann wartet nichts, sonst stuende der Status ewig auf "Warte".
+  const nichtAngefordert = Boolean(d.anforderungUnmoeglich) && tAnf === null;
+  const crWartet = crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT) && !nichtAngefordert) || crAngefordert;
   const cuWartet = cuAbd.amHead.art === 'laeuft';
   const brauchtMehr = kritisch ? belege.length < 2 : belege.length < 1;
   if (brauchtMehr && (crWartet || cuWartet) && !d.keinWarten) {
@@ -359,6 +362,7 @@ export function bewerte(d) {
      "automatic reviews are disabled"). */
   if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
   else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
+  else if (nichtAngefordert && labels.includes(LABEL_BEREIT)) grund = `Label gesetzt, aber nicht angefordert: ${d.anforderungUnmoeglich}`;
   else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';
   else if (crHead.art === 'uebersprungen') grund = `CodeRabbit hat uebersprungen (${crHead.titel}): NICHT geprueft`;
   else if (crHead.art === 'abgebrochen') grund = 'CodeRabbit-Review abgebrochen: NICHT geprueft';
