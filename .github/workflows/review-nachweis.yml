@@ -5,11 +5,15 @@
 # Nachweis). Regeln und Ablauf: docs/review-workflow.md. Das Urteil faellt
 # scripts/lib/review-nachweis.mjs, getestet in tests/e2e/review-nachweis.test.js.
 #
-# Welche Auswertung laeuft: die aus dem ZIELZWEIG (erster Elternteil des
-# Merge-Commits), nicht die aus dem PR. Ein PR, der das Gate aendert, wird so
-# noch nach den alten Regeln beurteilt; seine Aenderung wirkt erst nach dem
-# Merge. Nur wenn der Zielzweig die Auswertung noch nicht kennt (der erste
-# PR, der sie einfuehrt), laeuft die aus dem PR, und der Bericht sagt das.
+# Welche Auswertung laeuft: die aus dem ZIELZWEIG (Spitze von staging bzw.
+# main, ueber die API geholt), nicht die aus dem PR. Ein PR, der das Gate
+# aendert, wird so noch nach den alten Regeln beurteilt; seine Aenderung
+# wirkt erst nach dem Merge. Nur wenn der Zielzweig die Auswertung noch
+# nicht kennt (HTTP 404: der erste PR, der sie einfuehrt), laeuft die aus
+# dem PR, und der Bericht sagt das. Jeder andere Fehler beim Holen bricht
+# ab, statt still auf die Fassung des PRs auszuweichen.
+# Kein Checkout: das Repo ist ueber 2 GB gross (fast zwei Minuten je
+# Ereignis), und so liegt kein Code aus dem PR auf dem Runner.
 # Grenze: diese Datei selbst kommt bei `pull_request` aus dem PR. Deshalb
 # zaehlt jede Aenderung unter .github/ als kritisch (zwei Pruefungen oder
 # Krisz' Freigabe). Ausgefuehrt wird kein Code aus dem PR ausser im
@@ -41,29 +45,42 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
-      contents: read
+      contents: read # Auswertung aus dem Zielzweig holen
       checks: read
       statuses: write
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 2
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
-      - name: Auswertung aus dem Zielzweig waehlen
+      - name: Auswertung aus dem Zielzweig holen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ZIEL: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          mkdir -p "$RUNNER_TEMP/gate"
-          if git cat-file -e HEAD^1:scripts/lib/review-nachweis.mjs 2>/dev/null; then
-            git archive HEAD^1 scripts/review-nachweis.mjs scripts/lib/review-nachweis.mjs | tar -x -C "$RUNNER_TEMP/gate"
-            echo "QUELLE=Zielzweig" >> "$GITHUB_ENV"
+          set -euo pipefail
+          hole() {
+            mkdir -p "$(dirname "$RUNNER_TEMP/gate/$1")"
+            curl -sS --retry 3 -o "$RUNNER_TEMP/gate/$1" -w '%{http_code}' \
+              -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github.raw+json' \
+              "https://api.github.com/repos/$REPO/contents/$1?ref=$2"
+          }
+          code=$(hole scripts/lib/review-nachweis.mjs "$ZIEL")
+          if [ "$code" = 200 ]; then
+            REF="$ZIEL"; QUELLE="Zielzweig ($ZIEL)"
+          elif [ "$code" = 404 ]; then
+            REF="$PR_HEAD"; QUELLE="diesem PR (Erstfall: Zielzweig kennt das Gate noch nicht)"
           else
-            git archive HEAD scripts/review-nachweis.mjs scripts/lib/review-nachweis.mjs | tar -x -C "$RUNNER_TEMP/gate"
-            echo "QUELLE=diesem PR (Erstfall: Zielzweig kennt das Gate noch nicht)" >> "$GITHUB_ENV"
+            echo "::error::Auswertung im Zielzweig nicht abrufbar (HTTP $code)"; exit 1
           fi
+          for f in scripts/lib/review-nachweis.mjs scripts/review-nachweis.mjs; do
+            code=$(hole "$f" "$REF")
+            [ "$code" = 200 ] || { echo "::error::$f nicht abrufbar (HTTP $code)"; exit 1; }
+          done
+          echo "QUELLE=$QUELLE" >> "$GITHUB_ENV"
       - name: Nachweis bewerten
         env:
           GH_TOKEN: ${{ github.token }}
