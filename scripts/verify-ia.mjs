@@ -206,11 +206,11 @@ function ziel(p) {
 /** Entfernt alle Treffer, bis keiner mehr da ist: ein einziger Durchgang
  *  kann aus Resten einen neuen bilden (`<scr<b>ipt>`). Das Tor liest nur
  *  den eigenen Bau, aber es soll sich nicht darauf verlassen. */
-function ohneAlle(s, re) {
+function ohneAlle(s, re, ersatz = '') {
   let vorher;
   do {
     vorher = s;
-    s = s.replace(re, '');
+    s = s.replace(re, ersatz);
   } while (s !== vorher);
   return s;
 }
@@ -223,11 +223,18 @@ const entitaeten = (s) =>
     e[0] === '#' ? zeichen(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : ENT[e.toLowerCase()] ?? m);
 const text = (s) => entitaeten(ohneAlle(s, /<[^>]*>/g)).replace(/\s+/g, ' ').trim();
 
+// Tag-Grenzen wie im HTML-Parser: Leerraum ist dort nur ASCII (Tab, LF, FF,
+// CR, Leerzeichen), nicht \s. Ein U+00A0 beendet keinen Tagnamen, also ist
+// `</textarea\u00a0>` kein End-Tag. Ein Tagname endet erst an diesem
+// Leerraum, „/“ oder „>“: `</textarea-x>` ist kein End-Tag von textarea
+// (\b wuerde am Bindestrich schon greifen). So in allen Mustern dieses Tors.
+const LR = '\\t\\n\\f\\r ';
+const NAMENSENDE = `(?=[${LR}/>])`;
 // Attribute wie der HTML-Parser: beliebige Anfuehrung (oder keine), Abstand
 // um das =, der erste von zwei gleichnamigen gewinnt. Ein „>“ in einem
 // Attributwert beendet das Tag nicht.
 const TAGRUMPF = `((?:[^>"']|"[^"]*"|'[^']*')*)`;
-const ATTRS = /([^\s"'>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+const ATTRS = new RegExp(`([^${LR}"'>\\/=]+)(?:[${LR}]*=[${LR}]*(?:"([^"]*)"|'([^']*)'|([^${LR}"'=<>\`]+)))?`, 'g');
 function attrs(rumpf) {
   const m = new Map();
   for (const a of rumpf.matchAll(ATTRS)) {
@@ -237,12 +244,51 @@ function attrs(rumpf) {
   return m;
 }
 const attr = (rumpf, name) => attrs(rumpf).get(name) ?? null;
+const klassen = (a) => (a.get('class') ?? '').split(new RegExp(`[${LR}]+`));
+
+// Der Schnitt vor allem anderen geht wie der Tokenizer des Parsers Stelle
+// fuer Stelle durch die Datei: an jeder „<“ zuerst ein Kommentar, dann ein
+// Element, dessen Inhalt der Parser als Text liest, dann irgendein anderes
+// Tag samt seinen Attributwerten. Was in einem Attributwert steht
+// (`data-x="<script>"`), ist so nie der Anfang eines Treffers.
+// - Kommentare (auch `<!-->` und `--!>`) und Pseudo-Kommentare (`<!doctype>`,
+//   `<?…>`, `</ …>`) fallen weg.
+// - script, style und die Elemente, deren Inhalt der Parser als Text liest
+//   (textarea, xmp, iframe, noembed, noframes), fallen samt Inhalt weg: ein
+//   „<a>“ darin ist kein Link. Nicht dabei: title (im SVG ein gewoehnliches
+//   Element, oft in Leisten-Links) und noscript (fuer Crawler ohne Skript
+//   sind das echte Links).
+// - Jedes andere Tag bleibt, aber „<“ und „>“ in seinem Rumpf werden zu
+//   Entitaeten. attrs() liest dieselben Werte, und kein spaeteres Muster
+//   kann mehr mitten in einem Attributwert anfangen.
+// - Eine „<“, die nichts davon beginnt, ist Text und wird zu &lt;. Danach
+//   ist jede „<“ im Ergebnis der Anfang eines echten Tags, und kein
+//   Wegfall kann zwei Reste zu einem neuen Tag verbinden.
+// Gross- und Kleinschreibung wie im Parser.
+const TEXTELEMENT = 'script|style|textarea|xmp|iframe|noembed|noframes';
+const OHNE = new RegExp(
+  `<!--(?:-?>|[\\s\\S]*?--!?>)` +
+    `|<(?<roh>${TEXTELEMENT})${NAMENSENDE}${TAGRUMPF}>[\\s\\S]*?<\\/\\k<roh>${NAMENSENDE}${TAGRUMPF}>` +
+    `|<(?:[!?]|\\/(?![a-z]))[^>]*>` +
+    `|(?<tag><\\/?[a-z][^${LR}/>]*${TAGRUMPF}>)` +
+    `|<`,
+  'gi',
+);
+const OHNE_ERSATZ = (m, ...rest) => {
+  const tag = rest.at(-1).tag;
+  if (tag !== undefined) {
+    const innen = tag.slice(1, -1);
+    return innen.includes('<') || innen.includes('>') ? `<${innen.replace(/</g, '&lt;').replace(/>/g, '&gt;')}>` : tag;
+  }
+  return m === '<' ? '&lt;' : '';
+};
+const sauberVon = (s) => ohneAlle(s, OHNE, OHNE_ERSATZ);
 
 /** Ende des Elements, das bei `start` mit <tag oeffnet (gleichnamige Tags gezaehlt). */
 const TAGRE = new Map();
 function ende(html, start, tag) {
   let re = TAGRE.get(tag);
-  if (!re) TAGRE.set(tag, (re = new RegExp(`<(/?)${tag}(?=[\\s/>])[^>]*>`, 'g')));
+  if (!re) TAGRE.set(tag, (re = new RegExp(`<(/?)${tag}${NAMENSENDE}${TAGRUMPF}>`, 'gi')));
   re.lastIndex = start;
   let tiefe = 0;
   for (let m; (m = re.exec(html)); ) {
@@ -278,9 +324,48 @@ function einzeln(html, re, tag, art, url, darfFehlen = false) {
   return alle[0] ?? null;
 }
 
-/** Oeffnendes <tag> mit dieser Klasse, auch neben weiteren Klassen. */
-const mitKlasse = (tag, klasse) => new RegExp(`<${tag}(?=[\\s/>])[^>]*\\sclass="(?:[^"]*\\s)?(?:${klasse})(?:\\s[^"]*)?"[^>]*>`, 'g');
+/** Inhalt des ersten Elements zu `re` (ohne seine eigenen Tags), sonst null. */
+function innenVon(stueck, re, tag) {
+  re.lastIndex = 0;
+  const m = re.exec(stueck);
+  re.lastIndex = 0;
+  if (!m) return null;
+  const innen = stueck.slice(m.index + m[0].length, ende(stueck, m.index, tag));
+  return innen.replace(new RegExp(`<\\/${tag}${NAMENSENDE}${TAGRUMPF}>$`, 'i'), '');
+}
+
+/** Oeffnende <tag>, deren echte Attribute `wahl` bestehen. Die Werte kommen
+ *  aus attrs() ueber das ganze Tag: ein `class="…"` als Text in einem
+ *  anderen Attributwert (`data-x=' class="snav__areas"'`) ist keine Klasse.
+ *  `vorab` sind Zeichenketten, von denen eine im Rumpf stehen muss, damit
+ *  attrs() ueberhaupt laeuft; mit einer Entitaet im Rumpf laeuft es immer.
+ *  Verhaelt sich wie ein globales RegExp (lastIndex, exec, test). */
+function tagMit(tag, vorab, wahl) {
+  const re = new RegExp(`<${tag}${NAMENSENDE}${TAGRUMPF}>`, 'gi');
+  return {
+    lastIndex: 0,
+    exec(s) {
+      re.lastIndex = this.lastIndex;
+      for (let m; (m = re.exec(s)); ) {
+        if (!m[1].includes('&') && !vorab.some((v) => m[1].includes(v))) continue;
+        if (!wahl(attrs(m[1]))) continue;
+        this.lastIndex = re.lastIndex;
+        return m;
+      }
+      this.lastIndex = 0;
+      return null;
+    },
+    test(s) {
+      return this.exec(s) !== null;
+    },
+  };
+}
+/** Oeffnendes <tag> mit einer dieser Klassen, auch neben weiteren Klassen. */
+const mitKlasse = (tag, ...k) => tagMit(tag, k, (a) => klassen(a).some((x) => k.includes(x)));
+const mitId = (tag, id) => tagMit(tag, [id], (a) => a.get('id') === id);
 const RE = {
+  topbar: mitId('nav', 'topbar'),
+  deck: mitId('div', 'snavDeck'),
   datenleiste: mitKlasse('header', 'dp-bar'),
   snLeiste: mitKlasse('ul', 'snav__areas'),
   snMenue: mitKlasse('nav', 'snav-deck__cols'),
@@ -289,33 +374,29 @@ const RE = {
   dsMenue: mitKlasse('div', 'dp-menu__cols'),
   dsLokal: mitKlasse('nav', 'dp-local'),
   snGruppe: mitKlasse('section', 'snav-deck__group'),
+  snGName: mitKlasse('span', 'snav-deck__gname'),
+  snLabel: mitKlasse('span', 'snav-deck__label'),
   dsGruppe: mitKlasse('div', 'dp-menu__grp'),
+  dsGName: mitKlasse('p', 'dp-menu__h'),
   pillen: mitKlasse('nav', 'hero__areas'),
 };
 
 // Was auf jeder Seite gleich steht und darum kein Inhalt ist.
 const RAHMEN = [
-  [/<nav(?=[\s/>])[^>]*\sid="topbar"[^>]*>/g, 'nav'],
-  [/<div(?=[\s/>])[^>]*\sid="snavDeck"[^>]*>/g, 'div'],
-  [RE.datenleiste, 'header'],
-  [mitKlasse('nav', 'dp-local|hero__areas'), 'nav'],
-  [/<footer(?=[\s/>])[^>]*>/g, 'footer'],
+  [mitId('nav', 'topbar'), 'nav'],
+  [mitId('div', 'snavDeck'), 'div'],
+  [mitKlasse('header', 'dp-bar'), 'header'],
+  [mitKlasse('nav', 'dp-local', 'hero__areas'), 'nav'],
+  [new RegExp(`<footer${NAMENSENDE}${TAGRUMPF}>`, 'gi'), 'footer'],
 ];
-// Gross- und Kleinschreibung, `</script >` und `--!>` wie im HTML-Parser.
-// Ein Tagname endet wie dort erst an Leerraum, „/“ oder „>“: `</textarea-x>`
-// ist kein End-Tag von textarea (\b wuerde am Bindestrich schon greifen);
-// so auch in allen anderen Mustern dieses Tors.
-// Dazu die Elemente, deren Inhalt der Parser als Text liest (textarea,
-// xmp, iframe, noembed, noframes): ein „<a>“ darin ist kein Link. Nicht
-// dabei: title (im SVG ein gewoehnliches Element, oft in Leisten-Links)
-// und noscript (fuer Crawler ohne Skript sind das echte Links).
-const OHNE =
-  /<!--[\s\S]*?--!?>|<script(?=[\s/>])[^>]*>[\s\S]*?<\/script(?=[\s/>])[^>]*>|<style(?=[\s/>])[^>]*>[\s\S]*?<\/style(?=[\s/>])[^>]*>|<(textarea|xmp|iframe|noembed|noframes)(?=[\s/>])[^>]*>[\s\S]*?<\/\1(?=[\s/>])[^>]*>/gi;
 // Gegenprobe: keines dieser Rahmen-Teile darf nach dem Schnitt im Inhalt
 // stehen. Aendert sich das Markup einer Leiste so, dass RAHMEN sie nicht
 // mehr trifft, zaehlten ihre Links still als Inhalt und das Tor waere
-// falsch gruen; so reisst es stattdessen.
-const RAHMEN_MARKE = /\sclass="(?:[^"]*\s)?(snav__areas|snav__back|snav__local|snav-deck__cols|dp-areas|dp-menu|dp-crumbs|dp-local|hero__areas)(?:\s[^"]*)?"/;
+// falsch gruen; so reisst es stattdessen. Geprueft am echten class-Attribut
+// jedes Tags im Inhalt (im Lauf fuer [1]).
+const RAHMEN_MARKEN = ['snav__areas', 'snav__back', 'snav__local', 'snav-deck__cols', 'dp-areas', 'dp-menu', 'dp-crumbs', 'dp-local', 'hero__areas'];
+const rahmenMarke = (rumpf) =>
+  (rumpf.includes('&') || RAHMEN_MARKEN.some((k) => rumpf.includes(k))) && klassen(attrs(rumpf)).find((k) => RAHMEN_MARKEN.includes(k));
 
 function inhalt(html) {
   const raus = [];
@@ -372,22 +453,24 @@ const grundform = (url) => (url === '/de.html' ? '/index.html' : url.startsWith(
 const indexierbarNachRegel = (url) => url !== '/404.html' && !SEO.NOINDEX_PATHS.has(grundform(url)) && !nurVorschau(url);
 // robots und Weiterleitung am echten <meta> im Kopf, ohne Kommentare, in
 // jeder Attributreihenfolge.
-const META = new RegExp(`<meta(?=[\\s/>])${TAGRUMPF}>`, 'gi');
-// Die Kopfgrenze zaehlt erst ausserhalb von Kommentaren, Skripten und Stilen:
-// ein „<body>“ in einem Kommentar beendet den Kopf nicht. Der Lauf hoert an
-// der Grenze auf, statt die ganze Datei vorher zu bereinigen.
-const KOPF_ENDE = new RegExp(`${OHNE.source}|<\\/head\\s*>|<body(?=[\\s/>])`, 'gi');
+const META = new RegExp(`<meta${NAMENSENDE}${TAGRUMPF}>`, 'gi');
+// Die Kopfgrenze zaehlt nur an einem echten Tag: ein „<body>“ in einem
+// Kommentar, Skript, Stil oder Attributwert beendet den Kopf nicht. Der Lauf
+// geht wie OHNE Stelle fuer Stelle und hoert an der Grenze auf, statt die
+// ganze Datei vorher zu bereinigen.
+const KOPF_ENDE = new RegExp(OHNE.source, 'gi');
+const KOPF_GRENZE = new RegExp(`^<(?:\\/head|body)${NAMENSENDE}`, 'i');
 function kopfMetas(html) {
   let ende = html.length;
   KOPF_ENDE.lastIndex = 0;
   for (let m; (m = KOPF_ENDE.exec(html)); ) {
-    if (/^<(?:\/head|body)/i.test(m[0])) {
+    if (m.groups.tag !== undefined && KOPF_GRENZE.test(m.groups.tag)) {
       ende = m.index;
       break;
     }
   }
   KOPF_ENDE.lastIndex = 0;
-  return [...ohneAlle(html.slice(0, ende), OHNE).matchAll(META)].map((m) => attrs(m[1]));
+  return [...sauberVon(html.slice(0, ende)).matchAll(META)].map((m) => attrs(m[1]));
 }
 const robotsNoindex = (metas) =>
   metas.some((a) => (a.get('name') ?? '').toLowerCase() === 'robots' && (a.get('content') ?? '').toLowerCase().split(/[\s,]+/).includes('noindex'));
@@ -464,11 +547,12 @@ const folge = (z, von) => {
   return z;
 };
 
-const ANKER = new RegExp(`<a(?=[\\s/>])${TAGRUMPF}>([\\s\\S]*?)<\\/a\\s*>`, 'gi');
-// Fuer [1] geht der Lauf Tag fuer Tag durch den Inhalt: ein „<a href>“ im
-// Wert eines anderen Attributs ist Text dieses Tags und kein Link.
-const TAG_AUF = new RegExp(`<([a-z][^\\s/>]*)${TAGRUMPF}>`, 'gi');
-const ANKER_AUF = new RegExp(`<a(?=[\\s/>])${TAGRUMPF}>`, 'gi');
+const ANKER = new RegExp(`<a${NAMENSENDE}${TAGRUMPF}>([\\s\\S]*?)<\\/a${NAMENSENDE}${TAGRUMPF}>`, 'gi');
+// Fuer [1] geht der Lauf Tag fuer Tag durch den Inhalt. Nach sauberVon()
+// beginnt jede „<“ ein echtes Tag; der Lauf bleibt trotzdem tagweise, damit
+// er auch die Rahmen-Marke am echten class-Attribut jedes Tags sieht.
+const TAG_AUF = new RegExp(`<([a-z][^${LR}/>]*)${TAGRUMPF}>`, 'gi');
+const ANKER_AUF = new RegExp(`<a${NAMENSENDE}${TAGRUMPF}>`, 'gi');
 const ankerZahl = (s) => s.match(ANKER_AUF)?.length ?? 0;
 const lies = (stueck) => [...stueck.matchAll(ANKER)].map((m) => ({ tag: m[1], innen: m[2], text: text(m[2]) }));
 
@@ -477,7 +561,7 @@ for (const [url, f] of html) {
   const lang = url === '/de.html' || url.startsWith('/de/') ? 'de' : 'en';
   const E = ERWARTET[lang];
   const roh = readFileSync(f, 'utf8');
-  const sauber = ohneAlle(roh, OHNE);
+  const sauber = sauberVon(roh);
 
   // ---- Indexierbarkeit ----
   const regel = indexierbarNachRegel(url);
@@ -491,9 +575,9 @@ for (const [url, f] of html) {
   if (regel) {
     const ziele = new Set();
     const rumpf = inhalt(sauber);
-    const marke = rumpf.match(RAHMEN_MARKE);
-    if (marke) rahmenImInhalt.push(`${url} (${marke[1]})`);
+    let marke = null;
     for (const m of rumpf.matchAll(TAG_AUF)) {
+      marke ??= rahmenMarke(m[2]) || null;
       if (m[1].toLowerCase() !== 'a') continue;
       const href = attr(m[2], 'href');
       if (href === null) continue;
@@ -502,6 +586,7 @@ for (const [url, f] of html) {
       links++;
       ziele.add(z);
     }
+    if (marke) rahmenImInhalt.push(`${url} (${marke})`);
     for (const z of ziele) {
       let e = ein.get(z);
       if (!e) ein.set(z, (e = { n: 0, quellen: [] }));
@@ -511,7 +596,8 @@ for (const [url, f] of html) {
   }
 
   // ---- [2] Leisten ----
-  const sn = /<nav(?=[\s/>])[^>]*\sid="topbar"/.test(sauber);
+  RE.topbar.lastIndex = 0;
+  const sn = RE.topbar.test(sauber);
   RE.datenleiste.lastIndex = 0;
   const ds = RE.datenleiste.test(sauber);
   if (sn) zahl.sitenav++;
@@ -522,8 +608,8 @@ for (const [url, f] of html) {
   // Jede Leiste steht in ihrem Rahmen: nur dort ist sie die Navigation, die
   // der Besucher oben sieht. Eine einzige Kopie im Fuss oder im Inhalt
   // bestuende sonst den Abgleich, waehrend oben die Leiste fehlt.
-  const rahmenSn = sn ? elemente(sauber, /<nav(?=[\s/>])[^>]*\sid="topbar"[^>]*>/g, 'nav') : [];
-  const deckSn = sn ? elemente(sauber, /<div(?=[\s/>])[^>]*\sid="snavDeck"[^>]*>/g, 'div') : [];
+  const rahmenSn = sn ? elemente(sauber, RE.topbar, 'nav') : [];
+  const deckSn = sn ? elemente(sauber, RE.deck, 'div') : [];
   const rahmenDs = ds ? elemente(sauber, RE.datenleiste, 'header') : [];
   const drin = (s, rahmen, wo, art) => {
     if (s && rahmen && !rahmen.some((r) => r.includes(s))) {
@@ -552,10 +638,10 @@ for (const [url, f] of html) {
       if (ankerZahl(deck) !== gruppen.reduce((n, g) => n + ankerZahl(g), 0)) leisteFalsch(artSn, url, 'Link ausserhalb der Gruppen');
       else {
         const ist = gruppen.map((g) => {
-          const name = text((g.match(/<span class="snav-deck__gname"[^>]*>([\s\S]*?)<\/span>/) || [])[1] ?? '');
+          const name = text(innenVon(g, RE.snGName, 'span') ?? '');
           const zeilen = lies(g).map((a) => {
-            const label = a.innen.match(/<span class="snav-deck__label[^"]*"[^>]*>([\s\S]*?)<\/span>/);
-            return [attr(a.tag, 'href'), label ? text(label[1]) : null];
+            const label = innenVon(a.innen, RE.snLabel, 'span');
+            return [attr(a.tag, 'href'), label === null ? null : text(label)];
           });
           return [name, zeilen];
         });
@@ -577,7 +663,7 @@ for (const [url, f] of html) {
       if (ankerZahl(menue) !== gruppen.reduce((n, g) => n + ankerZahl(g), 0)) leisteFalsch(artDs, url, 'Link ausserhalb der Gruppen');
       else {
         const ist = gruppen.map((g) => {
-          const name = text((g.match(/<p class="dp-menu__h"[^>]*>([\s\S]*?)<\/p>/) || [])[1] ?? '');
+          const name = text(innenVon(g, RE.dsGName, 'p') ?? '');
           return [name, lies(g).map((a) => [attr(a.tag, 'href'), a.text])];
         });
         prüfeMenue(ist, E, url, lang, artDs);
