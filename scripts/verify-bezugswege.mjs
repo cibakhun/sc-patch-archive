@@ -99,7 +99,7 @@ const KLINKEN = {
   waffenBlaetter: 700, missionsNamen: 10700,
   // [16] IA C8 26.11.2026: Flugblaetter (PHB/TSB) mit Flugwerten, beide
   // Sprachen. Steigt mit dem Datenlauf, der den Typ FlightController liest.
-  flugblaetter: 0,
+  flugblaetter: 128,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
@@ -107,7 +107,7 @@ const KLINKEN = {
 // (vor dem Datenlauf mit Flugblaettern und Identitaet 232 = 116 je Sprache) und
 // Blaetter mit dem Hinweis „nicht im Spiel" (erwartet nach dem Datenlauf:
 // 11 Items, die kein Record im Spiel traegt, je Sprache).
-const DECKEN = { ohneWeg: 290, ohneTechDaten: 232, nichtImSpiel: 22 };
+const DECKEN = { ohneWeg: 290, ohneTechDaten: 0, nichtImSpiel: 22 };
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
