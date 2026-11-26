@@ -1433,11 +1433,15 @@
   // alten Rezept-Eintrag, und das Zurueck landete wieder darin).
   var wbGeschoben = false, wbZurueck = false, wbZurueckTimer = 0;
   function wbEintrag() {
-    if (!WB || wbMitte() || wbGeschoben || wbZurueck || !window.history || !history.pushState) return;
+    if (!WB || wbGeschoben || wbZurueck || !window.history || !history.pushState) return;
     try {
       var st = history.state;
-      // Vorwaerts oder Neuladen auf einem Rezept-Eintrag: der dient weiter.
+      // Vorwaerts oder Neuladen auf einem Rezept-Eintrag: der dient weiter,
+      // auch am Schreibtisch (am Telefon geoeffnet, breit neu geladen), damit
+      // Schliessen auf die Liste darunter zurueckgeht. Neu angelegt wird nur
+      // am Telefon.
       if (st && st.wbRezept) { wbGeschoben = true; return; }
+      if (wbMitte()) return;
       var q = new URLSearchParams(location.search);
       if (q.has('bp') || q.has('bpi')) {
         q['delete']('bp'); q['delete']('bpi');
@@ -1506,8 +1510,24 @@
         if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusAdresse(); } catch (x) {} }
         return;
       }
-      if (offen && (wbGeschoben || !wbMitte())) closeModal(true);
+      // Ein Eintrag ohne Rezept-Marker. Am Telefon ist das die Liste: das
+      // Rezept schliesst, und nennt die Adresse vom Schreibtisch her noch
+      // eines, wird sie der Liste angeglichen. Am Schreibtisch entscheidet die
+      // Adresse: nennt sie ein Rezept, das nicht offen ist, wird es gezeigt;
+      // nennt sie keines, schliesst nur ein eigener Eintrag das Rezept.
+      var geschoben = wbGeschoben;
       wbGeschoben = false;
+      var q = new URLSearchParams(location.search);
+      if (!wbMitte()) {
+        if (offen) closeModal(true);
+        if (q.has('bp') || q.has('bpi')) wbAdresse(null);
+        return;
+      }
+      if (q.get('bp')) {
+        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusAdresse(); } catch (x) {} }
+        return;
+      }
+      if (offen && geschoben) closeModal(true);
     });
   }
   if (modal) {
