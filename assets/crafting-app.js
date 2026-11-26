@@ -317,17 +317,9 @@
     buildMissionIndex();
     renderPlanner();
     // Deep-Link (Suche „Herstellen“, Item-Kopf, Item Finder): ?bp=<Blueprint-
-    // Name> öffnet direkt das Modal. &bpi=<Stelle> macht ihn eindeutig, wo
-    // mehrere Rezepte denselben Namen tragen (plannerPath in
-    // src/lib/crafting.ts); gilt nur, solange dort noch dasselbe Rezept steht.
+    // Name> öffnet direkt das Modal (rezeptAusAdresse).
     try {
-      var qs = new URLSearchParams(location.search);
-      var wantBp = qs.get('bp');
-      var wantI = qs.get('bpi');
-      var atI = wantI != null && /^\d+$/.test(wantI) ? DB.blueprints[+wantI] : null;
-      if (wantBp && atI && (atI.name || '').toLowerCase() === wantBp.trim().toLowerCase()) openModal(+wantI);
-      else if (wantBp) openModalByName(wantBp);
-      if (wantBp && WB) wbInsBild();
+      if (rezeptAusAdresse() && WB) wbInsBild();
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {
@@ -1369,7 +1361,9 @@
     if (neu) dlgVon = document.activeElement;
     if (!wbBox.contains(document.activeElement)) wbBox.focus({ preventScroll: true });
   }
-  function closeModal() {
+  // ausHistorie: das Zurueck des Geraets hat geschlossen (popstate), die
+  // Adresse ist schon die der Liste. Als Klick-Handler kommt hier ein Ereignis.
+  function closeModal(ausHistorie) {
     if (!modal) return;
     var von = dlgAn() ? dlgVon : null;
     dlgVon = null;
@@ -1380,7 +1374,9 @@
       if (modalBody) modalBody.innerHTML = WB_LEER;
       document.body.style.overflow = '';
       markSel(null);
-      wbAdresse(null);
+      if (ausHistorie === true) wbGeschoben = false;
+      else if (wbGeschoben) wbEintragZu();
+      else wbAdresse(null);
     } else {
       modal.hidden = true; document.body.style.overflow = '';
     }
@@ -1425,6 +1421,135 @@
       var qs = q.toString();
       history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
     } catch (e) {}
+  }
+  // Telefon (Heuristik P04): unter 821 px liegt das Rezept als Vollbild ueber
+  // der Liste. Oeffnen legt dann einen Verlaufseintrag an, und das Zurueck
+  // des Geraets schliesst das Rezept, statt das Werkzeug zu verlassen. Der
+  // Eintrag darunter ist die Liste, ohne Rezept in der Adresse; der neue
+  // traegt es (wbAdresse direkt danach). Am Schreibtisch steht das Rezept als
+  // Mitte im Fluss, dort bleibt es beim Ersetzen der Adresse.
+  // wbZurueck: das eigene Zurueck aus wbEintragZu() laeuft noch; bis sein
+  // popstate kommt, legt Oeffnen keinen Eintrag an (er laege sonst auf dem
+  // alten Rezept-Eintrag, und das Zurueck landete wieder darin).
+  var wbGeschoben = false, wbZurueck = false, wbZurueckTimer = 0;
+  function wbEintrag() {
+    if (!WB || wbGeschoben || wbZurueck || !window.history || !history.pushState) return;
+    try {
+      var st = history.state;
+      // Vorwaerts oder Neuladen auf einem Rezept-Eintrag: der dient weiter,
+      // auch am Schreibtisch (am Telefon geoeffnet, breit neu geladen), damit
+      // Schliessen auf die Liste darunter zurueckgeht. Neu angelegt wird nur
+      // am Telefon.
+      if (st && st.wbRezept) { wbGeschoben = true; return; }
+      if (wbMitte()) return;
+      var q = new URLSearchParams(location.search);
+      if (q.has('bp') || q.has('bpi')) {
+        q['delete']('bp'); q['delete']('bpi');
+        var qs = q.toString();
+        history.replaceState(st, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+      }
+      history.pushState({ wbRezept: 1 }, '', location.pathname + location.search + location.hash);
+      wbGeschoben = true;
+    } catch (e) {}
+  }
+  // Das Rezept, das gerade offen ist (auch unter einem Missions-Pool, den es
+  // geoeffnet hat), sonst null.
+  function offenesRezept() {
+    if (currentEntry && currentEntry.t === 'bp') return currentEntry.i;
+    for (var k = modalStack.length - 1; k >= 0; k--) if (modalStack[k].t === 'bp') return modalStack[k].i;
+    return null;
+  }
+  function wbEintragZu() {
+    wbGeschoben = false;
+    wbZurueck = true;
+    try { history.back(); } catch (e) { wbZurueck = false; return; }
+    // Kommt kein popstate (etwa ein Eintrag, der nicht mehr besteht), gibt
+    // der Timer das Warten auf.
+    clearTimeout(wbZurueckTimer);
+    wbZurueckTimer = setTimeout(function () { wbZurueck = false; }, 1000);
+  }
+  // Das Rezept aus der Adresse: ?bp=<Name>, &bpi=<Stelle> macht ihn eindeutig,
+  // wo mehrere Rezepte denselben Namen tragen (plannerPath in
+  // src/lib/crafting.ts); gilt nur, solange dort noch dasselbe Rezept steht.
+  function rezeptAusAdresse() {
+    var qs = new URLSearchParams(location.search);
+    var wantBp = qs.get('bp');
+    var wantI = qs.get('bpi');
+    var atI = wantI != null && /^\d+$/.test(wantI) ? DB.blueprints[+wantI] : null;
+    if (wantBp && atI && (atI.name || '').toLowerCase() === wantBp.trim().toLowerCase()) openModal(+wantI);
+    else if (wantBp) openModalByName(wantBp);
+    return !!wantBp;
+  }
+  // Zurueck oder Vorwaerts auf ein Rezept: es steht im ersten Reiter. Ist der
+  // Zerlege-Rechner davor, verbirgt er es am Schreibtisch (werkbankCss.ts),
+  // die Adresse naennte also ein Rezept, das nicht zu sehen ist. Das gilt
+  // auch, wenn es schon offen ist (der Reiterwechsel schliesst es nicht);
+  // dann bleibt nur das Oeffnen aus. Ohne Rezept in der Adresse bleibt der
+  // Reiter, wie er ist.
+  function rezeptAusVerlauf() {
+    if (!DB || !DB.blueprints || !new URLSearchParams(location.search).get('bp')) return;
+    var z = $('#cdb-tab-dismantle-content');
+    if (z && !z.hasAttribute('hidden')) switchTab('db');
+    var offen = !!modal && !modal.classList.contains('is-leer');
+    if (!offen || !adresseZeigt(offenesRezept())) rezeptAusAdresse();
+  }
+  // Steht Rezept i in der Adresse? (Name wie in rezeptAusAdresse, bpi wenn da.)
+  function adresseZeigt(i) {
+    if (i == null || !DB.blueprints[i]) return false;
+    var qs = new URLSearchParams(location.search);
+    var bp = qs.get('bp'), bpi = qs.get('bpi');
+    if (!bp || (DB.blueprints[i].name || '').toLowerCase() !== bp.trim().toLowerCase()) return false;
+    return bpi == null || bpi === String(i);
+  }
+  if (WB && window.history && history.pushState) {
+    window.addEventListener('popstate', function (e) {
+      var eigenes = wbZurueck;
+      wbZurueck = false;
+      clearTimeout(wbZurueckTimer);
+      var offen = !!modal && !modal.classList.contains('is-leer');
+      // Eigenes Zurueck (Schliessen-Knopf, Esc, Sprung zum Zerlege-Rechner):
+      // geschlossen ist schon. Wer in der Zwischenzeit ein Rezept geoeffnet
+      // hat, bekommt seinen Eintrag jetzt, und der traegt das Rezept in der
+      // Adresse (sonst oeffnete Vorwaerts es spaeter nicht wieder).
+      // Ist keines offen, gilt das Schliessen: nennt der Eintrag darunter noch
+      // ein Rezept (am Schreibtisch dort per Adresse ersetzt), wird die Adresse
+      // geleert, statt es wieder zu oeffnen. Sonst stuende nach dem Sprung zum
+      // Zerlege-Rechner das alte Rezept wieder da.
+      if (eigenes) {
+        if (offen) { wbEintrag(); var r = offenesRezept(); if (r != null) wbAdresse(r); }
+        else {
+          var qe = new URLSearchParams(location.search);
+          if (qe.has('bp') || qe.has('bpi')) wbAdresse(null);
+        }
+        return;
+      }
+      if (e.state && e.state.wbRezept) {
+        // Vorwaerts auf einen Rezept-Eintrag: das Rezept der Adresse zeigen.
+        // Ist schon eines offen (etwa nach dem Drehen eines Tablets ueber
+        // 821 px, wo Oeffnen nur die Adresse ersetzt), zaehlt die Adresse.
+        wbGeschoben = true;
+        try { rezeptAusVerlauf(); } catch (x) {}
+        return;
+      }
+      // Ein Eintrag ohne Rezept-Marker. Am Telefon ist das die Liste: das
+      // Rezept schliesst, und nennt die Adresse vom Schreibtisch her noch
+      // eines, wird sie der Liste angeglichen. Am Schreibtisch entscheidet die
+      // Adresse: nennt sie ein Rezept, das nicht offen ist, wird es gezeigt;
+      // nennt sie keines, schliesst nur ein eigener Eintrag das Rezept.
+      var geschoben = wbGeschoben;
+      wbGeschoben = false;
+      var q = new URLSearchParams(location.search);
+      if (!wbMitte()) {
+        if (offen) closeModal(true);
+        if (q.has('bp') || q.has('bpi')) wbAdresse(null);
+        return;
+      }
+      if (q.get('bp')) {
+        try { rezeptAusVerlauf(); } catch (x) {}
+        return;
+      }
+      if (offen && geschoben) closeModal(true);
+    });
   }
   if (modal) {
     $$('[data-close]', modal).forEach(function (b) { b.addEventListener('click', closeModal); });
@@ -1508,6 +1633,7 @@
     else renderPool(entry.key);
     showModal();
     injectBack();
+    if (WB) wbEintrag();
     if (WB && entry.t === 'bp') { markSel(entry.i); wbAdresse(entry.i); }
   }
   function go(entry) { if (currentEntry) modalStack.push(currentEntry); currentEntry = entry; renderEntry(entry); }
