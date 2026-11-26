@@ -146,6 +146,7 @@ function makeAccount(opts = {}) {
   const session = 'session' in opts ? opts.session : { access_token: 'test-token', user: { id: 'test-user' } };
   const rows = (opts.rows || []).map((r) => ({ ...r }));
   const postOk = opts.postOk !== false;
+  let vorPost = typeof opts.vorPost === 'function' ? opts.vorPost : null;
   const calls = [];
 
   function qs(p) {
@@ -172,6 +173,13 @@ function makeAccount(opts = {}) {
       if (method === 'GET') return Promise.resolve(ok(rows.map((r) => ({ ...r }))));
       if (method === 'POST') {
         if (!postOk) return Promise.resolve(bad());
+        // vorPost: ein anderes Geraet schreibt genau vor diesem POST (einmal).
+        if (vorPost) { const f = vorPost; vorPost = null; f(rows); }
+        // Ohne on_conflict ist es ein reines INSERT: ein vergebener Name
+        // (Primaerschluessel user_id, name) lehnt den ganzen Stapel mit 409 ab.
+        if (!('on_conflict' in qs(reqPath)) && (body || []).some((e) => rows.some((r) => r.name === e.name))) {
+          return Promise.resolve(bad(409));
+        }
         (body || []).forEach((entry) => {
           const existing = rows.find((r) => r.name === entry.name);
           if (existing) { existing.minerals = entry.minerals; existing.locations = entry.locations; }
@@ -252,6 +260,8 @@ function buildPayload() {
     search: 'SEARCH', pinHint: 'PIN-HINT',
     presets: 'PRESETS', presetSave: 'SAVE', presetDel: 'DEL',
     presetName: 'NAME', presetCancel: 'CANCEL', presetGuest: 'GUEST', presetLogin: 'LOGIN',
+    // Gast-Vorlagen und Abgleich mit dem Konto (UX-Audit 9.3).
+    presetSynced: 'SYNCED %n', presetSynced1: 'SYNCED-1', presetSyncFail: 'SYNC-FAIL', presetSyncLost: 'SYNC-LOST',
     presetSaved: 'SAVED', presetDeleted: 'DELETED', presetEmpty: 'EMPTY', presetFail: 'FAIL',
     // Phase 10, Plan 01: Liste statt <select> (D-05) + Umbenennen (D-02, Form 1).
     presetNew: 'NEW-PRESET', presetRename: 'RENAME', presetRenamed: 'RENAMED',
@@ -284,6 +294,8 @@ function buildPayload() {
     // Seit 24.11.2026 (UX-Audit P43) Vorlagen mit %p fuer die Zahl.
     chance: 'CHANCE %p', upTo: 'UP-TO %p', locPinsFull: 'LOC-PINS-FULL',
     locKey: 'LOC-KEY', locKeyCh: 'LOC-KEY-CH',
+    // Fundorte sortieren und gleiche Zahlen an allen Orten (UX-Audit F01).
+    locSortLbl: 'LOC-SORT', sortEf: 'SORT-EF', sortCh: 'SORT-CH', locSame: 'LOC-SAME %n | %w', yieldAvg: 'AVG',
     // Leermeldung der Erzsuche (UX-Audit P42).
     noHit: 'NO-HIT %q', noHitSys: 'NO-HIT-SYS %s', didYou: 'DID-YOU', noHitHelp: 'NO-HIT-HELP',
     // Phase 12: Fundort-Ansicht (D-01/D-07) -- Zurueck-Knopf-Beschriftung und
@@ -342,6 +354,7 @@ function mk(tag, id, className) {
  *                       fuer den Altbestands-Nachweis)
  *   account.session   — vorgetaeuschte Sitzung; undefined/null = Gast
  *   account.postOk    — false simuliert einen abgewiesenen Upsert
+ *   account.vorPost   — fn(rows), laeuft einmal direkt vor dem ersten POST (zweites Geraet)
  *   localStorageSeed  — Rumpf, der unter dem Schluessel LS_KEY vorbelegt wird
  *                       (Altbestands-Nachweis ohne locPins-Feld: dieses Feld
  *                       einfach weglassen)
@@ -396,6 +409,17 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('span', 'wb-pinsel-txt')));
   root.appendChild(reg(mk('div', 'wb-oreview')));
   root.appendChild(reg(mk('h4', 'wb-loch')));
+  // Umschalter Ertrag/Chance und Lesehilfe der Fundorte (UX-Audit F01).
+  const sortEl = reg(mk('div', 'wb-locsort'));
+  sortEl.hidden = true;
+  for (const k of ['ef', 'ch']) {
+    const b = mk('button');
+    b.setAttribute('data-locsort', k);
+    b.setAttribute('aria-pressed', String(k === 'ef'));
+    sortEl.appendChild(b);
+  }
+  root.appendChild(sortEl);
+  root.appendChild(reg(mk('p', 'wb-lockey')));
   root.appendChild(reg(mk('div', 'wb-locs')));
   root.appendChild(reg(mk('div', 'wb-refs')));
   // Verkauf raffiniert (UX-Audit 24.11.2026, G7): Abschnitt + Liste.
