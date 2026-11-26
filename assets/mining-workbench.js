@@ -1543,6 +1543,13 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   onDoc('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (!inWb(e.target)) return;
+    /* Liegt das Ziel in einem ECHTEN <button> (Nadel in der Kachel oder in
+       der Fundort-Zeile, Zurueck-Knopf), loest der Browser dort von sich aus
+       einen Klick aus. Diese Pruefung steht VOR dem Kachel-Zweig: stand sie
+       dahinter, fing die Kachel Enter und Leertaste der Kachelnadel ab
+       (preventDefault), waehlte das Erz statt es anzuheften und zaehlte das
+       als geoeffnete Kachel (CodeRabbit auf #473). */
+    if (e.target.closest('button')) return;
     var tile = e.target.closest('.wb__tile');
     if (tile) {
       e.preventDefault();
@@ -1553,14 +1560,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       if (e.isTrusted && window.vbEreignis) window.vbEreignis('treffer-offen');
       return;
     }
-    /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
-       <button> (die Nadel in der Zeile, der Zurueck-Knopf), loest der
-       Browser dort bereits von sich aus einen Klick aus -- die neuen Zweige
-       bleiben dafuer aus, sonst zeichnete Enter/Space doppelt. Die Erzzeile
-       traegt keinen verschachtelten Knopf (kein pinKey), der Fall tritt
-       dort also nie ein -- der Vorbehalt bleibt trotzdem die eine
-       gemeinsame Stelle, an der das entschieden wird, statt je Zweig neu. */
-    if (e.target.closest('button')) return;
+    /* Fundort-Ansicht (Phase 12): echte <button> sind oben schon
+       ausgeschieden (der Browser klickt sie selbst, sonst zeichnete
+       Enter/Space doppelt) -- die eine gemeinsame Stelle dafuer. */
     var locRow = e.target.closest('[data-loc]');
     if (locRow) {
       e.preventDefault();
