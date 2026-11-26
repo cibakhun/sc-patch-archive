@@ -1480,6 +1480,14 @@
     else if (wantBp) openModalByName(wantBp);
     return !!wantBp;
   }
+  // Zurueck oder Vorwaerts auf ein Rezept: es steht im ersten Reiter. Ist der
+  // Zerlege-Rechner davor, verbirgt er es am Schreibtisch (werkbankCss.ts),
+  // die Adresse naennte also ein Rezept, das nicht zu sehen ist.
+  function rezeptAusVerlauf() {
+    var z = $('#cdb-tab-dismantle-content');
+    if (z && !z.hasAttribute('hidden')) switchTab('db');
+    rezeptAusAdresse();
+  }
   // Steht Rezept i in der Adresse? (Name wie in rezeptAusAdresse, bpi wenn da.)
   function adresseZeigt(i) {
     if (i == null || !DB.blueprints[i]) return false;
@@ -1498,8 +1506,16 @@
       // geschlossen ist schon. Wer in der Zwischenzeit ein Rezept geoeffnet
       // hat, bekommt seinen Eintrag jetzt, und der traegt das Rezept in der
       // Adresse (sonst oeffnete Vorwaerts es spaeter nicht wieder).
+      // Ist keines offen, gilt das Schliessen: nennt der Eintrag darunter noch
+      // ein Rezept (am Schreibtisch dort per Adresse ersetzt), wird die Adresse
+      // geleert, statt es wieder zu oeffnen. Sonst stuende nach dem Sprung zum
+      // Zerlege-Rechner das alte Rezept wieder da.
       if (eigenes) {
         if (offen) { wbEintrag(); var r = offenesRezept(); if (r != null) wbAdresse(r); }
+        else {
+          var qe = new URLSearchParams(location.search);
+          if (qe.has('bp') || qe.has('bpi')) wbAdresse(null);
+        }
         return;
       }
       if (e.state && e.state.wbRezept) {
@@ -1507,7 +1523,7 @@
         // Ist schon eines offen (etwa nach dem Drehen eines Tablets ueber
         // 821 px, wo Oeffnen nur die Adresse ersetzt), zaehlt die Adresse.
         wbGeschoben = true;
-        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusAdresse(); } catch (x) {} }
+        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusVerlauf(); } catch (x) {} }
         return;
       }
       // Ein Eintrag ohne Rezept-Marker. Am Telefon ist das die Liste: das
@@ -1524,7 +1540,7 @@
         return;
       }
       if (q.get('bp')) {
-        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusAdresse(); } catch (x) {} }
+        if (DB && DB.blueprints && (!offen || !adresseZeigt(offenesRezept()))) { try { rezeptAusVerlauf(); } catch (x) {} }
         return;
       }
       if (offen && geschoben) closeModal(true);
