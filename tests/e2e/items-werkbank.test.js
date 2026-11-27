@@ -135,7 +135,7 @@ const CRAFT = {
 /**
  * Oeffnet die Items-Seite mit dem Fixture.
  * opt.db: Katalog (Objekt) oder { status } fuer einen Fehler; opt.craft
- * ebenso; opt.wege: /items-wege.json (Vorgabe: makeWege zum Katalog) oder
+ * ebenso oder ein Versprechen darauf; opt.wege: /items-wege.json (Vorgabe: makeWege zum Katalog) oder
  * { status } oder ein Versprechen darauf (kommt, wenn der Test es einloest);
  * opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
  */
@@ -145,7 +145,7 @@ async function seite(opt = {}) {
   const db = opt.db === undefined ? makeDb() : opt.db;
   antworten.set('/assets/universal-items.json', db && db.status ? db : JSON.stringify(db));
   const craft = opt.craft === undefined ? CRAFT : opt.craft;
-  antworten.set('/assets/crafting-db.json', craft && craft.status ? craft : JSON.stringify(craft));
+  antworten.set('/assets/crafting-db.json', craft && (craft.status || typeof craft.then === 'function') ? craft : JSON.stringify(craft));
   const wege = opt.wege === undefined ? (db && db.items ? makeWege(db) : { status: 404, body: '' }) : opt.wege;
   antworten.set(lang === 'de' ? '/de/items-wege.json' : '/items-wege.json', wege && (wege.status || typeof wege.then === 'function') ? wege : JSON.stringify(wege));
   const abrufe = [];
@@ -816,6 +816,26 @@ describe('Was sonst nur das Datenblatt wusste', () => {
     await s.p.settle(300);
     assert.ok(s.blatt().querySelector('[data-weg="herstellen"]'), 'Wege kommen nicht nach');
     assert.ok(s.blatt().querySelector('[data-melden]'));
+  });
+
+  test('72. Kommt das Rezept nach den Wegen, traegt die Herstellen-Karte ihre Links nach', async () => {
+    // Die Rezeptdatei ist gut viermal so gross wie die Wege-Datei: beim
+    // ersten Blatt kommen die Wege meist zuerst (CodeRabbit zu PR #487).
+    const db = makeDb();
+    let loese;
+    const s = await seite({ db, craft: new Promise((r) => { loese = r; }) });
+    await s.klick(s.kachel('alpha-rifle'));
+    const karte = () => s.blatt().querySelector('[data-weg="herstellen"]');
+    assert.ok(karte(), 'Herstellen-Karte fehlt, solange die Rezeptdatei laedt');
+    assert.strictEqual(karte().querySelectorAll('a').length, 0, 'ohne Rezept kann es keinen Link in die Crafting-Werkbank geben');
+    loese(JSON.stringify(CRAFT));
+    await s.p.settle(300);
+    const links = [...karte().querySelectorAll('a')];
+    assert.ok(links.some((a) => a.textContent.includes(s.W.craftOeffnen)), karte().textContent);
+    assert.ok(links.some((a) => a.textContent.includes(s.W.craftMehr.replace('{n}', '2'))), karte().textContent);
+    assert.ok(links.every((a) => a.getAttribute('href').startsWith('/de/topics/crafting.html?bp=')));
+    assert.strictEqual(s.blatt().querySelectorAll('[data-weg="herstellen"]').length, 1);
+    assert.deepStrictEqual(s.p.fehler, []);
   });
 
   test('69. „Alle Verkaufsstellen ↓“ zeigt alle Zeilen, auch hinter „Alle zeigen“ und bei gewaehltem System', async () => {

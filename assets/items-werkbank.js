@@ -1263,6 +1263,35 @@
   function sprung(ziel, text) {
     return '<button type="button" class="wzb-weg__l" data-sprung="' + ziel + '">' + esc(text) + ' ↓</button>';
   }
+  // Die Herstellen-Karte: Missionen zum Bauplan und die Links in die
+  // Crafting-Werkbank. Die Links brauchen die Rezeptdatei; kommt sie erst
+  // nach den Wegen, traegt herstellenNachtragen() die Karte nach.
+  function herstellenHtml(it, e) {
+    var bp = CRAFT && CRAFT[it.id];
+    var m = e.m || [0];
+    var ch = '';
+    if (m[0] > 0) {
+      ch += '<span class="wzb-weg__n">' + esc(m[0] === 1 ? bw('craftMissionsOne') : bw('craftMissions')) + '</span>';
+      ch += '<ul class="wzb-weg__z" data-missionen="' + m[0] + '">' + m.slice(1).map(function (x) {
+        return '<li><span lang="en">' + esc(x[0]) + '</span>' + (x[1] ? esc(' (' + x[1] + ')') : '') + '</li>';
+      }).join('') + '</ul>';
+      if (m[0] > MISSIONEN_OFFEN && bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(fuell(w('craftMehr'), { n: fmt(m[0] - MISSIONEN_OFFEN) })) + ' →</a>';
+    } else if (!e.hw) {
+      ch += '<span class="wzb-weg__n" data-quelle="unbekannt">' + esc(bw('craftUnknown')) + '</span>';
+    }
+    if (e.hw) ch += '<span class="wzb-weg__n">' + esc(bw('craftWikelo')) + '</span>';
+    if (bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(w('craftOeffnen')) + ' →</a>';
+    return ch;
+  }
+  function herstellenNachtragen(it, oben) {
+    if (!WEGE || !CRAFT || !oben || !oben.isConnected) return;
+    var e = WEGE.i[it._i] || {};
+    var k = oben.querySelector('[data-weg="herstellen"]');
+    if (!k || !e.h) return;
+    var t = document.createElement('ul');
+    t.innerHTML = wegKarte('herstellen', bw('craft'), herstellenHtml(it, e));
+    k.parentNode.replaceChild(t.firstChild, k);
+  }
   function wegeHtml(it, e) {
     var karten = [];
     var gruppen = kaufGruppen(it);
@@ -1295,23 +1324,7 @@
       if (loot.length) fh += sprung('wzb-quellen', bw('findAll'));
       karten.push(wegKarte('finden', bw('find'), fh));
     }
-    if (e.h) {
-      var bp = CRAFT && CRAFT[it.id];
-      var m = e.m || [0];
-      var ch = '';
-      if (m[0] > 0) {
-        ch += '<span class="wzb-weg__n">' + esc(m[0] === 1 ? bw('craftMissionsOne') : bw('craftMissions')) + '</span>';
-        ch += '<ul class="wzb-weg__z" data-missionen="' + m[0] + '">' + m.slice(1).map(function (x) {
-          return '<li><span lang="en">' + esc(x[0]) + '</span>' + (x[1] ? esc(' (' + x[1] + ')') : '') + '</li>';
-        }).join('') + '</ul>';
-        if (m[0] > MISSIONEN_OFFEN && bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(fuell(w('craftMehr'), { n: fmt(m[0] - MISSIONEN_OFFEN) })) + ' →</a>';
-      } else if (!e.hw) {
-        ch += '<span class="wzb-weg__n" data-quelle="unbekannt">' + esc(bw('craftUnknown')) + '</span>';
-      }
-      if (e.hw) ch += '<span class="wzb-weg__n">' + esc(bw('craftWikelo')) + '</span>';
-      if (bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(w('craftOeffnen')) + ' →</a>';
-      karten.push(wegKarte('herstellen', bw('craft'), ch));
-    }
+    if (e.h) karten.push(wegKarte('herstellen', bw('craft'), herstellenHtml(it, e)));
     if (e.w) {
       karten.push(wegKarte('wikelo', bw('wikelo'), '<span class="wzb-weg__n">' + esc(e.w === 1 ? bw('wikeloOne') : fuell(bw('wikeloMany'), { n: fmt(e.w) })) + '</span>' +
         '<a class="wzb-weg__l" href="' + esc(wikeloHref(it)) + '">' + esc(bw('wikeloOpen')) + ' →</a>'));
@@ -1557,7 +1570,7 @@
     // melden“ steht sofort und wartet auf keine.
     if (unten) unten.innerHTML = mehrHtml(it, {});
     if (CRAFT) craftEinsetzen(it, platz);
-    else ladeCraft().then(function () { craftEinsetzen(it, platz); });
+    else ladeCraft().then(function () { craftEinsetzen(it, platz); herstellenNachtragen(it, oben); });
     if (WEGE) wegeEinsetzen(it, oben, unten);
     else ladeWege().then(function () { wegeEinsetzen(it, oben, unten); });
     var akt = document.getElementById('wzb-akt');
