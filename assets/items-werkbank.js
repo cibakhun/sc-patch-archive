@@ -373,6 +373,10 @@
       return COLL.compare(a._basis, b._basis) || a._var - b._var || COLL.compare(a._n, b._n) || (a.id < b.id ? -1 : 1);
     });
     ord.forEach(function (it, i) { it._o = i; });
+    if (SU) {
+      ITEMS.forEach(function (it) { it._mk = mfrName(it.game && it.game.manufacturer); suchFelder(it); });
+      bauVokabular();
+    }
     SETLISTE.forEach(function (s) { s._h = [s.name, s.manufacturer, s.weight].filter(Boolean).join('\n').toLowerCase(); });
     SETLISTE.sort(function (a, b) { return COLL.compare(a.name, b.name); });
   }
@@ -388,6 +392,165 @@
   var STAPEL = [];      // Zurueck-Weg im Blatt
   var erstesBild = true;
 
+  /* ---------- Smart Search (Suchkern wie im Schiffsfinder) ---------- */
+  // Derselbe Kern wie die Suche im Hangar (assets/smart-suche.js): Begriffe,
+  // die das Vokabular kennt (C.suche, Hersteller aus dem Katalog), werden
+  // Eingrenzungen und stehen als Chips ueber den Treffern; der Rest sind
+  // freie Woerter mit Rangfolge (Name vor Hersteller vor Kategorie; ganzes
+  // Wort vor Anfang vor Teilstueck vor Tippfehler). Ein erkannter Begriff
+  // zaehlt auch, wenn er im Namen steht („pyro“ findet das Pyro-Werkzeug).
+  // Laedt der Kern nicht, sucht die Werkbank wie zuvor nach Teilstuecken.
+  var SU = null;          // der Suchkern, sobald geladen
+  var VOK = null;         // Vokabular samt Herstellern
+  var KAT_C = karte();    // kat-Schluessel -> Kategorien dahinter
+  var P = null;           // gelesene Suche { hits, words, arten }
+  var PG = 0;             // Generation der Suche (Merker an den Items)
+  var TYPO = [];          // je freiem Wort: Tippfehler zaehlen?
+  var HLW = [];           // Woerter zum Hervorheben
+  var wegeFuerSuche = false;
+  var ARTEN = ['kat', 'grp', 'art', 'pk', 'sel', 'sys', 'maker'];
+  // „s3“, „S 3“, „size 3“, „Größe 3“: Groesse 0 bis 12.
+  var GROESSE = { kind: 'size', re: /\s(?:s|size|grosse|groesse|gr\.?)\s*(\d|1[0-2])(?=\s)/g, key: function (n) { return Number(n); } };
+  var MUSTER = [];
+  var SYS_NAME = { stanton: 'Stanton', pyro: 'Pyro', nyx: 'Nyx' };
+
+  function ladeSuche() {
+    if (!C.sucheUrl) return Promise.resolve();
+    return import(C.sucheUrl).then(function (m) {
+      SU = m;
+      MUSTER = [GROESSE, m.preisMuster()];
+    }).catch(function (e) {
+      console.warn('Items-Werkbank: Suchkern nicht geladen, Suche ohne Erkennung.', e);
+      SU = null;
+    });
+  }
+  // Was ein freies Wort an einem Item trifft (wortWert in smart-suche.js).
+  function suchFelder(it) {
+    var g = it.game || {};
+    var roh = SU.fold(it._n + (it._alt ? ' ' + it._alt : '')).split(' ').filter(Boolean);
+    var name = roh.slice();
+    roh.forEach(function (w) { w.split(/[-/.]/).forEach(function (x) { if (x && name.indexOf(x) < 0) name.push(x); }); });
+    var st = setOf(it);
+    var tags = SU.fold([it._gr ? it._gr.n : '', it._b ? it._b.n : '', g.class, g.subType, st && st.name].filter(Boolean).join(' ')).split(' ').filter(Boolean);
+    var mk = it._mk ? SU.fold(it._mk).split(' ') : [];
+    var voll = SU.fold(it._h);
+    it._sw = { name: name, f: [[name, 100, 80, 35], [mk, 60, 45, 20], [tags, 40, 30, 15]], voll: voll, kurz: ' ' + voll.replace(/[^a-z0-9]+/g, ' ') + ' ' };
+  }
+  // Wie wortWert, dazu kurze Woerter („18“ in „Area 18“) als ganzes Wort im
+  // ganzen Text: wortWert nimmt dort erst ab drei Zeichen Teilstuecke.
+  function wortTrifft(wort, it, typos) {
+    var v = SU.wortWert(wort, it._sw.f, it._sw.voll, typos);
+    if (!v && wort.length < 3 && it._sw.kurz.indexOf(' ' + wort + ' ') >= 0) v = 40;
+    return v;
+  }
+  function bauVokabular() {
+    var V = C.suche || {};
+    VOK = { maker: [], nick: {} };
+    ['kat', 'grp', 'art', 'pk', 'sel', 'sys'].forEach(function (k) { VOK[k] = V[k] || []; });
+    VOK.kat.forEach(function (e) { KAT_C[e.k] = e.c || [e.k]; });
+    // Hersteller mit vollem Namen; das erste Wort allein nur, wenn es eindeutig
+    // ist und weder Ort („Hurston“) noch schon ein Begriff.
+    var schon = karte(), orte = karte(), zahl = karte(), erst = karte();
+    ARTEN.forEach(function (k) { (VOK[k] || []).forEach(function (e) { e.w.forEach(function (w) { schon[SU.fold(w)] = 1; }); }); });
+    ITEMS.forEach(function (it) {
+      it.obtain.forEach(function (o) { SU.fold(o.loc).split(/[\s\-–,()]+/).forEach(function (w) { if (w) orte[w] = 1; }); });
+      if (it._mk) zahl[it._mk] = (zahl[it._mk] || 0) + 1;
+    });
+    var namen = Object.keys(zahl).filter(function (n) { return /[a-z]/.test(n); });
+    namen.forEach(function (n) { var e = SU.fold(n).split(' ')[0]; erst[e] = (erst[e] || 0) + 1; });
+    namen.forEach(function (n) {
+      var f = SU.fold(n), e = f.split(' ')[0], wl = [f];
+      if (e !== f && e.length >= 4 && erst[e] === 1 && !orte[e] && !schon[e]) wl.push(e);
+      VOK.maker.push({ k: n, w: wl });
+    });
+  }
+  function liesSuche() {
+    P = null; HLW = QW;
+    if (!SU || !VOK || !S.q) return;
+    var r = SU.erkenne(S.q, VOK, ARTEN, MUSTER);
+    // Chips in der Folge, in der die Begriffe in der Suche stehen.
+    var fq = ' ' + SU.fold(S.q) + ' ';
+    r.hits.sort(function (a, b) { return fq.indexOf(' ' + a.t + ' ') - fq.indexOf(' ' + b.t + ' '); });
+    var arten = karte(), folge = [];
+    r.hits.forEach(function (h) {
+      if (!arten[h.kind]) { arten[h.kind] = []; folge.push(arten[h.kind]); }
+      arten[h.kind].push(h);
+    });
+    P = { hits: r.hits, words: r.words, arten: folge };
+    PG++;
+    // Tippfehler nur fuer ein Wort, das ohne sie kein Item trifft (sonst
+    // faende „helm“ auch „holm“), wie im Schiffsfinder.
+    TYPO = r.words.map(function (w) {
+      for (var i = 0; i < ITEMS.length; i++) if (wortTrifft(w, ITEMS[i], false)) return false;
+      return true;
+    });
+    HLW = r.words.slice();
+    r.hits.forEach(function (h) { if (h.kind !== 'price' && h.kind !== 'size') h.t.split(' ').forEach(function (x) { HLW.push(x); }); });
+  }
+  function imSystem(it, sys) {
+    for (var i = 0; i < it.obtain.length; i++) {
+      var ss = zeilenSysteme(it.obtain[i]);
+      for (var k = 0; k < ss.length; k++) if (ss[k].toLowerCase() === sys) return true;
+    }
+    return false;
+  }
+  function erfuellt(it, h) {
+    var g = it.game || {};
+    switch (h.kind) {
+      case 'kat': return (KAT_C[h.key] || []).indexOf(it.category) >= 0;
+      case 'grp': return it._root === h.key;
+      case 'art': return hasKind(it, h.key);
+      case 'pk': return g.weight === h.key;
+      case 'sel': return g.rarity === h.key;
+      case 'sys': return imSystem(it, h.key);
+      case 'maker': return it._mk === h.key;
+      case 'size': return it._sz.indexOf(h.key) >= 0;
+      case 'price': return it._p != null && it._p <= h.key;
+    }
+    return false;
+  }
+  function benannt(it, h) {
+    if (h.kind === 'price' || h.kind === 'size') return false;
+    var ws = h.t.split(' ');
+    for (var i = 0; i < ws.length; i++) if (it._sw.name.indexOf(ws[i]) < 0) return false;
+    return true;
+  }
+  // Guete eines Items fuer die Suche, 0 = kein Treffer. Begriffe einer Art
+  // gelten als „oder“ („helm rucksack“), verschiedene Arten als „und“; jedes
+  // freie Wort muss treffen.
+  function trefferWert(it) {
+    if (it._pg === PG) return it._pw;
+    var sum = 0, i, j;
+    for (i = 0; i < P.arten.length && sum >= 0; i++) {
+      var best = 0, gr = P.arten[i];
+      for (j = 0; j < gr.length; j++) best = Math.max(best, benannt(it, gr[j]) ? 100 : erfuellt(it, gr[j]) ? 10 : 0);
+      sum = best ? sum + best : -1;
+    }
+    for (i = 0; i < P.words.length && sum >= 0; i++) {
+      var v = wortTrifft(P.words[i], it, TYPO[i]);
+      sum = v ? sum + v : -1;
+    }
+    it._pg = PG; it._pw = sum > 0 ? sum : 0;
+    return it._pw;
+  }
+  function begriffText(h) {
+    if (h.kind === 'kat') { var b = B_CAT[(KAT_C[h.key] || [])[0]]; return b ? b.n : h.t; }
+    if (h.kind === 'grp') return G_ROOT[h.key] ? G_ROOT[h.key].n : h.t;
+    if (h.kind === 'art') return artLabel(h.key);
+    if (h.kind === 'pk') return weightLabel(h.key);
+    if (h.kind === 'sel') return rarityLabel(h.key);
+    if (h.kind === 'sys') return SYS_NAME[h.key] || h.t;
+    if (h.kind === 'maker') return h.key;
+    if (h.kind === 'size') return 'S' + h.key;
+    if (h.kind === 'price') return w('qPreis').replace('{n}', fmt(h.key));
+    return h.t;
+  }
+  function begriffFarbe(h) {
+    if (h.kind === 'kat') { var b = B_CAT[(KAT_C[h.key] || [])[0]]; return b ? b.gr.f : null; }
+    if (h.kind === 'grp') return G_ROOT[h.key] ? G_ROOT[h.key].f : null;
+    return null;
+  }
+
   function trifft(h) {
     for (var i = 0; i < QW.length; i++) if (h.indexOf(QW[i]) < 0) return false;
     return true;
@@ -400,7 +563,8 @@
     if (ohne !== 'pk' && S.pk && !(it.game && it.game.weight === S.pk)) return false;
     if (ohne !== 'sel' && S.sel && !(it.game && it.game.rarity === S.sel)) return false;
     if (S.set && !(it.game && it.game.setId === S.set)) return false;
-    if (QW.length && !trifft(it._h)) return false;
+    if (P) { if (!trefferWert(it)) return false; }
+    else if (QW.length && !trifft(it._h)) return false;
     return true;
   }
   // Wie gut trifft der Name (oder der Zweitname) die Suche? 0 genau, 1 beginnt damit, 2 alle
@@ -424,6 +588,7 @@
   function sortiere(list) {
     var s = S.sort;
     if (s === 'relevanz') {
+      if (P) return list.sort(function (a, b) { return trefferWert(b) - trefferWert(a) || a._r - b._r || a._o - b._o; });
       if (QW.length) list.forEach(function (it) { it._sr = suchRang(it); });
       return list.sort(function (a, b) {
         return (QW.length ? a._sr - b._sr : 0) || a._r - b._r || a._o - b._o;
@@ -485,6 +650,14 @@
     // noch eine geleerte Trefferliste, solange er laedt, und beim Ladefehler
     // bleibt der Fehler stehen. Der Stand S gilt, sobald der Katalog da ist.
     if (!bereit) { if (ladeFehler) zeigeLadefehler(); return; }
+    liesSuche();
+    // Ein System („pyro“) braucht die Zuordnung der Verkaufsstellen
+    // (/items-wege.json); bis sie da ist, bleibt die Liste, wie sie war.
+    if (P && !WEGE && C.wegeUrl && !wegeFuerSuche && P.hits.some(function (h) { return h.kind === 'sys'; })) {
+      wegeFuerSuche = true;
+      ladeWege().then(function () { anwenden(opt); });
+      return;
+    }
     sortWahl();
     if (S.tab === 'sets') {
       TREFFER = SETLISTE.filter(setPasst);
@@ -502,9 +675,9 @@
 
   function hl(text) {
     var t = String(text);
-    if (!QW.length) return esc(t);
+    if (!HLW.length) return esc(t);
     var low = t.toLowerCase(), marks = [];
-    QW.forEach(function (q) {
+    HLW.forEach(function (q) {
       var i = low.indexOf(q);
       if (i >= 0) marks.push([i, i + q.length]);
     });
@@ -675,8 +848,11 @@
     el.nL.textContent = S.tab === 'sets' ? w('nSets') : w('nItems');
     // Gesetzte Eingrenzungen als Chips: ein Klick nimmt sie heraus.
     var c = [];
-    function chip(key, text, kc) {
-      c.push('<button type="button" class="wz-fchip" data-weg="' + key + '"' + (kc ? ' style="--kc:' + kc + '"' : '') + '>' + esc(text) + '<span class="wi wi--close" aria-hidden="true"></span></button>');
+    function chip(key, text, kc, t) {
+      c.push('<button type="button" class="wz-fchip' + (t != null ? ' wz-fchip--q' : '') + '" data-weg="' + key + '"' +
+        (t != null ? ' data-t="' + esc(t) + '" aria-label="' + esc(w('qWeg').replace('{name}', text)) + '"' : '') +
+        (kc ? ' style="--kc:' + kc + '"' : '') + '>' + (t != null ? '<span class="wi wi--search" aria-hidden="true"></span>' : '') +
+        esc(text) + '<span class="wi wi--close" aria-hidden="true"></span></button>');
     }
     if (S.tab === 'items') {
       if (S.blatt) chip('kat', S.blatt.gr.n + ' / ' + S.blatt.n, S.blatt.gr.f);
@@ -687,6 +863,8 @@
       if (S.sel) chip('sel', rarityLabel(S.sel));
     }
     if (S.pk) chip('pk', weightLabel(S.pk));
+    // Was die Suche erkannt hat; ein Klick nimmt den Begriff aus der Suche.
+    if (P && S.tab === 'items') P.hits.forEach(function (h) { chip('q', begriffText(h), begriffFarbe(h), h.t); });
     el.aktiv.innerHTML = c.join('');
     // Im Reiter Sets wirkt nur die Panzerungsklasse; nur sie zaehlt.
     var nF = S.tab === 'sets' ? (S.pk ? 1 : 0)
@@ -2000,7 +2178,11 @@
     var fokus = c.contains(document.activeElement);
     var pos = Array.prototype.indexOf.call(el.aktiv.querySelectorAll('[data-weg]'), c);
     var k = c.getAttribute('data-weg');
-    if (k === 'kat') { S.gruppe = null; S.blatt = null; }
+    if (k === 'q') {
+      S.q = SU ? SU.ohneBegriff(S.q, c.getAttribute('data-t') || '') : S.q;
+      el.q.value = S.q;
+      el.suche.classList.toggle('hat-text', !!S.q);
+    } else if (k === 'kat') { S.gruppe = null; S.blatt = null; }
     else if (k === 'set') S.set = null;
     else if (k === 'art') S.art = 'all';
     else if (k === 'gr') S.gr = null;
@@ -2170,10 +2352,13 @@
   function ladeKatalog() {
     ladeFehler = false;
     el.gitter.setAttribute('aria-busy', 'true');
-    fetch(C.dbUrl || '/assets/universal-items.json').then(function (r) {
+    // Der Suchkern laedt neben dem Katalog; fehlt er, sucht die Werkbank
+    // nach Teilstuecken wie zuvor.
+    Promise.all([fetch(C.dbUrl || '/assets/universal-items.json').then(function (r) {
       if (!r.ok) throw new Error('items db http ' + r.status);
       return r.json();
-    }).then(function (db) {
+    }), SU ? null : ladeSuche()]).then(function (a) {
+      var db = a[0];
       vorbereiten(db || {});
       bereit = true;
       var it = null, st = null;

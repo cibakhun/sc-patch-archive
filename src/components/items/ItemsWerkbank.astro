@@ -32,6 +32,7 @@ import { BEZUGSWEGE_UI } from '../../i18n/bezugswegeText';
 import { ORTE_DE } from '../../i18n/lootText';
 import { recipeForItem } from '../../lib/crafting';
 import { datumLang } from '../../lib/datenstand';
+import { itemsSuchVokabular } from '../../lib/itemsSuche';
 import Item3dDialog from '../Item3dDialog.astro';
 
 interface Props { lang: 'de' | 'en' }
@@ -64,7 +65,7 @@ const W = {
   de: {
     tabItems: 'Items', tabSets: 'Rüstungssets',
     hilfeKurz: 'Hilfe',
-    filter: 'Filter', suche: 'Item, Hersteller, Fundort suchen…', sucheKurz: 'Item, Hersteller, Fundort…', sucheLabel: 'Items durchsuchen', leeren: 'Suche leeren',
+    filter: 'Filter', suche: 'Item, Hersteller oder z. B. „Helm Pyro unter 10k“', sucheKurz: 'Item, Hersteller, Fundort…', sucheLabel: 'Items durchsuchen', leeren: 'Suche leeren',
     sortEmpf: 'Empfohlen', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Wert (hoch→niedrig)', sortPreis: 'Preis (aufsteigend)', sortPreisZ: 'Preis (absteigend)',
     sortLabel: 'Sortierung', kacheln: 'Kacheln', liste: 'Liste', ansicht: 'Ansicht',
     alle: 'Alle Items', gruppen: 'Gruppen', kategorien: 'Kategorien',
@@ -94,11 +95,13 @@ const W = {
     setKomplett: 'komplett', setTeilweise: '{n}/4 Kernslots', setFilter: 'Set: {name}',
     craftLaden: 'Rezept wird geladen…', imAll: 'im All',
     kurzSets: 'Sets', kurzItems: 'Items',
+    // Erkannte Begriffe der Suche als Chips (wie im Schiffsfinder).
+    qPreis: 'bis {n} aUEC', qWeg: '„{name}“ aus der Suche nehmen',
   },
   en: {
     tabItems: 'Items', tabSets: 'Armor sets',
     hilfeKurz: 'Help',
-    filter: 'Filter', suche: 'Search item, manufacturer, location…', sucheKurz: 'Item, maker, location…', sucheLabel: 'Search items', leeren: 'Clear search',
+    filter: 'Filter', suche: 'Item, maker or e.g. “helmet pyro under 10k”', sucheKurz: 'Item, maker, location…', sucheLabel: 'Search items', leeren: 'Clear search',
     sortEmpf: 'Featured', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Value (high→low)', sortPreis: 'Price (low→high)', sortPreisZ: 'Price (high→low)',
     sortLabel: 'Sort', kacheln: 'Tiles', liste: 'List', ansicht: 'View',
     alle: 'All items', gruppen: 'Groups', kategorien: 'Categories',
@@ -126,6 +129,7 @@ const W = {
     setKomplett: 'complete', setTeilweise: '{n}/4 core slots', setFilter: 'Set: {name}',
     craftLaden: 'Loading recipe…', imAll: 'in space',
     kurzSets: 'Sets', kurzItems: 'Items',
+    qPreis: 'up to {n} aUEC', qWeg: 'Remove “{name}” from the search',
   },
 }[lang];
 
@@ -160,6 +164,11 @@ const CFG = {
   w: W,
   // „In 3D ansehen“: Liste der Modelle, nur im Vorschau-Bau (src/lib/item3d.ts).
   i3dListe: ITEM3D_LISTE_URL,
+  // Smart Search wie im Schiffsfinder des Hangars: derselbe Suchkern
+  // (assets/smart-suche.js, per import() mit Versionsadresse) und was er hier
+  // erkennt (src/lib/itemsSuche.ts; Hersteller kommen aus dem Katalog).
+  sucheUrl: versioned('assets/smart-suche.js', '/assets/smart-suche.js'),
+  suche: itemsSuchVokabular(),
 };
 
 // Ring um das Emblem: gestrichelte Bahn, gezogener Kreis, vier Marken.

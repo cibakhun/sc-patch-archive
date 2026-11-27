@@ -194,6 +194,8 @@ export const WZ_CSS = `
 .wz-fchip{display:inline-flex;align-items:center;gap:.35rem;height:1.6rem;padding:0 .3rem 0 .6rem;border:1px solid color-mix(in srgb,var(--kc) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--kc) 12%,transparent);font-size:var(--fs-3);font-weight:700;letter-spacing:var(--ls-5);text-transform:none;color:var(--tx);align-self:center;animation:wz-knall var(--dur-base) var(--feder)}
 .wz-fchip .wi{width:.8rem;height:.8rem;color:var(--mu)}
 .wz-fchip:hover .wi{color:var(--tx)}
+.wz-fchip--q{padding-left:.45rem}
+.wz-fchip--q .wi--search{width:.7rem;height:.7rem}
 .wz-gitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(222px,100%),1fr));align-content:start;gap:.7rem;padding:2px 2px 1rem;margin:-2px}
 .wz-gitter.is-liste{grid-template-columns:1fr;gap:.4rem}
 /* Gerollte Liste: weiche Oberkante (is-oben setzt das Skript); die Unterkante

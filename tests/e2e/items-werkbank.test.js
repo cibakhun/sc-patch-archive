@@ -25,11 +25,15 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import * as esbuild from 'esbuild';
 import { oeffneSeite } from '../../scripts/lib/pruefstand.mjs';
 
 const DIST = path.resolve('dist');
 const SKRIPT = '/assets/items-werkbank.js';
 const QUELLE = fs.readFileSync(path.resolve('assets/items-werkbank.js'), 'utf8');
+// Der Suchkern kommt per import() nach; der Pruefstand buendelt ihn mit
+// esbuild, einmal fuer alle Tests.
+const BUENDEL = new Map();
 
 // ---- Fixture ----
 const BAUM = [
@@ -126,6 +130,19 @@ function makeWege(db) {
   };
 }
 
+// Was die Suche zum Fixture-Baum als Kategorie und Gruppe erkennt, in der
+// Form von itemsSuchVokabular() (src/lib/itemsSuche.ts): Woerter beider
+// Sprachen, damit „pistols“ auch auf der deutschen Seite greift.
+const SUCHE_KAT = [
+  { k: 'Weapons / Rifle', w: ['gewehre', 'gewehr', 'rifles', 'rifle'], c: ['Weapons / Rifle'] },
+  { k: 'Weapons / Pistol', w: ['pistolen', 'pistole', 'pistols', 'pistol'], c: ['Weapons / Pistol'] },
+];
+const SUCHE_GRP = [
+  { k: 'Weapons', w: ['waffen', 'waffe', 'weapons', 'weapon'] },
+  { k: 'Armour', w: ['rüstung', 'ruestung', 'armour', 'armor'] },
+  { k: 'Commodity', w: ['waren', 'commodity'] },
+];
+
 const CRAFT = {
   blueprints: [
     { name: 'Alpha Rifle', craft_time_seconds: 90, tiers: 2, ingredients: [{ slot: 'Metall', options: [{ name: 'Iron', quantity_scu: 2 }] }] },
@@ -138,6 +155,9 @@ const CRAFT = {
  * ebenso oder ein Versprechen darauf; opt.wege: /items-wege.json (Vorgabe: makeWege zum Katalog) oder
  * { status } oder ein Versprechen darauf (kommt, wenn der Test es einloest);
  * opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
+ * opt.sucheUrl: Adresse des Suchkerns statt der gebauten (Ausfall pruefen);
+ * opt.echtesVokabular: Kategorien und Gruppen der Suche wie gebaut statt
+ * SUCHE_KAT/SUCHE_GRP zum Fixture-Baum.
  */
 async function seite(opt = {}) {
   const lang = opt.sprache || 'de';
@@ -151,6 +171,8 @@ async function seite(opt = {}) {
   const abrufe = [];
   const p = await oeffneSeite({
     dist: DIST,
+    esbuild,
+    buendel: BUENDEL,
     seite: lang === 'de' ? 'de/items.html' : 'items.html',
     query: opt.query || '',
     sprache: lang === 'de' ? 'de-DE' : 'en-US',
@@ -160,8 +182,12 @@ async function seite(opt = {}) {
     skripte: (e) => e.name === SKRIPT || (e.code != null && e.code.includes('window.__WZI=')),
     umbau: (name, code) => {
       if (name === SKRIPT) return QUELLE;
-      // Kategoriebaum und Erze aus dem Fixture, sonst gilt die gebaute Konfiguration.
-      return `${code}\nwindow.__WZI.baum = ${JSON.stringify(BAUM)}; window.__WZI.erze = ${JSON.stringify(ERZE)};`;
+      // Kategoriebaum und Erze aus dem Fixture, sonst gilt die gebaute
+      // Konfiguration. Die Suche kennt dann die Kategorien des Fixtures; Fundart,
+      // Panzerung, Seltenheit und Systeme bleiben wie gebaut.
+      const suche = opt.echtesVokabular ? '' : `window.__WZI.suche.kat = ${JSON.stringify(SUCHE_KAT)}; window.__WZI.suche.grp = ${JSON.stringify(SUCHE_GRP)};`;
+      const url = opt.sucheUrl === undefined ? '' : `window.__WZI.sucheUrl = ${JSON.stringify(opt.sucheUrl)};`;
+      return `${code}\nwindow.__WZI.baum = ${JSON.stringify(BAUM)}; window.__WZI.erze = ${JSON.stringify(ERZE)}; ${suche} ${url}`;
     },
   });
   // Abrufe mitzaehlen (die Rezeptdatei laedt erst mit dem ersten Blatt).
@@ -373,6 +399,120 @@ describe('Suche', () => {
     // Beide beginnen nicht mit „pistol“: gleiche Stufe, dann der Grundrang
     // (kaufbar vor exklusiv).
     assert.deepStrictEqual(s.namen(), ['Eta Pistol', 'Zeta Pistol']);
+  });
+});
+
+// Krisz 27.11.2026: „können wir bei items dieses smart search was wir bei den
+// schiffen schon haben in der hangar?“ Der Suchkern kommt aus dist/ (import()
+// mit Versionsadresse), die Werkbank aus assets/.
+describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
+  const chips = (s) => [...s.doc.querySelectorAll('#wz-aktiv .wz-fchip--q')];
+  const chipTexte = (s) => chips(s).map((c) => c.textContent);
+
+  test('72. Kategorie erkannt: Chip statt Suchwort, beide Sprachen auf der deutschen Seite', async () => {
+    const s = await seite();
+    await s.tippe('Pistolen');
+    assert.deepStrictEqual(chipTexte(s), ['Pistolen']);
+    assert.deepStrictEqual(s.namen(), ['Eta Pistol', 'Zeta Pistol']);
+    await s.tippe('pistols');
+    assert.deepStrictEqual(chipTexte(s), ['Pistolen']);
+    assert.deepStrictEqual(s.namen(), ['Eta Pistol', 'Zeta Pistol']);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('73. Gruppe und Preisgrenze zusammen: „Waffen unter 2k“', async () => {
+    const s = await seite();
+    await s.tippe('Waffen unter 2k');
+    const t = chipTexte(s);
+    assert.strictEqual(t.length, 2, t.join(' | '));
+    assert.strictEqual(t[0], 'Waffen');
+    assert.match(t[1], /^bis 2\D?000 aUEC$/);
+    // Alpha Rifle 1.000, Eta Pistol 2.500, Zeta Pistol ohne Preis.
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+  });
+
+  test('74. Groesse: „s3“ und „Größe 3“', async () => {
+    const s = await seite();
+    await s.tippe('s3');
+    assert.deepStrictEqual(chipTexte(s), ['S3']);
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+    await s.tippe('Größe 3');
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+  });
+
+  test('75. System: „pyro“ laedt die Bezugswege nach und findet die Laeden dort', async () => {
+    let freigeben;
+    const s = await seite({ wege: new Promise((r) => { freigeben = r; }) });
+    await s.tippe('pyro');
+    // Solange die Wege fehlen, steht noch die alte Liste.
+    assert.strictEqual(s.kacheln().length, ALLE);
+    freigeben(JSON.stringify(makeWege(makeDb())));
+    await s.p.settle(300);
+    assert.deepStrictEqual(chipTexte(s), ['Pyro']);
+    assert.deepStrictEqual(s.namen().sort(), ['Beta Helmet', 'Eta Pistol']);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('76. Hersteller aus dem Katalog', async () => {
+    const s = await seite();
+    await s.tippe('behring');
+    assert.strictEqual(chips(s).length, 1);
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+  });
+
+  test('77. Tippfehler im Namen: „Alpah Rilfe“', async () => {
+    const s = await seite();
+    await s.tippe('Alpah Rilfe');
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+  });
+
+  test('78. Ganzes Wort vor Teilstueck: „eta“', async () => {
+    const s = await seite();
+    await s.tippe('eta');
+    const n = s.namen();
+    assert.strictEqual(n[0], 'Eta Pistol');
+    assert.deepStrictEqual(n.slice(1).sort(), ['Beta Helmet', 'Zeta Pistol']);
+  });
+
+  test('79. Kurze Woerter zaehlen als ganzes Wort: „area 18“', async () => {
+    const s = await seite();
+    await s.tippe('area 18');
+    assert.deepStrictEqual(s.namen().sort(), ['Alpha Rifle', 'Beta Helmet', 'Epsilon Runner', 'Eta Pistol']);
+    await s.tippe('area 1');
+    assert.strictEqual(s.kacheln().length, 0);
+  });
+
+  test('80. Ein Klick auf den Chip nimmt den Begriff aus der Suche, im Wortlaut', async () => {
+    const s = await seite();
+    await s.tippe('Waffen  Behring');
+    assert.strictEqual(chips(s).length, 2);
+    const hersteller = chips(s).find((c) => c.getAttribute('data-t') === 'behring');
+    assert.ok(hersteller, chipTexte(s).join(' | '));
+    assert.ok(hersteller.getAttribute('aria-label').includes(hersteller.textContent));
+    await s.klick(hersteller);
+    assert.strictEqual(s.$('#wz-q').value, 'Waffen');
+    assert.deepStrictEqual(chipTexte(s), ['Waffen']);
+    assert.deepStrictEqual(s.namen().sort(), ['Alpha Rifle', 'Eta Pistol', 'Zeta Pistol']);
+  });
+
+  test('81. Laedt der Suchkern nicht, sucht die Werkbank wie zuvor', async () => {
+    const s = await seite({ sucheUrl: '/assets/gibt-es-nicht.js' });
+    await s.tippe('Alpha');
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+    assert.strictEqual(chips(s).length, 0);
+    await s.tippe('pyro');
+    assert.strictEqual(s.kacheln().length, 0);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('82. Gebautes Vokabular: „helmet“ und „helm“ meinen dieselbe Kategorie, „rucksack“ zwei', async () => {
+    const s = await seite({ echtesVokabular: true });
+    const V = s.p.window.__WZI.suche;
+    const mit = (w) => V.kat.find((e) => e.w.includes(w));
+    assert.ok(mit('helmet'), 'kein Eintrag fuer „helmet“');
+    assert.strictEqual(mit('helmet'), mit('helm'));
+    assert.deepStrictEqual([...mit('rucksack').c], ['Armour / Backpacks', 'Clothing / Backpacks']);
+    for (const k of ['art', 'pk', 'sel', 'sys']) assert.ok(V[k].length >= 3, k);
   });
 });
 

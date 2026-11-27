@@ -480,6 +480,7 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     const z = new URL(String(spec), url);
     const pfad = join(dist, decodeURIComponent(z.pathname));
     if (z.origin !== url.origin || !existsSync(pfad)) throw new TypeError(`Failed to fetch dynamically imported module: ${z.href}`);
+    if (!esbuild) throw new Error(`Pruefstand: import(${z.pathname}) braucht esbuild, oeffneSeite({ esbuild })`);
     if (!module.has(pfad)) {
       const key = 'import|' + pfad;
       if (!buendel.has(key)) buendel.set(key, (await baue({ pfad }, 'iife', { globalName: '__pruefstandModul' })).replace(LAUFZEIT_IMPORT, '__pruefstandImport('));
@@ -502,7 +503,11 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   const fuehreAus = async (e) => {
     if (skripte && !skripte({ name: e.name, code: e.code ?? null, modul: e.modul })) return;
     const roh = await codeVon(e);
-    const c = umbau ? umbau(e.name, roh) : roh;
+    const u = umbau ? umbau(e.name, roh) : roh;
+    // Auch ein klassisches Skript darf import() rufen (die Items-Werkbank
+    // laedt so den Suchkern, assets/smart-suche.js); vm kann es dort ebenso
+    // wenig. Nach umbau, damit auch eine eingesetzte Fassung es darf.
+    const c = e.modul ? u : u.replace(LAUFZEIT_IMPORT, '__pruefstandImport(');
     quellen.push(c);
     aktuellesSkript = e.modul ? null : e.el;
     imKontext(() => vm.runInContext(c, ctx, { filename: e.name }), `Skript ${e.name}`);
