@@ -9,7 +9,8 @@
 //
 // Was statisch im HTML steht (ohne Skript lesbar und krabbelbar): Reiter,
 // Bedienleiste, die Leiste aller Gruppen und Kategorien als echte Links auf
-// die Kategorielisten, der Ueberblick im Blatt mit den Gruppen und Zahlen.
+// die Kategorielisten, der Ueberblick im Blatt mit Zahlen und dem, was das
+// Blatt zu jedem Item beantwortet.
 // Die Treffer selbst zeichnet assets/items-werkbank.js aus dem Katalog
 // (assets/universal-items.json), wie bisher der Finder.
 import { createHash } from 'node:crypto';
@@ -24,8 +25,13 @@ import { assertLocale, href } from '../../i18n/ui';
 import { jsonForScript } from '../../lib/safeJson';
 import { erzKatalog } from '../../lib/miningLinks';
 import { SET_HERSTELLER } from '../../../scripts/lib/armor-sets.mjs';
-import { db, pageItems, armorSets, ITEM_PATCH, num } from '../../lib/items';
+import { db, items, armorSets, ITEM_PATCH, num } from '../../lib/items';
 import { ITEM3D_LISTE_URL } from '../../lib/item3d';
+import { itemsWege } from '../../lib/itemsWerkbankWege';
+import { BEZUGSWEGE_UI } from '../../i18n/bezugswegeText';
+import { ORTE_DE } from '../../i18n/lootText';
+import { recipeForItem } from '../../lib/crafting';
+import { datumLang } from '../../lib/datenstand';
 import Item3dDialog from '../Item3dDialog.astro';
 
 interface Props { lang: 'de' | 'en' }
@@ -46,7 +52,13 @@ const craftUrl = `/assets/crafting-db.json?v=${ver('assets/crafting-db.json')}`;
 const baum = kategorieBaum(lang);
 const total = db.counts.items;
 const mitQuelle = db.counts.withObtain;
-const groesste = Math.max(...baum.map((g) => g.n));
+// Was das Datenblatt beantwortet, fuer das Blatt der Werkbank (Krisz
+// 27.11.2026: „wofür sollte ein User den Datenblatt öffnen?“). Laedt mit dem
+// ersten geoeffneten Item, wie das Rezept (src/lib/itemsWerkbankWege.ts).
+const wege = await itemsWege(lang);
+// Im Ueberblick statt „Datenblaetter“ (die es fuer Menschen nicht mehr gibt):
+// wie viele Items man herstellen kann.
+const herstellbar = items.filter((it) => recipeForItem(it)).length;
 
 const W = {
   de: {
@@ -61,10 +73,22 @@ const W = {
     zuruecksetzen: 'Zurücksetzen', zeigen: '{n} zeigen', keine: 'Keine Treffer', schliessen: 'Schließen',
     ohneJs: 'Suche und Filter brauchen JavaScript. Die Kategorien führen auch so zu ihren Listen.', leerT: 'Nichts gefunden', ladeT: 'Nicht geladen', ladeK: 'Erneut laden', leerX: 'Versuch einen anderen Begriff oder nimm einen Filter heraus.', leerK: 'Alles zurücksetzen',
     ueTitel: 'Item-Katalog', ueLead: `${n(total)} Items aus Star Citizen ${ITEM_PATCH}: Werte, Preise und Fundorte. Wähle eine Gruppe oder ein Item.`,
-    kItems: 'Items', kQuelle: 'mit Bezugsquelle', kBlatt: 'Datenblätter', kSets: 'Sets',
+    kItems: 'Items', kQuelle: 'mit Bezugsquelle', kHerstellbar: 'herstellbar', kSets: 'Sets',
     tippSuche: 'Suche', tippBlaettern: 'blättern', tippEsc: 'schließen',
-    datenblatt: 'Datenblatt öffnen', kategorieListe: 'In der Kategorieliste', craftOeffnen: 'Im Crafting öffnen', rezeptSeite: 'Blueprint-Seite',
-    setAnsehen: 'Set ansehen', setSeite: 'Set-Seite öffnen', setTeile: 'Teile in der Liste zeigen',
+    // Ueberblick: was das Blatt beantwortet, statt der Gruppen, die links
+    // schon stehen (Krisz 27.11.2026: „das ist doch nur das was links schon ist“).
+    ueWas: 'Im Blatt zu jedem Item',
+    ueWasListe: [
+      ['shop', 'Kaufen nach System', 'Preis ab, Spanne und jede Verkaufsstelle, nach System gefiltert.'],
+      ['loot', 'Finden', 'Bestätigte Fundorte und wo es sonst auftaucht.'],
+      ['tier', 'Herstellen', 'Rezept und Missionen zum Bauplan, weiter in die Crafting-Werkbank.'],
+      ['ship', 'Ab Werk', 'Welche Schiffe und Fahrzeuge es ab Werk verbaut haben.'],
+      ['tag', 'Vergleichen', 'Ähnliche Items und der Preis des ganzen Sets.'],
+    ],
+    craftOeffnen: 'Im Crafting öffnen', craftMehr: '{n} weitere in der Crafting-Werkbank',
+    setAnsehen: 'Set ansehen', setTeile: 'Teile in der Liste zeigen',
+    schiffZeigen: 'In der Schiffsliste zeigen', fahrzeugWerte: 'Die technischen Daten dieses Fahrzeugs stehen in der Schiffsliste.',
+    melden: 'Falschen Wert melden', hAehnlich: 'Ähnliche Items', hSerie: 'Ab Werk verbaut', hWerkzeuge: 'In den Werkzeugen',
     hQuellen: 'Bezugsquellen', hWerte: 'Technische Daten', hText: 'Beschreibung', hVar: 'Varianten', hSet: 'Set', hCraft: 'Crafting-Rezept', hGuide: 'Fundort-Guide', hTeile: 'Teile',
     zurueck: 'Zurück zu {name}', kAb: 'ab', kSchnitt: 'Ø Preis', kQuellen: 'Quellen', kGroesse: 'Größe', kTeile: 'Teile', kKern: 'Kernslots', kKlasse: 'Klasse',
     setKomplett: 'komplett', setTeilweise: '{n}/4 Kernslots', setFilter: 'Set: {name}',
@@ -83,10 +107,20 @@ const W = {
     zuruecksetzen: 'Reset', zeigen: 'Show {n}', keine: 'No results', schliessen: 'Close',
     ohneJs: 'Search and filters need JavaScript. The categories still lead to their lists.', leerT: 'Nothing found', ladeT: 'Not loaded', ladeK: 'Try again', leerX: 'Try another term or remove a filter.', leerK: 'Reset everything',
     ueTitel: 'Item catalog', ueLead: `${n(total)} items from Star Citizen ${ITEM_PATCH}: stats, prices and locations. Pick a group or an item.`,
-    kItems: 'Items', kQuelle: 'with a source', kBlatt: 'Data sheets', kSets: 'Sets',
+    kItems: 'Items', kQuelle: 'with a source', kHerstellbar: 'craftable', kSets: 'Sets',
     tippSuche: 'search', tippBlaettern: 'step through', tippEsc: 'close',
-    datenblatt: 'Open data sheet', kategorieListe: 'In the category list', craftOeffnen: 'Open in crafting', rezeptSeite: 'Blueprint page',
-    setAnsehen: 'View set', setSeite: 'Open set page', setTeile: 'Show parts in the list',
+    ueWas: 'In every item sheet',
+    ueWasListe: [
+      ['shop', 'Buy by system', 'Lowest price, range and every shop, filtered by system.'],
+      ['loot', 'Find', 'Confirmed loot locations and where else it turns up.'],
+      ['tier', 'Craft', 'Recipe and the missions for the blueprint, on into the crafting workbench.'],
+      ['ship', 'Stock fit', 'Which ships and vehicles come with it fitted.'],
+      ['tag', 'Compare', 'Similar items and the price of the full set.'],
+    ],
+    craftOeffnen: 'Open in crafting', craftMehr: '{n} more in the crafting workbench',
+    setAnsehen: 'View set', setTeile: 'Show parts in the list',
+    schiffZeigen: 'Show in the ship list', fahrzeugWerte: 'This vehicle’s technical data is in the ship list.',
+    melden: 'Report a wrong value', hAehnlich: 'Similar items', hSerie: 'Fitted as standard', hWerkzeuge: 'In the tools',
     hQuellen: 'Where to get it', hWerte: 'Specifications', hText: 'Description', hVar: 'Variants', hSet: 'Set', hCraft: 'Crafting recipe', hGuide: 'Location guide', hTeile: 'Parts',
     zurueck: 'Back to {name}', kAb: 'from', kSchnitt: 'Avg. price', kQuellen: 'Sources', kGroesse: 'Size', kTeile: 'Parts', kKern: 'Core slots', kKlasse: 'Class',
     setKomplett: 'complete', setTeilweise: '{n}/4 core slots', setFilter: 'Set: {name}',
@@ -99,11 +133,23 @@ const CFG = {
   lang,
   dbUrl,
   craftUrl,
+  // Nur noch fuer die Kachel (Strg-Klick, Crawler) und als Kennung im
+  // Meldeformular; fuer Menschen fuehrt kein Knopf mehr aufs Datenblatt.
   itemBase: de ? '/de/items/' : '/items/',
-  katBase: de ? '/de/items/category/' : '/items/category/',
-  craftBase: de ? '/de/crafting/' : '/crafting/',
-  craftPage: de ? '/de/topics/crafting.html' : '/topics/crafting.html',
-  setBase: de ? '/de/armor-sets.html' : '/armor-sets.html',
+  craftPage: href('/topics/crafting.html', lang),
+  // Was das Datenblatt beantwortet (src/lib/itemsWerkbankWege.ts) und wohin
+  // die Antworten fuehren: nur in Werkbaenke und Werkzeuge.
+  wegeUrl: wege.url,
+  bw: BEZUGSWEGE_UI[lang],
+  // Ortsarten ohne bestaetigten Ort sind eigener Text und stehen in der
+  // Sprache der Seite, wie obtainLabel() sie aufs Datenblatt schreibt.
+  lootOrte: de ? ORTE_DE : undefined,
+  schiffe: href('/schiffe.html', lang),
+  wikelo: href('/topics/wikelo-emporium.html', lang),
+  bruch: href('/fracturing.html', lang),
+  feedback: href('/feedback.html', lang),
+  // Stand der Kaufpreise, wie das Datenblatt ihn unter die Tabelle schreibt.
+  preisStand: datumLang(db.pricesAsOf, lang),
   baum: baum.map((g) => ({ r: g.root, s: g.slug, n: g.name, c: g.n, g: g.g, f: g.farbe, b: g.blaetter.map((b) => ({ k: b.cat, s: b.slug, n: b.name, c: b.n, g: b.g })) })),
   zb: ZEICHEN_BLATT,
   zg: ZEICHEN_GRUPPE,
@@ -129,6 +175,37 @@ const allePfad = href('/items.html', lang);
 .wz-hilfe__el:hover,.wz-hilfe__el[aria-pressed="true"]{border-color:var(--akz);background:color-mix(in srgb,var(--akz) 14%,transparent)}
 .wz-hilfe__el:focus-visible{outline:2px solid var(--akz);outline-offset:2px}
 .wz--items .wz-gr__liste{border-left:0}
+/* Was das Datenblatt beantwortet (Krisz 27.11.2026), im Blatt der Werkbank:
+   „So bekommst du es“ als Karten je Weg, wie auf dem Datenblatt. */
+.wzb-wl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.5rem;margin:0;padding:0;list-style:none}
+.wzb-weg{display:flex;flex-direction:column;gap:.3rem;min-width:0;padding:.65rem .8rem .7rem;border:1px solid var(--hl);border-top:2px solid var(--akz);border-radius:8px;background:var(--e2)}
+.wzb-weg--craft{border-top-color:var(--wert)}
+.wzb-weg__art{font-size:var(--fs-1);font-weight:700;letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--akz)}
+.wzb-weg--craft .wzb-weg__art{color:var(--wert)}
+.wzb-weg__h{font-size:var(--fs-8);font-weight:700;line-height:1.25;color:var(--tx);font-variant-numeric:tabular-nums}
+.wzb-weg__n{font-size:var(--fs-4);line-height:1.45;color:var(--mu);overflow-wrap:anywhere}
+.wzb-weg__z{display:grid;gap:.15rem;margin:0;padding:0;list-style:none;font-size:var(--fs-4);line-height:1.45;color:var(--tx);overflow-wrap:anywhere}
+.wzb-weg__z a,.wzb-melden a{color:var(--tx);text-decoration:underline;text-decoration-color:var(--hl2);text-underline-offset:2px}
+.wzb-weg__l{align-self:flex-start;margin-top:auto;padding:.2rem 0 0;border:0;background:none;color:var(--akz);font:inherit;font-size:var(--fs-4);font-weight:700;text-decoration:none;cursor:pointer}
+.wzb-weg__l:hover,.wzb-weg__z a:hover,.wzb-melden a:hover{text-decoration:underline;text-decoration-color:currentColor}
+.wzb-weg__l:focus-visible,.wzb-link:focus-visible,.wzb-sysb:focus-visible{outline:2px solid var(--akz);outline-offset:2px}
+.wzb-zw{margin:0 0 .2rem}
+.wzb-link{padding:0;border:0;background:none;color:var(--tx);font:inherit;text-decoration:underline;text-decoration-color:var(--hl2);text-underline-offset:2px;cursor:pointer}
+.wzb-preise{margin:0 0 .55rem;font-size:var(--fs-4);color:var(--mu)}
+.wzb-preise b{color:var(--tx);font-variant-numeric:tabular-nums}
+.wzb-sys{display:flex;flex-wrap:wrap;gap:.35rem;margin:0 0 .6rem}
+.wzb-sys[hidden]{display:none}
+.wzb-sysb{min-height:2rem;padding:.2rem .75rem;border:1px solid var(--hl2);border-radius:999px;background:none;color:var(--mu);font:inherit;font-size:var(--fs-4);cursor:pointer}
+.wzb-sysb[aria-pressed="true"]{border-color:var(--akz);background:color-mix(in srgb,var(--akz) 14%,transparent);color:var(--tx)}
+.wzb-setpreis{margin:.2rem 0 .6rem;font-size:var(--fs-5);line-height:1.5;color:var(--tx);overflow-wrap:anywhere}
+.wzb-setpreis:empty{display:none}
+.wzb-akt+.wzb-setpreis{margin-top:.85rem}
+.wzb-setpreis.is-leer,.wzb-setpreis.is-leer b,.wzb-setpreis__ort{color:var(--mu);font-weight:400}
+.wzb-serie a.wz-tag{color:var(--tx);text-decoration:none}
+.wzb-serie a.wz-tag:hover{border-color:var(--akz)}
+.wzb-mehr{margin:.5rem 0 0;font-size:var(--fs-4);color:var(--mu)}
+.wzb-mehr summary{cursor:pointer}
+.wzb-melden{margin:1.4rem 0 0;font-size:var(--fs-4);color:var(--mu)}
 </style>
 
 <div class="wz wz--items wz-auftakt" id="wz" data-lang={lang}>
@@ -205,8 +282,8 @@ const allePfad = href('/items.html', lang);
     {/* Ohne Skript: die Kategorien stehen offen da und fuehren auf ihre
         Listen (unter 1180 px dort, wo sonst die Chips stehen); Suche und
         Treffer brauchen das Skript und sagen das. Was ohne Skript nichts
-        tut, ist weg: Reiter, Bedienleiste, Tastenhilfe, die Gruppen-Kacheln
-        im Ueberblick. Die Rueckwege im Kopf bleiben. */}
+        tut, ist weg: Reiter, Bedienleiste, Tastenhilfe, der Inhalt des
+        Ueberblicks. Die Rueckwege im Kopf bleiben. */}
     <noscript>
       <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips,.wz-reiter,.wz-bar,.wz-hilfe,.wzu .wzb-inh{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
       <p class="wz-ohne-js">{W.ohneJs}</p>
@@ -239,18 +316,16 @@ const allePfad = href('/items.html', lang);
           <div class="wzb-kenn">
             <div><span>{W.kItems}</span><b>{n(total)}</b></div>
             <div><span>{W.kQuelle}</span><b class="is-wert">{n(mitQuelle)}</b></div>
-            <div><span>{W.kBlatt}</span><b>{n(pageItems.length)}</b></div>
+            <div><span>{W.kHerstellbar}</span><b>{n(herstellbar)}</b></div>
             <div><span>{W.kSets}</span><b>{n(armorSets.length)}</b></div>
           </div>
           <div class="wzb-inh">
-            <h3 class="wzb-h">{W.gruppen}<em>{baum.length}</em></h3>
-            <div class="wzu__gr">
-              {baum.map((g) => (
-                <button class="wzu__g" type="button" data-gruppe={g.slug} style={`--kc:${g.farbe};--anteil:${Math.max(4, Math.round((g.n / groesste) * 100))}%`}>
-                  <span class="wz-z" data-g={g.g} aria-hidden="true"></span><b>{g.name}</b><small>{n(g.n)} {W.nItems} · {g.blaetter.length} {W.kategorien}</small><i aria-hidden="true"></i>
-                </button>
+            <h3 class="wzb-h">{W.ueWas}</h3>
+            <ul class="wzu__was">
+              {W.ueWasListe.map(([zeichen, titel, text]) => (
+                <li><span class="wzu__z" aria-hidden="true"><span class={`wi wi--${zeichen}`}></span></span><b>{titel}</b><small>{text}</small></li>
               ))}
-            </div>
+            </ul>
             <ul class="wzu__tipp">
               <li><kbd>/</kbd>{W.tippSuche}</li>
               <li><kbd>↑</kbd><kbd>↓</kbd>{W.tippBlaettern}</li>
