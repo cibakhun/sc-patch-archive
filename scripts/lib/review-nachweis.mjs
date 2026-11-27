@@ -64,6 +64,9 @@ export const KRITISCHE_PFADE = [
   [/^(\.coderabbit\.yaml|cubic\.yaml)$/, 'Konfiguration der KI-Pruefer (Review-Gate)'],
   [/^scripts\/(lib\/)?review-nachweis\.mjs$/, 'Review-Gate selbst'],
   [/^scripts\/lib\/supabase-ziel\.mjs$/, 'Datenbank-Ziel je Bau (Live oder Vorschau)'],
+  /* Welche Pruefer im Tor laufen: ein `rail: 'A'` -> `null` in der Registry
+     nimmt einen Pruefer still aus dem Auslieferungs-Tor (Review #477). */
+  [/^scripts\/(lib\/gate-registry|run-gate|verify-wiring)\.mjs$/, 'Tor-Kette (welche Pruefer im Tor laufen)'],
   [/^scripts\/(verify-supply-chain|audit-csp|_write-csp-hashes)\.mjs$/, 'Sicherheits-Tor (Lieferkette, CSP)'],
   /* V3 (Krisz 26.11.2026): Aenderungen an Review-Gates und Berechtigungen
      sind immer kritisch. CLAUDE.md legt fest, was der Agent darf (nie
@@ -177,13 +180,25 @@ export function anforderungAmHead(kommentare, head) {
   return t.length ? Math.max(...t) : null;
 }
 
-/** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im Draft, nie doppelt. */
-export function anforderungNoetig(d) {
+/** Abgeschlossene CodeRabbit-Runden: Commits des PRs mit fertigem Review. */
+export function rundenZahl(d) {
+  return (d.commits || []).filter((c) => (d.laeufeJeCommit?.[c] || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft')).length;
+}
+
+/** Laege eine weitere Anforderung ueber dem Rundenlimit, ohne Freigabe von Krisz? */
+export function rundenBremse(d) {
+  return rundenZahl(d) >= MAX_RUNDEN && !(d.pr.labels || []).includes(LABEL_RUNDE_FREI);
+}
+
+/** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im
+    Draft, nie doppelt, nie ueber dem Rundenlimit ohne `review-runde-frei`. */
+export function anforderungNoetig(d, { bremse = true } = {}) {
   const { pr } = d;
   if (pr.draft || (pr.base_ref === 'main' && pr.head_ref === 'staging')) return false;
   if (!(pr.labels || []).includes(LABEL_BEREIT)) return false;
   if (anforderungen(d.kommentare, pr.head_sha).length) return false;
-  return codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art !== 'geprueft';
+  if (codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art === 'geprueft') return false;
+  return !(bremse && rundenBremse(d));
 }
 
 /** Bereiche "between A and B" aus einem CodeRabbit-Text. */
@@ -294,6 +309,14 @@ export function bewerte(d) {
 
   if (pr.draft) return s('pending', 'Draft: KI-Review erst nach "ready for review" und Label review-ready', { bericht: ['Draft-PR: kein Review vorgesehen.'] });
 
+  /* Der Status haengt am Commit, nicht am PR: Ist derselbe Stand Head
+     mehrerer offener PRs, ueberschreiben sie sich gegenseitig, und das
+     Ergebnis hinge von der Laufreihenfolge ab (Review #477). */
+  if ((d.gleicherStand || []).length) {
+    const liste = d.gleicherStand.map((n) => `#${n}`).join(', ');
+    return s('failure', `Derselbe Stand ist auch Head von ${liste}: Nachweis nicht eindeutig`, { bericht: [`Stand \`${kurz(head)}\` ist zugleich Head von ${liste}. Der Status gilt je Commit; erst wenn nur ein offener PR diesen Stand traegt, wird bewertet.`] });
+  }
+
   if (pr.base_ref === 'main' && pr.head_ref === 'staging') return bewerteRelease(d);
 
   if ((d.commits || []).length >= 250) {
@@ -312,7 +335,7 @@ export function bewerte(d) {
   const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {} });
   const cuBeleg = cuAbd.abgedeckt;
 
-  const runden = (d.commits || []).filter((c) => (d.laeufeJeCommit?.[c] || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft')).length;
+  const runden = rundenZahl(d);
 
   bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}/${MAX_RUNDEN}`);
   if (kritisch) for (const g of gruende.slice(0, 12)) bericht.push(`- kritisch: ${g}`);
@@ -360,7 +383,8 @@ export function bewerte(d) {
      Anforderung, auch wenn CodeRabbit das als Skip meldet (live auf #477,
      26.11.2026: "excluded by label configuration", nach dem Umbau
      "automatic reviews are disabled"). */
-  if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  if (tAnf === null && crHead.art !== 'geprueft' && rundenBremse(d)) grund = `Rundenbremse: ${runden} Runden erreicht, weitere nur mit Label ${LABEL_RUNDE_FREI} (Entscheidung Krisz)`;
+  else if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
   else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
   else if (nichtAngefordert && labels.includes(LABEL_BEREIT)) grund = `Label gesetzt, aber nicht angefordert: ${d.anforderungUnmoeglich}`;
   else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';

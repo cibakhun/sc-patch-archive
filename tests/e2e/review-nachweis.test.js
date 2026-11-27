@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
-  anforderungNoetig, anforderungAmHead, anforderungsMarke,
+  anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
 } from '../../scripts/lib/review-nachweis.mjs';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -115,12 +115,14 @@ describe('Review-Nachweis: kritische Aenderungen', () => {
     for (const f of ['supabase/migrations/20261124110000_x.sql', 'supabase/functions/stripe-webhook/index.ts', 'src/components/account/AuthLogin.astro',
       'src/lib/auth-url.ts', 'src/pages/de/account/login.astro', 'nginx/default.conf', 'Dockerfile', 'discord/bot/Dockerfile',
       '.github/workflows/pr-check.yml', '.coderabbit.yaml', 'cubic.yaml', 'scripts/lib/review-nachweis.mjs', 'scripts/verify-supply-chain.mjs',
-      'CLAUDE.md', 'docs/review-workflow.md']) {
+      'CLAUDE.md', 'docs/review-workflow.md',
+      // Review #477: `rail: 'A'` -> `null` nimmt einen Pruefer still aus dem Tor.
+      'scripts/lib/gate-registry.mjs', 'scripts/run-gate.mjs', 'scripts/verify-wiring.mjs']) {
       assert.ok(kritischeGruende([{ filename: f }]).length > 0, f);
     }
   });
   test('normal: Freunde-Komponente, Doku, Daten', () => {
-    for (const f of ['src/components/account/FriendsManager.astro', 'docs/x.md', 'src/data/ships.json']) assert.deepEqual(kritischeGruende([{ filename: f }]), [], f);
+    for (const f of ['src/components/account/FriendsManager.astro', 'docs/x.md', 'src/data/ships.json', 'docs/README.md', 'scripts/verify-item3d.mjs']) assert.deepEqual(kritischeGruende([{ filename: f }]), [], f);
   });
   test('Inhalt ausserhalb der Pfade: Service-Rolle, Stripe, Policy', () => {
     assert.ok(kritischeGruende([{ filename: 'src/lib/x.ts', patch: '+const k = SUPABASE_SERVICE_ROLE_KEY;' }]).length);
@@ -289,6 +291,42 @@ describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
   test('die Marke allein ist nie ein Review', () => {
     const u = bewerte(ohneReview({ kommentare: [anf(C)], keinWarten: true }));
     assert.notEqual(u.state, 'success');
+  });
+});
+
+describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () => {
+  const D = h('4');
+  // Drei Staende mit fertigem Review, der vierte (D) neu und noch ohne.
+  const vierte = (x = {}) => lage({
+    commits: [A, B, C, D],
+    laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_FERTIG], [D]: [CR_AUS_SKIP] },
+    bereiche: [{ a: BASIS, b: A }, { a: A, b: B }, { a: B, b: C }], ...x, pr: { head_sha: D, ...(x.pr || {}) },
+  });
+  test('drei Runden: keine vierte Anforderung, bei jedem Ereignis, nicht nur beim Label', () => {
+    assert.equal(rundenZahl(vierte()), 3);
+    assert.equal(rundenBremse(vierte()), true);
+    assert.equal(anforderungNoetig(vierte()), false, 'ohne Freigabe keine vierte Runde');
+    assert.equal(anforderungNoetig(vierte(), { bremse: false }), true, 'ohne Bremse waere sie faellig');
+  });
+  test('review-runde-frei gibt genau die naechste Anforderung frei', () => {
+    const frei = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });
+    assert.equal(rundenBremse(frei), false);
+    assert.equal(anforderungNoetig(frei), true);
+  });
+  test('ROT mit Grund: Rundenbremse, auch nachdem das Label abgenommen ist', () => {
+    for (const labels of [['review-ready'], []]) {
+      const u = bewerte(vierte({ pr: { labels }, keinWarten: true }));
+      assert.equal(u.state, 'failure');
+      assert.match(u.description, /^Rundenbremse: 3 Runden erreicht/, labels.join() || 'ohne Label');
+    }
+  });
+  test('ROT: derselbe Stand ist Head eines weiteren offenen PRs, auch wenn sonst alles gruen waere', () => {
+    assert.equal(bewerte(lage()).state, 'success');
+    const u = bewerte(lage({ gleicherStand: [480] }));
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /auch Head von #480/);
+    const rel = bewerte({ ...lage({ gleicherStand: [481] }), pr: pr({ base_ref: 'main', head_ref: 'staging' }) });
+    assert.equal(rel.state, 'failure', 'auch im Release-Modus');
   });
 });
 

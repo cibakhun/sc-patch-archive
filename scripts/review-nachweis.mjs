@@ -12,7 +12,8 @@
        steht so nie fuer einen aelteren Stand, und jeder Stand wird genau
        einmal angefordert.
      - `review-ready` nach drei abgeschlossenen Runden: Label ab, Krisz
-       entscheidet (Label `review-runde-frei` gibt eine weitere frei).
+       entscheidet (Label `review-runde-frei` gibt genau eine weitere frei
+       und wird mit der Anforderung abgenommen).
      - `review-ready` auf einem fertigen, noch nicht angeforderten Stand:
        einmal `@coderabbitai review` schreiben (mit Marke je Stand).
        CodeRabbit prueft das Repo nicht mehr automatisch.
@@ -38,7 +39,7 @@
 import {
   bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende,
   LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, MAX_RUNDEN, STATUS_KONTEXT, BERICHT_MARKE,
-  codeRabbitLauf, anforderungNoetig, anforderungsMarke,
+  anforderungNoetig, anforderungsMarke, rundenZahl, rundenBremse,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -93,9 +94,17 @@ async function alle(pfad, max = 30) {
 const R = `repos/${REPO}`;
 const schlaf = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
+/* Alle Pruefer-Laeufe eines Commits. `filter=all`, sonst liefert GitHub nur
+   den juengsten Lauf je Name, und ein spaeterer Skip oder ein Rate-Limit
+   verdraengt einen fertigen Review desselben Commits (Review #477). */
 async function laeufeFuer(sha) {
-  const d = await api(`${R}/commits/${sha}/check-runs?per_page=100`);
-  return d.check_runs
+  const laeufe = [];
+  for (let seite = 1; seite <= 5; seite++) {
+    const teil = (await api(`${R}/commits/${sha}/check-runs?filter=all&per_page=100&page=${seite}`)).check_runs || [];
+    laeufe.push(...teil);
+    if (teil.length < 100) break;
+  }
+  return laeufe
     .filter((l) => ['coderabbitai', 'cubic-dev-ai'].includes(l.app?.slug))
     .map((l) => ({ app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at }));
 }
@@ -113,6 +122,8 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
   const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
   const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
   const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
+  // Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
+  const gleicherStand = (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== pr.number).map((p) => p.number);
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
   const bereiche = [
@@ -136,7 +147,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
       number: pr.number, draft: pr.draft, base_ref: pr.base.ref, head_ref: pr.head.ref,
       head_sha: head, labels: pr.labels.map((l) => l.name),
     },
-    commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN,
+    commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
   };
   if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
@@ -216,15 +227,14 @@ if (labels().includes(LABEL_BEREIT) && (AKTION === 'synchronize' || await labelA
 const ende = Date.now() + WARTEN_MIN * 60_000;
 let { d, bericht } = await sammle(pr);
 
-// Rundenbremse
-if (AKTION === 'labeled' && LABEL === LABEL_BEREIT && !labels().includes(LABEL_RUNDE_FREI)) {
-  const runden = d.commits.filter((c) => (d.laeufeJeCommit[c] || []).some((l) => l.app === 'coderabbitai' && codeRabbitLauf(l).art === 'geprueft')).length;
-  if (runden >= MAX_RUNDEN) {
-    console.log(`Rundenbremse: ${runden} abgeschlossene Runden — ${LABEL_BEREIT} wieder ab, Entscheidung bei Krisz.`);
-    await labelAb(LABEL_BEREIT);
-    pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
-    d.pr.labels = labels();
-  }
+/* Rundenbremse: bei jedem Ereignis vor jeder Anforderung, nicht nur beim
+   Setzen des Labels (ein Ersatzlauf nach `edited` pruefte sie sonst nicht;
+   Review #477). Die Bewertung nennt sie dann als Grund. */
+if (anforderungNoetig(d, { bremse: false }) && rundenBremse(d)) {
+  console.log(`Rundenbremse: ${rundenZahl(d)} abgeschlossene Runden — ${LABEL_BEREIT} wieder ab, Entscheidung bei Krisz.`);
+  await labelAb(LABEL_BEREIT);
+  pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
+  d.pr.labels = labels();
 }
 
 // Genau eine Anforderung je Stand: CodeRabbit prueft das Repo nicht mehr
@@ -244,6 +254,13 @@ if (anforderungNoetig(d)) {
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
+      // Ueber dem Limit ging das nur mit `review-runde-frei`: genau eine
+      // Runde, die Freigabe ist damit verbraucht (Review #477).
+      if (rundenZahl(d) >= MAX_RUNDEN && labels().includes(LABEL_RUNDE_FREI)) {
+        await labelAb(LABEL_RUNDE_FREI);
+        pr.labels = pr.labels.filter((l) => l.name !== LABEL_RUNDE_FREI);
+        d.pr.labels = labels();
+      }
     } catch (e) {
       // Abgelaufener oder entzogener Token: der Lauf setzt trotzdem seinen Status.
       d.anforderungUnmoeglich = `Anforderung gescheitert (${String(e.message).match(/HTTP \d+/)?.[0] || 'Fehler'}), Token pruefen`;

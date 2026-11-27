@@ -63,7 +63,8 @@ const KLINKE = {
   // (Merge-Gate, docs/review-workflow.md): 13/40/16/69 -> 14/42/17/74.
   // review-nachweis.yml holt seine Auswertung ueber die API statt per
   // Checkout (2 GB je Ereignis); deshalb eine Action und ein Checkout
-  // weniger als im ersten Entwurf dieses PRs (43/18).
+  // weniger als im ersten Entwurf dieses PRs (43/18). 27.11.2026: 74 -> 75,
+  // Fehlerstatus-Schritt in review-nachweis.yml (Review #477).
   workflows: 14,
   actions: 42, // fremde `uses:`-Zeilen ueber alle Workflows und Vorlagen
   checkouts: 17,
@@ -74,7 +75,7 @@ const KLINKE = {
   // rot. Das Urteil liegt jetzt auf Schiene C (npm run check:headers:live).
   // Die Pruefung nach dem Vorschau-Deploy bleibt und zaehlt weiter mit.
   // 05.11.2026 + 11 fuer die Sicherung (probe-backup.yml und Vorlage) = 69.
-  runBloecke: 74,
+  runBloecke: 75,
   basisImages: 4,
 };
 
