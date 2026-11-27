@@ -46,7 +46,7 @@ const LISTE = resolve(ROOT, 'src/data/item-3d.json');
 
 // Klinken (nur nach oben; nach unten nur per Commit mit Ursache).
 const MIN_ITEMSEITEN = 11000; // gelesene Item-Seiten EN+DE (22.11.2026: 11 642)
-const MIN_MODELLE = 2900;      // Eintraege der Liste (23.11.2026: 2 422 Ruestungsteile; mit Waffen und Aufsaetzen 2 971)
+const MIN_MODELLE = 6000;      // Eintraege der Liste (23.11.2026: 2 422 Ruestungsteile; mit Waffen und Aufsaetzen 2 971; 27.11.2026 ganzer Katalog 6 128)
 const MIN_SEITEN = 18500;      // HTML-Seiten im Vorschau-Bau ausser der Werkbank, die [6] durchsucht (26.11.2026: 19 044)
 // Blueprint-Seiten EN+DE, die ihr Ergebnis-Item nennen (23.11.2026: 3 246 von
 // 3 252; ohne Item nur Scraper-Module und ein Antrieb ohne eigene Item-Seite).

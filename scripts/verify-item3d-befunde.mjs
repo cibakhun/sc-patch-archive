@@ -50,12 +50,15 @@ const BERICHT = resolve(arg('--bericht') ?? resolve(ROOT, 'src/data/item-3d-befu
 const KATALOG = resolve(arg('--katalog') ?? resolve(ROOT, 'assets/universal-items.json'));
 
 // Klinke (nur nach oben; nach unten nur per Commit mit Ursache): geprüfte
-// Items der Liste (24.11.2026: Rüstung, Waffen und Aufsätze).
-const MIN_ITEMS = 2900;
+// Items der Liste (24.11.2026: Rüstung, Waffen und Aufsätze, 2 965;
+// 27.11.2026 der ganze Katalog: 6 128).
+const MIN_ITEMS = 6000;
 // Klinken je Katalog-Bereich (erster Teil der Kategorie): Modelle der Liste.
 // Fällt ein Bereich still heraus (wie bis 27.11.2026 die Kleidung), reißt es
 // hier. Bereiche ohne Eintrag haben keine Klinke (Lackierungen: kein Modell).
-const MIN_JE_BEREICH = {};
+// Stand 27.11.2026 (Backfassung 8): Armour 2 427, Clothing 1 802, Vehiclegear
+// 524, Weapons 393, Utility 347, Other 286, Commodity 185, Attachment 153.
+const MIN_JE_BEREICH = { Armour: 2380, Clothing: 1760, Vehiclegear: 510, Weapons: 380, Utility: 335, Other: 275, Commodity: 178, Attachment: 148 };
 const WARN = [];
 
 const fehler = [];
