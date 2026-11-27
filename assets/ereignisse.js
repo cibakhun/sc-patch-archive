@@ -102,7 +102,7 @@
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
-    '/item-finder.html': 'finder',
+    '/items.html': 'finder',
     '/missionen.html': 'missionen',
     '/topics/crafting.html': 'crafting',
     '/fracturing.html': 'fracturing',

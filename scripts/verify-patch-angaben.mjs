@@ -87,7 +87,7 @@ const STAENDE = {
 // nicht steht (Patch-Seiten, Themen einzelner Patches, Startseite), nennt
 // Patches als Geschichte und ist nicht Gegenstand dieses Tors.
 const FAMILIEN = [
-  { stand: 'Item-Katalog', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html' || p === 'item-finder.html' },
+  { stand: 'Item-Katalog', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html' },
   { stand: 'Crafting', match: (p) => p === 'crafting.html' || p.startsWith('crafting/') || p === 'topics/crafting.html' },
   { stand: 'Mining', match: (p) => p === 'topics/mining.html' || p === 'fracturing.html' },
   { stand: 'Missionen', match: (p) => p === 'missionen.html' || p.startsWith('missionen/') },
@@ -398,11 +398,13 @@ const vor = (a, b) => {
 const isoDatum = (v) => (typeof v === 'string' ? /^\d{4}-\d{2}-\d{2}/.exec(v)?.[0] ?? null : null);
 
 const STAND_GRUPPEN = [
-  { name: 'Item-Seiten', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'] },
-  // Der Finder rendert seine Karten im Browser; er zeigt alle Gruppen, den
-  // eigenen Shop-Schnappschuss genau dann, wenn der Katalog solche Zeilen hat,
-  // die bestaetigten Fundorte genau dann, wenn ein Item ein Fundort-Profil traegt.
-  { name: 'Item-Finder', match: (p) => p === 'item-finder.html', pflicht: ['items', 'uex-items', 'fundorte'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['shop-schnappschuss', 'fundorte-spiel'] },
+  // Die Items-Seite (seit 26.11.2026 die Werkbank, vorher Item Finder unter
+  // /item-finder.html) rendert ihre Karten im Browser; sie zeigt alle
+  // Gruppen, den eigenen Shop-Schnappschuss genau dann, wenn der Katalog
+  // solche Zeilen hat, die bestaetigten Fundorte genau dann, wenn ein Item ein
+  // Fundort-Profil traegt. Steht VOR den Item-Seiten: die erste Gruppe gewinnt.
+  { name: 'Items-Seite', match: (p) => p === 'items.html', pflicht: ['items', 'uex-items', 'fundorte'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['shop-schnappschuss', 'fundorte-spiel'] },
+  { name: 'Item-Seiten', match: (p) => p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'] },
   { name: 'Blueprint-Seiten', match: (p) => p === 'crafting.html' || p.startsWith('crafting/'), pflicht: ['crafting'], erlaubt: ['crafting'] },
   { name: 'Missionsseiten', match: (p) => p.startsWith('missionen/'), pflicht: ['missionen'], erlaubt: ['missionen'] },
   { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'huelle', 'fleetyards', 'wiki', 'bild'], bedingt: ['huelle', 'fleetyards'] },
@@ -427,8 +429,10 @@ const STAND_KLINKEN = {
   // Gemessen: Items 11.044, Blueprints 3.342, Missionen 2.774, Schiffe 462,
   // Refinery 2, Mining 2, Item-Finder 2 (seit der Review-Korrektur). Grosse
   // Gruppen knapp darunter (ein Datenlauf darf ein paar Seiten streichen),
-  // kleine genau auf dem Messwert.
-  'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
+  // kleine genau auf dem Messwert. 26.11.2026: der Item Finder ist die
+  // Items-Seite (/items.html, je DE und EN), die zwei Seiten zaehlen dort
+  // statt unter den Item-Seiten.
+  'Items-Seite': 2, 'Item-Seiten': 11000, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
   // 06.11.2026, gemessen: je DE und EN.
   'Crafting-Werkzeug': 2, Fracturing: 2,
   Wikelo: 2,
@@ -622,8 +626,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (/\sdata-stand-q="fundorte"/.test(aussen)) soll.add('fundorte');
       if (/\sdata-stand-q="fundorte-spiel"/.test(aussen)) { soll.add('fundorte-spiel'); fundSeiten++; }
     }
-    if (g.name === 'Item-Finder' && schnappKatalog.size) soll.add('shop-schnappschuss');
-    if (g.name === 'Item-Finder' && fundKatalog.size) soll.add('fundorte-spiel');
+    if (g.name === 'Items-Seite' && schnappKatalog.size) soll.add('shop-schnappschuss');
+    if (g.name === 'Items-Seite' && fundKatalog.size) soll.add('fundorte-spiel');
     // Gegen den Katalog: das Datenblatt eines Items markiert genau so viele
     // Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt. Sonst
     // stuende ein Schnappschuss-Preis unter UEX (so bis 06.11.2026).

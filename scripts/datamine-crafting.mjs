@@ -5,7 +5,7 @@
 // nur aus der Game2.dcb und hinkte am Patch-Day hinterher (16.07.2026: LIVE ist
 // 4.9, die Community-API konnte nur PTU-4.9) — mit scripts/lib/{p4k,datacore}.mjs
 // geht es ohne Umweg. Ausgabeformat bleibt 1:1 kompatibel zur bestehenden App
-// (assets/crafting-app.js, CraftingApp.astro, item-finder-app.js).
+// (assets/crafting-app.js, CraftingApp.astro, items-werkbank.js).
 //
 // Aufruf:   node scripts/datamine-crafting.mjs
 //           SC_P4K=<pfad> node scripts/datamine-crafting.mjs

@@ -128,7 +128,7 @@
   }
 
   function renderPopup(it, sheet, mine) {
-    var url = (CFG.itemPage || '/item-finder.html') + '?item=' + encodeURIComponent(it.name);
+    var url = (CFG.itemPage || '/items.html') + '?item=' + encodeURIComponent(it.name);
     var html = '<div class="wkb__cat">' + esc(it.category || '') + '</div>' +
       '<h2 class="wkb__name">' + esc(it.name) + '</h2>' +
       '<h3 class="wkb__h">' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h3>';
@@ -144,13 +144,13 @@
           '<b>' + (o.price != null ? Number(o.price).toLocaleString(LOC) + ' aUEC' : '—') + '</b></div>';
       }).join('') + '</div>';
       if (obtain.length > shown.length) {
-        html += '<p class="wkb__note">' + esc(tr('more', '+{n} weitere Quellen im Item Finder').replace('{n}', obtain.length - shown.length)) + '</p>';
+        html += '<p class="wkb__note">' + esc(tr('more', '+{n} weitere Quellen auf der Items-Seite').replace('{n}', obtain.length - shown.length)) + '</p>';
       }
     } else {
       html += '<p class="wkb__note">' + esc(leerNote(mine)) + '</p>';
     }
     html += '<p class="wkb__links">' + sheetLink(sheet) + mineLink(mine) +
-      '<a class="wkb__flink" href="' + esc(url) + '">' + esc(tr('openFinder', 'Im Item Finder öffnen')) + ' &rarr;</a></p>';
+      '<a class="wkb__flink" href="' + esc(url) + '">' + esc(tr('openFinder', 'Auf der Items-Seite öffnen')) + ' &rarr;</a></p>';
     body.innerHTML = html;
   }
 

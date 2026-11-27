@@ -14,7 +14,7 @@
 
 import { href, type Locale } from '../../i18n/ui';
 import { hangarT, type HangarKey } from '../../i18n/hangarText';
-import { displayName, hasMeaningfulGrade, itemPath, items, num, pageItemIds, type Item, type ItemStats } from '../items';
+import { categorySlug, displayName, hasMeaningfulGrade, itemPath, items, num, pageItemIds, type Item, type ItemStats } from '../items';
 import { statRows } from '../itemStats';
 import { formatStat, percentile, shipData, shipFacts, type ShipId, type StatKey } from './catalog';
 import { vSize, vStatus } from '../../i18n/vehicleText';
@@ -379,7 +379,8 @@ function slotRow(d: Draft, key: string, lang: Locale, t: T): SlotRow {
     details: numbers?.stats ? statRows(numbers.stats, lang) : [],
     links: numbers
       ? {
-          finder: `${href('/item-finder.html', lang)}?item=${encodeURIComponent(numbers.item.id)}`,
+          // Alternativen: die Kategorie des Bauteils auf der Items-Seite (?kat=).
+          finder: `${href('/items.html', lang)}?kat=${encodeURIComponent(categorySlug(numbers.item.category))}`,
           page: pageItemIds.has(numbers.item.id) ? href(itemPath(numbers.item), lang) : null,
         }
       : null,

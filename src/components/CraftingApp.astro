@@ -115,7 +115,7 @@ const JS_T = {
     // Rechners zeigten auf der englischen Seite den deutschen Rueckfalltext
     // des Skripts („Kategorie: … · Kaufort: …“).
     category: 'Kategorie', calcLocation: 'Kaufort',
-    openInFinder: 'Im Item Finder öffnen',
+    openInFinder: 'Item ansehen',
     openItem: 'Item-Datenblatt öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
@@ -149,7 +149,7 @@ const JS_T = {
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
     category: 'Category', calcLocation: 'Sold at',
-    openInFinder: 'Open in Item Finder',
+    openInFinder: 'View item',
     openItem: 'Open item data sheet',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
@@ -256,8 +256,8 @@ const cardsData = blueprints.map((b) => {
 
 // -- Groesse/Grade fuer die Filtergruppen: aus cardsData abgeleitet, keine
 // feste Liste — damit ein kuenftiger Patch keine Groesse anbietet, die es
-// nicht mehr gibt (gleiches Verfahren wie renderSizeChips() im Item Finder,
-// assets/item-finder-app.js:298-322). Die Trefferzahl je Wert steht gleich
+// nicht mehr gibt (gleiches Verfahren wie renderSizeChips() im Item Finder
+// bis 26.11.2026). Die Trefferzahl je Wert steht gleich
 // mit dabei, damit die Filterleiste dieselbe <em>-Zahl zeigt wie die
 // Kategorie-Gruppe.
 const sizeCounts: Record<number, number> = {};

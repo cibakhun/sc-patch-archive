@@ -400,29 +400,9 @@ export const OWN_BUILD_REGISTRY = [
    Recherche nannten. Aufgenommen statt uebergangen -- das ist der Sinn der
    Zusicherung. */
 export const DISCOVERED_REGISTRY = [
-  {
-    id: 'D1-item-finder-hero',
-    archetype: 'discovered',
-    label: 'D1 · .hero--tool (src/components/ItemFinderPage.astro) — Hero-Variante',
-    // Kein eigener Registry-Zwang: .hero--tool .hero__photo::after ist eine
-    // Ueberschreibung von Werten (kein erneutes content/position/inset), die
-    // Basisregel .hero__photo::after ist bereits ueber A1/B1 bekannt. Trotzdem
-    // gemessen, weil die Ueberschreibung den Verlauf tatsaechlich AENDERT
-    // (color-mix(var(--bg)) statt --scrim-2/4) -- LAYER-02-Vollstaendigkeit,
-    // nicht Zusicherung-5-Pflicht.
-    selectorFamilies: [],
-    rationale:
-      'Von Zusicherung 5 selbst gefunden (.hero--tool::before, Blend-Modus-Tint, siehe EXCLUSIONS X-hero-tool-blend). Die zugehoerige .hero__photo::after-UEBERSCHREIBUNG ersetzt den Standard-Scrim durch color-mix(var(--bg))-Stufen -- ein eigener, ungemessener Verlauf, wenn man ihn ausliesse. Kurzer Hero (min-height:0, padding-bottom 1.9rem), Titel zentriert.',
-    kind: 'photo',
-    images: [{ id: 'item-finder-hero', path: 'public/assets/cz-loot.jpg', usedBy: 'src/components/ItemFinderPage.astro (.hero__photo)' }],
-    anchor: { xFrac: 0.5, yFrac: 0.55 },
-    scrim: {
-      layers: [
-        { angle: 180, stops: [{ t: 0, tok: 'bg', alpha: 0.56 }, { t: 0.46, tok: 'bg', alpha: 0.34 }, { t: 1, tok: 'bg', alpha: 1 }] },
-      ],
-    },
-    text: { large: { tokenKey: '--on-media', minRatio: 3.0, label: 'h1 (Titelverlauf endet auf --accent-media, Ankerfarbe --on-media als obere Kante)' } },
-  },
+  // D1 (.hero--tool, Hero des Item Finders) entfiel am 26.11.2026 mit der
+  // Seite: der Item Finder ist in der Items-Werkbank auf /items.html
+  // aufgegangen, die kein Foto-Hero traegt. Die Nummer bleibt frei.
   {
     id: 'D2-bvid-sc-4-9-0',
     archetype: 'discovered',
@@ -757,11 +737,6 @@ export const EXCLUSIONS = [
     selectorFamilies: ['.dp::before', '.sdb::before'],
     reason:
       'assets/data-page.css (.dp::before, ~17.000 Item-/Crafting-Seiten) und src/components/ships/ShipsOverview.astro (.sdb::before) sind dieselbe Bauart wie .dsr::after (X-account-ambient) und archiv.css .space: ein sehr blasser (<=17%), maskiert ausblendender ODER z-index<=0 liegender Seiten-Hintergrund HINTER dem eigentlichen Inhalt, der auf einer eigenen, hoeher liegenden Flaeche (.dp-bar/.dp-main/.dp-foot bzw. .sdb__hero) sitzt. Vier unabhaengige Subsysteme (archiv, Konto, Schiffe, Item/Crafting-DataShell) teilen dasselbe Muster -- einzeln benannt, damit die Menge nicht wie eine Luecke wirkt, keines davon legt Text UNMITTELBAR auf den Verlauf.',
-  },
-  {
-    id: 'X-hero-tool-blend',
-    selectorFamilies: ['.hero--tool::before'],
-    reason: 'src/components/ItemFinderPage.astro: .hero--tool::before ist ein Akzent-Tint mit mix-blend-mode:color (Einfaerbung, keine Abdunklung) -- dieselbe D-06-Begruendung wie #embers: ein statischer Kontrastwert kann einen Blend-Modus nicht zertifizieren. Die zugehoerige .hero__photo::after-Verlaufs-UEBERSCHREIBUNG wird trotzdem gemessen, siehe D1.',
   },
   {
     id: 'X-pj-map-frame',

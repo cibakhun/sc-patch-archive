@@ -1,5 +1,5 @@
 ---
-// WikeloBridge.astro — verbindet die Wikelo-Trade-Karten mit dem Item Finder:
+// WikeloBridge.astro — verbindet die Wikelo-Trade-Karten mit der Items-Seite:
 // Material-/Belohnungs-Namen mit Item-Match werden klickbar und öffnen ein
 // kompaktes Bezugsquellen-Popup (Daten lazy aus assets/universal-items.json);
 // ?item=<Name> hebt passende Trades hervor. Logik: assets/wikelo-bridge.js.
@@ -17,9 +17,9 @@ const JS_T = {
     loading: 'Wird geladen…',
     sectionObtain: 'Bezugsquellen',
     kindShop: 'Shop', kindVehicle: 'Schiffshändler', kindLoot: 'Loot',
-    more: '+{n} weitere Quellen im Item Finder',
+    more: '+{n} weitere Quellen auf der Items-Seite',
     catalogNote: 'Keine verifizierten Shop- oder Loot-Daten für dieses Item.',
-    openFinder: 'Im Item Finder öffnen',
+    openFinder: 'Auf der Items-Seite öffnen',
     openSheet: 'Zum Datenblatt',
     mineNote: 'Kein Shop: Dieses Material wird abgebaut. Fundorte und Werte stehen in der Mining-Datenbank.',
     openMining: 'Fundorte in Mining',
@@ -29,9 +29,9 @@ const JS_T = {
     loading: 'Loading…',
     sectionObtain: 'Where to get it',
     kindShop: 'Shop', kindVehicle: 'Ship dealer', kindLoot: 'Loot',
-    more: '+{n} more sources in the item finder',
+    more: '+{n} more sources on the items page',
     catalogNote: 'No verified shop or loot data for this item.',
-    openFinder: 'Open in item finder',
+    openFinder: 'Open on the items page',
     openSheet: 'Data sheet',
     mineNote: 'No shop: this material is mined. Locations and values are in the mining database.',
     openMining: 'Mining locations',
@@ -73,5 +73,5 @@ const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
   .wkb__links{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;margin:0}
 </style>
 
-<script is:inline set:html={`window.__WKB=${jsonForScript({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/de/item-finder.html' : '/item-finder.html', t: JS_T })};`} />
+<script is:inline set:html={`window.__WKB=${jsonForScript({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/de/items.html' : '/items.html', t: JS_T })};`} />
 <script is:inline src={versioned('assets/wikelo-bridge.js', '/assets/wikelo-bridge.js')}></script>

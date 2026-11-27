@@ -124,7 +124,7 @@ const MIN_MELDE_MARKEN = 17000;
 const MIN_EXTERN_MARKEN = 2;
 // Bedienung auf der Seite (11.11.2026, Build der Aenderung, Live-Bau): 44
 // Hilfe-Marken (2 je ToolHelp, 22 Hilfen), 4 Trefferbereiche (Item Finder +
-// Crafting je Sprache), 356 Video-Fassaden (Klinke wie verify:vorklick 340),
+// Crafting je Sprache; seit 26.11.2026 die Items-Seite statt des Finders), 356 Video-Fassaden (Klinke wie verify:vorklick 340),
 // 960 Bild-Ausloeser auf Patch-, Themen- und Schiffsseiten.
 const MIN_HILFE_MARKEN = 44;
 const MIN_TREFFER_BEREICHE = 4;
@@ -739,7 +739,7 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
 
   // Proben: [Titel, Seite, Handlung, erwartete Ereignisse]
   const MAIN = (inner) => `<header><nav><a id="nav" href="/schiffe/aegs-gladius.html">Gladius</a><a id="login" href="/account/login.html">Login</a></nav></header><main>${inner}</main>`;
-  const KARTEN = '<div id="g" data-ev-treffer><div id="k1" class="uif-card" role="button" tabindex="0"><a id="l1" href="/items/probe-item.html">Probe</a><span id="s1">Preis</span><button id="b1" type="button">★</button><a id="m1" href="/topics/mining.html">Erz</a></div></div>';
+  const KARTEN = '<div id="g" data-ev-treffer><div id="k1" class="wz-k" role="button" tabindex="0"><a id="l1" href="/items/probe-item.html">Probe</a><span id="s1">Preis</span><button id="b1" type="button">★</button><a id="m1" href="/topics/mining.html">Erz</a></div></div>';
   const HILFE = (offen, an) => `<details class="tool-help"${offen ? ' open' : ''}><summary id="h" data-ev-hilfe="anleitung">Wie funktioniert …?</summary><button id="e" type="button" data-ev-hilfe="elemente" aria-pressed="${an}">Elemente erklaeren</button></details>`;
   const PROBEN = [
     ['suche-offen auf einer Item-Seite, zweimal', { pfad: '/items/probe-item.html' }, (p) => { p.ctx.vbEreignis('suche-offen'); p.ctx.vbEreignis('suche-offen'); },
@@ -778,8 +778,8 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       (p) => p.ereignis('click', p.doc.getElementById('t')), [{ name: 'extern', data: { seite: 'item', ziel: 'discord' }, url: '/de/items/' }]],
     ['YouTube mit www. und Pfad von einer Patch-Seite', { pfad: '/patches/sc-4-0-0.html', html: MAIN('<a id="y" href="https://www.youtube.com/watch?v=geheim" target="_blank">Video</a>') },
       (p) => p.ereignis('click', p.doc.getElementById('y')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'youtube' }, url: '/patches/sc-4-0-0.html' }]],
-    ['UEX aus einem Werkzeug', { pfad: '/item-finder.html', html: MAIN('<a id="x" href="https://uexcorp.space/items/info/name/probe">UEX</a>') },
-      (p) => p.ereignis('click', p.doc.getElementById('x')), [{ name: 'extern', data: { seite: 'werkzeug', ziel: 'uex' }, url: '/item-finder.html' }]],
+    ['UEX aus einem Werkzeug', { pfad: '/items.html', html: MAIN('<a id="x" href="https://uexcorp.space/items/info/name/probe">UEX</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('x')), [{ name: 'extern', data: { seite: 'werkzeug', ziel: 'uex' }, url: '/items.html' }]],
     ['unbekannter Host (nur „sonst“, keine Adresse)', { pfad: '/datenschutz.html', html: MAIN('<a id="x" href="https://policies.example.org/privacy">P</a>') },
       (p) => p.ereignis('click', p.doc.getElementById('x')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'sonst' }, url: '/datenschutz.html' }]],
     ['Stripe-Knopf mit Ziel-Marke', { pfad: '/de/support.html', html: MAIN('<button id="s" type="button" data-ev-extern="spende"><span id="t">Mit 5 € unterstützen</span></button>') },
@@ -807,9 +807,9 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       (p) => p.ereignis('click', p.doc.getElementById('btnimg')), [{ name: 'bilder', data: { seite: 'schiff' }, url: '/schiffe/' }]],
     ['Umschalter „Bilder“, schon an', { pfad: '/schiffe/aegs-gladius.html', html: MAIN('<button id="btnimg" type="button" aria-pressed="true">Bilder</button>') },
       (p) => p.ereignis('click', p.doc.getElementById('btnimg')), []],
-    ['Trefferkarte im Item Finder: Flaeche, Titel-Link, Knopf, Link auf andere Seite', { pfad: '/item-finder.html', html: MAIN(KARTEN) },
+    ['Trefferkarte der Items-Seite: Flaeche, Titel-Link, Knopf, Link auf andere Seite', { pfad: '/items.html', html: MAIN(KARTEN) },
       (p) => { for (const id of ['s1', 'l1', 'b1', 'm1']) p.ereignis('click', p.doc.getElementById(id)); },
-      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }, { name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }]],
+      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/items.html' }, { name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/items.html' }]],
     ['Treffer-Link der Missionsliste, nicht aus Fenster oder Navigation', { pfad: '/de/missionen.html', html: MAIN('<ul><li><a id="a" href="/de/missionen/probe.html">M</a></li></ul><div role="dialog"><a id="d" href="/de/missionen/probe-2.html">M2</a></div>') },
       (p) => { p.ereignis('click', p.doc.getElementById('a')); p.ereignis('click', p.doc.getElementById('d')); p.ereignis('click', p.doc.getElementById('nav')); },
       [{ name: 'treffer-offen', data: { werkzeug: 'missionen' }, url: '/de/missionen.html' }]],
@@ -830,9 +830,9 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
         p.ereignis('auxclick', p.doc.getElementById('a'), true, { button: 1 });
       },
       [{ name: 'extern', data: { seite: 'werkzeug', ziel: 'discord' }, url: '/missionen.html' }, { name: 'treffer-offen', data: { werkzeug: 'missionen' }, url: '/missionen.html' }]],
-    ['Mittlere Taste auf der Flaeche einer Trefferkarte (oeffnet nichts)', { pfad: '/item-finder.html', html: MAIN(KARTEN) },
+    ['Mittlere Taste auf der Flaeche einer Trefferkarte (oeffnet nichts)', { pfad: '/items.html', html: MAIN(KARTEN) },
       (p) => { p.ereignis('auxclick', p.doc.getElementById('s1'), true, { button: 1 }); p.ereignis('auxclick', p.doc.getElementById('l1'), true, { button: 1 }); },
-      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }]],
+      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/items.html' }]],
     ['treffer-offen per Aufruf ausserhalb eines Werkzeugs', { pfad: '/support.html' }, (p) => p.ctx.vbEreignis('treffer-offen'), []],
     // Messluecken (K6, 24.11.2026)
     ['treffer-offen per Aufruf: Wikelo-Fenster und Evolution-Zelle', { pfad: '/de/topics/wikelo-emporium.html' }, (p) => p.ctx.vbEreignis('treffer-offen'),
@@ -927,7 +927,7 @@ console.log(`    Hilfe-Marken: ${hilfeMarken.length} (Klinke ${MIN_HILFE_MARKEN}
 if (hilfeMarken.length < MIN_HILFE_MARKEN) fail(`nur ${hilfeMarken.length} Hilfe-Marken data-ev-hilfe, Klinke ${MIN_HILFE_MARKEN} — ToolHelp hat die Marke verloren oder Werkzeuge ihre Hilfe; Ursache klaeren, nicht die Klinke senken`);
 if (downloadMarken.length < MIN_DOWNLOAD_BEREICHE) fail(`nur ${downloadMarken.length} Download-Bereiche data-ev-download, Klinke ${MIN_DOWNLOAD_BEREICHE} — die Downloads-Seite hat die Marke verloren, Downloads zaehlen dann nicht; Ursache klaeren, nicht die Klinke senken`);
 if (trefferAufrufe.length < MIN_TREFFER_AUFRUFE) fail(`nur ${trefferAufrufe.length} Stellen mit vbEreignis('treffer-offen'), Klinke ${MIN_TREFFER_AUFRUFE} — das Wikelo-Fenster, die Evolution-Zellen oder die Kacheln der Mining-Werkbank melden ihr Oeffnen nicht mehr; Ursache klaeren, nicht die Klinke senken`);
-if (trefferMarken.length < MIN_TREFFER_BEREICHE) fail(`nur ${trefferMarken.length} Trefferbereiche data-ev-treffer, Klinke ${MIN_TREFFER_BEREICHE} — Item Finder oder Crafting haben die Marke am Ergebnisraster verloren`);
+if (trefferMarken.length < MIN_TREFFER_BEREICHE) fail(`nur ${trefferMarken.length} Trefferbereiche data-ev-treffer, Klinke ${MIN_TREFFER_BEREICHE} — die Items-Seite oder Crafting haben die Marke am Ergebnisraster verloren`);
 if (videoFassaden < MIN_VIDEO_FASSADEN) fail(`nur ${videoFassaden} Video-Fassaden auf gezaehlten Seiten, Klinke ${MIN_VIDEO_FASSADEN} — das Ereignis video erkennt sie an data-yt, data-lb="yt:…" und #holoytgo; haben sie ein neues Merkmal?`);
 if (bildAusloeser < MIN_BILD_AUSLOESER) fail(`nur ${bildAusloeser} Bild-Ausloeser auf gezaehlten Seiten, Klinke ${MIN_BILD_AUSLOESER} — das Ereignis bilder erkennt sie an data-lb und #btnimg; haben sie ein neues Merkmal?`);
 if (externMarken.length < MIN_EXTERN_MARKEN)

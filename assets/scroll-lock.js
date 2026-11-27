@@ -6,7 +6,7 @@
 
      SearchOverlay.astro   document.documentElement.style.overflow = 'hidden'
      SiteNav.astro (Menue) html.is-deck-open { overflow: hidden !important }
-     item-finder-app.js    document.body.style.overflow = 'hidden'
+     (Item Finder)         document.body.style.overflow = 'hidden'
      offcanvas.js          document.body.style.position = 'fixed'  <- richtig
 
    Nur die letzte haelt auf iOS Safari wirklich: `overflow: hidden`

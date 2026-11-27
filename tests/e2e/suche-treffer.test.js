@@ -111,7 +111,9 @@ describe('Suchwoerter je Werkzeug (TOOL_ALIASES)', () => {
     const pfade = Object.keys(TOOL_ALIASES);
     for (const p of pfade) assert.ok(quellen(p).some((f) => fs.existsSync(f)), `${p}: keine Seite unter ${quellen(p).join(' / ')}`);
     console.log(`    Werkzeugpfade geprueft: ${pfade.length}`);
-    assert.ok(pfade.length >= 15, `nur ${pfade.length} Pfade`);
+    // 15 bis 26.11.2026; seitdem 14: der Item Finder ist in der Items-Seite
+    // aufgegangen, seine Suchwoerter stehen bei /items.html.
+    assert.ok(pfade.length >= 14, `nur ${pfade.length} Pfade`);
   });
 
   test('die Woerter aus dem Audit stehen drin: werkbank, raffinerie, loadout', () => {
@@ -142,7 +144,7 @@ for (const lang of ['de', 'en']) {
       const finde = (t) => alle.find((e) => e.t === t);
       assert.equal(finde('Laranite')?.u, `${pre}/topics/mining.html?mineral=Laranite#db`);
       assert.equal(finde('Quantainium')?.w, `${pre}/refinery.html?erz=Quantainium#ertrag`);
-      assert.equal(finde('Lorville')?.u, `${pre}/item-finder.html?q=Lorville`);
+      assert.equal(finde('Lorville')?.u, `${pre}/items.html?q=Lorville`);
       const daymar = finde('Daymar');
       assert.equal(daymar?.u, `${pre}/topics/mining.html?fundort=Daymar#db`);
       assert.match(daymar?.w ?? '', /\/missionen\.html\?loc=/);
@@ -151,7 +153,7 @@ for (const lang of ['de', 'en']) {
 
     test('jedes Ziel ist eine Seite, die es gibt; kein Ort doppelt', () => {
       const seite = (u) => u.replace(/^\/de\//, '/').replace(/[?#].*$/, '');
-      const bekannt = new Set(['/topics/mining.html', '/refinery.html', '/item-finder.html', '/missionen.html']);
+      const bekannt = new Set(['/topics/mining.html', '/refinery.html', '/items.html', '/missionen.html']);
       for (const e of alle) {
         for (const u of [e.u, e.w].filter(Boolean)) {
           assert.ok(u.startsWith(`${pre}/`), `${e.t}: ${u} ohne Sprachpraefix`);

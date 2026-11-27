@@ -10,8 +10,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { hangarImBau, hangarImArtefakt, HANGAR_ROUTES, HANGAR_DIST_FILES, HANGAR_HREF } from '../../scripts/lib/hangar-switch.mjs';
-import { hangarRoutes, vorschauRoutes } from '../../astro.config.mjs';
-import { VORSCHAU_ROUTES, VORSCHAU_HREF, VORSCHAU_WEGE } from '../../scripts/lib/vorschau-seiten.mjs';
+import * as ASTRO_CONFIG from '../../astro.config.mjs';
+
+const { hangarRoutes } = ASTRO_CONFIG;
 
 const read = (p) => fs.readFileSync(path.resolve(p), 'utf8');
 
@@ -116,7 +117,7 @@ test('Tor: Vorschau-Bau ohne Hangar ist rot', () => {
 // fuehrt auf die Crafting-Seite.
 test('Werkbank: kein Prototyp-Schalter mehr, der Weg ins Crafting ist die Crafting-Seite', () => {
   assert.doesNotMatch(read('src/lib/seo.ts'), /HAS_WERKBANK\b/);
-  assert.doesNotMatch(read('scripts/lib/vorschau-seiten.mjs'), /crafting-werkbank\.astro/);
+  assert.doesNotMatch(read('astro.config.mjs'), /crafting-werkbank/);
   const weg = read('src/lib/crafting.ts');
   assert.match(weg, /export const craftEntryPath = \(b: BlueprintEntry\) => plannerPath\(b\);/);
   assert.match(weg, /`\/topics\/crafting\.html\?bp=\$\{encodeURIComponent\(b\.name\)\}&bpi=\$\{b\.index\}`/);
@@ -126,78 +127,22 @@ test('Werkbank: kein Prototyp-Schalter mehr, der Weg ins Crafting ist die Crafti
   assert.match(read('src/components/topics/crafting.astro'), /<CraftingApp lang=\{de \? 'de' : 'en'\} werkbank \/>/);
 });
 
-// Prototypen (scripts/lib/vorschau-seiten.mjs, seit 24.11.2026 die
-// Items-Werkbank): dieselbe Regel, eigene Liste, eigene Punkte [4]/[5].
-test('Prototypen: Routen nur im Vorschau-Bau, Muster trifft nur sie', () => {
-  for (const r of VORSCHAU_ROUTES) {
-    assert.ok(fs.existsSync(path.resolve(r.entrypoint)), r.entrypoint);
-    assert.match(read(r.entrypoint), /noindex=\{true\}/, r.entrypoint);
+// Die Items-Werkbank war vom 24.11. bis 26.11.2026 ein Prototyp nur im
+// Vorschau-Bau (/items-werkbank.html). Seit Krisz' Ja (26.11.2026 „lass es
+// machen“) ist sie /items.html in beiden Bauten; der Item Finder leitet
+// dorthin. Kein Schalter, keine Prototyp-Routen, keine eigene Adresse mehr.
+test('Items-Werkbank: kein Prototyp-Schalter mehr, sie ist /items.html', () => {
+  assert.doesNotMatch(read('src/lib/seo.ts'), /HAS_ITEMS_WERKBANK\b/);
+  assert.ok(!fs.existsSync(path.resolve('scripts/lib/vorschau-seiten.mjs')));
+  assert.equal(ASTRO_CONFIG.vorschauRoutes, undefined);
+  assert.doesNotMatch(read('astro.config.mjs'), /items-werkbank/);
+  for (const f of ['src/pages/items/index.astro', 'src/pages/de/items/index.astro']) {
+    const t = read(f);
+    assert.match(t, /import Body from '[./]+components\/items\/ItemsWerkbankPage\.astro';/, f);
+    assert.doesNotMatch(t, /noindex/, f);
   }
-  const haenge = (env) => {
-    const got = [];
-    vorschauRoutes(env).hooks['astro:config:setup']({ injectRoute: (r) => got.push(r.pattern), logger: { info() {} } });
-    return got;
-  };
-  assert.deepEqual(haenge({ STAGING: '1' }), VORSCHAU_ROUTES.map((r) => r.pattern));
-  assert.deepEqual(haenge({}), []);
-  assert.ok(VORSCHAU_HREF.test('<a href="/de/items-werkbank.html?item=x&#38;kat=y">'));
-  assert.ok(VORSCHAU_HREF.test("<a href='/items-werkbank.html'>"));
-  assert.ok(!VORSCHAU_HREF.test('<a href="/de/items.html">'));
-  assert.ok(!VORSCHAU_HREF.test('<a href="/item-finder.html">'));
-  // Der Weg dorthin fragt den Schalter.
-  assert.match(read('src/lib/seo.ts'), /export const HAS_ITEMS_WERKBANK: boolean = IS_STAGING;/);
-  assert.match(read('src/components/items/ItemsWerkbankHinweis.astro'), /\{HAS_ITEMS_WERKBANK && \(/);
-});
-
-test('Tor: Live-Bau mit Prototyp-Seite oder -Link ist rot', () => {
-  const tor = (d) => run(['scripts/verify-hangar-schalter.mjs', '--dist', d, '--klinke-seiten', '1']);
-  const a = probe();
-  a.put('build.json', JSON.stringify({ staging: false }));
-  run(['scripts/_hangar-switch.mjs', '--dist', a.d]);
-  assert.equal(tor(a.d).status, 0);
-  a.put('de/items-werkbank.html', '<p>x</p>');
-  let r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/de\/items-werkbank\.html gehoert nicht in den Live-Bau/);
-  fs.rmSync(path.join(a.d, 'de/items-werkbank.html'));
-  a.put('de/schiffe.html', '<a href="/de/items-werkbank.html?item=x">Items</a>');
-  r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/de\/schiffe\.html: href="\/de\/items-werkbank\.html/);
-  // Auch ohne href: ein Suchregister truege den Weg als blossen Pfad.
-  a.put('de/schiffe.html', '<a href="/de/schiffe.html">Schiffe</a>');
-  a.put('search-index-more.json', JSON.stringify([{ t: 'Items', c: '/items-werkbank.html' }]));
-  r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/search-index-more\.json: \/items-werkbank\.html/);
-  a.put('search-index-more.json', JSON.stringify([{ t: 'Items', c: '/items.html' }]));
-  r = tor(a.d);
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /\[4\] .* und 2 Daten-Dateien gelesen: 0 mit Verweis/);
-});
-
-test('Tor: Vorschau-Bau braucht die Werkbank und den Weg dorthin in beiden Sprachen', () => {
-  const a = probe();
-  a.put('build.json', JSON.stringify({ staging: true }));
-  a.put('schiffe.html', '<a href="/hangar.html">Hangar</a>');
-  for (let i = 0; i < 200; i++) { a.put(`hangar-bay/s${i}.html`); a.put(`de/hangar-bay/s${i}.html`); }
-  for (let i = 0; i < 500; i++) a.put(`hangar/m${i}.glb`);
-  a.put('de/hangar.html');
-  a.put('hangar-loadout.html');
-  a.put('items-werkbank.html');
-  a.put('de/items-werkbank.html');
-  for (const f of VORSCHAU_WEGE) a.put(f, `<a href="${f.startsWith('de/') ? '/de' : ''}/items-werkbank.html">Ausprobieren</a>`);
-  const tor = () => run(['scripts/verify-hangar-schalter.mjs', '--dist', a.d, '--klinke-seiten', '1']);
-  let r = tor();
-  assert.equal(r.status, 0, r.stderr + r.stdout);
-  assert.match(r.stdout, /\[5\] 2 von 2 Prototyp-Seiten da, 4 von 4 bisherigen Seiten mit Weg dorthin/);
-  a.put('de/item-finder.html', '<p>ohne Weg</p>');
-  r = tor();
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[5\] dist\/de\/item-finder\.html fuehrt nicht zum Prototyp/);
-  fs.rmSync(path.join(a.d, 'items-werkbank.html'));
-  r = tor();
-  assert.match(r.stderr, /\[5\] dist\/items-werkbank\.html fehlt im Vorschau-Bau/);
+  for (const f of ['src/pages/item-finder.astro', 'src/pages/de/item-finder.astro'])
+    assert.ok(!fs.existsSync(path.resolve(f)), f);
 });
 
 test('Muster: Dateien und Links', () => {

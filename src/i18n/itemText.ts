@@ -1,8 +1,9 @@
 // Item-/Blueprint-Vokabular — EINE Quelle fuer zwei Konsumenten:
 //   1. die statischen Detailseiten (/items/…, /crafting/…), gerendert in Astro
-//   2. das Client-JS des Item-Finders (window.__UIF.t, assets/item-finder-app.js)
+//   2. das Client-JS der Items-Seite (window.__WZI.t, assets/items-werkbank.js;
+//      bis 26.11.2026 der Item Finder, window.__UIF.t)
 //
-// Vorher lag der Katalog als JS_T-Literal in ItemFinderApp.astro. Sobald die
+// Vorher lag der Katalog als JS_T-Literal im Item Finder. Sobald die
 // Seiten dieselben Stat-Labels rendern, muessen beide Seiten exakt dieselben
 // Woerter benutzen — sonst heisst dieselbe Zahl im Modal "Kuehlleistung" und auf
 // der Seite "Kuehlrate". Deshalb steht der Katalog jetzt hier.
@@ -137,12 +138,11 @@ export const ITEM_UI = {
     toolWikeloRewardOne: 'Wikelo gibt es als Belohnung in einem Tauschgeschäft',
     sectionCategory: 'Kategorie',
     allInCategory: 'Alle Items dieser Kategorie',
-    backToFinder: 'Zum Item Finder',
     backToHub: 'Alle Kategorien',
-    hubTitle: 'Item-Verzeichnis',
-    hubLead: 'Alle {total} Items aus Star Citizen {patch} nach Kategorie — mit Kaufpreisen, Verkaufsstellen und Spielwerten.',
-    hubItemsWithPage: '{n} mit Datenblatt',
-    withDataSheet: 'Mit Datenblatt',
+    /* Knopf auf die Items-Seite (/items.html), von Datenblatt, Set-Liste und Blueprint-Verzeichnis */
+    hubTitle: 'Alle Items',
+    /* Kategorieliste: dieselbe Kategorie auf der Items-Seite, mit Filtern und Sortierung */
+    katFiltern: 'Diese Kategorie filtern',
     /* Kennzahl im Seitenkopf der Kategorie-Listen */
     entries: 'Einträge',
     listingLead: '{n} Einträge in {cat}. Kaufpreise und Verkaufsstellen mit Stand {date}.',
@@ -340,12 +340,9 @@ export const ITEM_UI = {
     toolWikeloRewardOne: 'Wikelo hands it out in one trade',
     sectionCategory: 'Category',
     allInCategory: 'All items in this category',
-    backToFinder: 'To the Item Finder',
     backToHub: 'All categories',
-    hubTitle: 'Item directory',
-    hubLead: 'All {total} Star Citizen {patch} items by category — with buy prices, vendor locations and game stats.',
-    hubItemsWithPage: '{n} with a data sheet',
-    withDataSheet: 'With data sheet',
+    hubTitle: 'All items',
+    katFiltern: 'Filter this category',
     entries: 'Entries',
     listingLead: '{n} entries in {cat}. Buy prices and vendors as of {date}.',
     listingNoPage: 'No data sheet: this entry has neither a known source nor game stats.',

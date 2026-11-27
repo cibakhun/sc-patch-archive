@@ -25,7 +25,6 @@
 
 /** Basispfad -> zusaetzliche Suchwoerter (beide Sprachen, nie angezeigt). */
 export const TOOL_ALIASES: Record<string, string> = {
-  '/item-finder.html': 'gegenstände gegenstand ausrüstung equipment läden laden shops händler kaufen kaufort',
   '/missionen.html': 'aufträge auftrag jobs kopfgeld bounty',
   '/topics/crafting.html': 'werkbank workbench fabricator fabrikator rezept rezepte recipe recipes herstellen herstellung',
   '/fracturing.html': 'brechen bruch zerbrechen laser',
@@ -37,7 +36,8 @@ export const TOOL_ALIASES: Record<string, string> = {
   '/archiv.html': 'patchnotes patch notes chronik',
   '/evolution.html': 'entwicklung verlauf',
   // Verzeichnisse: die Bereichsliste fuehrt sie seit A1 als Werkzeug.
-  '/items.html': 'verzeichnis directory kategorien categories gegenstände',
+  // Items-Seite: Verzeichnis und Item Finder in einem (26.11.2026).
+  '/items.html': 'verzeichnis directory kategorien categories gegenstände gegenstand ausrüstung equipment läden laden shops händler kaufen kaufort finder',
   '/crafting.html': 'verzeichnis directory blueprints baupläne blaupausen bauplan',
   '/armor-sets.html': 'rüstungssets rüstungs-sets rüstung sets armor armour',
   '/downloads.html': 'karten maps wallpaper onepager herunterladen',

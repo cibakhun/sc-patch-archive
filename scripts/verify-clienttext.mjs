@@ -1,13 +1,13 @@
 // verify-clienttext.mjs — der Text, den die Werkzeuge erst im Browser bauen.
 //
 // WARUM ES DEN GIBT: audit:site und verify:sprache lesen das statische HTML.
-// Der Item Finder baut seine Karten und sein Detail-Modal aber erst im
+// Der Item Finder baute seine Karten und sein Detail-Modal aber erst im
 // Browser aus assets/universal-items.json zusammen — diesen Text hat bis zum
 // 04.11.2026 KEIN Tor gelesen. So stand der Schildwiderstand im Finder-Modal
-// als "Physisch NaN% · Distortion NaN%" da (behoben am 03.11.2026 in
-// assets/item-finder-app.js, fmtResist), und nichts haette verhindert, dass
-// derselbe Fehler morgen zurueckkommt: die Pruefung, die ihn auf den
-// statischen Seiten faengt, sieht das Modal nie.
+// als "Physisch NaN% · Distortion NaN%" da (behoben am 03.11.2026 im
+// Finder-Skript, fmtResist), und nichts haette verhindert, dass derselbe
+// Fehler morgen zurueckkommt: die Pruefung, die ihn auf den statischen
+// Seiten faengt, sieht das Modal nie.
 // Am selben Abend zeigte sich, dass das fuer JEDES Werkzeug gilt: das
 // Blueprint-Fenster des Crafting-Rechners listete Missionen als
 // "Wanted: {TargetName}" und "Defend {Location} From Mercs", sein
@@ -15,13 +15,15 @@
 // assets/detail.js sprach auf allen englischen Seiten "Bild öffnen: Asgard"
 // vor. Deshalb Teil 2.
 //
-// TEIL 1 — Item Finder, vollstaendig (Schiene A, ohne Browser): fuehrt das
-// AUSGELIEFERTE Skript dist/assets/item-finder-app.js in node:vm gegen ein
-// schmales DOM aus, mit der ausgelieferten Konfiguration (window.__UIF aus
-// dist/item-finder.html und dist/de/item-finder.html) und den ausgelieferten
-// Daten. Eine Pruefnaht wird NUR in die geladene Kopie eingesetzt (vor dem
-// letzten "})();"), nicht in die Datei. Dann rendert es je Sprache JEDES
-// Item als Karte und als Modal (mit Crafting-Abschnitt) und jedes Set.
+// TEIL 1 — Items-Seite, vollstaendig (Schiene A, ohne Browser): seit dem
+// 26.11.2026 ist der Item Finder in der Items-Werkbank auf /items.html
+// aufgegangen. Teil 1 oeffnet dist/items.html und dist/de/items.html im
+// Pruefstand (linkedom, scripts/lib/pruefstand.mjs) mit der ausgelieferten
+// Konfiguration (window.__WZI) und den ausgelieferten Daten. In die geladene
+// Kopie von assets/items-werkbank.js — nicht in die Datei — wird vor dem
+// letzten "})();" eine Pruefnaht gesetzt. Dann rendert es je Sprache JEDES
+// Item als Kachel und als Blatt (mit Crafting-Abschnitt) und jedes Set als
+// Kachel und als Blatt.
 //
 // TEIL 2 — jede Seitenart, bedient (scripts/lib/pruefstand.mjs): laedt je
 // Sprache eine Seite jeder Art (gleiche Skripte, gleiche Inline-Form — die
@@ -46,7 +48,9 @@
 //   4  Katalogschluessel statt Text, "The The" aus einer Satzvorlage,
 //   5  (Teil 1) jeder woertliche tr('schluessel', …) im Skript steht im
 //      ausgelieferten Katalog BEIDER Sprachen — sonst zeigt die EN-Seite den
-//      deutschen Rueckfalltext des Skripts. Dazu jeder Schluessel, den das
+//      deutschen Rueckfalltext des Skripts; ebenso jeder w('schluessel') im
+//      Textsatz der Werkbank (fehlt er, zeigt die Seite den Schluessel
+//      selbst; seit 26.11.2026). Dazu jeder Schluessel, den das
 //      Skript beim Rendern WIRKLICH fragt, auch zusammengesetzte wie
 //      tr('w' + klasse) oder tr('ex' + grund) (Review 04.11.2026): steht er
 //      nur in einem der beiden Kataloge, ist das ein FEHLER; fehlt er in
@@ -56,7 +60,7 @@
 //      ist entweder ein echter Fehler der Seite oder eine Faehigkeit, die
 //      dem Pruefstand fehlt — in beiden Faellen sieht die Pruefung den Text
 //      dahinter nicht, also FEHLER.
-// Selbstauskunft und Klinken fuer Items, Modals mit Crafting, Sets,
+// Selbstauskunft und Klinken fuer Items, Blaetter mit Crafting, Sets,
 // Textstellen und Schluessel (Teil 1), fuer Seitenarten, Bedienschritte und
 // geschriebene Texte (Teil 2) und je Werkzeug fuer dessen Texte.
 //
@@ -64,7 +68,7 @@
 // dist/, fremde Hosts antworten wie ohne Verbindung. Einziger Kindprozess ist
 // esbuilds Dienst beim Buendeln der Kataloge und der Astro-Module.
 //
-//   node scripts/verify-clienttext.mjs [--dist <ordner>] [--js <item-finder-app.js>] [--alle]
+//   node scripts/verify-clienttext.mjs [--dist <ordner>] [--js <items-werkbank.js>] [--alle]
 //   (--js prueft eine andere Fassung des Skripts gegen denselben Bau — so
 //   wird die Gegenprobe gegen den Stand vor dem Fix gefahren.)
 import { readFileSync, existsSync } from 'node:fs';
@@ -80,19 +84,27 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const opt = (n) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? resolve(argv[i + 1]) : null; };
 const DIST = opt('--dist') || resolve(ROOT, 'dist');
-const JS = opt('--js') || join(DIST, 'assets', 'item-finder-app.js');
+const JS = opt('--js') || join(DIST, 'assets', 'items-werkbank.js');
 const ALLE = argv.includes('--alle'); // jeden Befund zeigen, nicht nur die ersten zwoelf
 if (!existsSync(DIST)) { console.error(`${DIST} fehlt — erst npm run build.`); process.exit(2); }
 
-// Klinken Teil 1 (Grundsatz 5), gemessen am 04.11.2026: 9.412 Items,
-// 1.594 Modals mit Crafting-Abschnitt je Sprache, 141 Sets, 823.745
-// Textstellen ueber beide Sprachen, 92 woertliche Schluessel im Skript.
+// Klinken Teil 1 (Grundsatz 5), gemessen am 04.11.2026 am Item Finder:
+// 9.412 Items, 1.594 Modals mit Crafting-Abschnitt je Sprache, 141 Sets,
+// 823.745 Textstellen ueber beide Sprachen, 92 woertliche Schluessel.
+// Neu gemessen am 26.11.2026 an der Items-Werkbank, die den Item Finder
+// ersetzt: 9.462 Items, 1.615 Blaetter mit Crafting je Sprache, 143 Sets,
+// 1.357.380 Textstellen (Kachel und Blatt je Item, Set-Kachel und -Blatt),
+// 68 woertliche tr()- und 38 woertliche w()-Schluessel im Skript, 97 beim
+// Rendern gefragte tr()-Schluessel. Schluessel und Laufzeit-Schluessel
+// sinken, weil die Werkbank ihre eigenen Woerter im Textsatz w() fuehrt
+// statt im Katalog tr() — Ursache benannt, Klinken nach unten.
 const MIN_ITEMS = 9_000;
 const MIN_SETS = 120;
 const MIN_MODAL_CRAFT = 1_400;
-const MIN_STELLEN = 800_000;
-const MIN_SCHLUESSEL = 80;
-const MIN_LAUFZEIT = 100; // gemessen 125 beim Rendern gefragte Schluessel
+const MIN_STELLEN = 1_200_000;
+const MIN_SCHLUESSEL = 60;
+const MIN_SCHLUESSEL_W = 32;
+const MIN_LAUFZEIT = 85;
 // Crafting-Rechner (Regel 5 auch dort, 11.11.2026): gemessen 40 woertliche
 // Schluessel in assets/crafting-app.js, 41 Eintraege im Katalog je Sprache.
 const MIN_SCHLUESSEL_CRAFT = 34;
@@ -117,8 +129,8 @@ const WERKZEUGE = {
   'de/topics/mining.html': 1_000, // (1.196)
   'fracturing.html': 640, // (747)
   'de/fracturing.html': 640, // (752)
-  'item-finder.html': 270, // (319)
-  'de/item-finder.html': 480, // (564; die Zweitnamen der Items stehen nur hier)
+  'items.html': 6_900, // (8.167, gemessen 26.11.2026 an der Items-Werkbank; vorher Item Finder 270)
+  'de/items.html': 7_000, // (8.271; vorher Item Finder 480)
   'precision-jump.html': 200, // (243)
   'de/precision-jump.html': 200, // (248)
   'topics/wikelo-emporium.html': 140, // (168)
@@ -164,7 +176,7 @@ function pruefeText(t, lang, wo) {
 }
 
 /* ================================================================
-   TEIL 1 — Item Finder
+   TEIL 1 — Items-Seite (Items-Werkbank)
    ================================================================ */
 const QUELLE = readFileSync(JS, 'utf8');
 const ANKER = QUELLE.lastIndexOf('})();');
@@ -172,91 +184,49 @@ if (ANKER < 0 || QUELLE.slice(ANKER + 5).trim() !== '') {
   console.error(`FEHLER: ${JS} endet nicht mit "})();" — die Pruefnaht findet ihren Platz nicht. Das Skript wurde umgebaut; die Naht hier anpassen.`);
   process.exit(1);
 }
+// Die Naht laeuft am Ende des Skripts, waehrend der Katalog noch laedt; sie
+// ruft nur Funktionen, die das Skript selbst benutzt. Kachel und Blatt sind
+// HTML-Zeichenketten; den Crafting-Abschnitt setzt craftEinsetzen() wie beim
+// Oeffnen eines Items in das eingehaengte Blatt. leere(): der Pruefstand
+// meldet jede beobachtete Marke als sichtbar, also legt das Gitter beim
+// Laden alle Kacheln an (rund 150.000 Knoten); craftEinsetzen() sucht mit
+// getElementById, das linkedom durch den ganzen Baum fuehrt — 30 ms je
+// Blatt. Vor der Blatt-Schleife wird das Gitter deshalb geleert; die
+// Kacheln prueft die Schleife als Zeichenkette.
 const NAHT = `
-  var __gefragt = {};
+  var __gefragt = {}, __gefragtW = {};
   tr = (function (orig) {
     return function (k) { __gefragt[k] = 1; return orig.apply(this, arguments); };
   })(tr);
+  w = (function (orig) {
+    return function (k) { __gefragtW[k] = 1; return orig.apply(this, arguments); };
+  })(w);
   window.__pruefnaht = {
     gefragt: function () { return Object.keys(__gefragt); },
-    laden: function () { return loadCraft(); },
-    items: function () { return ALL_ITEMS; },
-    sets: function () { return Object.keys(SETS).length; },
-    modal: function (it) {
-      openModal(it);
-      return document.getElementById('uif-modal-body-content').innerHTML;
+    gefragtW: function () { return Object.keys(__gefragtW); },
+    bereit: function () { return bereit; },
+    ladeFehler: function () { return ladeFehler; },
+    laden: function () { return ladeCraft(); },
+    leere: function () { if (io) io.disconnect(); el.gitter.innerHTML = ''; },
+    items: function () { return ITEMS; },
+    sets: function () { return SETLISTE; },
+    blatt: function (it) {
+      el.inh.innerHTML = blattItem(it);
+      craftEinsetzen(it, document.getElementById('wzb-craft'));
+      return el.inh.innerHTML;
     },
-    karten: function () {
-      filteredItems = ALL_ITEMS.slice(); currentPage = 1; itemsPerPage = ALL_ITEMS.length + 1;
-      renderItemsGrid();
-      return document.getElementById('uif-results-grid').innerHTML;
-    },
-    setkarten: function () {
-      filteredSets = Object.keys(SETS).map(function (k) { return SETS[k]; }); currentPage = 1; itemsPerPage = filteredSets.length + 1;
-      renderSetsGrid();
-      return document.getElementById('uif-results-grid').innerHTML;
-    }
+    kachel: function (it) { return kachel(it); },
+    setkachel: function (st) { return setKachel(st); },
+    satz: function (st) { return blattSatz(st); }
   };
 `;
 const CODE = QUELLE.slice(0, ANKER) + NAHT + QUELLE.slice(ANKER);
-
-/** Die Konfiguration, wie die gebaute Seite sie setzt (Inline-Skript ausgefuehrt). */
-function konfiguration(seite) {
-  const html = readFileSync(join(DIST, seite), 'utf8');
-  const m = /<script[^>]*>(window\.__UIF=[\s\S]*?)<\/script>/.exec(html);
-  if (!m) throw new Error(`${seite}: kein window.__UIF-Block`);
-  const ctx = { window: {} };
-  vm.runInNewContext(m[1], ctx);
-  return ctx.window.__UIF;
-}
-const ausDist = (url) => join(DIST, String(url).split('?')[0]);
-
-/* ---------- Schmales DOM ---------- */
-function element() {
-  const el = {
-    innerHTML: '', textContent: '', value: '', hidden: false, style: {}, dataset: {}, children: [],
-    classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
-    setAttribute() {}, getAttribute: () => null, removeAttribute() {}, addEventListener() {},
-    querySelector: () => null, querySelectorAll: () => [], appendChild() {}, focus() {}, closest: () => null,
-    contains: () => false, scrollIntoView() {}, scrollTo() {},
-  };
-  return el;
-}
-function umgebung(cfg, daten) {
-  const els = new Map();
-  const document = {
-    readyState: 'complete',
-    getElementById: (id) => { if (!els.has(id)) els.set(id, element()); return els.get(id); },
-    createElement: () => element(),
-    querySelector: () => null, querySelectorAll: () => [], addEventListener() {},
-    body: element(), documentElement: element(),
-  };
-  const fetch = (url) => {
-    const pfad = ausDist(url);
-    if (!daten.has(pfad)) {
-      if (!existsSync(pfad)) return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) });
-      daten.set(pfad, JSON.parse(readFileSync(pfad, 'utf8')));
-    }
-    // Jede Umgebung bekommt eine eigene Kopie: das Skript haengt Felder an
-    // (bp.__slug), die zweite Sprache soll denselben Ausgangsstand sehen.
-    const kopie = structuredClone(daten.get(pfad));
-    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(kopie) });
-  };
-  const window = { __UIF: cfg };
-  const ctx = {
-    window, document, fetch, console: { log() {}, warn() {}, error() {} },
-    location: { search: '', pathname: '/', hash: '' }, URLSearchParams, setTimeout, clearTimeout,
-    navigator: { language: cfg.lang }, Promise, Intl, Number, String, Math, Object, Array, JSON, Set, Map,
-  };
-  window.document = document; window.location = ctx.location;
-  return vm.createContext(ctx);
-}
-const ruhe = () => new Promise((r) => setTimeout(r, 0));
+const SKRIPT = '/assets/items-werkbank.js';
 
 let stellen = 0;
 function pruefeHtml(html, lang, wo) {
   // Ein Blattelement mit eigenem lang-Attribut zaehlt in SEINER Sprache
-  // (englischer Spieltext im DE-Modal, lang="en") — wie im Pruefstand
+  // (englischer Spieltext im DE-Blatt, lang="en") — wie im Pruefstand
   // (texteAus) und in verify:sprache.
   const eigen = [];
   const rest = html.replace(/<(\w+)\b[^>]*\slang="(de|en)"[^>]*>([^<]*)<\/\1>/g, (m, tag, l, innen) => {
@@ -276,45 +246,87 @@ function pruefeHtml(html, lang, wo) {
   }
 }
 
-const daten = new Map();
-const SEITEN = { en: 'item-finder.html', de: 'de/item-finder.html' };
+const esbuild = await import('esbuild');
+const buendel = new Map();
+const SEITEN = { en: 'items.html', de: 'de/items.html' };
 const katalogSchluessel = {};
+const katalogW = {};
 const gefragt = {};
+const gefragtW = {};
 const zaehlung = {};
 const t1 = Date.now();
 for (const [lang, seite] of Object.entries(SEITEN)) {
-  const cfg = konfiguration(seite);
-  katalogSchluessel[lang] = new Set(Object.keys(cfg.t || {}));
-  const ctx = umgebung(cfg, daten);
+  if (!existsSync(join(DIST, seite))) { fehler.push(`${seite} fehlt — die Items-Seite ist nicht im Bau`); continue; }
+  let naht = null, p = null;
   try {
-    vm.runInContext(CODE, ctx, { filename: JS });
+    p = await oeffneSeite({
+      dist: DIST, seite, esbuild, buendel, sprache: lang === 'de' ? 'de-DE' : 'en-US',
+      umbau: (name, code) => {
+        if (name !== SKRIPT) return code;
+        naht = true;
+        return CODE;
+      },
+    });
   } catch (err) {
-    fehler.push(`${lang}: das Skript bricht beim Start ab — ${err.message}`);
+    fehler.push(`${lang}: ${seite} laesst sich nicht oeffnen — ${err.message}`);
     continue;
   }
-  for (let i = 0; i < 5; i++) await ruhe();
-  const naht = ctx.window.__pruefnaht;
-  if (!naht) { fehler.push(`${lang}: Pruefnaht nicht erreichbar`); continue; }
+  if (!naht) { fehler.push(`${lang}: ${seite} laedt ${SKRIPT} nicht — Skript umbenannt? Dann SKRIPT hier nachziehen.`); p.schliesse(); continue; }
+  await p.settle(3000);
+  // Jede Uebernahme leert p.fehler: was spaeter einlaeuft (nach dem Laden des
+  // Katalogs, beim Rendern der Blaetter), kommt genau einmal in den Bericht.
+  const uebernimm = () => { for (const f of p.fehler.splice(0)) fehler.push(`${lang}: ${seite} — ${f}`); };
+  uebernimm();
+  const cfg = p.window.__WZI || {};
+  katalogSchluessel[lang] = new Set(Object.keys(cfg.t || {}));
+  katalogW[lang] = new Set(Object.keys(cfg.w || {}));
+  naht = p.window.__pruefnaht;
+  if (!naht) { fehler.push(`${lang}: Pruefnaht nicht erreichbar — bricht das Skript vor seinem Ende ab?`); p.schliesse(); continue; }
+  if (!naht.bereit()) { fehler.push(`${lang}: der Item-Katalog ist nicht geladen${naht.ladeFehler() ? ' (Ladefehler)' : ''} — dbUrl in window.__WZI pruefen`); p.schliesse(); continue; }
   await naht.laden();
-  for (let i = 0; i < 5; i++) await ruhe();
+  await p.settle(500);
+  uebernimm();
+  naht.leere();
   const items = naht.items();
-  const z = (zaehlung[lang] = { items: items.length, modals: 0, mitCraft: 0, sets: naht.sets() });
+  const sets = naht.sets();
+  const z = (zaehlung[lang] = { items: items.length, modals: 0, mitCraft: 0, sets: sets.length });
   for (const it of items) {
     let html;
-    try { html = naht.modal(it); } catch (err) { fehler.push(`${lang}: Modal von „${it.name}" bricht ab — ${err.message}`); continue; }
+    try { html = naht.blatt(it); } catch (err) { fehler.push(`${lang}: Blatt von „${it.name}" bricht ab — ${err.message}`); continue; }
+    // Der Pruefstand merkt sich jedes beschriebene Element bis zur naechsten
+    // Ernte; ohne sie hielte er alle 9.462 ersetzten Blaetter fest (gemessen
+    // 26.11.2026: 0,2 GB je 1.000 Blaetter, 3,7 GB nach Teil 1, danach kam
+    // Teil 2 auf /topics/crafting.html nicht mehr voran). Teil 1 liest den
+    // Text aus der Zeichenkette, die Ernte selbst wird verworfen.
+    p.ernte();
     z.modals++;
-    if (html.includes('uif-crafting')) z.mitCraft++;
-    pruefeHtml(html, lang, `Item Finder, Modal „${it.name}"`);
+    if (html.includes('class="wzb-craft"')) z.mitCraft++;
+    pruefeHtml(html, lang, `Items, Blatt „${it.name}"`);
+    try { pruefeHtml(naht.kachel(it), lang, `Items, Kachel „${it.name}"`); } catch (err) { fehler.push(`${lang}: Kachel von „${it.name}" bricht ab — ${err.message}`); }
   }
-  try { pruefeHtml(naht.karten(), lang, 'Item Finder, Karten'); } catch (err) { fehler.push(`${lang}: Kartenraster bricht ab — ${err.message}`); }
-  try { pruefeHtml(naht.setkarten(), lang, 'Item Finder, Set-Karten'); } catch (err) { fehler.push(`${lang}: Set-Raster bricht ab — ${err.message}`); }
+  for (const st of sets) {
+    try { pruefeHtml(naht.setkachel(st), lang, `Items, Set-Kachel „${st.name}"`); } catch (err) { fehler.push(`${lang}: Set-Kachel „${st.name}" bricht ab — ${err.message}`); }
+    try { pruefeHtml(naht.satz(st), lang, `Items, Set-Blatt „${st.name}"`); } catch (err) { fehler.push(`${lang}: Set-Blatt „${st.name}" bricht ab — ${err.message}`); }
+  }
   gefragt[lang] = new Set(naht.gefragt());
+  gefragtW[lang] = new Set(naht.gefragtW());
+  uebernimm();
+  p.schliesse();
 }
 
 /* ---------- 5: woertliche Schluessel im Skript ---------- */
 const woertlich = [...new Set([...QUELLE.matchAll(/\btr\(\s*'([A-Za-z][\w.]*)'\s*,/g)].map((m) => m[1]))];
 for (const k of woertlich) for (const lang of Object.keys(SEITEN)) {
   if (!katalogSchluessel[lang]?.has(k)) funde.katalog.push(`${lang}: tr('${k}') steht nicht im ausgelieferten Katalog — die Seite zeigt den Rueckfalltext des Skripts`);
+}
+// Der Textsatz der Werkbank (window.__WZI.w) hat keinen Rueckfalltext: ein
+// fehlender Schluessel steht woertlich auf der Seite. Woertlich im Skript und
+// beim Rendern gefragt, je Sprache.
+const woertlichW = [...new Set([...QUELLE.matchAll(/\bw\(\s*'([A-Za-z][\w.]*)'\s*\)/g)].map((m) => m[1]))];
+for (const lang of Object.keys(SEITEN)) {
+  for (const k of new Set([...woertlichW, ...(gefragtW[lang] ?? [])])) {
+    if (!katalogW[lang]?.has(k)) funde.katalog.push(`${lang}: w('${k}') steht nicht im Textsatz der Werkbank (window.__WZI.w) — die Seite zeigt den Schluessel`);
+  }
 }
 // Zur Laufzeit gefragte Schluessel (auch zusammengesetzte): Paritaet.
 const laufzeit = new Set([...(gefragt.de ?? []), ...(gefragt.en ?? [])]);
@@ -358,8 +370,6 @@ const ms1 = Date.now() - t1;
    TEIL 2 — jede Seitenart, bedient
    ================================================================ */
 const t2 = Date.now();
-const esbuild = await import('esbuild');
-const buendel = new Map();
 const arten = seitenArten(DIST, { ohne: OHNE_SEITEN });
 const stichprobe = arten.map((a) => a.seite);
 for (const w of Object.keys(WERKZEUGE)) if (!stichprobe.includes(w) && existsSync(join(DIST, w))) stichprobe.push(w);
@@ -401,12 +411,12 @@ const ms2 = Date.now() - t2;
    ================================================================ */
 const de = (n) => n.toLocaleString('de-DE');
 console.log(`verify:clienttext — ${DIST.slice(ROOT.length + 1) || DIST}`);
-console.log(`\nTeil 1, Item Finder aus ${JS.slice(ROOT.length + 1) || JS} (${de(Math.round(ms1 / 1000))} s)`);
+console.log(`\nTeil 1, Items-Seite aus ${JS.slice(ROOT.length + 1) || JS} (${de(Math.round(ms1 / 1000))} s)`);
 for (const [lang, z] of Object.entries(zaehlung)) {
-  console.log(`${lang}: ${de(z.items)} Items (Klinke ${de(MIN_ITEMS)}), ${de(z.modals)} Modals, davon ${de(z.mitCraft)} mit Crafting (Klinke ${de(MIN_MODAL_CRAFT)}), ${z.sets} Sets (Klinke ${MIN_SETS})`);
+  console.log(`${lang}: ${de(z.items)} Items (Klinke ${de(MIN_ITEMS)}), ${de(z.modals)} Blaetter, davon ${de(z.mitCraft)} mit Crafting (Klinke ${de(MIN_MODAL_CRAFT)}), ${z.sets} Sets (Klinke ${MIN_SETS})`);
   if (z.items < MIN_ITEMS) fehler.push(`${lang}: nur ${z.items} Items gerendert (Klinke ${MIN_ITEMS})`);
-  if (z.modals < z.items) fehler.push(`${lang}: nur ${z.modals} von ${z.items} Modals gerendert`);
-  if (z.mitCraft < MIN_MODAL_CRAFT) fehler.push(`${lang}: nur ${z.mitCraft} Modals mit Crafting-Abschnitt (Klinke ${MIN_MODAL_CRAFT}) — laedt die Rezept-DB noch?`);
+  if (z.modals < z.items) fehler.push(`${lang}: nur ${z.modals} von ${z.items} Blaettern gerendert`);
+  if (z.mitCraft < MIN_MODAL_CRAFT) fehler.push(`${lang}: nur ${z.mitCraft} Blaetter mit Crafting-Abschnitt (Klinke ${MIN_MODAL_CRAFT}) — laedt die Rezept-DB noch?`);
   if (z.sets < MIN_SETS) fehler.push(`${lang}: nur ${z.sets} Sets (Klinke ${MIN_SETS})`);
 }
 for (const lang of Object.keys(SEITEN)) if (!zaehlung[lang]) fehler.push(`${lang}: nichts gerendert`);
@@ -415,6 +425,8 @@ if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen geprueft (Kli
 console.log(`beim Rendern gefragte Schluessel: ${laufzeit.size} (Klinke ${MIN_LAUFZEIT}), davon ohne Label in beiden Katalogen: ${ohneLabel.length}`);
 if (laufzeit.size < MIN_LAUFZEIT) fehler.push(`nur ${laufzeit.size} Schluessel beim Rendern gefragt (Klinke ${MIN_LAUFZEIT}) — greift die Pruefnaht an tr() noch?`);
 if (woertlich.length < MIN_SCHLUESSEL) fehler.push(`nur ${woertlich.length} woertliche Schluessel gefunden (Klinke ${MIN_SCHLUESSEL}) — hat sich die Form tr('…', …) geaendert?`);
+console.log(`Textsatz der Werkbank: ${woertlichW.length} woertliche w()-Schluessel im Skript (Klinke ${MIN_SCHLUESSEL_W}), beim Rendern gefragt: ${new Set([...(gefragtW.de ?? []), ...(gefragtW.en ?? [])]).size}`);
+if (woertlichW.length < MIN_SCHLUESSEL_W) fehler.push(`nur ${woertlichW.length} woertliche w()-Schluessel gefunden (Klinke ${MIN_SCHLUESSEL_W}) — hat sich die Form w('…') geaendert?`);
 console.log(`Crafting-Rechner: ${craftWoertlich.length} woertliche Schluessel im Skript (Klinke ${MIN_SCHLUESSEL_CRAFT}), gegen den Katalog beider Sprachen`);
 if (craftWoertlich.length < MIN_SCHLUESSEL_CRAFT) fehler.push(`Crafting-Rechner: nur ${craftWoertlich.length} woertliche Schluessel gefunden (Klinke ${MIN_SCHLUESSEL_CRAFT}) — hat sich die Form tr('…', …) geaendert?`);
 
@@ -441,7 +453,7 @@ const zeige = (liste, titel, cap = ALLE ? Infinity : 12) => {
   if (zaehl.size > cap) console.log(`   … +${zaehl.size - cap} weitere`);
 };
 for (const [regel, titel] of Object.entries(REGEL_TITEL)) zeige(funde[regel], titel);
-zeige(funde.katalog, 'Schluessel fehlt im ausgelieferten Katalog (Item Finder, Crafting-Rechner)');
+zeige(funde.katalog, 'Schluessel fehlt im ausgelieferten Katalog (Items-Seite, Crafting-Rechner)');
 zeige(funde.abbruch, 'Skript bricht im Pruefstand ab (Seite oder Pruefstand reparieren)');
 if (ohneLabel.length) {
   console.log(`\n== WARNUNG Schluessel ohne Label in beiden Katalogen: ${ohneLabel.length} — die Seite zeigt den Rohwert der Spieldaten ==`);
@@ -454,4 +466,4 @@ if (summe) {
   console.log(`\nverify:clienttext ROT — ${summe} Befund(e).`);
   process.exit(1);
 }
-console.log('\nverify:clienttext gruen — jede Karte, jedes Modal und jedes Set des Item Finders und jeder Text, den die Seitenarten beim Laden und Bedienen schreiben, ohne Rohtext und in der Sprache der Seite.');
+console.log('\nverify:clienttext gruen — jede Kachel, jedes Blatt und jedes Set der Items-Seite und jeder Text, den die Seitenarten beim Laden und Bedienen schreiben, ohne Rohtext und in der Sprache der Seite.');

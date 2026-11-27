@@ -457,7 +457,7 @@ const crumbs = [
 
   <div class="dp-actions">
     <a class="dp-btn dp-btn--ghost" href={href(categoryPath(catSlug), lang)}>{t('allInCategory')}: {kategorieTitel(item.category, lang)}</a>
-    <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
+    <a class="dp-btn dp-btn--ghost" href={href(itemsHubPath, lang)}>{t('hubTitle')}</a>
     {/* Nur verlinken, wenn die Patch-Seite existiert — sie ist handgeschrieben
         und folgt einem Datenlauf NICHT automatisch (src/lib/patchPages.ts).
         Fehlt sie, entfaellt der Knopf ganz: ein <span> mit Knopf-Klassen saehe

@@ -10,8 +10,9 @@
 // die Benennung verbessern, ohne das Spiel erneut auszulesen.
 //
 // wendeFundorteAn() traegt das Ergebnis in assets/universal-items.json ein
-// (Kopf `fundorte`, je Item `fund`). Die Seite und der Item Finder machen daraus
-// Loot-Zeilen mit dem Status „bestätigt" (src/lib/items.ts, assets/item-finder-app.js).
+// (Kopf `fundorte`, je Item `fund`). Die Datenblaetter und die Items-Seite machen
+// daraus Loot-Zeilen mit dem Status „bestätigt" (src/lib/items.ts,
+// assets/items-werkbank.js; bis 26.11.2026 auch der Item Finder).
 //
 // verify:loot-fundorte haelt beides zusammen: jede Belegung der Daten hat hier
 // eine Ortsart oder steht benannt unter VERSTECKT; jeder Name hier kommt in den

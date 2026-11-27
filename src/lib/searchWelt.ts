@@ -10,11 +10,11 @@
 //  Erz       -> Mining-Werkbank mit diesem Erz (?mineral=, dieselbe Adresse wie
 //               aus der Crafting-Werkbank, src/lib/miningLinks.ts); zweiter Weg
 //               „Refinery" mit diesem Erz (?erz=), wenn es dort gefuehrt wird.
-//  Ort       -> Item Finder mit dem Ort als Suchtext (?q=), wenn dort etwas
+//  Ort       -> Items-Seite mit dem Ort als Suchtext (?q=), wenn dort etwas
 //               verkauft wird; sonst Mining-Werkbank in der Fundort-Ansicht
 //               (?fundort=); sonst Missionen dieses Orts (?loc=). Der zweite
 //               Weg ist der naechste davon, den es gibt.
-//  Laden     -> Item Finder mit dem Ladennamen als Suchtext.
+//  Laden     -> Items-Seite mit dem Ladennamen als Suchtext.
 //  Liste     -> die Kategorieliste der Items bzw. Blueprints.
 // Ein Ort, den mehrere Quellen kennen (Daymar: Fundort und Missionsort;
 // Levski: Laeden, Raffinerie, Missionen), steht EINMAL im Register.
@@ -219,7 +219,7 @@ const PLATZ_TYP = new Set(['moon', 'planet', 'belt', 'cluster', 'lagrange']);
 
 function ortEintraege(lang: Locale): SearchEntry[] {
   const t = useTranslations(lang);
-  const finder = href('/item-finder.html', lang);
+  const finder = href('/items.html', lang);
   const mining = href('/topics/mining.html', lang);
   const missionen = href('/missionen.html', lang);
   const { orte, laeden } = sammleOrte();

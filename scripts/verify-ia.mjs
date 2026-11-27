@@ -24,7 +24,7 @@
        Bau traegt JEDE Seite noindex (src/lib/seo.ts, IS_STAGING); dort
        gilt dieselbe Regel, wie der Live-Bau sie anwendet: nicht in
        NOINDEX_PATHS, nicht 404, keine Seite, die nur der Vorschau-Bau
-       traegt (Hangar, Items-Werkbank, Vorschau-Patches). Im Live-Bau prueft
+       traegt (Hangar, Vorschau-Patches). Im Live-Bau prueft
        [1c], dass diese Regel und die robots-Marken deckungsgleich sind;
        so bleibt die Vorschau-Ableitung ehrlich.
 
@@ -44,6 +44,17 @@
        Menue- und Suchzeilen tragen keinen Schluessel. Feedback traegt die
        eigene Seite als ?seite= (A8). Nicht hier: die TERM-Leiste des
        Hangar-Terminals (eigener Rahmen, bei den Hangar-Threads).
+
+   [3] Weg der Suchmaschine in die Items (seit 26.11.2026): die Items-Seite
+       /items.html ist seit dem Tag die Items-Werkbank, Verzeichnis und
+       Item Finder in einem, und /item-finder.html leitet dorthin. Ein
+       Crawler kennt nur, was im HTML steht, nicht was das Skript
+       nachzeichnet. Deshalb hier, je Sprache: die Seite ist indexierbar
+       (Regel; im Live-Bau auch ohne noindex-Marke und in einer Sitemap),
+       traegt das ItemPage-JSON-LD, und ihr INHALT verlinkt jede
+       indexierbare Kategorieliste (/items/category/*.html, die erste Seite;
+       die Folgeseiten -2, -3 … verlinkt die Liste selbst) mit einem
+       echten <a href>. Selbstauskunft: Zahl der Kategorielisten, Klinke.
 
    Robots-Marke und Weiterleitung werden am echten <meta> im Kopf gelesen
    (ohne Kommentare, jede Attributreihenfolge), Links am echten href eines
@@ -72,7 +83,6 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { HANGAR_DIST_DIRS, HANGAR_DIST_FILES } from './lib/hangar-switch.mjs';
-import { VORSCHAU_DIST_FILES } from './lib/vorschau-seiten.mjs';
 import { VORSCHAU_PATCH_DIST_FILES } from './lib/vorschau-patches.mjs';
 import { zielImBau } from './lib/supabase-ziel.mjs';
 
@@ -86,7 +96,15 @@ const KLINKE = {
   inhaltslinks: 500000, // aufgeloeste Inhaltslinks auf eigene Seiten
   rahmen: 17000, // Seiten mit voller Navigation oder Datenleiste
   lokal: 16, // Seiten mit lokaler Leiste (live 20: Mining, Crafting, Archiv, Schiffe je Sprache)
+  // [3], 26.11.2026: Kategorielisten je Sprache, die die Items-Seite verlinkt
+  // (gemessen 78 nach der Kategorie-Ordnung vom 24.11.2026; ein Datenlauf darf
+  // eine Kategorie streichen).
+  kategorien: 70,
 };
+
+/* ---------- [3] Items-Seite: der Weg der Suchmaschine in die Kategorien ---------- */
+const ITEMS_NABE = { en: '/items.html', de: '/de/items.html' };
+const KATEGORIE = { en: /^\/items\/category\/[^/]+\.html$/, de: /^\/de\/items\/category\/[^/]+\.html$/ };
 
 /* ---------- Ausnahmen fuer [1] (benannt, mit Zombie-Waechter) ---------- */
 // Je Sprache ein Eintrag: verschwindet eine der beiden Seiten, meldet der
@@ -443,7 +461,7 @@ function auflösen(href, von) {
 
 /* ---------- Indexierbarkeit ---------- */
 
-const NUR_VORSCHAU = new Set([...VORSCHAU_DIST_FILES, ...VORSCHAU_PATCH_DIST_FILES].map((f) => '/' + f));
+const NUR_VORSCHAU = new Set(VORSCHAU_PATCH_DIST_FILES.map((f) => '/' + f));
 const nurVorschau = (url) => {
   const rel = url.slice(1);
   return NUR_VORSCHAU.has(url) || HANGAR_DIST_FILES.test(rel) || HANGAR_DIST_DIRS.some((d) => rel.startsWith(d));
@@ -515,6 +533,7 @@ const abweichung = (ist, soll) => {
 };
 
 const ein = new Map(); // Zielseite -> { n, quellen[] }
+const nabe = new Map(); // Sprache -> { url, ziele, itemPage, regel, noindex } ([3])
 const zielseiten = [];
 let gesamt = 0;
 let umleitungen = 0;
@@ -567,6 +586,26 @@ for (const [url, f] of html) {
   const regel = indexierbarNachRegel(url);
   if (!vorschau && regel === robotsNoindex(kopfMetas(sauber))) robotsAbweichung.push(url);
   if (regel) zielseiten.push(url);
+
+  // ---- [3] Items-Seite: Inhaltslinks, JSON-LD, Marke ----
+  if (url === ITEMS_NABE[lang]) {
+    const ziele = new Set();
+    for (const m of inhalt(sauber).matchAll(TAG_AUF)) {
+      if (m[1].toLowerCase() !== 'a') continue;
+      const href = attr(m[2], 'href');
+      const z = href === null ? null : folge(auflösen(href, url), url);
+      if (z && z !== url) ziele.add(z);
+    }
+    // JSON-LD steht im Rohtext (sauberVon nimmt Skripte heraus).
+    let itemPage = false;
+    for (const m of roh.matchAll(/<script\b[^>]*\btype=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script\s*>/gi)) {
+      let j = null;
+      try { j = JSON.parse(m[1]); } catch { continue; }
+      const typen = [j, ...(Array.isArray(j?.['@graph']) ? j['@graph'] : [])].flat().map((x) => x?.['@type']);
+      if (typen.includes('ItemPage')) itemPage = true;
+    }
+    nabe.set(lang, { url, ziele, itemPage, regel, noindex: robotsNoindex(kopfMetas(sauber)) });
+  }
 
   // ---- [1] Inhaltslinks ----
   // Als Quelle zaehlt nur eine Seite der oeffentlichen Struktur: was selbst
@@ -819,6 +858,36 @@ for (const [art, v] of leistenFehler) {
   fail(`${art} weicht an ${v.seiten.length} Stelle(n) von der Bereichsliste ab (${v.seiten[0]}: ${v.detail})`);
 }
 console.log('    nicht hier: die TERM-Leiste des Hangar-Terminals (eigener Rahmen, Hangar-Threads)');
+
+console.log(`\n[3] Items-Seite: indexierbar, ItemPage-JSON-LD, Inhaltslink auf jede Kategorieliste`);
+// Sitemaps: der Vorschau-Bau schreibt sie leer (src/lib/sitemap.ts).
+const sitemapLocs = new Set();
+if (!vorschau) {
+  for (const f of readdirSync(DIST).filter((n) => /^sitemap.*\.xml$/.test(n))) {
+    for (const m of readFileSync(join(DIST, f), 'utf8').matchAll(/<loc>\s*https?:\/\/[^/<\s]+(\/[^<\s]*)\s*<\/loc>/g)) sitemapLocs.add(m[1]);
+  }
+}
+for (const lang of ['en', 'de']) {
+  const n = nabe.get(lang);
+  if (!n) { fail(`[3] ${ITEMS_NABE[lang]} fehlt im Bau oder ist eine Weiterleitung — die Items-Seite ist der Weg in die Kategorielisten`); continue; }
+  // Lange Listen sind geblaettert (armour-arms.html, armour-arms-2.html …):
+  // die Items-Seite verlinkt die erste Seite jeder Kategorie, die weiteren
+  // erreicht man von dort ([1] haelt fest, dass sie einen Inhaltslink haben).
+  const alle = new Set(zielseiten.filter((u) => KATEGORIE[lang].test(u)));
+  const kategorien = [...alle].filter((u) => {
+    const m = /^(.*)-(\d+)\.html$/.exec(u);
+    return !(m && Number(m[2]) >= 2 && alle.has(`${m[1]}.html`));
+  });
+  const fehlend = kategorien.filter((u) => !n.ziele.has(u));
+  const inSitemap = vorschau ? null : sitemapLocs.has(n.url);
+  console.log(`    ${n.url}: Kategorielisten ${kategorien.length} (Klinke ${KLINKE.kategorien}; dazu ${alle.size - kategorien.length} Folgeseiten), davon im Inhalt verlinkt ${kategorien.length - fehlend.length}; ItemPage ${n.itemPage ? 'ja' : 'NEIN'}; indexierbar nach Regel ${n.regel ? 'ja' : 'NEIN'}${vorschau ? '; Marke und Sitemap: Vorschau-Bau, geprueft im Live-Bau' : `; noindex-Marke ${n.noindex ? 'JA' : 'nein'}; in der Sitemap ${inSitemap ? 'ja' : 'NEIN'}`}`);
+  if (kategorien.length < KLINKE.kategorien) fail(`[3] nur ${kategorien.length} Kategorielisten (${lang}), erwartet mindestens ${KLINKE.kategorien} — laeuft die Pruefung leer?`);
+  if (fehlend.length) fail(`[3] ${n.url} verlinkt ${fehlend.length} Kategorieliste(n) nicht im Inhalt: ${fehlend.slice(0, 5).join(', ')}${fehlend.length > 5 ? ' …' : ''} — die Leiste der Items-Werkbank muss jede Kategorie als <a href> tragen`);
+  if (!n.itemPage) fail(`[3] ${n.url} traegt kein ItemPage-JSON-LD — itemPage am Layout der Items-Seite setzen`);
+  if (!n.regel) fail(`[3] ${n.url} ist nach der Regel nicht indexierbar (NOINDEX_PATHS oder Vorschau-Liste) — die Items-Seite muss in die Suche`);
+  if (!vorschau && n.noindex) fail(`[3] ${n.url} traegt robots noindex`);
+  if (!vorschau && !inSitemap) fail(`[3] ${n.url} steht in keiner Sitemap`);
+}
 
 if (!ok) {
   console.error('\nverify:ia ROT.');

@@ -7,8 +7,8 @@
 // Die Quelle (wikelotrades.com) schreibt Mengen-Präfixe ("50× …"), Zusätze
 // ("Argo ATLS", "SCU Copper", "Antium Armor Arms") und zwei Begriffe anders als
 // die Spieldateien ("Iraddiated", "Quantanium") — die Kandidaten-Regeln hier
-// normalisieren das. Dieselbe Logik clientseitig: assets/item-finder-app.js
-// (wikeloCandidates) — beide zusammen ändern.
+// normalisieren das. (Bis 26.11.2026 stand dieselbe Logik clientseitig im
+// Item Finder; seitdem gibt es nur noch diese.)
 import DB from '../../assets/universal-items.json';
 
 // Warum hier KEIN Schluessel-Join moeglich ist (Stand 07.08.2026):

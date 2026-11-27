@@ -67,7 +67,7 @@ const lootBestaetigtZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot' && !
 const bezugQ = new Set(slice.map((i) => standQ(i.obtain[0])));
 
 // Filterfeld ueber der Liste (UX-Audit HE B16): filtert die gezeigte Seite,
-// bei mehreren Seiten fuehrt ein Link mit derselben Suche in den Item Finder.
+// bei mehreren Seiten fuehrt ein Link mit derselben Suche auf die Items-Seite.
 const filterJs = versioned('assets/kategorie-filter.js', '/assets/kategorie-filter.js');
 
 const crumbs = [
@@ -114,7 +114,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
     <label class="dp-kf__l" for="dp-kf-q">{t('kfLabel')}</label>
     <input id="dp-kf-q" class="dp-kf__q" type="search" placeholder={t('kfPlatzhalter')} autocomplete="off" spellcheck="false" />
     <span class="dp-kf__n" data-kf-n aria-live="polite"></span>
-    {pages > 1 && <a class="dp-kf__alle" data-kf-alle hidden href={href('/item-finder.html', lang)}></a>}
+    {pages > 1 && <a class="dp-kf__alle" data-kf-alle hidden href={href(itemsHubPath, lang)}></a>}
   </div>
 
   <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
@@ -186,6 +186,8 @@ const sourceLabel = (obtain: Item['obtain']) =>
 
   <div class="dp-actions">
     <a class="dp-btn dp-btn--ghost" href={href(itemsHubPath, lang)}>{t('backToHub')}</a>
-    <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
+    {/* Dieselbe Kategorie auf der Items-Seite (Werkbank, ?kat=): dort mit
+        Filtern, Sortierung und Blatt. */}
+    <a class="dp-btn dp-btn--ghost" href={`${href(itemsHubPath, lang)}?kat=${encodeURIComponent(node.slug)}`}>{t('katFiltern')}</a>
   </div>
 </DataShell>

@@ -6,7 +6,6 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { setupMockDOM } from './helpers/dom-mock.js';
 
 const canonicalPath = path.resolve('assets/universal-items.json');
 const db = JSON.parse(fs.readFileSync(canonicalPath, 'utf8'));
@@ -206,88 +205,7 @@ describe('Ø-Spalte in der Kategorie-Liste — gebautes dist/ (DE+EN)', () => {
   });
 });
 
-describe('Ø-Spalte im Finder-Modal — Mock-DOM (DE-Rueckfaelle)', () => {
-  const scriptPath = path.resolve('assets/item-finder-app.js');
-
-  function makeDb() {
-    const list = [
-      {
-        id: 'beta-helmet', name: 'Beta Helmet', category: 'Armour / Combat / Light',
-        obtain: [
-          { kind: 'shop', loc: 'Armor Shop - Lorville', price: 500 },
-          { kind: 'shop', loc: 'Cubby Blast - Area 18', price: 800 },
-        ],
-      },
-      {
-        id: 'gamma-jacket', name: 'Gamma Jacket', category: 'Clothing',
-        obtain: [{ kind: 'loot', loc: 'Executive Lockers' }],
-        guide: 'Nur in Executive-Spinden im Verwaltungstrakt zu finden.',
-      },
-      {
-        id: 'epsilon-runner', name: 'Epsilon Runner', category: 'Vehicle',
-        obtain: [{ kind: 'vehicle', loc: 'Astro Armada - Area 18', price: 1500000 }],
-      },
-    ];
-    return {
-      generator: 'scripts/build-universal-db.mjs',
-      generatedAt: '2026-07-09',
-      note: 'Fixture',
-      sources: {},
-      counts: { items: list.length, withObtain: list.length, catalogOnly: 0 },
-      items: list,
-    };
-  }
-
-  function cards(dom) {
-    return dom.elements['uif-results-grid'].querySelectorAll('.uif-card');
-  }
-  function openCard(dom, id) {
-    cards(dom).find((c) => c.getAttribute('data-id') === id).click();
-  }
-
-  test('10. Modal: beta-helmet zeigt Ø-Kopf und 650 in beiden Zeilen, gamma-jacket zeigt Gedankenstrich', async () => {
-    const dom = await setupMockDOM({ db: makeDb() });
-    await dom.runScript(scriptPath);
-    await dom.wait(10);
-
-    openCard(dom, 'beta-helmet');
-    const body = dom.elements['uif-modal-body-content'];
-    assert.ok(body.textContent.includes('Ø Preis'), 'Ø-Kopf fehlt im Modal (deutscher Rueckfall)');
-    const rows = body.querySelectorAll('.uif-obtain-row');
-    assert.strictEqual(rows.length, 2);
-    for (const row of rows) {
-      assert.ok(row.textContent.includes('650'), `Zeile ohne Ø 650: ${row.textContent}`);
-    }
-
-    openCard(dom, 'gamma-jacket');
-    const body2 = dom.elements['uif-modal-body-content'];
-    assert.ok(body2.textContent.includes('—') || body2.textContent.includes('&mdash;'), 'kein Gedankenstrich fuer gamma-jacket');
-  });
-
-  test('11. Karten-Regel: beta-helmet traegt .uif-card-avg (Ø != min), epsilon-runner nicht (Ø == min)', async () => {
-    const dom = await setupMockDOM({ db: makeDb() });
-    await dom.runScript(scriptPath);
-    await dom.wait(10);
-
-    const beta = cards(dom).find((c) => c.getAttribute('data-id') === 'beta-helmet');
-    const epsilon = cards(dom).find((c) => c.getAttribute('data-id') === 'epsilon-runner');
-    assert.ok(beta.querySelector('.uif-card-avg'), 'beta-helmet ohne Ø-Zusatz auf der Karte');
-    assert.ok(!epsilon.querySelector('.uif-card-avg'), 'epsilon-runner faelschlich mit Ø-Zusatz (Ø == min)');
-  });
-});
-
-describe('Ø-Label im Client-Konfigurationsblock — gebautes dist/ (DE+EN)', () => {
-  test('12. dist/item-finder.html und dist/de/item-finder.html transportieren thAvg in window.__UIF', () => {
-    for (const [p, expected] of [
-      [path.resolve('dist/item-finder.html'), 'Avg price'],
-      [path.resolve('dist/de/item-finder.html'), 'Ø Preis'],
-    ]) {
-      assert.ok(fs.existsSync(p), `${p} fehlt — npm run build ausfuehren`);
-      const html = fs.readFileSync(p, 'utf8');
-      const cfgMatch = html.match(/window\.__UIF=(\{[\s\S]*?\});/);
-      assert.ok(cfgMatch, `window.__UIF nicht gefunden in ${p}`);
-      const cfg = JSON.parse(cfgMatch[1]);
-      assert.strictEqual(cfg.t.thAvg, expected, `thAvg falsch in ${p}`);
-    }
-  });
-});
+// Tests 10 bis 12 galten dem Ø im Modal und auf den Karten des Item Finders
+// (assets/item-finder-app.js). Der Finder ist am 26.11.2026 in der
+// Items-Werkbank auf /items.html aufgegangen; den Ø im Blatt der Werkbank
+// prueft tests/e2e/items-werkbank.test.js (Test 47).

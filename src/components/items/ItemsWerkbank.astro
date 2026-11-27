@@ -4,9 +4,8 @@
 //
 // Krisz 24.11.2026: „Schon von der Funktion her zusammen bauen zu 1 aber wir
 // können die Möglichkeit nutzen um eine richtig geile neuen Standart
-// einführen auf unsere Seite“. Bis zur Abnahme ein Prototyp nur im
-// Vorschau-Bau (scripts/lib/vorschau-seiten.mjs); /items.html und
-// /item-finder.html bleiben bis dahin, wie sie sind.
+// einführen auf unsere Seite“. Seit dem 26.11.2026 ist sie die Seite
+// /items.html; /item-finder.html leitet hierher (nginx/umzuege.conf).
 //
 // Was statisch im HTML steht (ohne Skript lesbar und krabbelbar): Reiter,
 // Bedienleiste, die Leiste aller Gruppen und Kategorien als echte Links auf
@@ -19,6 +18,8 @@ import { WZ_CSS } from '../../lib/werkzeugStandard';
 import { wzZeichenCss } from '../../lib/werkzeugZeichen';
 import { kategorieBaum, ZEICHEN_BLATT, ZEICHEN_GRUPPE, GRUPPEN_FARBE } from '../../lib/itemKategorien';
 import { ITEM_UI } from '../../i18n/itemText';
+import { useHelp } from '../../i18n/help';
+import { versioned } from '../../lib/assetVersion';
 import { assertLocale, href } from '../../i18n/ui';
 import { jsonForScript } from '../../lib/safeJson';
 import { erzKatalog } from '../../lib/miningLinks';
@@ -31,8 +32,10 @@ interface Props { lang: 'de' | 'en' }
 const lang = assertLocale(Astro.props.lang, 'ItemsWerkbank');
 const de = lang === 'de';
 const n = (x: number) => num(x, lang);
+const h = useHelp(lang);
 
-// Cache-Bust per Inhalt (gleiche Begruendung wie in ItemFinderApp.astro).
+// Cache-Bust per Inhalt: die Adresse wechselt mit der Datei, also darf der
+// Browser sie lange behalten und holt nach jedem Bau die neue.
 const ver = (f: string) => {
   try { return createHash('sha1').update(readFileSync(f)).digest('hex').slice(0, 8); } catch { return 'x'; }
 };
@@ -48,12 +51,7 @@ const groesste = Math.max(...baum.map((g) => g.n));
 const W = {
   de: {
     tabItems: 'Items', tabSets: 'Rüstungssets',
-    hilfe: 'So funktioniert’s', hilfeKurz: 'Hilfe',
-    hilfeLead: 'Alle Items des Spiels an einem Ort: links die Gruppen, in der Mitte die Treffer, rechts das gewählte Item mit Werten, Preisen und Fundorten.',
-    hilfe1: 'Gruppe oder Kategorie links wählen, oder einfach suchen.',
-    hilfe2: 'Mit „Filter“ nach Fundart, Größe, Panzerungsklasse oder Seltenheit eingrenzen.',
-    hilfe3: 'Ein Item anklicken: rechts stehen Werte, Bezugsquellen, Set und Rezept.',
-    hilfe4: 'Tastatur: / sucht, ↑ ↓ blättert durch die Treffer, Esc schließt.',
+    hilfeKurz: 'Hilfe',
     filter: 'Filter', suche: 'Item, Hersteller, Fundort suchen…', sucheKurz: 'Item, Hersteller, Fundort…', sucheLabel: 'Items durchsuchen', leeren: 'Suche leeren',
     sortEmpf: 'Empfohlen', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Wert (hoch→niedrig)', sortPreis: 'Preis (aufsteigend)', sortPreisZ: 'Preis (absteigend)',
     sortLabel: 'Sortierung', kacheln: 'Kacheln', liste: 'Liste', ansicht: 'Ansicht',
@@ -72,16 +70,10 @@ const W = {
     setKomplett: 'komplett', setTeilweise: '{n}/4 Kernslots', setFilter: 'Set: {name}',
     craftLaden: 'Rezept wird geladen…', imAll: 'im All',
     kurzSets: 'Sets', kurzItems: 'Items',
-    proto: 'Prototyp', protoHub: 'Verzeichnis',
   },
   en: {
     tabItems: 'Items', tabSets: 'Armor sets',
-    hilfe: 'How it works', hilfeKurz: 'Help',
-    hilfeLead: 'Every item in the game in one place: groups on the left, results in the middle, the chosen item with stats, prices and locations on the right.',
-    hilfe1: 'Pick a group or category on the left, or just search.',
-    hilfe2: 'Use “Filter” to narrow by availability, size, armor class or rarity.',
-    hilfe3: 'Click an item: stats, sources, set and recipe appear on the right.',
-    hilfe4: 'Keyboard: / searches, ↑ ↓ steps through results, Esc closes.',
+    hilfeKurz: 'Help',
     filter: 'Filter', suche: 'Search item, manufacturer, location…', sucheKurz: 'Item, maker, location…', sucheLabel: 'Search items', leeren: 'Clear search',
     sortEmpf: 'Featured', sortName: 'Name (A–Z)', sortNameZ: 'Name (Z–A)', sortWert: 'Value (high→low)', sortPreis: 'Price (low→high)', sortPreisZ: 'Price (high→low)',
     sortLabel: 'Sort', kacheln: 'Tiles', liste: 'List', ansicht: 'View',
@@ -100,7 +92,6 @@ const W = {
     setKomplett: 'complete', setTeilweise: '{n}/4 core slots', setFilter: 'Set: {name}',
     craftLaden: 'Loading recipe…', imAll: 'in space',
     kurzSets: 'Sets', kurzItems: 'Items',
-    proto: 'Prototype', protoHub: 'Directory',
   },
 }[lang];
 
@@ -127,51 +118,52 @@ const CFG = {
 
 // Ring um das Emblem: gestrichelte Bahn, gezogener Kreis, vier Marken.
 const RING = '<svg viewBox="0 0 120 120" fill="none" aria-hidden="true"><circle class="wzb-ring__a" cx="60" cy="60" r="56"/><circle class="wzb-ring__b" cx="60" cy="60" r="44"/><path class="wzb-ring__c" d="M60 0v10M60 110v10M0 60h10M110 60h10"/></svg>';
-const allePfad = href('/items-werkbank.html', lang);
+const allePfad = href('/items.html', lang);
 ---
 <style is:inline set:html={WZ_CSS + '\n' + wzZeichenCss('.wz')}></style>
 <style is:inline>
 /* Items: Farben der Seite (Violett und Bernstein wie bisher der Finder). */
 .wz--items{--akz:#A78BFA;--wert:#FFB84D}
+/* „Elemente erklären“ unter den Schritten der Anleitung. */
+.wz-hilfe__el{display:inline-flex;align-items:center;min-height:2.2rem;margin:.9rem 0 0;padding:.35rem .9rem;border:1px solid var(--hl2);border-radius:999px;background:none;color:var(--tx);font:inherit;font-size:var(--fs-7);font-weight:700;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
+.wz-hilfe__el:hover,.wz-hilfe__el[aria-pressed="true"]{border-color:var(--akz);background:color-mix(in srgb,var(--akz) 14%,transparent)}
+.wz-hilfe__el:focus-visible{outline:2px solid var(--akz);outline-offset:2px}
 .wz--items .wz-gr__liste{border-left:0}
-/* Prototyp-Marke im Kopf, bis zur Abnahme. */
-.wz-proto{display:flex;align-items:center;gap:.25rem .75rem;margin:0 0 0 auto;font-size:var(--fs-6);color:var(--mu)}
-.wz-proto b{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-3);color:var(--ink);background:var(--wert);padding:.12rem .45rem;border-radius:3px}
-.wz-proto a{color:var(--mu);text-decoration:none;border-bottom:1px solid var(--hl2);white-space:nowrap;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
-.wz-proto a:hover{color:var(--tx);border-color:var(--akz)}
-@media (max-width:820px){.wz-proto{order:3;flex:1 1 auto;justify-content:flex-end;gap:.25rem .6rem}}
 </style>
 
 <div class="wz wz--items wz-auftakt" id="wz" data-lang={lang}>
   <header class="wz-kopf">
-    <div class="wz-reiter" role="tablist" aria-label={W.tabItems}>
+    <div class="wz-reiter" role="tablist" aria-label={W.tabItems} data-help={h('itemfinder.ctl.view')} data-ev-filter="ansicht">
       <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-items" data-tab="items" aria-selected="true" aria-controls="wz-bereich" tabindex="0"><span class="wi wi--grid4" aria-hidden="true"></span>{W.tabItems}<em>{n(total)}</em></button>
       <button class="wz-reiter__b" role="tab" type="button" id="wz-tab-sets" data-tab="sets" aria-selected="false" aria-controls="wz-bereich" tabindex="-1"><span class="wi wi--layers" aria-hidden="true"></span>{W.tabSets}<em>{n(armorSets.length)}</em></button>
     </div>
-    {/* Prototyp-Marke (die Seite gibt es nur im Vorschau-Bau): Rueckweg zu
-        den beiden bisherigen Seiten, solange sie nicht abgenommen ist. */}
-    <p class="wz-proto"><b>{W.proto}</b><a href={href('/items.html', lang)}>{W.protoHub}</a><a href={href('/item-finder.html', lang)}>Item Finder</a></p>
-    <details class="wz-hilfe">
-      <summary><span class="wi wi--help" aria-hidden="true"></span><span class="wz-hilfe__lang">{W.hilfe}</span><span class="wz-hilfe__kurz">{W.hilfeKurz}</span></summary>
-      <div class="wz-hilfe__in">
-        <p>{W.hilfeLead}</p>
-        <ol><li>{W.hilfe1}</li><li>{W.hilfe2}</li><li>{W.hilfe3}</li><li>{W.hilfe4}</li></ol>
+    {/* Die Anleitung nach dem Vertrag aller Werkzeuge (ToolHelp.astro,
+        assets/tool-help.js, verify:help): Zweck, Schritte und der Knopf
+        „Elemente erklären“, der die Bedienelemente mit data-help umrandet.
+        Gestalt des Werkzeug-Standards; geht nie von selbst auf, sie
+        schwebt ueber der Bedienung (data-help-auto="aus"). */}
+    <details class="wz-hilfe tool-help" data-tool-id="itemfinder" data-help-auto="aus">
+      <summary data-ev-hilfe="anleitung"><span class="wi wi--help" aria-hidden="true"></span><span class="wz-hilfe__lang">{h('itemfinder.title')}</span><span class="wz-hilfe__kurz">{W.hilfeKurz}</span></summary>
+      <div class="wz-hilfe__in tool-help__body">
+        <p class="tool-help__purpose">{h('itemfinder.purpose')}</p>
+        <ol class="tool-help__steps"><li>{h('itemfinder.step1')}</li><li>{h('itemfinder.step2')}</li><li>{h('itemfinder.step3')}</li><li>{h('itemfinder.step4')}</li></ol>
+        <button type="button" class="wz-hilfe__el tool-help__elbtn js-tool-help" data-tool-id="itemfinder" data-ev-hilfe="elemente" aria-pressed="false" data-label-off={h('ui.elements')} data-label-on={h('ui.elementsOff')} data-bubble-label={h('ui.bubbleLabel')}>{h('ui.elements')}</button>
       </div>
     </details>
   </header>
 
   <div class="wz-bar">
-    <button class="wz-knopf wz-filterknopf" id="wz-filterknopf" type="button" aria-expanded="false" aria-controls="wz-schublade" data-offcanvas-toggle="wz-schublade"><span class="wi wi--filter" aria-hidden="true"></span>{W.filter}</button>
-    <div class="wz-suche" id="wz-suche">
+    <button class="wz-knopf wz-filterknopf" id="wz-filterknopf" type="button" aria-expanded="false" aria-controls="wz-schublade" data-offcanvas-toggle="wz-schublade" data-help={h('itemfinder.ctl.filter')}><span class="wi wi--filter" aria-hidden="true"></span>{W.filter}</button>
+    <div class="wz-suche" id="wz-suche" data-help={h('itemfinder.ctl.search')}>
       <label class="wz-sr" for="wz-q">{W.sucheLabel}</label>
       <span class="wi wi--search" aria-hidden="true"></span>
-      <input type="search" id="wz-q" placeholder={W.suche} autocomplete="off" spellcheck="false" enterkeyhint="search" />
+      <input type="search" id="wz-q" placeholder={W.suche} autocomplete="off" spellcheck="false" enterkeyhint="search" data-ev-filter="suche" />
       <kbd aria-hidden="true">/</kbd>
       <button class="wz-leeren" id="wz-leeren" type="button" aria-label={W.leeren}><span class="wi wi--close" aria-hidden="true"></span></button>
     </div>
-    <label class="wz-sort">
+    <label class="wz-sort" data-help={h('itemfinder.ctl.sort')}>
       <span class="wz-sr">{W.sortLabel}</span>
-      <select id="wz-sort">
+      <select id="wz-sort" data-ev-filter="sortierung">
         <option value="relevanz">{W.sortEmpf}</option>
         <option value="name">{W.sortName}</option>
         <option value="name-z">{W.sortNameZ}</option>
@@ -180,7 +172,7 @@ const allePfad = href('/items-werkbank.html', lang);
         <option value="preis-z">{W.sortPreisZ}</option>
       </select>
     </label>
-    <div class="wz-ansicht" role="group" aria-label={W.ansicht}>
+    <div class="wz-ansicht" role="group" aria-label={W.ansicht} data-help={h('itemfinder.ctl.layout')}>
       <button type="button" data-ansicht="kacheln" aria-pressed="true" title={W.kacheln} aria-label={W.kacheln}><span class="wi wi--grid" aria-hidden="true"></span></button>
       <button type="button" data-ansicht="liste" aria-pressed="false" title={W.liste} aria-label={W.liste}><span class="wi wi--list" aria-hidden="true"></span></button>
     </div>
@@ -189,7 +181,7 @@ const allePfad = href('/items-werkbank.html', lang);
   {/* Leiste: jede Kategorie als echter Link auf ihre Liste. Das Skript
       faengt den Klick ab und filtert an Ort und Stelle; Strg-Klick,
       Mittelklick und Crawler folgen dem Link. */}
-  <nav class="wz-rail" id="wz-rail" aria-label={W.kategorien}>
+  <nav class="wz-rail" id="wz-rail" aria-label={W.kategorien} data-help={h('itemfinder.ctl.category')} data-ev-filter="kategorie">
     <a class="wz-rail__alle is-an" href={allePfad} data-kat="" aria-current="true"><span class="wz-z" data-g="grid4" aria-hidden="true"></span>{W.alle}<em>{n(total)}</em></a>
     {baum.map((g) => (
       <div class="wz-gr" data-root={g.root} style={`--kc:${g.farbe}`}>
@@ -219,14 +211,18 @@ const allePfad = href('/items-werkbank.html', lang);
       <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips,.wz-reiter,.wz-bar,.wz-hilfe,.wzu .wzb-inh{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
       <p class="wz-ohne-js">{W.ohneJs}</p>
     </noscript>
-    <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true">
+    {/* data-ev-treffer / data-ev-fenster: Messereignis treffer-offen
+        (assets/ereignisse.js). Die Treffer sind die Karten; das Blatt steht
+        am Schreibtisch im Fluss und zaehlt wie ein offenes Fenster, ein
+        Link darin also nicht noch einmal. */}
+    <div class="wz-gitter vb-scrollbox" id="wz-gitter" aria-busy="true" data-ev-treffer>
       {Array.from({ length: 12 }, () => (
         <div class="wz-k wz-k--leer" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       ))}
     </div>
   </section>
 
-  <section class="wz-blatt" id="wz-blatt" aria-label={W.ueTitel}>
+  <section class="wz-blatt" id="wz-blatt" aria-label={W.ueTitel} data-ev-fenster>
     <div class="wz-blatt__box" id="wz-blatt-box" tabindex="-1">
       <button class="wz-blatt__x" id="wz-blatt-x" type="button" aria-label={W.schliessen}><span class="wi wi--close" aria-hidden="true"></span></button>
       <button class="wz-blatt__zur" id="wz-blatt-zur" type="button" hidden><span class="wi wi--back" aria-hidden="true"></span><span></span></button>
@@ -268,10 +264,10 @@ const allePfad = href('/items-werkbank.html', lang);
 
   <aside class="wz-schublade" id="wz-schublade" aria-label={W.filter} data-offcanvas data-offcanvas-immer>
     <div class="wz-schublade__kopf">{W.filter}<button type="button" id="wz-schublade-x" aria-label={W.schliessen}><span class="wi wi--close" aria-hidden="true"></span></button></div>
-    <div class="wz-fg"><h3>{W.fArt}</h3><div class="wz-fchips" id="wz-f-art"></div></div>
-    <div class="wz-fg"><h3>{W.fGroesse}</h3><div class="wz-fchips" id="wz-f-gr"></div></div>
-    <div class="wz-fg"><h3>{W.fKlasse}</h3><div class="wz-fchips" id="wz-f-pk"></div></div>
-    <div class="wz-fg"><h3>{W.fSel}</h3><div class="wz-fchips" id="wz-f-sel"></div></div>
+    <div class="wz-fg" data-help={h('itemfinder.ctl.kind')}><h3>{W.fArt}</h3><div class="wz-fchips" id="wz-f-art" data-ev-filter="verfuegbarkeit"></div></div>
+    <div class="wz-fg" data-help={h('itemfinder.ctl.size')}><h3>{W.fGroesse}</h3><div class="wz-fchips" id="wz-f-gr" data-ev-filter="groesse"></div></div>
+    <div class="wz-fg" data-help={h('itemfinder.ctl.weight')}><h3>{W.fKlasse}</h3><div class="wz-fchips" id="wz-f-pk" data-ev-filter="gewicht"></div></div>
+    <div class="wz-fg" data-help={h('itemfinder.ctl.rarity')}><h3>{W.fSel}</h3><div class="wz-fchips" id="wz-f-sel" data-ev-filter="seltenheit"></div></div>
     <div class="wz-schublade__fuss">
       <button class="wz-knopf" type="button" id="wz-f-reset">{W.zuruecksetzen}</button>
       <button class="wz-zeigen" type="button" id="wz-f-zeigen">{W.zeigen.replace('{n}', n(total))}</button>
@@ -282,3 +278,4 @@ const allePfad = href('/items-werkbank.html', lang);
 {ITEM3D_LISTE_URL && <Item3dDialog model={null} name="" lang={lang} liste={ITEM3D_LISTE_URL} />}
 <script is:inline set:html={`window.__WZI=${jsonForScript(CFG)};`} />
 <script is:inline src={appJs}></script>
+<script is:inline defer src={versioned('assets/tool-help.js', '/assets/tool-help.js')}></script>

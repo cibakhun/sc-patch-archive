@@ -119,7 +119,7 @@ const searchUi = href('/search-ui.json', lang);
 // stand hier „Preise & Fundorte“ fuer das Item-Verzeichnis und „Blaupausen &
 // Planer“ fuer das Blueprint-Verzeichnis — im Menue die Unterzeilen von Item
 // Finder und Werkbank, also zwei Namen fuer je zwei Ziele (UX-Audit A4).
-const fussZiele = ['finder', 'items', 'blueprints', 'schiffe', 'missionen'].map((k) => ziel(k, lang));
+const fussZiele = ['items', 'blueprints', 'schiffe', 'missionen'].map((k) => ziel(k, lang));
 // Feedback nimmt die Seite mit (UX-Audit A8), wie „Falschen Wert melden“.
 const meldenSeite = feedbackHref(Astro.url.pathname, lang);
 const fussRecht = [...recht(lang), { ...ziel('feedback', lang), href: meldenSeite }, ziel('support', lang)];
@@ -157,9 +157,9 @@ const alleBereiche = bereiche(lang);
 const leiste = alleBereiche.map((b) => ({ key: b.key, href: b.href, label: b.kurz, current: hier?.bereich === b.key }));
 const dienstZiele = dienste(lang);
 // Lokale Leiste (UX-Audit A6): auf den Seiten eines Bereichs mit mehreren
-// Seiten deren Abfolge (Item-Verzeichnis › Item Finder › Ruestungs-Sets,
+// Seiten deren Abfolge (Items › Ruestungs-Sets,
 // Crafting › Blueprint-Verzeichnis). Hier oben im Inhalt statt in der
-// klebenden Leiste: es sind nur sechs Seiten, die Leiste bleibt fuer alle
+// klebenden Leiste: es sind nur wenige Seiten, die Leiste bleibt fuer alle
 // anderen so niedrig wie sie ist.
 const lokal = lokaleLeiste(Astro.url.pathname, lang);
 const SPRACHE: Record<Locale, string> = { de: 'Deutsch', en: 'English' };
