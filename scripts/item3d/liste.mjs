@@ -83,5 +83,6 @@ writeFileSync(ZIEL, JSON.stringify({ katalog: fingerabdruck, zahl, liste, ohneRe
 const proArt = (o) => Object.entries(o.reduce((m, e) => ((m[e] = (m[e] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]);
 console.log(`Katalog ${zahl.katalog} Items (${fingerabdruck}): ${zahl.liste} zu backen (${liste.filter((e) => e.weg === 'name').length} über den Namen gefunden), ${zahl.ohneRecord} ohne Record -> ${ZIEL}`);
 console.log(`  zu backen je Katalog-Bereich: ${proArt(liste.map((e) => (e.kat ?? 'Other').split(' / ')[0])).map(([k, n]) => `${k} ${n}`).join(', ')}`);
-console.log(`  ohne Record je Katalog-Bereich: ${proArt(Object.keys(ohneRecord).map((id) => (katalog.find((i) => i.id === id)?.category ?? 'Other').split(' / ')[0])).map(([k, n]) => `${k} ${n}`).join(', ')}`);
+const katNachId = new Map(katalog.map((i) => [i.id, i.category]));
+console.log(`  ohne Record je Katalog-Bereich: ${proArt(Object.keys(ohneRecord).map((id) => (katNachId.get(id) ?? 'Other').split(' / ')[0])).map(([k, n]) => `${k} ${n}`).join(', ')}`);
 if (zahl.liste + zahl.ohneRecord !== zahl.katalog) { console.error('FEHLER: Schicksale decken den Katalog nicht ab'); process.exit(1); }

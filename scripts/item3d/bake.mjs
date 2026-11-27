@@ -565,7 +565,11 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     if (!provider.has(p) || p === skin) return skin;
     if (l === 1) {
       const t0 = dreiecke(skin), t1 = dreiecke(p);
-      if (t0 && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
+      // Nur wenn beide Zahlen bekannt sind: Eine Stufe 1 ohne lesbares Netz
+      // ist nicht „zu grob“, sie bleibt gewählt, und der Aufrufer meldet
+      // „Bau Netz fehlt“ (Fehler, hält das Item an; Review #488). Im
+      // Spielstand vom 27.11.2026 hat jede der 81 877 Stufe-1-Dateien ihr Netz.
+      if (t0 && t1 && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
     }
     return p;
   }

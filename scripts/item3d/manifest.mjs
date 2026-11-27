@@ -78,7 +78,11 @@ if (!ALLE) {
 // heraus, auch wenn ein früherer Lauf sie noch gebaut hatte. Jeder andere
 // Fehlschlag sperrt einen älteren Erfolg (Zeit zeit; Zeilen ohne Zeit zählen
 // als 0, ein Gleichstand sperrt nicht).
-const test = new Set(), gescheitert = new Map(), fehlerGrund = new Map();
+// Ein Fehlschlag nennt im Bericht auch die Ursache, die der Bäcker als
+// Fehler festhielt (merk, eingeordnet nach der Tabelle): „keine sichtbaren
+// Teilnetze“ hieß sonst auch „Netzdatei fehlt“ (Review #488).
+const ursache = (f) => Object.keys(f?.merk ?? {}).filter((k) => einordnen(k).art === 'fehler').map((k) => k.replace(/^Bau /, '')).sort().join(', ');
+const test = new Set(), gescheitert = new Map(), fehlerGrund = new Map(), fehlerUrsache = new Map();
 if (existsSync(join(OUT, 'fehler.jsonl'))) {
   for (const l of readFileSync(join(OUT, 'fehler.jsonl'), 'utf8').split(/\r?\n/)) {
     if (!l.trim()) continue;
@@ -86,7 +90,7 @@ if (existsSync(join(OUT, 'fehler.jsonl'))) {
     if (typeof f?.id !== 'string') continue;
     if (/Testeintrag/.test(f.fehler)) test.add(f.id);
     const zeit = Number(f.zeit) || 0;
-    if (zeit >= (gescheitert.get(f.id) ?? -1)) fehlerGrund.set(f.id, String(f.fehler ?? 'unbekannt'));
+    if (zeit >= (gescheitert.get(f.id) ?? -1)) { fehlerGrund.set(f.id, String(f.fehler ?? 'unbekannt')); fehlerUrsache.set(f.id, ursache(f)); }
     gescheitert.set(f.id, Math.max(gescheitert.get(f.id) ?? 0, zeit));
   }
 }
@@ -132,7 +136,7 @@ for (const { id } of backliste.liste) {
   if (items[id] || angehalten[id]) continue;
   if (offen.has(id)) zuLuecke(`offen: ${offen.get(id)}`, id);
   else if (test.has(id)) zuLuecke('Testeintrag des Spiels', id);
-  else if (fehlerGrund.has(id)) zuLuecke(grundKurz(fehlerGrund.get(id)), id);
+  else if (fehlerGrund.has(id)) zuLuecke(`${grundKurz(fehlerGrund.get(id))}${fehlerUrsache.get(id) ? `: ${fehlerUrsache.get(id)}` : ''}`, id);
   else zuLuecke('offen: noch nicht gebacken', id);
 }
 for (const [id, g] of Object.entries(backliste.ohneRecord ?? {})) zuLuecke(`ohne Record: ${grundKurz(g)}`, id);
