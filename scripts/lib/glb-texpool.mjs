@@ -19,6 +19,16 @@ import { join } from 'node:path';
 const JSON_CHUNK = 0x4e4f534a, BIN_CHUNK = 0x004e4942;
 const EXT = { 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/ktx2': 'ktx2' };
 export const POOL_NAME = /^[0-9a-f]{16}\.(webp|png|jpg|ktx2)$/;
+// Hallen, die ihre Bilder ebenso in die Ablage legen (seit 27.11.2026): die
+// Hallen fester Größe (HALL_OF_SIZE in src/lib/hangar/stage.ts). Am PC lädt
+// der Viewer jedes Bild aus seinem komprimierten Zwilling; die WebP-Bilder
+// im GLB (7,8 bis 8,6 MB je Halle) kamen bei jedem Erstbesuch mit und
+// blieben ungenutzt. Aus der Ablage holt er sie nur noch, wenn es keinen
+// Zwilling gibt, und die vier Hallen teilen die meisten. Die Halle von
+// Revel & York bleibt eingebettet: scripts/build-hall-furniture.mjs liest
+// sie mit readBinary(), und das kann Bilder außerhalb des GLB nicht lesen.
+// verify:hangar-hallen [7] prüft das an jeder ausgelieferten Halle fester Größe.
+export const HALL_ABLAGE = new Set(['util-smltop', 'util-medtop', 'util-lrgtop', 'util-xltop']);
 
 export function readGlb(buf) {
   if (buf.readUInt32LE(0) !== 0x46546c67 || buf.readUInt32LE(4) !== 2) throw new Error('kein GLB 2.0');

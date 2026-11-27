@@ -219,10 +219,18 @@ const gear = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
 
 // Bilder des Werkslacks liegen in der gemeinsamen Ablage /hangar/tex/
 // (scripts/lib/glb-texpool.mjs); ihre Summe je Datei zählt der Ladebalken mit.
-const texBytes = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
-  const t = real.ships?.[id];
-  return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
-}));
+// Seit 27.11.2026 ebenso die der Hallen fester Größe (HALL_ABLAGE), dort im
+// Teil Halle (hallTex im Viewer, verify:hangar-hallen [7]).
+const texBytes = Object.fromEntries([
+  ...HANGAR_IDS.flatMap((id) => {
+    const t = real.ships?.[id];
+    return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
+  }),
+  ...Object.values(halls).flatMap((h) => {
+    const a = h && real.hall?.[h.id];
+    return a?.pool?.bytes ? [[a.url, a.pool.bytes]] : [];
+  }),
+]);
 
 // Begehbare Innenräume (PC-Lauf „Hangar-Innenleben“): je Werkslack-Datei
 // der Innenraum im selben Modellraum, dazu Lampen und Einstiegspunkte

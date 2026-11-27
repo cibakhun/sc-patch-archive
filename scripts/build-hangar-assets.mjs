@@ -41,7 +41,7 @@ import { kinderBestand } from './lib/hall-kinder.mjs';
 import { hallDrehen } from './lib/hall-drehen.mjs';
 import { torBahn, achsAbstand, offenImFeld } from './lib/aufzug-dreh.mjs';
 import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls, hallBestand, bestandPasst } from './lib/hall-quellen.mjs';
-import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
+import { poolGlbFile, prunePool, HALL_ABLAGE } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
 import { initGear, poseShip, underInterior, worldOf } from './lib/landing-gear.mjs';
@@ -2523,8 +2523,9 @@ async function buildOne(kind, name, inPath) {
   mkdirSync(new URL(`${kind}/`, OUT), { recursive: true });
   const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
   await io.write(outPath, doc);
-  // Schiffe und Komponenten: Bilder in die gemeinsame Ablage, im GLB nur der Verweis
-  const pooled = ship || kind === 'components' ? poolGlbFile(outPath, SHIP_POOL) : null;
+  // Schiffe, Komponenten und die Hallen fester Größe (HALL_ABLAGE): Bilder in
+  // die gemeinsame Ablage, im GLB nur der Verweis
+  const pooled = ship || kind === 'components' || (kind === 'hall' && HALL_ABLAGE.has(name)) ? poolGlbFile(outPath, SHIP_POOL) : null;
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
@@ -3837,9 +3838,11 @@ if (existsSync(new URL('ships/', SRC)) && existsSync(`${PAINT_DIR}tex`)) {
   for (const f of stale) rmSync(`${PAINT_DIR}tex/${f}`);
   console.log(`  Lackkarten: ${used.size} in Gebrauch, ${stale.length} verwaiste entfernt`);
 }
-// Schiffsbilder, auf die kein Schiff und keine Komponente mehr zeigt, ebenso nur dort entfernen
-if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships' || KIND === 'interior' || KIND === 'components')) {
-  const r = prunePool(SHIP_POOL.poolDir, ['ships/', 'interior/', 'components/'].map((d) => fileURLToPath(new URL(d, OUT))).filter((d) => existsSync(d)), SHIP_POOL.uriPrefix);
+// Bilder der Ablage, auf die kein Schiff, kein Innenraum, keine Komponente und
+// keine Halle mehr zeigt, ebenso nur dort entfernen (die Hallen seit 27.11.2026:
+// ohne sie nähme ein Bau nur der Schiffe die Bilder, die nur eine Halle nennt)
+if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships' || KIND === 'interior' || KIND === 'components' || KIND === 'hall')) {
+  const r = prunePool(SHIP_POOL.poolDir, ['ships/', 'interior/', 'components/', 'hall/'].map((d) => fileURLToPath(new URL(d, OUT))).filter((d) => existsSync(d)), SHIP_POOL.uriPrefix);
   console.log(`  Schiffsbilder: ${r.used} in Gebrauch, ${r.removed.length} verwaiste entfernt`);
 }
 // Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu

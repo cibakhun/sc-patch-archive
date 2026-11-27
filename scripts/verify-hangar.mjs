@@ -1451,7 +1451,8 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     // Innenraum). Jetzt 115 Messungen und 0,11 s. Ob das Schiff seine Mittel
     // noch bekommt, prueft check:hangar-shader im Browser.
     ['Farbmittel nur fuer Dateien des Schiffs', /if \(mean && colour\.has\(i\)\) t\.userData\.mean = await imageMean\(bitmap\);/.test(viewer)
-      && /const hallLoader = new GLTFLoader\(\)\.setDRACOLoader\(draco\)\.register\(images\(false\)\);/.test(viewer)
+      // seit 27.11.2026 mit eigenem Zaehler fuer den Ladebalken (hallTex)
+      && /const hallLoader = new GLTFLoader\(\)\.setDRACOLoader\(draco\)\.register\(images\(false, \(parser\) => hallTex\.count\(parser\)\)\);/.test(viewer)
       && /\(HALL_FILES\.has\(key\) \? hallLoader : loader\)\.load\(url, /.test(viewer)
       && ['hall', 'furniture', 'workshop', 'workshop-floor', 'dienst', 'werk', 'werkdecke', 'deko'].every((k) => new RegExp(`const HALL_FILES = new Set\\(\\[[^\\]]*'${k}'`).test(viewer)),
       'dist/assets/hangar-viewer.js misst das Mittel der Farbkarten wieder fuer die Dateien der Halle (hallLoader mit images(false), HALL_FILES in fetchGltf): 324 Messungen im Hauptfaden, die niemand liest, 0,35 s Rechenzeit bei jedem Laden'],
@@ -2438,18 +2439,24 @@ say('\n[17] Bildablage der Schiffe: jeder Verweis liegt in dist/, Name = Inhalt,
 // legen ihre Bilder ebenso ab und zählen mit.
 const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
 {
-  const shipDir = join(DIST, 'hangar', 'ships'), innerDir = join(DIST, 'hangar', 'interior'), compDir = join(DIST, 'hangar', 'components'), texDir = join(DIST, 'hangar', 'tex');
+  const shipDir = join(DIST, 'hangar', 'ships'), innerDir = join(DIST, 'hangar', 'interior'), compDir = join(DIST, 'hangar', 'components'), hallDir = join(DIST, 'hangar', 'hall'), texDir = join(DIST, 'hangar', 'tex');
   const NAME = /^\.\.\/tex\/([0-9a-f]{16})\.(webp|png|jpg|ktx2)$/;
   const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
   const inners = existsSync(innerDir) ? readdirSync(innerDir).filter((x) => x.endsWith('.glb')).sort() : [];
   const comps = existsSync(compDir) ? readdirSync(compDir).filter((x) => x.endsWith('.glb')).sort() : [];
-  const used = new Map();   // Datei -> Zahl der Dateien (Rumpf, Innenraum, Komponente je eins)
-  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, innerBytes = 0, compBytes = 0, big = [];
+  // Hallen (seit 27.11.2026 legen die Hallen fester Groesse ihre Bilder ebenso
+  // ab, HALL_ABLAGE in scripts/lib/glb-texpool.mjs): ihre Verweise muessen da
+  // sein und zaehlen als benutzt. Eingebettete Bilder einer Halle sind hier
+  // kein FEHLER (Revel & York bleibt eingebettet); dass jede ausgelieferte
+  // Halle fester Groesse ablegt, haelt verify:hangar-hallen [7].
+  const halls = existsSync(hallDir) ? readdirSync(hallDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const used = new Map();   // Datei -> Zahl der Dateien (Rumpf, Innenraum, Komponente, Halle je eins)
+  let refs = 0, embedded = 0, pooledShips = 0, pooledHalls = 0, glbBytes = 0, innerBytes = 0, compBytes = 0, big = [];
   const missing = new Set(), foreign = [];
-  for (const [dir, f] of [...glbs.map((f) => [shipDir, f]), ...inners.map((f) => [innerDir, `interior/${f}`]), ...comps.map((f) => [compDir, `components/${f}`])]) {
-    const buf = readFileSync(join(dir, f.replace(/^(interior|components)\//, '')));
-    const hull = dir === shipDir;
-    if (hull) glbBytes += buf.length; else if (dir === innerDir) innerBytes += buf.length; else compBytes += buf.length;
+  for (const [dir, f] of [...glbs.map((f) => [shipDir, f]), ...inners.map((f) => [innerDir, `interior/${f}`]), ...comps.map((f) => [compDir, `components/${f}`]), ...halls.map((f) => [hallDir, `hall/${f}`])]) {
+    const buf = readFileSync(join(dir, f.replace(/^(interior|components|hall)\//, '')));
+    const hull = dir === shipDir, hall = dir === hallDir;
+    if (hull) glbBytes += buf.length; else if (dir === innerDir) innerBytes += buf.length; else if (!hall) compBytes += buf.length;
     if (buf.length > BILDER.dateiMB * 1048576) big.push(`${f} ${(buf.length / 1048576).toFixed(1)} MB`);
     const len = buf.readUInt32LE(12);
     const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
@@ -2465,6 +2472,7 @@ const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
       if (!existsSync(join(texDir, file))) missing.add(`${f} -> ${file}`);
     }
     for (const x of mine) used.set(x, (used.get(x) ?? 0) + 1);
+    if (hall) { if (mine.size && !emb) pooledHalls++; continue; }
     embedded += emb;
     if (emb) fail(`[17] ${f}: ${emb} Bilder noch eingebettet: node scripts/pool-hangar-textures.mjs (verlustfrei) oder neu bauen (scripts/build-hangar-assets.mjs legt sie selbst ab)`);
     if (hull && mine.size && !emb) pooledShips++;
@@ -2481,9 +2489,9 @@ const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
   }
   const shared = [...used.values()].filter((n) => n > 1).length;
   const totalMB = (glbBytes + innerBytes + compBytes + poolBytes) / 1048576;
-  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Innenräume: ${inners.length}   Komponenten: ${comps.length}   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einer Datei)   eingebettet: ${embedded}`);
+  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Innenräume: ${inners.length}   Komponenten: ${comps.length}   Hallen: ${halls.length} (mit Bildablage ${pooledHalls})   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einer Datei)   eingebettet: ${embedded}`);
   say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Innenräume ${(innerBytes / 1048576).toFixed(1)} MB + Komponenten ${(compBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
-  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff, kein Innenraum und keine Komponente (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
+  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff, kein Innenraum, keine Komponente und keine Halle (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
   sollIst(`Schiffe mit Bildablage >= ${BILDER.schiffe}, jeder Verweis da und Name = sha256 des Inhalts, zusammen <= ${BILDER.gesamtMB} MB, je Datei <= ${BILDER.dateiMB} MB`, `${pooledShips}, ${missing.size} fehlen, ${wrongName.length} falsch benannt, ${totalMB.toFixed(1)} MB, ${big.length} zu gross`);
   for (const x of [...missing].slice(0, 10)) fail(`[17] ${x} fehlt in dist/hangar/tex: das Material bleibt ohne diese Karte (Ablage nicht mit eingecheckt oder vom Bau zu frueh entfernt?)`);
   for (const x of wrongName.slice(0, 10)) fail(`[17] dist/hangar/tex/${x}: Name ist nicht der Inhalt (sha256, 16 Zeichen); die URL ist ein Jahr im Cache, ein geaenderter Inhalt unter altem Namen erreicht niemanden`);

@@ -57,5 +57,6 @@ reviews:
     - "!assets/crafting-db.json"           # datamine-crafting
     - "!assets/mining-model.json"          # build-mining-model
     - "!public/hangar/ktx/**"              # build-hangar-ktx (komprimierte Zwillinge der Hangar-Bilder)
+    - "!public/hangar/tex/**"              # build-hangar-assets, pool-hangar-textures (Bildablage, Dateien nach ihrem Inhalt benannt; #484 brachte 249 davon und riss so die Grenze von 100 Dateien)
     - "!public/vendor/**"
     - "!package-lock.json"

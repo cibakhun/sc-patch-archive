@@ -35,9 +35,10 @@
 // { ground }; das Schiff steht dann darauf statt auf dem tiefsten Punkt
 // seines Hüllquaders (standOn).
 //
-// BILDER: Schiffe im Werkslack holen ihre Bilder aus der gemeinsamen Ablage
-// /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
-// ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
+// BILDER: Schiffe im Werkslack und die Hallen fester Größe holen ihre Bilder
+// aus der gemeinsamen Ablage /hangar/tex/ (embeddedImages); opts.texBytes
+// nennt je Modelldatei (Pfad ohne ?v=) ihre Summe, damit der Ladebalken sie
+// mitzählt (shipTex, hallTex).
 // Am PC kommt jedes Bild aus seinem komprimierten Zwilling unter
 // /hangar/ktx/ (KTX_BAU), am Telefon aus dessen kleiner Fassung unter
 // /hangar/ktx-klein/ (KTX_KLEIN); opts.bilder 'webp' stellt das ab.
@@ -674,9 +675,11 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
   const nie = () => new Promise(() => {});
   const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
-  const fabrik = (mean) => (parser) => {
+  // zaehl: wem die Bytes der Ablage-Bilder dieses Loaders zufallen (Schiff
+  // oder Halle); ohne Angabe tally
+  const fabrik = (mean, zaehl = tally) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
-    const count = tally(parser);
+    const count = zaehl(parser);
     const colour = colourImages(parser.json);
     parser.loadImageSource = (i, loader) => {
       if (ende()) return nie();
@@ -9153,7 +9156,9 @@ export async function initHangar(container, opts = {}) {
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
   // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
   // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
-  const hallLoader = new GLTFLoader().setDRACOLoader(draco).register(images(false));
+  // Ihre Bilder aus der Ablage (die Hallen fester Größe) zählen zum Teil
+  // Halle des Ladebalkens (hallTex), nicht zu dem des Schiffs.
+  const hallLoader = new GLTFLoader().setDRACOLoader(draco).register(images(false, (parser) => hallTex.count(parser)));
   const HALL_FILES = new Set(['hall', 'furniture', 'lift', 'gate', 'rand', 'workshop', 'workshop-floor', 'dienst', 'werk', 'buehne', 'werkdecke', 'deko', 'crew']);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
@@ -9239,6 +9244,28 @@ export async function initHangar(container, opts = {}) {
         if (my !== token) return;
         const t = prog.get('ship-tex');
         if (t) { prog.set('ship-tex', [Math.min(got, t[1]), t[1]]); report(); }
+      };
+    },
+  };
+  // Bilder der Halle aus der Ablage (seit 27.11.2026 die Hallen fester
+  // Größe, HALL_ABLAGE in scripts/lib/glb-texpool.mjs): wie shipTex, die
+  // Summe nennt die Seite in opts.texBytes, gezählt wird unter 'hall-tex'
+  // (Teil Halle). Von den Dateien der Halle trägt nur das Modell selbst
+  // Bilder der Ablage. start() vor dem Laden der Halle.
+  const hallTex = {
+    on: false,
+    start(url) {
+      const total = opts.texBytes?.[url.split('?')[0]];
+      this.on = Number.isFinite(total) && total > 0;
+      if (this.on) prog.set('hall-tex', [0, total]);
+    },
+    count(parser) {
+      if (!this.on || !(parser.json.images ?? []).some(pooledImage)) return null;
+      let got = 0;
+      return (n) => {
+        got += n;
+        const t = prog.get('hall-tex');
+        if (t) { prog.set('hall-tex', [Math.min(got, t[1]), t[1]]); report(); }
       };
     },
   };
@@ -11954,6 +11981,7 @@ void main() {
         return null;
       })
       : Promise.resolve(null);
+    hallTex.start(h.url);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
       const c = h.room.center, o = hallSpot(h), O = hallOrigin(h);
@@ -12598,12 +12626,12 @@ void main() {
       else if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');
+      prog.delete('hall'); prog.delete('hall-tex'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');
       return true;
     }).catch((e) => {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');
+      prog.delete('hall'); prog.delete('hall-tex'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');
       hallFailed = true;
       dropHallLamps();
       buildStage();
