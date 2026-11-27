@@ -173,6 +173,8 @@ async function seite(opt = {}) {
     dist: DIST,
     esbuild,
     buendel: BUENDEL,
+    // Die Werkbank laedt den Suchkern mit import().
+    importe: true,
     seite: lang === 'de' ? 'de/items.html' : 'items.html',
     query: opt.query || '',
     sprache: lang === 'de' ? 'de-DE' : 'en-US',

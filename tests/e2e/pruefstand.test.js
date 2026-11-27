@@ -14,6 +14,8 @@
 //     Text in ihnen schon,
 //   - Module wie die Hangar-Seiten: Import mit ?v=hash, top-level await,
 //     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar),
+//   - import() aus klassischen Skripten nur mit `importe` (Items-Werkbank),
+//     sonst nimmt die Seite ihren Rueckfall,
 //   - Date laeuft mit der Pruefstand-Uhr, das Zeitbudget beendet erkunde(),
 //   - IntersectionObserver meldet „sichtbar“, je Element hoechstens 4 Mal.
 import { test } from 'node:test';
@@ -127,6 +129,28 @@ test('Module: ?v=hash, top-level await, import() zur Laufzeit, dialog', async ()
   assert.ok(gesehen.has('zu false'), [...gesehen].join(' | '));
   assert.deepEqual(p.fehler, []);
   p.schliesse();
+});
+
+test('import() aus klassischem Skript: nur mit importe, sonst Rueckfall der Seite', async () => {
+  // Die Items-Werkbank (klassisch) laedt ihren Suchkern mit import(). Ohne
+  // den Schalter bleibt es wie vor der Smart-Suche: der Aufruf scheitert,
+  // die Seite nimmt ihren Rueckfall, kein Befund. So laufen nachgeladene
+  // Module anderer Seiten (Holo-Buehne mit three.js) nicht ungefragt mit.
+  fs.writeFileSync(path.join(dist, 'assets', 'kern.js'), "export const wort = (n) => n + ' Woerter';\n");
+  fs.writeFileSync(path.join(dist, 'klassisch.html'), seite('<div id="k"></div>', `<script>
+    import('/assets/kern.js?v=9a8b').then(function (m) { document.getElementById('k').textContent = m.wort(3); },
+      function () { document.getElementById('k').textContent = 'Rueckfall'; });
+  </script>`));
+  const ohne = await oeffneSeite({ ...opts, seite: 'klassisch.html' });
+  await ohne.settle(1000);
+  assert.equal(ohne.document.getElementById('k').textContent, 'Rueckfall');
+  assert.deepEqual(ohne.fehler, []);
+  ohne.schliesse();
+  const mit = await oeffneSeite({ ...opts, seite: 'klassisch.html', importe: true });
+  await mit.settle(1000);
+  assert.equal(mit.document.getElementById('k').textContent, '3 Woerter');
+  assert.deepEqual(mit.fehler, []);
+  mit.schliesse();
 });
 
 test('Abbruch nach top-level await wird Befund', async () => {

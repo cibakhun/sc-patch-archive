@@ -57,13 +57,13 @@ if (!existsSync(DIST)) { console.error(`verify:smart-suche: ${DIST} fehlt — er
 const MIT_HANGAR = hangarImArtefakt(DIST);
 const t0 = Date.now();
 
-/* ---------- Klinken (gemessen 27.11.2026 am Vorschau-Bau) ----------
+/* ---------- Klinken (gemessen 27.11.2026, Vorschau- und Live-Bau) ----------
  * Etwas unter dem Messwert; nach oben nachziehen, nach unten nur per Commit
- * mit Ursache. */
+ * mit Ursache. Was nur der Hangar beitraegt, gilt nur im Vorschau-Bau. */
 const KLINKE = {
   hangarSeiten: 2, // Seiten, die hangar-overview.js laden (hangar.html, de/hangar.html); nur Vorschau
   sprachen: 2, // Werkbank-Seiten mit C.sucheUrl und C.suche
-  exporte: 7, // vom Kern genutzte Namen, Hangar und Werkbank zusammen (7; jeder fehlende ist ohnehin FEHLER)
+  exporte: MIT_HANGAR ? 7 : 5, // vom Kern genutzte Namen: Hangar und Werkbank 7, live nur die Werkbank 5 (jeder fehlende ist ohnehin FEHLER)
   kat: 65, // Kategorie-Eintraege (69)
   blaetter: 65, // Blaetter des Baums, mit beiden Namen erkannt (68)
   grp: 9, // Gruppen (9)

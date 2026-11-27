@@ -218,8 +218,13 @@ export const TEXT_ATTRS = ['alt', 'title', 'aria-label', 'aria-description', 'ar
 /**
  * Oeffnet `seite` (Pfad relativ zu dist/) und fuehrt ihre Skripte aus.
  * Rueckgabe: Seitenobjekt mit document, settle(), fire(), ernte(), fehler …
+ * `importe: true` laesst auch klassische Skripte import() rufen und laedt das
+ * Modul wie ein Browser (braucht esbuild). Ohne bleibt es wie zuvor: der
+ * Aufruf scheitert, die Seite nimmt ihren Rueckfall. Schalter statt Vorgabe,
+ * weil sonst jedes nachgeladene Modul jeder Seite mitliefe (die Holo-Buehne
+ * der Schiffsblaetter mit three.js scheitert hier an import.meta.url).
  */
-export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache, umbau = null, antworten = null, skripte = null }) {
+export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache, umbau = null, antworten = null, skripte = null, importe = false }) {
   const html = lies(join(dist, seite));
   const { window: lw, document } = parseHTML(html);
   ergaenze(lw);
@@ -504,10 +509,11 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     if (skripte && !skripte({ name: e.name, code: e.code ?? null, modul: e.modul })) return;
     const roh = await codeVon(e);
     const u = umbau ? umbau(e.name, roh) : roh;
-    // Auch ein klassisches Skript darf import() rufen (die Items-Werkbank
-    // laedt so den Suchkern, assets/smart-suche.js); vm kann es dort ebenso
-    // wenig. Nach umbau, damit auch eine eingesetzte Fassung es darf.
-    const c = e.modul ? u : u.replace(LAUFZEIT_IMPORT, '__pruefstandImport(');
+    // Mit `importe` darf auch ein klassisches Skript import() rufen (die
+    // Items-Werkbank laedt so den Suchkern, assets/smart-suche.js); vm kann
+    // es dort ebenso wenig. Nach umbau, damit auch eine eingesetzte Fassung
+    // es darf.
+    const c = e.modul || !importe ? u : u.replace(LAUFZEIT_IMPORT, '__pruefstandImport(');
     quellen.push(c);
     aktuellesSkript = e.modul ? null : e.el;
     imKontext(() => vm.runInContext(c, ctx, { filename: e.name }), `Skript ${e.name}`);
