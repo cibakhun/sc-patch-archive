@@ -90,14 +90,59 @@ const googleArt = (p) => GOOGLE.find((g) => g.muster.test(p)) ?? null;
  */
 const EIGEN = 'https://verse-base.com';
 const EIGENE_HOSTS = /^(?:www\.|staging\.)?verse-base\.com$/i;
+/* Zeichenreferenzen in einem Durchgang wie im HTML-Parser (Review #482):
+ * „&#47;crafting.html“ und „&#x2F;crafting.html“ sind im Browser „/crafting.html“.
+ * Verschachteltes wie „&amp;#47;“ wird bewusst nur einmal entschluesselt und
+ * bleibt „&#47;“ — genau das zeigt auch der Browser. Benannte Referenzen nur
+ * mit „;“ und nur die, die in einem Link-Ziel etwas bedeuten koennen. */
+const BENANNT = {
+  amp: '&', AMP: '&', quot: '"', QUOT: '"', apos: "'", lt: '<', LT: '<', gt: '>', GT: '>', nbsp: '\u00a0',
+  sol: '/', period: '.', colon: ':', num: '#', quest: '?', lowbar: '_', percnt: '%', equals: '=', commat: '@',
+  Tab: '\t', NewLine: '\n',
+};
+function entschluesseln(s) {
+  return s.replace(/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|([A-Za-z]+));?/g, (m, d, h, n) => {
+    if (d != null || h != null) {
+      const c = parseInt(d ?? h, d != null ? 10 : 16);
+      return c > 0 && c <= 0x10ffff && !(c >= 0xd800 && c <= 0xdfff) ? String.fromCodePoint(c) : '\ufffd';
+    }
+    return m.endsWith(';') && Object.hasOwn(BENANNT, n) ? BENANNT[n] : m;
+  });
+}
 function pfad(h, basis = '/') {
-  const roh = h.trim().replace(/&(amp|quot|#39);/g, (_, e) => ({ amp: '&', quot: '"', '#39': "'" })[e]);
+  const roh = entschluesseln(h.trim());
   let u;
   try { u = new URL(roh, EIGEN + basis); } catch { return null; }
   if (!/^https?:$/.test(u.protocol) || !EIGENE_HOSTS.test(u.hostname)) return null;
   let x = u.pathname;
   try { x = decodeURI(x); } catch {}
   return x;
+}
+
+/* Anker in einem Durchgang wie der HTML-Tokenizer (Review #482): Kommentare
+ * (auch „<!-->“ und unbeendete) und Pseudo-Kommentare „<!…>“/„<?…>“ fallen
+ * weg; ein „<!--“ in einem Attributwert oder im Text eines <script> ist
+ * keiner, und ein „<a“ in einem Attributwert ist kein Anker. Ein Durchgang
+ * reicht, weil nichts erneut nach Kommentaren gelesen wird: in
+ * „<<!-- -->!-- <a href=…> -->“ ist der Anker auch im Browser echt.
+ * Skripttext wird weiter nach Ankern durchsucht, weil Vorlagen darin
+ * Links fuer Menschen erzeugen. */
+const TAGREST = String.raw`((?:[^>"']|"[^"]*"|'[^']*')*)`;
+const TOKEN = new RegExp([
+  String.raw`<(script|style|textarea|title)\b${TAGREST}>([\s\S]*?)(?:<\/\1\s*>|$)`,
+  String.raw`<!--(?:-?>|[\s\S]*?--!?>|[\s\S]*$)`,
+  String.raw`<[!?][^>]*>?`,
+  String.raw`<(\/?[a-z][^\s\/>]*)${TAGREST}>`,
+  String.raw`[^<]+`,
+  '<',
+].join('|'), 'gi');
+const ANKER = new RegExp(String.raw`<a\b${TAGREST}>`, 'gi');
+function* ankerAttribute(html) {
+  for (const m of html.matchAll(TOKEN)) {
+    if (m[1]) {
+      if (m[1].toLowerCase() === 'script') for (const [, attr] of m[3].matchAll(ANKER)) yield attr;
+    } else if (m[4] && m[4].toLowerCase() === 'a') yield m[5];
+  }
 }
 
 /** Attribute eines Tags, Werte als Ganzes gelesen (wie in verify-bezugswege.mjs). */
@@ -151,13 +196,9 @@ for (const f of dateien) {
   const von = urlVon(f);
   if (googleArt(von)) continue;
   geprueft++;
-  // Kommentare bis zum Fixpunkt entfernen: ein einzelner Durchgang kann aus
-  // Resten wie „<!<!-- -->-- … -->“ einen neuen Kommentar zusammensetzen.
-  let html = readFileSync(f, 'utf8');
-  for (let vorher = ''; vorher !== html; ) { vorher = html; html = html.replace(/<!--[\s\S]*?-->/g, ''); }
   // Jeder Anker als ganzes Tag, auch mit „>“ in einem Attributwert; das Ziel
   // ist das echte href, nicht ein „href=“ im Wert eines anderen Attributs.
-  for (const [, attr] of html.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi)) {
+  for (const attr of ankerAttribute(readFileSync(f, 'utf8'))) {
     const href = attribute(attr).get('href');
     if (href == null) continue;
     const p = pfad(href, von);
