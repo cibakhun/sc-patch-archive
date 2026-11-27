@@ -448,6 +448,8 @@
     VOK = { maker: [], nick: {} };
     ['kat', 'grp', 'art', 'pk', 'sel', 'sys'].forEach(function (k) { VOK[k] = V[k] || []; });
     VOK.kat.forEach(function (e) { KAT_C[e.k] = e.c || [e.k]; });
+    // Deutsche Woerter fuer englische Namensteile („gewehr“ -> „rifle“).
+    Object.keys(V.nick || {}).forEach(function (k) { VOK.nick[SU.fold(k)] = V.nick[k]; });
     // Hersteller mit vollem Namen; das erste Wort allein nur, wenn es eindeutig
     // ist und weder Ort („Hurston“) noch schon ein Begriff.
     var schon = karte(), orte = karte(), zahl = karte(), erst = karte();
@@ -476,7 +478,15 @@
       if (!arten[h.kind]) { arten[h.kind] = []; folge.push(arten[h.kind]); }
       arten[h.kind].push(h);
     });
-    P = { hits: r.hits, words: r.words, arten: folge };
+    P = { hits: r.hits, words: r.words, arten: folge, kauf: null };
+    // „Pyro unter 10k“: in Pyro fuer hoechstens 10k kaufen, nicht irgendwo
+    // unter 10k und in Pyro zu finden.
+    if (arten.sys && arten.price) {
+      P.kauf = {
+        sys: arten.sys.map(function (h) { return h.key; }),
+        max: Math.min.apply(null, arten.price.map(function (h) { return h.key; }))
+      };
+    }
     PG++;
     // Tippfehler nur fuer ein Wort, das ohne sie kein Item trifft (sonst
     // faende „helm“ auch „holm“), wie im Schiffsfinder.
@@ -509,6 +519,17 @@
     }
     return false;
   }
+  // Ein Laden im gesuchten System verkauft es hoechstens zum Preis. Traegt
+  // das Item das System im Namen („Pyro“-Werkzeug), zaehlt der Preis allein.
+  function kaufbarIn(it, k) {
+    for (var i = 0; i < P.hits.length; i++) if (P.hits[i].kind === 'sys' && benannt(it, P.hits[i])) return it._p != null && it._p <= k.max;
+    return it.obtain.some(function (o) {
+      if (o.price == null || !(o.price > 0) || o.price > k.max) return false;
+      var ss = zeilenSysteme(o);
+      for (var j = 0; j < ss.length; j++) if (k.sys.indexOf(ss[j].toLowerCase()) >= 0) return true;
+      return false;
+    });
+  }
   function benannt(it, h) {
     if (h.kind === 'price' || h.kind === 'size') return false;
     var ws = h.t.split(' ');
@@ -530,6 +551,7 @@
       var v = wortTrifft(P.words[i], it, TYPO[i]);
       sum = v ? sum + v : -1;
     }
+    if (sum > 0 && P.kauf && !kaufbarIn(it, P.kauf)) sum = 0;
     it._pg = PG; it._pw = sum > 0 ? sum : 0;
     return it._pw;
   }

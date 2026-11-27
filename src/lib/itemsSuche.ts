@@ -14,6 +14,9 @@
 //   pk    Panzerungsklasse: Light, Medium, Heavy, SuperHeavy
 //   sel   Seltenheit: Common … Legendary
 //   sys   Sternsystem, in dem man es kaufen oder finden kann
+//   nick  deutsches Wort -> englisches Wort im Item-Namen („gewehr“ ->
+//         „rifle“): Waffen haben keine Unterkategorie, ihre Art steht nur
+//         im englischen Namen
 import { kategorieBaum } from './itemKategorien';
 
 export interface SuchEintrag { readonly k: string; readonly w: readonly string[]; readonly c?: readonly string[] }
@@ -24,6 +27,7 @@ export interface ItemsSuchVokabular {
   readonly pk: readonly SuchEintrag[];
   readonly sel: readonly SuchEintrag[];
   readonly sys: readonly SuchEintrag[];
+  readonly nick: Readonly<Record<string, string>>;
 }
 
 const klein = (s: string) => s.toLowerCase().trim();
@@ -106,6 +110,21 @@ const SYSTEME = [
   { k: 'nyx', w: ['nyx'] },
 ];
 
+// Deutsche Woerter fuer das, was nur der englische Item-Name sagt (Waffen
+// stehen alle in „Waffen / Allgemein“). Ziel ist ein Wort, das in Namen des
+// Katalogs vorkommt (verify:smart-suche [4] prueft es); „Granaten“ ist eine
+// Kategorie und fehlt deshalb.
+const NAMENSWORTE: Readonly<Record<string, string>> = {
+  gewehr: 'rifle', gewehre: 'rifle', sturmgewehr: 'rifle', sturmgewehre: 'rifle',
+  pistole: 'pistol', pistolen: 'pistol',
+  maschinenpistole: 'smg', maschinenpistolen: 'smg',
+  maschinengewehr: 'lmg', maschinengewehre: 'lmg',
+  schrotflinte: 'shotgun', schrotflinten: 'shotgun',
+  scharfschützengewehr: 'sniper', scharfschützengewehre: 'sniper', scharfschütze: 'sniper',
+  raketenwerfer: 'launcher', granatwerfer: 'launcher', werfer: 'launcher',
+  messer: 'knife', klinge: 'blade', klingen: 'blade',
+};
+
 /** Das Vokabular fuer die Werkbank, gleich fuer beide Sprachen. */
 export function itemsSuchVokabular(): ItemsSuchVokabular {
   const de = kategorieBaum('de');
@@ -144,5 +163,7 @@ export function itemsSuchVokabular(): ItemsSuchVokabular {
   }
   const kat = [...proMenge.values()].map((e) => ({ k: e.c.join('|'), w: e.w, c: e.c }));
 
-  return { kat, grp, art: ART, pk: PANZERUNG, sel: SELTENHEIT, sys: SYSTEME };
+  const nick: Record<string, string> = {};
+  for (const [w, ziel] of Object.entries(NAMENSWORTE)) for (const u of umschrift(w)) nick[u] = ziel;
+  return { kat, grp, art: ART, pk: PANZERUNG, sel: SELTENHEIT, sys: SYSTEME, nick };
 }

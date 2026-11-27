@@ -409,7 +409,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
   const chips = (s) => [...s.doc.querySelectorAll('#wz-aktiv .wz-fchip--q')];
   const chipTexte = (s) => chips(s).map((c) => c.textContent);
 
-  test('72. Kategorie erkannt: Chip statt Suchwort, beide Sprachen auf der deutschen Seite', async () => {
+  test('73. Kategorie erkannt: Chip statt Suchwort, beide Sprachen auf der deutschen Seite', async () => {
     const s = await seite();
     await s.tippe('Pistolen');
     assert.deepStrictEqual(chipTexte(s), ['Pistolen']);
@@ -420,7 +420,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.p.fehler, []);
   });
 
-  test('73. Gruppe und Preisgrenze zusammen: „Waffen unter 2k“', async () => {
+  test('74. Gruppe und Preisgrenze zusammen: „Waffen unter 2k“', async () => {
     const s = await seite();
     await s.tippe('Waffen unter 2k');
     const t = chipTexte(s);
@@ -431,7 +431,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
   });
 
-  test('74. Groesse: „s3“ und „Größe 3“', async () => {
+  test('75. Groesse: „s3“ und „Größe 3“', async () => {
     const s = await seite();
     await s.tippe('s3');
     assert.deepStrictEqual(chipTexte(s), ['S3']);
@@ -440,7 +440,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
   });
 
-  test('75. System: „pyro“ laedt die Bezugswege nach und findet die Laeden dort', async () => {
+  test('76. System: „pyro“ laedt die Bezugswege nach und findet die Laeden dort', async () => {
     let freigeben;
     const s = await seite({ wege: new Promise((r) => { freigeben = r; }) });
     await s.tippe('pyro');
@@ -453,20 +453,20 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.p.fehler, []);
   });
 
-  test('76. Hersteller aus dem Katalog', async () => {
+  test('77. Hersteller aus dem Katalog', async () => {
     const s = await seite();
     await s.tippe('behring');
     assert.strictEqual(chips(s).length, 1);
     assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
   });
 
-  test('77. Tippfehler im Namen: „Alpah Rilfe“', async () => {
+  test('78. Tippfehler im Namen: „Alpah Rilfe“', async () => {
     const s = await seite();
     await s.tippe('Alpah Rilfe');
     assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
   });
 
-  test('78. Ganzes Wort vor Teilstueck: „eta“', async () => {
+  test('79. Ganzes Wort vor Teilstueck: „eta“', async () => {
     const s = await seite();
     await s.tippe('eta');
     const n = s.namen();
@@ -474,7 +474,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(n.slice(1).sort(), ['Beta Helmet', 'Zeta Pistol']);
   });
 
-  test('79. Kurze Woerter zaehlen als ganzes Wort: „area 18“', async () => {
+  test('80. Kurze Woerter zaehlen als ganzes Wort: „area 18“', async () => {
     const s = await seite();
     await s.tippe('area 18');
     assert.deepStrictEqual(s.namen().sort(), ['Alpha Rifle', 'Beta Helmet', 'Epsilon Runner', 'Eta Pistol']);
@@ -482,7 +482,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.strictEqual(s.kacheln().length, 0);
   });
 
-  test('80. Ein Klick auf den Chip nimmt den Begriff aus der Suche, im Wortlaut', async () => {
+  test('81. Ein Klick auf den Chip nimmt den Begriff aus der Suche, im Wortlaut', async () => {
     const s = await seite();
     await s.tippe('Waffen  Behring');
     assert.strictEqual(chips(s).length, 2);
@@ -495,7 +495,7 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.namen().sort(), ['Alpha Rifle', 'Eta Pistol', 'Zeta Pistol']);
   });
 
-  test('81. Laedt der Suchkern nicht, sucht die Werkbank wie zuvor', async () => {
+  test('82. Laedt der Suchkern nicht, sucht die Werkbank wie zuvor', async () => {
     const s = await seite({ sucheUrl: '/assets/gibt-es-nicht.js' });
     await s.tippe('Alpha');
     assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
@@ -505,7 +505,27 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.p.fehler, []);
   });
 
-  test('82. Gebautes Vokabular: „helmet“ und „helm“ meinen dieselbe Kategorie, „rucksack“ zwei', async () => {
+  test('83. System und Preis zusammen: in diesem System fuer hoechstens diesen Preis', async () => {
+    const s = await seite();
+    // Beta Helmet: Lorville (Stanton) 500, Cubby Blast (Pyro) 800.
+    await s.tippe('pyro unter 1k');
+    assert.deepStrictEqual(s.namen(), ['Beta Helmet']);
+    await s.tippe('pyro unter 600');
+    assert.strictEqual(s.kacheln().length, 0, 'unter 600 gibt es den Helm nur in Stanton');
+    await s.tippe('stanton unter 600');
+    assert.deepStrictEqual(s.namen(), ['Beta Helmet']);
+    await s.tippe('pyro');
+    assert.deepStrictEqual(s.namen().sort(), ['Beta Helmet', 'Eta Pistol']);
+  });
+
+  test('84. Deutsche Woerter fuer englische Namensteile: „Sturmgewehr“ findet Rifles', async () => {
+    const s = await seite();
+    await s.tippe('Sturmgewehr');
+    assert.deepStrictEqual(s.namen(), ['Alpha Rifle']);
+    assert.strictEqual(s.kachel('alpha-rifle').querySelector('.wz-k__name mark').textContent, 'Rifle');
+  });
+
+  test('85. Gebautes Vokabular: „helmet“ und „helm“ meinen dieselbe Kategorie, „rucksack“ zwei', async () => {
     const s = await seite({ echtesVokabular: true });
     const V = s.p.window.__WZI.suche;
     const mit = (w) => V.kat.find((e) => e.w.includes(w));
@@ -513,6 +533,8 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.strictEqual(mit('helmet'), mit('helm'));
     assert.deepStrictEqual([...mit('rucksack').c], ['Armour / Backpacks', 'Clothing / Backpacks']);
     for (const k of ['art', 'pk', 'sel', 'sys']) assert.ok(V[k].length >= 3, k);
+    assert.strictEqual(V.nick.gewehr, 'rifle');
+    assert.strictEqual(V.nick['scharfschützengewehr'], V.nick.scharfschuetzengewehr);
   });
 });
 

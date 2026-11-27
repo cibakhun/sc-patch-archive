@@ -28,7 +28,10 @@
        englischem Namen erkannt; jede Kategorie eines Eintrags steht im Baum
        (sonst Zombie); jede Gruppe ausser „Sonstiges“ wird erkannt; kein
        Wort hat gefaltet zwei Bedeutungen (sonst entscheidet still die
-       Reihenfolge der Arten).
+       Reihenfolge der Arten). Jedes deutsche Wort fuer einen englischen
+       Namensteil (C.suche.nick, „gewehr“ -> „rifle“) ist selbst kein
+       Begriff (sonst nie erreicht), und sein Ziel steht als Wort in
+       mindestens einem Item-Namen des Katalogs (sonst findet es nichts).
 
    Selbstauskunft: Importe, Seiten mit Import-Map, Sprachen, Exporte,
    Eintraege und Woerter des Vokabulars; Klinken darunter. Im Live-Bau
@@ -65,6 +68,7 @@ const KLINKE = {
   blaetter: 65, // Blaetter des Baums, mit beiden Namen erkannt (68)
   grp: 9, // Gruppen (9)
   woerter: 290, // verschiedene gefaltete Woerter aller Arten (308)
+  nick: 30, // deutsche Woerter fuer englische Namensteile, mit Umschrift (33)
 };
 
 const fehler = [];
@@ -99,7 +103,7 @@ function* seiten(dir) {
     else if (e.name.endsWith('.html')) yield p;
   }
 }
-const zahl = { importe: importe.length, seitenMitImport: 0, hangarSeiten: 0, sprachen: 0, exporte: 0, kat: 0, blaetter: 0, grp: 0, woerter: 0 };
+const zahl = { importe: importe.length, seitenMitImport: 0, hangarSeiten: 0, sprachen: 0, exporte: 0, kat: 0, blaetter: 0, grp: 0, woerter: 0, nick: 0 };
 const imp = importe.map((x) => ({ ...x, nadel: Buffer.from(x.von) }));
 if (imp.length) {
   for (const p of seiten(DIST)) {
@@ -231,6 +235,20 @@ if (cfg.de && cfg.en && fold) {
     if (!(V.grp || []).some((e) => e.k === g.r)) fehler.push(`[4] Gruppe ${g.r} („${g.n}“) wird nicht erkannt`);
   }
   for (const e of V.grp || []) if (!cfg.de.baum.some((g) => g.r === e.k)) fehler.push(`[4] grp:${e.k} steht nicht im Kategoriebaum`);
+  // Deutsche Woerter fuer englische Namensteile.
+  const nick = V.nick || {};
+  if (!Object.keys(nick).length) fehler.push('[4] C.suche.nick ist leer — „gewehr“ findet keine Rifles');
+  else {
+    const kat = join(DIST, cfg.de.dbUrl ? cfg.de.dbUrl.replace(/[?#].*$/, '') : '/assets/universal-items.json');
+    const namensWoerter = new Set();
+    if (!existsSync(kat)) fehler.push(`[4] Katalog ${kat} fehlt — die Ziele von C.suche.nick sind nicht pruefbar`);
+    else for (const it of JSON.parse(readFileSync(kat, 'utf8')).items || []) for (const w of fold(it.name).split(/[^a-z0-9]+/)) if (w) namensWoerter.add(w);
+    for (const [w, ziel] of Object.entries(nick)) {
+      zahl.nick++;
+      if (bedeutung.has(fold(w))) fehler.push(`[4] nick „${w}“ ist zugleich ein Begriff (${[...bedeutung.get(fold(w))].join(', ')}) und wird nie als Namensteil gelesen`);
+      if (namensWoerter.size && !namensWoerter.has(fold(ziel))) fehler.push(`[4] nick „${w}“ -> „${ziel}“: kein Item-Name im Katalog enthaelt das Wort „${ziel}“`);
+    }
+  }
 }
 
 /* ---------- Selbstauskunft ---------- */
@@ -238,7 +256,7 @@ console.log(`verify:smart-suche — Bau ${DIST} (${MIT_HANGAR ? 'Vorschau, mit H
 console.log(`[1] ${zahl.importe} relative Importe in dist/assets (${importe.map((x) => `${x.von.slice(8)} → ${x.ziel.slice(8)}`).join(', ') || '—'}), ${zahl.seitenMitImport} Seiten laden sie, davon ${zahl.hangarSeiten} Hangar-Seiten`);
 console.log(`[2] ${zahl.sprachen} Werkbank-Seiten mit Kern-Adresse und Vokabular`);
 console.log(`[3] ${zahl.exporte} genutzte Namen des Kerns: ${[...genutzt.keys()].sort().join(', ')}`);
-console.log(`[4] ${zahl.kat} Kategorie-Eintraege, ${zahl.blaetter} Blaetter mit beiden Namen, ${zahl.grp} Gruppen, ${de(zahl.woerter)} Woerter`);
+console.log(`[4] ${zahl.kat} Kategorie-Eintraege, ${zahl.blaetter} Blaetter mit beiden Namen, ${zahl.grp} Gruppen, ${de(zahl.woerter)} Woerter, ${zahl.nick} deutsche Woerter fuer englische Namensteile`);
 for (const [k, min] of Object.entries(KLINKE)) {
   if (k === 'hangarSeiten' && !MIT_HANGAR) continue;
   if ((zahl[k] ?? 0) < min) fehler.push(`nur ${de(zahl[k] ?? 0)} bei „${k}“ (Klinke ${de(min)}) — prueft das Tor noch, oder fehlt dem Bau ein Teil der Suche?`);
