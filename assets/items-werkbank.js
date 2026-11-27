@@ -408,6 +408,7 @@
   var TYPO = [];          // je freiem Wort: Tippfehler zaehlen?
   var HLW = [];           // Woerter zum Hervorheben
   var wegeFuerSuche = false;
+  var BEGRIFF_WORTE = karte(); // Art|Schluessel -> einzelne Woerter des Begriffs
   var ARTEN = ['kat', 'grp', 'art', 'pk', 'sel', 'sys', 'maker'];
   // „s3“, „S 3“, „size 3“, „Größe 3“: Groesse 0 bis 12.
   var GROESSE = { kind: 'size', re: /\s(?:s|size|grosse|groesse|gr\.?)\s*(\d|1[0-2])(?=\s)/g, key: function (n) { return Number(n); } };
@@ -464,6 +465,14 @@
       var f = SU.fold(n), e = f.split(' ')[0], wl = [f];
       if (e !== f && e.length >= 4 && erst[e] === 1 && !orte[e] && !schon[e]) wl.push(e);
       VOK.maker.push({ k: n, w: wl });
+    });
+    // „Helm“ und „helmet“ meinen dasselbe; steht eines davon im Namen, ist
+    // das Item benannt, gleich in welcher Sprache gesucht wurde.
+    ARTEN.forEach(function (k) {
+      (VOK[k] || []).forEach(function (e) {
+        var ws = BEGRIFF_WORTE[k + '|' + e.k] || (BEGRIFF_WORTE[k + '|' + e.k] = []);
+        e.w.forEach(function (w) { var f = SU.fold(w); if (f.indexOf(' ') < 0 && ws.indexOf(f) < 0) ws.push(f); });
+      });
     });
   }
   function liesSuche() {
@@ -532,9 +541,12 @@
   }
   function benannt(it, h) {
     if (h.kind === 'price' || h.kind === 'size') return false;
-    var ws = h.t.split(' ');
-    for (var i = 0; i < ws.length; i++) if (it._sw.name.indexOf(ws[i]) < 0) return false;
-    return true;
+    var ws = h.t.split(' '), i;
+    for (i = 0; i < ws.length && it._sw.name.indexOf(ws[i]) >= 0; i++);
+    if (i === ws.length) return true;
+    var alle = BEGRIFF_WORTE[h.kind + '|' + h.key] || [];
+    for (i = 0; i < alle.length; i++) if (it._sw.name.indexOf(alle[i]) >= 0) return true;
+    return false;
   }
   // Guete eines Items fuer die Suche, 0 = kein Treffer. Begriffe einer Art
   // gelten als „oder“ („helm rucksack“), verschiedene Arten als „und“; jedes
