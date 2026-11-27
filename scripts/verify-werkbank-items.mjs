@@ -103,7 +103,9 @@ const CODE = QUELLE.slice(0, ANKER) + NAHT + QUELLE.slice(ANKER);
 const SKRIPT = '/assets/items-werkbank.js';
 
 /* ---------- Lesen ---------- */
-const text = (s) => s.replace(/<[^>]+>/g, ' ').replace(/&nbsp;| /g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').replace(/\s+([·.,)])/g, '$1').trim();
+// Entitäten in einem Durchgang: aus '&amp;quot;' wird '&quot;', nicht doppelt entschlüsselt '"'.
+const ENT = { '&amp;': '&', '&#39;': "'", '&#x27;': "'", '&quot;': '"' };
+const text = (s) => s.replace(/<[^>]+>/g, ' ').replace(/&nbsp;| /g, ' ').replace(/&(?:amp|#39|#x27|quot);/g, (e) => ENT[e]).replace(/\s+/g, ' ').replace(/\s+([·.,)])/g, '$1').trim();
 const ab = (s, marke, ende) => {
   const i = s.indexOf(marke);
   if (i < 0) return null;
