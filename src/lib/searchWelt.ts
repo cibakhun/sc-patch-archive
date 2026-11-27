@@ -22,7 +22,7 @@ import MINE from '../../assets/mining-db.json';
 import { href, useTranslations, type Locale } from '../i18n/ui';
 import { categoryLabel } from '../i18n/itemText';
 import { categories, categoryPath, items, midCategory } from './items';
-import { craftCategories, craftCategoryPath } from './crafting';
+import { craftCategories, craftKatPath } from './crafting';
 import { db as missionDb, missions } from './missions';
 import { REFINERY, oreByName } from './refinery';
 import { gattungsWoerter } from './searchAliases';
@@ -288,7 +288,9 @@ function listenEintraege(lang: Locale): SearchEntry[] {
       b: t('search.kind.bauplanliste'),
       t: c.leaf,
       s: [categoryLabel(c.root, lang), midCategory(c.cat), fill(t('search.list.blueprints'), c.blueprints.length, lang)].filter(Boolean).join(' · '),
-      u: href(craftCategoryPath(c), lang),
+      // Die Kategorie oeffnet die Werkbank mit ihrem Filter; die Kategorieseite
+      // des Verzeichnisses ist nur fuer Google da (Krisz 26.11.2026).
+      u: href(craftKatPath(c.cat), lang),
       x: [c.cat, categoryLabel(c.root, lang), 'blueprint bauplan', gattungsWoerter(c.cat)].join(' '),
     });
   return out;

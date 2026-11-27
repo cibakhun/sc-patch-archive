@@ -165,6 +165,12 @@
       }
       if (ref.origin !== location.origin) return; // fremde Herkunft
       if (ref.pathname !== backPath) return; // kommt nicht von der Elternseite
+      // Ein Ziel mit Filter (etwa die Werkbank mit ?kat=) nur zurueckspringen,
+      // wenn die vorige Seite genau diesen Filter hatte; sonst landet man in
+      // einer anders gefilterten Liste. Krumen ohne Abfrage bleiben wie bisher.
+      var ziel;
+      try { ziel = new URL(el.getAttribute('href'), location.href); } catch (err) { return; }
+      if (ziel.search && ziel.search !== ref.search) return;
 
       el.addEventListener('click', function (e) {
         // Modifizierte Klicks (neuer Tab/Fenster) und Mittelklick unangetastet

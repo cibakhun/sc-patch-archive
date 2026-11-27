@@ -70,6 +70,15 @@
 //      src/i18n/itemText.ts. Die Hinweise stehen genau dort, wo der Katalog
 //      das Item so markiert (game.ohneWerte / nichtImSpiel). Klinke fuer die
 //      Flugblaetter mit Werten, Decke fuer die Blaetter „nicht im Spiel".
+//  17  Crafting-Werkbank wie das Bauplan-Blatt (Krisz 27.11.2026 im Bericht
+//      „Datenblätter und Werkbänke“: „alle drei wege auf die werkbank
+//      einbauen“, „hier soll craftingwerkbank wie datenblatt funktionieren“).
+//      window.__CRAFT.wege beider Werkbank-Seiten kennt jedes Material der
+//      Bauplan-Seiten, mit derselben Aussage zu Kaufen und Zerlegen; die
+//      Rezepte ohne Mission mit einem Weg zum Item und die Wikelo-Bauplaene
+//      sind so viele wie die Seiten, die das sagen; alle Texte stehen da, und
+//      das ausgelieferte Skript zeichnet sie. Klinke fuer die Rezepte ohne
+//      Mission mit Weg.
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -78,6 +87,7 @@
 //
 //   node scripts/verify-bezugswege.mjs
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import vm from 'node:vm';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { doppelteZeilen } from './lib/hersteller-zeilen.mjs';
@@ -100,6 +110,8 @@ const KLINKEN = {
   // [16] IA C8 26.11.2026: Flugblaetter (PHB/TSB) mit Flugwerten, beide
   // Sprachen. Steigt mit dem Datenlauf, der den Typ FlightController liest.
   flugblaetter: 128,
+  // [17] 27.11.2026: Rezepte ohne Mission, deren Item einen Weg hat (846).
+  werkbankOhneMission: 820,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
@@ -187,6 +199,9 @@ let poolZeilen = 0;
 const poolTextFalsch = [];
 const planerDoppelt = [];
 let materialSeiten = 0;
+// [17] Material -> was die Bauplan-Seiten (EN) dazu sagen: kaufen ja/nein,
+// zerlegen ja/nie/leer (je Seite, ein Material steht auf vielen).
+const blattMaterial = new Map();
 let materialMitItem = 0;
 const materialFehlt = [];
 const selbstZerlegen = [];
@@ -340,6 +355,15 @@ function pruefeBauplanP2(pfad, html) {
     // nicht (Review #434, zweimal).
     const eintraege = mat ? [...mat.matchAll(/<li data-material="([^"]*)"[^>]*>([\s\S]*?)<\/li>/g)] : [];
     const aussage = (li, art) => new RegExp(`data-mat-(?:weg|ohne)="${art}"`).test(li);
+    if (!pfad.startsWith('/de/')) {
+      for (const [, name, li] of eintraege) {
+        const n = name.replace(/&(amp|quot|#39);/g, (_, e) => ({ amp: '&', quot: '"', '#39': "'" })[e]);
+        const a = blattMaterial.get(n) ?? { kaufen: new Set(), zerlegen: new Set() };
+        a.kaufen.add(li.includes('data-mat-weg="kaufen"') ? 'ja' : 'nein');
+        a.zerlegen.add(li.includes('data-mat-weg="zerlegen"') ? 'ja' : li.includes('data-mat-ohne="zerlegen"') ? 'nie' : 'leer');
+        blattMaterial.set(n, a);
+      }
+    }
     const ohneWege = eintraege
       .map(([, name, li]) => [name, ['abbauen', 'kaufen'].filter((art) => !aussage(li, art))])
       .filter(([, fehlt]) => fehlt.length)
@@ -357,6 +381,9 @@ function pruefeBauplanP2(pfad, html) {
 /* ---------- [3] Bauplan-Seiten (zuerst: [2] braucht ihr Ergebnis) ---------- */
 console.log('[3] Jede Bauplan-Seite verlinkt Missionen oder sagt ehrlich, woher der Bauplan kommt');
 const bauplanMitMission = new Set();
+// [17] Was die Bauplan-Seiten (EN) sagen, zum Abgleich mit der Werkbank.
+let blattWikelo = 0;
+let blattOhneMitWeg = 0;
 let bauplaene = 0;
 let bauplanUnbekannt = 0;
 let bauplanWikelo = 0;
@@ -370,6 +397,8 @@ let bauplanWikelo = 0;
         continue;
       }
       bauplaene++;
+      const en = !pfad.startsWith('/de/');
+      if (en && html.includes('class="dp-actions bp-wikelo"')) blattWikelo++;
       if (ALTE_VERMUTUNG.test(html)) vermutung.push(pfad);
       pruefeBauplanP2(pfad, html);
       const sec = abschnitt(html, 'missionen');
@@ -381,6 +410,7 @@ let bauplanWikelo = 0;
       let hinweis = false;
       try { hinweis = !!wert && decodeURIComponent(wert) === pfad; } catch { hinweis = false; }
       if (!quelle || !hinweis) { ohne.push(pfad); continue; }
+      if (en && sec.includes('#so-bekommst-du-es')) blattOhneMitWeg++;
       if (quelle[1] === 'wikelo') bauplanWikelo++;
       else bauplanUnbekannt++;
     }
@@ -745,6 +775,60 @@ console.log('\n[15] Missionsnamen auf Bauplan- und Item-Seiten wie auf der Missi
 console.log(`    Missionslinks: ${missionsNamen} (Klinke ${KLINKEN.missionsNamen}, Missionsseiten gelesen: ${missionsSeitenNamen.size})   anderer Name oder Seite fehlt — Soll: 0   Ist: ${missionsNameFalsch.length}`);
 need(missionsNamen > 0 && missionsNamen >= KLINKEN.missionsNamen, `nur ${missionsNamen} Missionslinks geprueft, Klinke ${KLINKEN.missionsNamen} — Muster veraltet? Ursache klaeren, nicht die Klinke senken`);
 need(!missionsNameFalsch.length, `${missionsNameFalsch.length} Missionslink(s) mit anderem Namen als die Missionsseite — ${liste(missionsNameFalsch)}`);
+
+/* ---------- [17] Crafting-Werkbank wie das Bauplan-Blatt ---------- */
+console.log('\n[17] Crafting-Werkbank: Materialwege, Quelle ohne Mission und Wikelo wie auf dem Bauplan-Blatt');
+{
+  const TEXTE = ['matTitle', 'matMineNone', 'matBuyNone', 'matBuyUnknown', 'matSalvageNone', 'bpSourceTitle', 'bpSourceUnknown',
+    'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText', 'bpNextTitle', 'bpNextItem', 'bpNextItemBuy', 'bpNextItemFind',
+    'bpNextItemStock', 'bpNextItemWikelo', 'bpNextItemOpen', 'bpNextReport', 'report'];
+  const WB_TEXTE = ['wegMine', 'wegBuy', 'wegSalvage', 'wegMineLink', 'wegBuyYes', 'wegSalvageFrom', 'wegSalvageNone', 'wegSalvageTitle'];
+  const appPfad = join(DIST, 'assets/crafting-app.js');
+  const app = existsSync(appPfad) ? readFileSync(appPfad, 'utf8') : '';
+  for (const marke of ['data-mat-zerlegen', 'data-mat-weg="kaufen"', 'data-quelle="unbekannt"', 'data-quelle="wikelo"', 'data-quelle-weg="wikelo"', 'data-hinweis']) {
+    need(app.includes(marke), `dist/assets/crafting-app.js zeichnet „${marke}“ nicht — die Werkbank zeigt die Wege nicht mehr`);
+  }
+  for (const pre of ['', 'de/']) {
+    const datei = join(DIST, `${pre}topics/crafting.html`);
+    const html = existsSync(datei) ? readFileSync(datei, 'utf8') : '';
+    const m = /<script[^>]*>(window\.__CRAFT\s*=[\s\S]*?)<\/script>/.exec(html);
+    if (!m) { fail.push(`/${pre}topics/crafting.html: kein window.__CRAFT-Block`); continue; }
+    const ctx = { window: {} };
+    vm.runInNewContext(m[1], ctx);
+    const cfg = ctx.window.__CRAFT ?? {};
+    const w = cfg.wege;
+    if (!w || typeof w.mat !== 'object' || !Array.isArray(w.wik) || typeof w.ohne !== 'string') {
+      fail.push(`/${pre}topics/crafting.html: window.__CRAFT.wege fehlt oder hat die Form verloren (mat, wik, ohne)`);
+      continue;
+    }
+    const fehlt = [], kaufAnders = [], zerlegAnders = [];
+    for (const [name, a] of blattMaterial) {
+      const e = w.mat[name];
+      if (!e) { fehlt.push(name); continue; }
+      const kauf = e[0] === 1 ? 'ja' : 'nein';
+      if (a.kaufen.size !== 1 || !a.kaufen.has(kauf)) kaufAnders.push(`${name} (Blatt ${[...a.kaufen].join('/')}, Werkbank ${kauf})`);
+      const z = e[1];
+      // Das Blatt laesst das eigene Item weg; die Werkbank traegt zwei Namen
+      // und tut dasselbe. „leer“ auf einer Seite ist deshalb kein Widerspruch.
+      const nie = z === 'x', weg = Array.isArray(z) && z.length > 0 && z.every((x) => typeof x === 'string' && x);
+      if (a.zerlegen.has('nie') !== nie || (a.zerlegen.has('ja') && !weg)) zerlegAnders.push(`${name} (Blatt ${[...a.zerlegen].join('/')}, Werkbank ${JSON.stringify(z)})`);
+    }
+    const ohne = w.ohne ? w.ohne.split(';') : [];
+    const ohneKaputt = ohne.filter((x) => !/^\d+:\d*[fsw]*$/.test(x) || /^\d+:$/.test(x));
+    const texte = [...TEXTE.filter((k) => typeof cfg.wegeT?.[k] !== 'string' || !cfg.wegeT[k].trim()), ...WB_TEXTE.filter((k) => typeof cfg.wbT?.[k] !== 'string' || !cfg.wbT[k].trim())];
+    console.log(`    /${pre}topics/crafting.html: Materialien ${Object.keys(w.mat).length} (auf den Blaettern ${blattMaterial.size})   ohne Mission mit Weg ${ohne.length} (Blaetter ${blattOhneMitWeg}, Klinke ${KLINKEN.werkbankOhneMission})   Wikelo-Bauplaene ${w.wik.length} (Blaetter ${blattWikelo})`);
+    console.log(`      fehlend — Soll: 0   Ist: ${fehlt.length}   Kaufen anders als das Blatt — Soll: 0   Ist: ${kaufAnders.length}   Zerlegen anders — Soll: 0   Ist: ${zerlegAnders.length}   Texte fehlen — Soll: 0   Ist: ${texte.length}`);
+    need(blattMaterial.size >= 30, `nur ${blattMaterial.size} Materialien auf den Bauplan-Seiten gelesen — Muster veraltet?`);
+    need(!fehlt.length, `/${pre}topics/crafting.html: ${fehlt.length} Material(ien) der Bauplan-Seiten ohne Weg in der Werkbank — ${liste(fehlt)}`);
+    need(!kaufAnders.length, `/${pre}topics/crafting.html: Kaufen sagt in der Werkbank etwas anderes als auf dem Blatt — ${liste(kaufAnders)}`);
+    need(!zerlegAnders.length, `/${pre}topics/crafting.html: Zerlegen sagt in der Werkbank etwas anderes als auf dem Blatt — ${liste(zerlegAnders)}`);
+    need(!ohneKaputt.length, `/${pre}topics/crafting.html: ${ohneKaputt.length} unlesbare Eintraege in wege.ohne — ${liste(ohneKaputt)}`);
+    need(ohne.length === blattOhneMitWeg, `/${pre}topics/crafting.html: ${ohne.length} Rezepte ohne Mission mit Weg zum Item, die Bauplan-Seiten nennen ${blattOhneMitWeg}`);
+    need(ohne.length >= KLINKEN.werkbankOhneMission, `/${pre}topics/crafting.html: nur ${ohne.length} Rezepte ohne Mission mit Weg, Klinke ${KLINKEN.werkbankOhneMission} — Ursache klaeren, nicht die Klinke senken`);
+    need(w.wik.length === blattWikelo, `/${pre}topics/crafting.html: ${w.wik.length} Wikelo-Bauplaene in der Werkbank, die Bauplan-Seiten zeigen ${blattWikelo}`);
+    need(!texte.length, `/${pre}topics/crafting.html: Texte fuer die Wege fehlen — ${liste(texte)}`);
+  }
+}
 
 console.log('\n    Selbstauskunft (kein Urteil, Fremdquelle): Blaetter mit Kaufzeilen ohne Systemangabe '
   + `${ohneSystem} von ${kaufBlaetter}`);

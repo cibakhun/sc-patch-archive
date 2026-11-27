@@ -5,7 +5,9 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
-import { blueprints, blueprintPath, blueprintSpecs, itemForBlueprint } from '../lib/crafting';
+import { blueprints, blueprintPath, blueprintSpecs, craftPatch, itemForBlueprint } from '../lib/crafting';
+import { werkbankWege } from '../lib/bezugswege';
+import { bwT } from '../i18n/bezugswegeText';
 import { pageItemIds } from '../lib/items';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
@@ -314,10 +316,38 @@ const WB = lang === 'de'
 const WB_JS = lang === 'de'
   ? { missions: 'Missionen', more: 'Eins mehr', less: 'Eins weniger', remove: 'Aus dem Planer nehmen', planCount: 'Stück im Planer',
       itemSheet: 'Item-Datenblatt', dismantle: 'Zerlege-Rechner', show: '{n} anzeigen', showNone: 'Keine Treffer',
-      poolTitle: 'Blueprints dieser Mission', poolHint: 'Ein Klick öffnet das Rezept.', minQ: 'ab Qualität' }
+      poolTitle: 'Blueprints dieser Mission', poolHint: 'Ein Klick öffnet das Rezept.', minQ: 'ab Qualität',
+      // Woher die Materialien kommen: Spalten und Werte (Krisz 27.11.2026)
+      wegMine: 'Abbauen', wegBuy: 'Kaufen', wegSalvage: 'Zerlegen', wegMineLink: 'Fundorte', wegBuyYes: 'am Rohstoff-Terminal',
+      wegSalvageFrom: 'aus {item}', wegSalvageNone: 'kein Item bekannt', wegSalvageTitle: 'Zerlege-Rechner: alle Items mit {mat}' }
   : { missions: 'Missions', more: 'One more', less: 'One less', remove: 'Remove from planner', planCount: 'items in the planner',
       itemSheet: 'Item data sheet', dismantle: 'Dismantle calculator', show: 'Show {n}', showNone: 'No matches',
-      poolTitle: 'Blueprints from this mission', poolHint: 'Click one to open its recipe.', minQ: 'quality from' };
+      poolTitle: 'Blueprints from this mission', poolHint: 'Click one to open its recipe.', minQ: 'quality from',
+      wegMine: 'Mine', wegBuy: 'Buy', wegSalvage: 'Dismantle', wegMineLink: 'Locations', wegBuyYes: 'at commodity terminals',
+      wegSalvageFrom: 'from {item}', wegSalvageNone: 'no item known', wegSalvageTitle: 'Dismantle calculator: every item with {mat}' };
+// Werkbank: Wege zu Material und Bauplan wie auf dem Bauplan-Blatt (Krisz
+// 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „alle drei wege auf die
+// werkbank einbauen“, „hier soll craftingwerkbank wie datenblatt
+// funktionieren“). Daten aus src/lib/bezugswege.ts (werkbankWege), Texte
+// dieselben wie auf dem Blatt (src/i18n/bezugswegeText.ts).
+const bwt = bwT(lang);
+const WEGE = werkbank
+  ? {
+      ...werkbankWege(),
+      patch: craftPatch,
+      wikelo: href('/topics/wikelo-emporium.html', lang),
+      melden: href('/feedback.html', lang),
+      items: href('/items.html', lang),
+    }
+  : undefined;
+const WEGE_T = werkbank
+  ? Object.fromEntries(
+      (['matTitle', 'matMine', 'matMineNone', 'matBuy', 'matBuyNone', 'matBuyUnknown', 'matSalvage', 'matSalvageNone',
+        'bpSourceTitle', 'bpSourceUnknown', 'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText',
+        'bpNextTitle', 'bpNextItem', 'bpNextItemBuy', 'bpNextItemFind', 'bpNextItemStock', 'bpNextItemWikelo',
+        'bpNextItemOpen', 'bpNextReport', 'report'] as const).map((k) => [k, bwt(k)]),
+    )
+  : undefined;
 const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
@@ -1106,6 +1136,8 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   items: itemLinks,
   werkbank,
   wbT: werkbank ? WB_JS : undefined,
+  wege: WEGE,
+  wegeT: WEGE_T,
   t: JS_T,
   // Wertnamen und Pfadglieder nur auf DE (src/i18n/craftingWerte.ts).
   werte: lang === 'de' ? WERTNAMEN_DE : undefined,

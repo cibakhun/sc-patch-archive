@@ -112,8 +112,11 @@ describe('Suchwoerter je Werkzeug (TOOL_ALIASES)', () => {
     for (const p of pfade) assert.ok(quellen(p).some((f) => fs.existsSync(f)), `${p}: keine Seite unter ${quellen(p).join(' / ')}`);
     console.log(`    Werkzeugpfade geprueft: ${pfade.length}`);
     // 15 bis 26.11.2026; seitdem 14: der Item Finder ist in der Items-Seite
-    // aufgegangen, seine Suchwoerter stehen bei /items.html.
-    assert.ok(pfade.length >= 14, `nur ${pfade.length} Pfade`);
+    // aufgegangen, seine Suchwoerter stehen bei /items.html. 14 -> 13 am
+    // selben Tag: das Blueprint-Verzeichnis ist nur noch fuer Google da und
+    // kein Werkzeug der Suche mehr (Krisz „werkbank ist das einzige für
+    // menschen“, verify:nur-werkbank).
+    assert.ok(pfade.length >= 13, `nur ${pfade.length} Pfade`);
   });
 
   test('die Woerter aus dem Audit stehen drin: werkbank, raffinerie, loadout', () => {
@@ -153,12 +156,14 @@ for (const lang of ['de', 'en']) {
 
     test('jedes Ziel ist eine Seite, die es gibt; kein Ort doppelt', () => {
       const seite = (u) => u.replace(/^\/de\//, '/').replace(/[?#].*$/, '');
-      const bekannt = new Set(['/topics/mining.html', '/refinery.html', '/items.html', '/missionen.html']);
+      // Blueprint-Listen fuehren seit 26.11.2026 in die Crafting-Werkbank mit
+      // dem Kategorie-Filter (?kat=), nicht mehr ins Blueprint-Verzeichnis.
+      const bekannt = new Set(['/topics/mining.html', '/refinery.html', '/items.html', '/missionen.html', '/topics/crafting.html']);
       for (const e of alle) {
         for (const u of [e.u, e.w].filter(Boolean)) {
           assert.ok(u.startsWith(`${pre}/`), `${e.t}: ${u} ohne Sprachpraefix`);
           const s = seite(u);
-          if (s.startsWith('/items/category/') || s.startsWith('/crafting/category/')) continue;
+          if (s.startsWith('/items/category/')) continue;
           assert.ok(bekannt.has(s), `${e.t}: unbekanntes Ziel ${u}`);
         }
         assert.equal(!!e.w, !!e.wl, `${e.t}: w und wl nur zusammen`);

@@ -14,9 +14,12 @@ import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 import { patchLinkFromKennung } from '../../lib/patchPages';
 import { blueprints } from '../../lib/crafting';
+import { ziel } from '../../lib/bereiche';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
+// Der Weg zu den Items heisst wie in jeder Leiste (src/lib/bereiche.ts).
+const itemsZiel = ziel('items', lang);
 // Kennzahl unter dem Werkzeug: dieselbe Zahl wie der Zaehler ueber der Liste
 // (Rezepte mit Item, lib/crafting). Bis 14.11.2026 stand hier der Spielbestand
 // DB.counts.blueprints (1634) unter einer Liste, die „1.626 / 1.626“ zaehlt.
@@ -105,12 +108,12 @@ const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { l
   <CraftingApp lang={de ? 'de' : 'en'} werkbank />
 
   {/* Unter dem Werkzeug, nicht davor: Lead, Kennzahlen, Volatilitaets-/
-      Speicherhinweis und die beiden Verzeichnis-Verweise. Nichts davon
-      braucht man zum Bedienen — der Speicherhinweis steht als `title` schon
-      an der Sync-Anzeige in der Werkzeugleiste. Alles bleibt sichtbarer Text
-      bzw. echtes <a href> im statischen HTML; die Verweise sind der
-      krabbelbare Weg in die Verzeichnisse, ihre Position im Dokument ist
-      dafuer egal, ihr Vorhandensein nicht. */}
+      Speicherhinweis und der Weg zu den Items. Nichts davon braucht man zum
+      Bedienen — der Speicherhinweis steht als `title` schon an der
+      Sync-Anzeige in der Werkzeugleiste. Den Verweis aufs Blueprint-Verzeichnis
+      gibt es nicht mehr: Verzeichnisse sind nur fuer Google da und stehen in
+      der Sitemap (Krisz 26.11.2026, verify:nur-werkbank); die Karten oben
+      verlinken jedes Bauplan-Blatt. */}
   <aside class="cr-about cr-about--wb">
     <p class="cr-about__lead">{de ? 'Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer.' : 'Blueprints, ingredients, quality simulator, fabricator planner.'}</p>
     <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
@@ -120,8 +123,7 @@ const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { l
     {/* Statischer Einstieg in dieselbe Datenschicht — der Planer selbst rendert
         Zutaten & Missionen erst im Browser. */}
     <p class="cr-browse">
-      <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
-      <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Items →' : 'Items →'}</a>
+      <a href={itemsZiel.href}>{itemsZiel.name} →</a>
     </p>
     {/* Datenstand statt „Stand <Datum des Datenlaufs>“ in Kennzahlen, Hinweis
         und Fusszeile (bis 06.11.2026): Rezepte sind Spielwerte, ihr Stand ist

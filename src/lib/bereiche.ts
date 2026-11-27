@@ -70,7 +70,6 @@ const ICON = {
   items: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
   sets: '<path d="M12 2 4 5v6c0 5.2 3.4 9.4 8 11 4.6-1.6 8-5.8 8-11V5z"/>',
   crafting: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
-  blueprints: '<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/>',
   schiffe: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
   // Hallentor: Bogen, Boden, Einfahrt.
   hangar: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
@@ -141,22 +140,19 @@ export const BEREICHE: BereichQuelle[] = [
         path: '/topics/crafting.html',
         name: { de: 'Crafting', en: 'Crafting' },
         sub: { de: 'Werkbank & Planer', en: 'Workbench & planner' },
-        pre: ['/topics/crafting.html'],
+        // Das Blueprint-Verzeichnis (/crafting.html, /crafting/category/…) und
+        // die Bauplan-Blaetter (/crafting/<name>.html) gehoeren zur Werkbank.
+        // Das Verzeichnis ist nur fuer Google da und steht in keiner Leiste
+        // (Krisz 26.11.2026: „braucht ja kein mensch sehen, soll auch nicht
+        // verlinkt werden. werkbank ist das einzige für menschen“);
+        // verify:nur-werkbank haelt sichtbare Links darauf fern.
+        pre: ['/topics/crafting.html', '/crafting.html', '/crafting/'],
         such: 'crafting blueprints bauplaene blaupausen planner planer herstellen werkbank workbench fabricator',
         icon: ICON.crafting,
         bild: 't-craft-1',
         // Die Werkbank fuellt die Seite direkt unter der Kopfleiste; die
         // Zeile darunter ist weg (Krisz 11.11.2026 „Kann weg“, backMark).
         ohneLeiste: 'Werkbank: keine Zeile unter der Kopfleiste (Krisz 11.11.2026)',
-      },
-      {
-        key: 'blueprints',
-        path: '/crafting.html',
-        name: { de: 'Blueprint-Verzeichnis', en: 'Blueprint directory' },
-        sub: { de: 'Alle Blueprints nach Kategorie', en: 'Every blueprint by category' },
-        pre: ['/crafting.html', '/crafting/'],
-        such: 'blueprints bauplaene blaupausen verzeichnis directory kategorien categories alle all',
-        icon: ICON.blueprints,
       },
     ],
   },
@@ -565,7 +561,10 @@ export function krumen(pathname: string, seite: Krume[], lang: Locale): Krume[] 
   const imArchiv = b.key === 'archiv';
   for (const k of mitte) {
     const h = basis(k.href);
-    if (h && schon.has(h)) continue;
+    // Eine Krume mit Abfrage ist ein eigener Schritt, auch wenn sie auf die
+    // Einstiegsseite zeigt: die Kategorie eines Bauplans oeffnet die Werkbank
+    // mit ihrem Filter (/topics/crafting.html?kat=…).
+    if (h && schon.has(h) && !k.href?.includes('?')) continue;
     if (!imArchiv && h?.startsWith('/patches/')) continue;
     out.push({ label: k.label, href: k.href ? lok(k.href) : undefined });
   }

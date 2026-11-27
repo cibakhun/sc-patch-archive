@@ -564,6 +564,12 @@ export const craftCategoryPath = (c: CraftCategory | string, page = 1) => {
 };
 
 export const craftHubPath = '/crafting.html';
+/** Die Werkbank, die Seite fuer Menschen (Krisz 26.11.2026). */
+export const craftWerkbankPath = '/topics/crafting.html';
+/** Die Werkbank mit dem Kategorie-Filter eines Bauplans (?kat=, assets/crafting-app.js
+ *  applyKatQuery). Ersetzt fuer Menschen die Kategorieseiten des Verzeichnisses,
+ *  die nur noch fuer Google da sind. */
+export const craftKatPath = (cat: string) => `${craftWerkbankPath}?kat=${encodeURIComponent(cat)}`;
 /**
  * Der interaktive Planer (Deep-Link auf einen Blueprint).
  *

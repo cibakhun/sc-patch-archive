@@ -391,6 +391,35 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wbo__null{position:absolute;top:-3px;bottom:-3px;left:var(--n,50%);width:2px;margin-left:-1px;border-radius:1px;background:var(--tx)}
 .cdb--wb .cbm__note{margin:.7rem 0 0;padding-left:.7rem;border-left:2px solid var(--hl2);font-size:var(--fs-4);line-height:1.55}
 .cdb--wb .cbm__hint{margin:0 0 .6rem;font-style:normal}
+/* Woher die Materialien kommen (Krisz 27.11.2026: „alle drei wege auf die
+   werkbank einbauen“): je Material eine Karte, darin drei Spalten Abbauen,
+   Kaufen, Zerlegen mit kleiner Ueberschrift wie die Item-Werte. Was ein Weg
+   ist, steht hell (Verweise blau), was es nicht gibt, leise. Schmal (unter
+   560 px) stehen die drei als Zeilen: Ueberschrift links, Wert rechts. */
+.cdb--wb .wbm{display:grid;gap:.4rem;margin:0;padding:0;list-style:none}
+.cdb--wb .wbm__z{padding:.6rem .8rem .7rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2)}
+.cdb--wb .wbm__n{display:block;margin-bottom:.45rem;font-size:var(--fs-9);font-weight:700;color:var(--tx)}
+.cdb--wb .wbm__w{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem .9rem}
+.cdb--wb .wbm__c{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;min-width:0}
+.cdb--wb .wbm__l{font-size:var(--fs-1);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--mu)}
+.cdb--wb .wbm__weg,.cdb--wb .wbm__txt,.cdb--wb .wbm__ohne{font-size:var(--fs-4);line-height:1.4}
+.cdb--wb .wbm__txt{color:var(--tx)}
+.cdb--wb .wbm__ohne{color:var(--mu)}
+.cdb--wb .wbm__weg{display:inline-flex;align-items:baseline;gap:.3rem;min-height:24px;margin:0;padding:0;border:0;background:none;font:inherit;font-size:var(--fs-4);font-weight:700;line-height:1.4;text-align:left;text-decoration:none;color:var(--b);cursor:pointer}
+.cdb--wb .wbm__weg > span{min-width:0;overflow-wrap:anywhere}
+.cdb--wb .wbm__weg .wi{flex:none;align-self:center;transition:transform var(--dur-base) var(--out)}
+.cdb--wb .wbm__weg:hover > span,.cdb--wb .wbm__weg:focus-visible > span{text-decoration:underline;text-underline-offset:.2em}
+.cdb--wb .wbm__weg:hover .wi{transform:translateX(3px)}
+@media (max-width:560px){
+  .cdb--wb .wbm__w{grid-template-columns:1fr;gap:.35rem}
+  .cdb--wb .wbm__c{flex-direction:row;align-items:baseline;gap:.7rem}
+  .cdb--wb .wbm__l{flex:0 0 5.6rem}
+}
+/* Woher kommt der Bauplan, wenn keine Mission ihn gibt: wie auf dem Blatt. */
+.cdb--wb .wbq-wikelo{margin-top:.7rem}
+.cdb--wb .wbq-next{display:grid;gap:.5rem;margin:0;padding:0;list-style:none;font-size:var(--fs-4);line-height:1.55}
+.cdb--wb .wbq-next a{display:inline-flex;align-items:center;gap:.3rem;color:var(--b);font-weight:700;text-decoration:none}
+.cdb--wb .wbq-next a:hover{text-decoration:underline}
 /* Item-Werte: Bezeichnung klein oben, Wert darunter. */
 .cdb--wb .cbm__stats{grid-template-columns:repeat(auto-fill,minmax(min(8.2rem,100%),1fr));gap:.45rem}
 .cdb--wb .cbm__st{flex-direction:column;justify-content:flex-start;gap:.2rem;padding:.55rem .75rem .6rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2)}
@@ -442,21 +471,16 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(n+5){animation-delay:calc(250ms*var(--zt))}
 .cdb--wb .cdb-modal__body.is-neu .wbr-emb .wg{animation:wb-emb calc(.5s*var(--zt)) var(--feder) both}
 .cdb--wb .cdb-modal__body.is-neu .wb-ring__b{stroke-dasharray:277;animation:wb-zieh calc(.7s*var(--zt)) var(--out) both}
-/* R7: Wechsel von Rezept zu Rezept (is-wechsel setzt crafting-app.js, wenn
-   schon ein Rezept dasteht). Vorher baute sich die ganze Mitte jedes Mal neu
-   auf und war fuer zwei Bilder leer, samt dem Knopf, der doch derselbe
-   bleibt. Jetzt bleibt stehen, was gleich bleibt (die Felder der Kennwerte,
-   „Zum Planer“ und die Verweise); die Werte rucken, Name und Zutaten kommen
-   knapper und mit kuerzerem Weg. */
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > *{animation:wb-nach calc(.3s*var(--zo)) var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > .cbm__meta{animation:none}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn b{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(2){animation-delay:calc(25ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(3){animation-delay:calc(50ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(4){animation-delay:calc(75ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(n+5){animation-delay:calc(100ms*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-emb .wg{animation-duration:calc(.38s*var(--zo))}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wb-ring__b{animation-duration:calc(.45s*var(--zo))}
+/* Wechsel von Rezept zu Rezept (Krisz 27.11.2026: „wenn man das erste mal
+   ein blueprint asuwählt und wie das alles da rechts erscheint ist sehr
+   smooth aber danach wenn man andere blueprints auswählt iwi gar nicht so“).
+   R7 hatte den Wechsel knapper gemacht: Felder blieben stehen, nur Name und
+   Zutaten rueckten 6 px nach, und der Inhalt wechselte ohne Uebergang. Das
+   las sich wie ein harter Schnitt. Jetzt blendet das alte Rezept kurz aus
+   (is-geht, crafting-app.js), und das neue baut sich auf wie das erste, nur
+   im Tempo der Wiederholung (--zo statt --zt). Der Rahmen des Kopfs bleibt. */
+.cdb--wb .cdb-modal__body.is-wechsel{--zt:var(--zo)}
+.cdb--wb .cdb-modal__body.is-geht .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-geht .wbr-emb > :not(.wb-ring),.cdb--wb .cdb-modal__body.is-geht .wb-ring__b,.cdb--wb .cdb-modal__body.is-geht .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-geht .wbr-inh > *{animation:wb-weg calc(.13s*var(--zo)) cubic-bezier(.4,0,1,1) both}
 /* Leere Mitte: Bauplan im Fadenkreuz. */
 .cdb--wb .cdb-wb-leer{gap:.55rem;padding:2rem 1.4rem}
 .cdb--wb .cdb-wb-leer__i{position:relative;width:132px;height:132px;margin-bottom:.9rem;border:0;background:radial-gradient(closest-side,color-mix(in srgb,var(--o) 16%,transparent),transparent)}
@@ -719,6 +743,7 @@ ${AUFTAKT_VERZUG}
    neu an, statt hart umzuspringen (is-frisch setzt crafting-app.js). */
 .cdb--wb .is-frisch{animation:wb-nach calc(.26s*var(--zt)) var(--out)}
 .cdb--wb .cdb-grid.is-frisch{animation:wb-frisch calc(.22s*var(--zo)) var(--out)}
+@keyframes wb-weg{to{opacity:0;transform:translateY(-4px)}}
 @keyframes wb-nach{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes wb-frisch{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes wb-atem{from{opacity:.3}to{opacity:.75}}

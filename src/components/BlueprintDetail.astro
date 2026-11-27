@@ -9,9 +9,9 @@ import { href, type Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
 import { pfadname, wertname } from '../i18n/craftingWerte';
 import {
-  type BlueprintEntry, blueprintPath, craftCategoryPath, craftDb, craftLeaf,
+  type BlueprintEntry, blueprintPath, craftDb, craftKatPath, craftLeaf,
   craftPatch, craftTime, itemForBlueprint, plannerPath, relatedBlueprints,
-  resourceNames, slugify, totalScu,
+  resourceNames, totalScu,
 } from '../lib/crafting';
 import { displayName, itemPath, num, pageItemIds } from '../lib/items';
 import { mineralFor, miningLink } from '../lib/miningLinks';
@@ -46,9 +46,11 @@ const stats = bp.item_stats ?? {};
 const missions = bp.missions ?? [];
 const scu = totalScu(bp);
 
+// Fuer Menschen fuehren die Krumen in die Werkbank, nicht ins Verzeichnis:
+// der Bereich „Crafting“ steht davor (src/lib/bereiche.ts), die Kategorie
+// oeffnet die Werkbank mit ihrem Filter (Krisz 26.11.2026, verify:nur-werkbank).
 const crumbs = [
-  { label: t('breadcrumbCrafting'), href: '/crafting.html' },
-  { label: craftLeaf(bp.category), href: craftCategoryPath(slugify(bp.category)) },
+  { label: craftLeaf(bp.category), href: craftKatPath(bp.category) },
   { label: bp.name },
 ];
 
@@ -363,7 +365,7 @@ const meldenHref = `${href('/feedback.html', lang)}?wert=${encodeURIComponent(As
   <div class="dp-actions">
     {linkedItem && <a class="dp-btn" href={href(itemPath(linkedItem), lang)}>{t('bpOpenItem')} →</a>}
     {/* Der Planer-Knopf steht einmal, im Kopf (UX-Audit D10). */}
-    <a class="dp-btn dp-btn--ghost" href={href(craftCategoryPath(slugify(bp.category)), lang)}>{craftLeaf(bp.category)}</a>
+    <a class="dp-btn dp-btn--ghost" href={href(craftKatPath(bp.category), lang)}>{craftLeaf(bp.category)}</a>
     {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>

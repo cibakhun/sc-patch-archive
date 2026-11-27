@@ -259,7 +259,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
     { art: 'changed', ziel: 'salvage', k: 'Salvage', v: '240 → 448 SCU', s: T('Reclaimer-Puffer. Die ganze Salvage-Flotte nimmt mehr auf.', 'Reclaimer buffer. The whole salvage fleet holds more.'), link: schiff('aegs-reclaimer', 'Reclaimer'), stand: '4.10.3', bilder: bilderZu('aegs-reclaimer') },
     { art: 'changed', ziel: 'kampf', k: 'Mauler „STRIKER“', v: '64 → 250', s: T(`Energieschaden je Schuss, rund 800 → ${n(3125)} DPS`, `Energy damage per shot, about 800 → ${n(3125)} DPS`), link: { t: 'Mauler „STRIKER“', h: '/items/vanduul-mauler-striker-repeater.html' }, stand: '4.10.3', bilder: bilderZu('vncl-mauler') },
     { art: 'changed', ziel: 'kampf', k: T('Torpedos', 'Torpedoes'), v: T('ab 700 m', 'from 700 m'), s: T('Größe 5 und 7 machen sich erst dann scharf', 'Size 5 and 7 only arm from there'), link: null, stand: '4.10.3', bilder: [] },
-    { art: 'new', ziel: 'ausruestung', k: T('Baupläne', 'Blueprints'), v: '+17', s: T('Raider Camo, Skarnov, Deterrent', 'Raider Camo, Skarnov, Deterrent'), link: { t: T('Baupläne', 'Blueprints'), h: '/crafting.html' }, stand: '4.10.3', bilder: bilderZu('raider-camo', 'skarnov') },
+    { art: 'new', ziel: 'ausruestung', k: T('Baupläne', 'Blueprints'), v: '+17', s: T('Raider Camo, Skarnov, Deterrent', 'Raider Camo, Skarnov, Deterrent'), link: { t: T('Baupläne', 'Blueprints'), h: '/topics/crafting.html' }, stand: '4.10.3', bilder: bilderZu('raider-camo', 'skarnov') },
   ];
 
   /* ---- Aufträge: Titel, Rang, Ort und Baupläne aus den Missionsdaten ---- */
@@ -531,7 +531,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const sCraft = nur4103(F_CRAFT, 'assets/crafting-db.json');
   const bestandZeilen: Bestandszeile[] = [
     { was: { t: T('Gegenstände', 'Items'), h: '/items.html' }, vorher: 9412, nachher: (ITEMS as { items: unknown[] }).items.length, vorherStand: '4.10.2', stand: sItems },
-    { was: { t: T('Baupläne', 'Blueprints'), h: '/crafting.html' }, vorher: 1617, nachher: (CRAFT as { blueprints: unknown[] }).blueprints.length, vorherStand: '4.10.2', stand: sCraft },
+    { was: { t: T('Baupläne', 'Blueprints'), h: '/topics/crafting.html' }, vorher: 1617, nachher: (CRAFT as { blueprints: unknown[] }).blueprints.length, vorherStand: '4.10.2', stand: sCraft },
     { was: { t: T('Missionsfamilien', 'Mission families'), h: '/missionen.html' }, vorher: 1387, nachher: (MISSIONS as { missions: unknown[] }).missions.length, vorherStand: '4.10.2', stand: sMissions },
     { was: { t: T('Schiffe und Fahrzeuge', 'Ships and vehicles'), h: '/schiffe.html' }, vorher: 231, nachher: (VEHICLES as { vehicles: unknown[] }).vehicles.length, vorherStand: '4.10.2', stand: sVehicles },
   ];
