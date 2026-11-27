@@ -36,6 +36,7 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -90,27 +91,22 @@ const googleArt = (p) => GOOGLE.find((g) => g.muster.test(p)) ?? null;
  */
 const EIGEN = 'https://verse-base.com';
 const EIGENE_HOSTS = /^(?:www\.|staging\.)?verse-base\.com$/i;
-/* Zeichenreferenzen in einem Durchgang wie im HTML-Parser (Review #482):
- * „&#47;crafting.html“ und „&#x2F;crafting.html“ sind im Browser „/crafting.html“.
- * Verschachteltes wie „&amp;#47;“ wird bewusst nur einmal entschluesselt und
- * bleibt „&#47;“ — genau das zeigt auch der Browser. Benannte Referenzen nur
- * mit „;“ und nur die, die in einem Link-Ziel etwas bedeuten koennen. */
-const BENANNT = {
-  amp: '&', AMP: '&', quot: '"', QUOT: '"', apos: "'", lt: '<', LT: '<', gt: '>', GT: '>', nbsp: '\u00a0',
-  sol: '/', period: '.', colon: ':', num: '#', quest: '?', lowbar: '_', percnt: '%', equals: '=', commat: '@',
-  Tab: '\t', NewLine: '\n',
-};
-function entschluesseln(s) {
-  return s.replace(/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|([A-Za-z]+));?/g, (m, d, h, n) => {
-    if (d != null || h != null) {
-      const c = parseInt(d ?? h, d != null ? 10 : 16);
-      return c > 0 && c <= 0x10ffff && !(c >= 0xd800 && c <= 0xdfff) ? String.fromCodePoint(c) : '\ufffd';
-    }
-    return m.endsWith(';') && Object.hasOwn(BENANNT, n) ? BENANNT[n] : m;
-  });
+/* Zeichenreferenzen wie im HTML-Parser (Review #482): „&#47;crafting.html“,
+ * „&#x2F;crafting.html“ und „&bsol;crafting.html“ sind im Browser Wege nach
+ * /crafting.html. Entschluesselt wird mit dem HTML-Parser von linkedom (wie
+ * im Pruefstand), also mit der vollen Tabelle benannter Referenzen und den
+ * Regeln fuer Attributwerte: „&ampy“ bleibt stehen, „&#128;“ wird „€“.
+ * Verschachteltes wie „&amp;#47;“ wird nur einmal entschluesselt und bleibt
+ * „&#47;“ — genau das zeigt auch der Browser. Nur Werte mit „&“ gehen durch
+ * den Parser. */
+const ENTSCHLUESSLER = parseHTML('<!doctype html><html><body></body></html>').document.createElement('div');
+function entschluesseln(wert) {
+  if (!wert.includes('&')) return wert;
+  ENTSCHLUESSLER.innerHTML = '<a href="' + wert.replace(/"/g, '&quot;') + '"></a>';
+  return ENTSCHLUESSLER.firstChild?.getAttribute('href') ?? wert;
 }
 function pfad(h, basis = '/') {
-  const roh = entschluesseln(h.trim());
+  const roh = h.trim();
   let u;
   try { u = new URL(roh, EIGEN + basis); } catch { return null; }
   if (!/^https?:$/.test(u.protocol) || !EIGENE_HOSTS.test(u.hostname)) return null;
@@ -170,7 +166,7 @@ if (!vorschau) {
   sitemapPfade = new Set();
   for (const f of readdirSync(DIST).filter((n) => /^sitemap.*\.xml$/.test(n))) {
     for (const m of readFileSync(join(DIST, f), 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)) {
-      const p = pfad(m[1]);
+      const p = pfad(entschluesseln(m[1]));
       if (p) sitemapPfade.add(p);
     }
   }
@@ -201,7 +197,7 @@ for (const f of dateien) {
   for (const attr of ankerAttribute(readFileSync(f, 'utf8'))) {
     const href = attribute(attr).get('href');
     if (href == null) continue;
-    const p = pfad(href, von);
+    const p = pfad(entschluesseln(href), von);
     if (p == null) continue;
     links++;
     const g = googleArt(p);
