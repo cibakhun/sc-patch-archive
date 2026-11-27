@@ -373,7 +373,7 @@ button.wz-tag:hover{background:color-mix(in srgb,var(--akz) 20%,transparent);col
 .wzb-zeilen{list-style:none;display:grid;gap:.3rem;margin:0;padding:0}
 .wzb-zeile{display:flex;align-items:center;gap:.7rem;width:100%;padding:.45rem .7rem .45rem .5rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2);color:var(--tx);font-size:var(--fs-7);text-align:left;text-decoration:none;transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .wzb-zeile .wz-z{width:26px;height:26px;border-radius:6px}
-.wzb-zeile > span:not(.wz-z){display:flex;flex-direction:column;gap:.05rem;min-width:0;margin-right:auto}
+.wzb-zeile > span:not(.wz-z):not(.wi){display:flex;flex-direction:column;gap:.05rem;min-width:0;margin-right:auto}
 .wzb-zeile small{font-size:var(--fs-2);font-weight:700;letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--mu)}
 .wzb-zeile > .wi{color:var(--mu2);transition:transform var(--dur-base) var(--out),color var(--dur-fast) var(--ease-ui)}
 .wzb-zeile:hover{border-color:color-mix(in srgb,var(--akz) 55%,transparent);background:color-mix(in srgb,var(--akz) 7%,var(--e2))}

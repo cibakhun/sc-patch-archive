@@ -4,40 +4,18 @@
 // Set-Seite unter jedem Set und im Set-Abschnitt des Item-Datenblatts.
 // Rechnung: src/lib/setPreis.ts.
 import type { Locale } from '../i18n/ui';
-import { itemT, itemLabel, fill, obtainLabel } from '../i18n/itemText';
-import { auec } from '../lib/items';
-import { setPreis } from '../lib/setPreis';
-
+import { setPreisText } from '../lib/setPreisText';
 interface Props { id: string; lang: Locale; class?: string }
 const { id, lang, class: klasse } = Astro.props;
-const t = itemT(lang);
-const p = setPreis(id);
-const slotName = (s: string) => itemLabel(lang, 'slot' + s, s);
-const m = p.teile.length;
-const n = m - p.ohnePreis.length;
-const preis = p.ab != null ? auec(p.ab, lang) : '';
-const kopf = p.ab == null
-  ? t('setPreisKeiner')
-  : p.ohnePreis.length
-    ? fill(t('setPreisTeil'), { n, m, preis })
-    : m === 4
-      ? fill(t('setPreisKomplett'), { preis })
-      : m === 1
-        ? fill(t('setPreisEins'), { preis })
-        : fill(t('setPreisAlle'), { m, preis });
-const ohne = p.ab != null && p.ohnePreis.length
-  ? fill(t('setPreisOhne'), { teile: p.ohnePreis.map(slotName).join(', ') })
-  : null;
-const ort = p.ort
-  ? fill(t(p.ohnePreis.length ? 'setPreisOrtTeil' : 'setPreisOrt'), { n, laden: obtainLabel({ kind: 'shop', loc: p.ort.loc }, lang), preis: auec(p.ort.summe, lang) })
-    + (p.ort.weitere === 1 ? ` (${t('setPreisOrtEiner')})` : p.ort.weitere > 1 ? ` (${fill(t('setPreisOrtMehr'), { n: p.ort.weitere })})` : '')
-  : null;
+// Text an einer Stelle (src/lib/setPreisText.ts): die Items-Werkbank zeigt
+// denselben, ueber /items-wege.json.
+const z = setPreisText(id, lang);
 ---
-{m > 0 && (
-  <p class:list={['set-preis', klasse, { 'set-preis--leer': p.ab == null }]} title={p.ab != null ? t('setPreisHinweis') : undefined}>
-    <b>{kopf}</b>
-    {ohne && <span> · {ohne}</span>}
-    {ort && <span class="set-preis__ort"> · {ort}</span>}
+{z.teile > 0 && (
+  <p class:list={['set-preis', klasse, { 'set-preis--leer': z.leer }]} title={z.titel ?? undefined} data-set-preis>
+    <b>{z.kopf}</b>
+    {z.ohne && <span> · {z.ohne}</span>}
+    {z.ort && <span class="set-preis__ort"> · {z.ort}</span>}
   </p>
 )}
 

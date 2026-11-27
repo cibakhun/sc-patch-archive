@@ -24,6 +24,7 @@
     "verify:rechtsfuss": "node scripts/verify-rechtsfuss.mjs",
     "verify:ia": "node scripts/verify-ia.mjs",
     "verify:nur-werkbank": "node scripts/verify-nur-werkbank.mjs",
+    "verify:werkbank-items": "node scripts/verify-werkbank-items.mjs",
     "verify:help": "node scripts/verify-help.mjs --complete",
     "verify:ausgabe": "node scripts/verify-ausgabe.mjs",
     "verify:typo": "node scripts/verify-typo-motion.mjs",

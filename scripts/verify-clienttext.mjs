@@ -192,27 +192,34 @@ if (ANKER < 0 || QUELLE.slice(ANKER + 5).trim() !== '') {
 // Laden alle Kacheln an (rund 150.000 Knoten); craftEinsetzen() sucht mit
 // getElementById, das linkedom durch den ganzen Baum fuehrt — 30 ms je
 // Blatt. Vor der Blatt-Schleife wird das Gitter deshalb geleert; die
-// Kacheln prueft die Schleife als Zeichenkette.
+// Kacheln prueft die Schleife als Zeichenkette. Seit dem 27.11.2026 steht im
+// Blatt auch, was sonst nur das Item-Datenblatt wusste (/items-wege.json):
+// laden() holt beide Nachlade-Dateien, blatt() setzt beide Abschnitte ein.
 const NAHT = `
-  var __gefragt = {}, __gefragtW = {};
+  var __gefragt = {}, __gefragtW = {}, __gefragtBW = {};
   tr = (function (orig) {
     return function (k) { __gefragt[k] = 1; return orig.apply(this, arguments); };
   })(tr);
   w = (function (orig) {
     return function (k) { __gefragtW[k] = 1; return orig.apply(this, arguments); };
   })(w);
+  bw = (function (orig) {
+    return function (k) { __gefragtBW[k] = 1; return orig.apply(this, arguments); };
+  })(bw);
   window.__pruefnaht = {
     gefragt: function () { return Object.keys(__gefragt); },
     gefragtW: function () { return Object.keys(__gefragtW); },
+    gefragtBW: function () { return Object.keys(__gefragtBW); },
     bereit: function () { return bereit; },
     ladeFehler: function () { return ladeFehler; },
-    laden: function () { return ladeCraft(); },
+    laden: function () { return ladeZusatz(); },
     leere: function () { if (io) io.disconnect(); el.gitter.innerHTML = ''; },
     items: function () { return ITEMS; },
     sets: function () { return SETLISTE; },
     blatt: function (it) {
       el.inh.innerHTML = blattItem(it);
       craftEinsetzen(it, document.getElementById('wzb-craft'));
+      wegeEinsetzen(it, document.getElementById('wzb-wege'), document.getElementById('wzb-mehr'));
       return el.inh.innerHTML;
     },
     kachel: function (it) { return kachel(it); },
@@ -251,6 +258,8 @@ const buendel = new Map();
 const SEITEN = { en: 'items.html', de: 'de/items.html' };
 const katalogSchluessel = {};
 const katalogW = {};
+const katalogBW = {};
+const gefragtBW = {};
 const gefragt = {};
 const gefragtW = {};
 const zaehlung = {};
@@ -280,6 +289,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   const cfg = p.window.__WZI || {};
   katalogSchluessel[lang] = new Set(Object.keys(cfg.t || {}));
   katalogW[lang] = new Set(Object.keys(cfg.w || {}));
+  katalogBW[lang] = new Set(Object.keys(cfg.bw || {}));
   naht = p.window.__pruefnaht;
   if (!naht) { fehler.push(`${lang}: Pruefnaht nicht erreichbar — bricht das Skript vor seinem Ende ab?`); p.schliesse(); continue; }
   if (!naht.bereit()) { fehler.push(`${lang}: der Item-Katalog ist nicht geladen${naht.ladeFehler() ? ' (Ladefehler)' : ''} — dbUrl in window.__WZI pruefen`); p.schliesse(); continue; }
@@ -310,6 +320,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   }
   gefragt[lang] = new Set(naht.gefragt());
   gefragtW[lang] = new Set(naht.gefragtW());
+  gefragtBW[lang] = new Set(naht.gefragtBW());
   uebernimm();
   p.schliesse();
 }
@@ -326,6 +337,14 @@ const woertlichW = [...new Set([...QUELLE.matchAll(/\bw\(\s*'([A-Za-z][\w.]*)'\s
 for (const lang of Object.keys(SEITEN)) {
   for (const k of new Set([...woertlichW, ...(gefragtW[lang] ?? [])])) {
     if (!katalogW[lang]?.has(k)) funde.katalog.push(`${lang}: w('${k}') steht nicht im Textsatz der Werkbank (window.__WZI.w) — die Seite zeigt den Schluessel`);
+  }
+}
+// Dasselbe fuer die Texte der Bezugswege (window.__WZI.bw, derselbe Satz wie
+// auf dem Item-Datenblatt): bw() faellt auf den Schluessel zurueck.
+const woertlichBW = [...new Set([...QUELLE.matchAll(/\bbw\(\s*'([A-Za-z][\w.]*)'\s*\)/g)].map((m) => m[1]))];
+for (const lang of Object.keys(SEITEN)) {
+  for (const k of new Set([...woertlichBW, ...(gefragtBW[lang] ?? [])])) {
+    if (!katalogBW[lang]?.has(k)) funde.katalog.push(`${lang}: bw('${k}') steht nicht in den Bezugswege-Texten der Werkbank (window.__WZI.bw) — die Seite zeigt den Schluessel`);
   }
 }
 // Zur Laufzeit gefragte Schluessel (auch zusammengesetzte): Paritaet.

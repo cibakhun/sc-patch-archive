@@ -1362,6 +1362,33 @@ export const CHECKS = [
       'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (in einem Durchgang wie der HTML-Tokenizer gelesen: nur echte Kommentare fallen weg, keine Anker aus Attributwerten, Tagnamen ganz verglichen, Anker in Rohtext wie Skriptvorlagen mitgezaehlt; href als ganzes Attribut gelesen, Zeichenreferenzen wie im HTML-Parser entschluesselt, gegen die Seite aufgeloest und normalisiert, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
+    // Neuzugang 27.11.2026 (Krisz: „Da steht wieder ganz fett Datenblatt
+    // öffnen. Aber wofür sollte ein User den Datenblatt öffnen?“). Die
+    // Items-Werkbank fuehrt nicht mehr aufs Item-Datenblatt; was nur das
+    // Blatt wusste, steht im Blatt der Werkbank, aus denselben Funktionen
+    // gerechnet (/items-wege.json, src/lib/itemsWerkbankWege.ts). Dieses Tor
+    // haelt beide gegeneinander: Werkbank im Pruefstand aus dem
+    // ausgelieferten Skript, Blatt aus dist/. Kein git, kein Netz; esbuild
+    // wie verify:clienttext. Laufzeit gut 65 s in der Cloud.
+    // VORGEFUEHRT ROT am 27.11.2026 (Live-Bau dieses Stands) zweimal:
+    // (a) --js auf das Skript von origin/staging 5a85f600 (vor dieser
+    // Lieferung): 89.760 FEHLER, darunter „/items-wege.json ist nicht
+    // geladen“, [11] Datenblatt- und Kategorielisten-Links, [12] kein
+    // „Melden“, [1] [3] [4] [10] fehlende Antworten; Exit 1.
+    // (b) --js auf eine Kopie des neuen Skripts mit Missionszahl minus eins
+    // und einem Link aufs Item-Datenblatt neben „Melden“: 20.296 FEHLER =
+    // 1.372 [2] „Blatt 12, Werkbank 11“ (686 Blaetter je Sprache) und
+    // 18.924 [11] (9.462 Items je Sprache); Exit 1. Gruen mit dem
+    // ausgelieferten Skript. Erster Lauf fand einen Lesefehler des Tors
+    // selbst ([2] las auf dem Blatt nur bis zur ersten Missionszeile).
+    id: 'verify:werkbank-items',
+    npm: 'verify:werkbank-items',
+    script: 'scripts/verify-werkbank-items.mjs',
+    rail: 'A',
+    checks:
+      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk, dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne und je Bezugszeile dasselbe Sternsystem; kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, und jedes traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
+  },
+  {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
     // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
     // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
