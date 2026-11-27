@@ -391,30 +391,6 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wbo__null{position:absolute;top:-3px;bottom:-3px;left:var(--n,50%);width:2px;margin-left:-1px;border-radius:1px;background:var(--tx)}
 .cdb--wb .cbm__note{margin:.7rem 0 0;padding-left:.7rem;border-left:2px solid var(--hl2);font-size:var(--fs-4);line-height:1.55}
 .cdb--wb .cbm__hint{margin:0 0 .6rem;font-style:normal}
-/* Woher die Materialien kommen (Krisz 27.11.2026: „alle drei wege auf die
-   werkbank einbauen“): je Material eine Karte, darin drei Spalten Abbauen,
-   Kaufen, Zerlegen mit kleiner Ueberschrift wie die Item-Werte. Was ein Weg
-   ist, steht hell (Verweise blau), was es nicht gibt, leise. Schmal (unter
-   560 px) stehen die drei als Zeilen: Ueberschrift links, Wert rechts. */
-.cdb--wb .wbm{display:grid;gap:.4rem;margin:0;padding:0;list-style:none}
-.cdb--wb .wbm__z{padding:.6rem .8rem .7rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2)}
-.cdb--wb .wbm__n{display:block;margin-bottom:.45rem;font-size:var(--fs-9);font-weight:700;color:var(--tx)}
-.cdb--wb .wbm__w{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem .9rem}
-.cdb--wb .wbm__c{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;min-width:0}
-.cdb--wb .wbm__l{font-size:var(--fs-1);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--mu)}
-.cdb--wb .wbm__weg,.cdb--wb .wbm__txt,.cdb--wb .wbm__ohne{font-size:var(--fs-4);line-height:1.4}
-.cdb--wb .wbm__txt{color:var(--tx)}
-.cdb--wb .wbm__ohne{color:var(--mu)}
-.cdb--wb .wbm__weg{display:inline-flex;align-items:baseline;gap:.3rem;min-height:24px;margin:0;padding:0;border:0;background:none;font:inherit;font-size:var(--fs-4);font-weight:700;line-height:1.4;text-align:left;text-decoration:none;color:var(--b);cursor:pointer}
-.cdb--wb .wbm__weg > span{min-width:0;overflow-wrap:anywhere}
-.cdb--wb .wbm__weg .wi{flex:none;align-self:center;transition:transform var(--dur-base) var(--out)}
-.cdb--wb .wbm__weg:hover > span,.cdb--wb .wbm__weg:focus-visible > span{text-decoration:underline;text-underline-offset:.2em}
-.cdb--wb .wbm__weg:hover .wi{transform:translateX(3px)}
-@media (max-width:560px){
-  .cdb--wb .wbm__w{grid-template-columns:1fr;gap:.35rem}
-  .cdb--wb .wbm__c{flex-direction:row;align-items:baseline;gap:.7rem}
-  .cdb--wb .wbm__l{flex:0 0 5.6rem}
-}
 /* Woher kommt der Bauplan, wenn keine Mission ihn gibt: wie auf dem Blatt. */
 .cdb--wb .wbq-wikelo{margin-top:.7rem}
 .cdb--wb .wbq-next{display:grid;gap:.5rem;margin:0;padding:0;list-style:none;font-size:var(--fs-4);line-height:1.55}
