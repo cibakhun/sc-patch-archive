@@ -1422,6 +1422,32 @@ export const CHECKS = [
       'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk (Namen, mehrfache mehrfach, jedes verlinkt), dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne je Bezugszeile (gepaart ueber ihren Ort) dasselbe Sternsystem und dieselben technischen Daten (Bezeichnung und Wert in Folge, Varianten eingeschlossen); kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, gleich wie das href zitiert ist und aufgeloest gegen die Werkbank-Seite; jedes Item-Blatt der Werkbank traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
   },
   {
+    // Neuzugang 27.11.2026 (Krisz: „können wir bei items dieses smart search
+    // was wir bei den schiffen schon haben in der hangar?“). Schiffsfinder
+    // und Items-Werkbank teilen seitdem den Suchkern assets/smart-suche.js:
+    // der Hangar importiert ihn statisch (die Import-Map legt die
+    // Versionsadresse darueber), die Werkbank laedt ihn mit import(C.sucheUrl)
+    // und faellt still auf Teilstuecke zurueck, wenn er nicht kommt. Beides
+    // sieht kein Test im Pruefstand, nur der gebaute Stand. Kein git, kein
+    // Netz, kein Kindprozess; unter 1 s.
+    // VORGEFUEHRT ROT am 27.11.2026 (Vorschau-Bau dieses Stands, Dateien in
+    // dist/ geaendert und per Sicherung zurueck, sha1 gleich) dreimal:
+    // (a) Import-Map auf hangar.html ohne /assets/smart-suche.js: 1 FEHLER
+    // [1]; Exit 1. (b) dist/assets/smart-suche.js geaendert und ohneBegriff
+    // umbenannt: 5 FEHLER = 2 [1] und 2 [2] (Hash e0888421 gegen fe1b5bce),
+    // 1 [3] „Hangar und Werkbank nutzen ohneBegriff“; Exit 1. (c) Vokabular
+    // der deutschen Werkbank mit „pyro“ als Kategoriewort, einer Kategorie
+    // ausserhalb des Baums und dem Blatt „Arme“ ohne deutschen Namen: 4
+    // FEHLER [4] (Sprachen weichen ab, zwei Bedeutungen, Zombie, Name);
+    // Exit 1.
+    id: 'verify:smart-suche',
+    npm: 'verify:smart-suche',
+    script: 'scripts/verify-smart-suche.mjs',
+    rail: 'A',
+    checks:
+      'jeder relative Import in dist/assets/*.js (hangar-overview.js -> smart-suche.js) steht auf jeder Seite, die das importierende Skript laedt, in einer Import-Map vor dem ersten Modul mit der Versionsadresse, deren Hash zum Inhalt in dist/ passt; C.sucheUrl der Items-Werkbank beider Sprachen zeigt auf denselben Kern in dist/ mit passendem Hash; jeder Name, den Hangar und Werkbank vom Kern nutzen, ist in der gebauten Datei eine exportierte Funktion; das Vokabular der Werkbank ist in beiden Sprachen gleich, erkennt jedes Blatt des Kategoriebaums mit deutschem und englischem Namen und jede Gruppe ausser Sonstiges, meint keine Kategorie ausserhalb des Baums und gibt keinem gefalteten Wort zwei Bedeutungen; Klinken fuer Hangar-Seiten (nur Vorschau), Sprachen, genutzte Namen, Eintraege, Blaetter, Gruppen und Woerter',
+  },
+  {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
     // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
     // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
