@@ -442,8 +442,7 @@ a{color:inherit;text-decoration:none}
     <p class="muted">
       When you are not signed in, the website only connects to Supabase when you use account
       features (sign-in, password reset), on two kinds of pages that read public data — a public
-      pilot profile (that pilot's profile, favorites and pinned loadouts when opened, then that pilot's online status
-      every 40 seconds while the page is open; uploaded images come from Supabase's storage) and the
+      pilot profile (that pilot's profile, favorites and pinned loadouts when opened, and that pilot's online status as it stood when the page loaded — without signing in it is not polled again; uploaded images come from Supabase's storage) and the
       Feedback page (the list of credited <a href="#testpilots">test pilots</a>) — and on the Support
       page once you press the button there (it creates the Stripe payment page via Supabase,
       sending only the amount you chose and the page language). Nothing that identifies you is
@@ -517,7 +516,7 @@ a{color:inherit;text-decoration:none}
       website retrieves a profile through its handle, one at a time; without signing in you cannot
       retrieve the list of all profiles at once, and the retrieval is rate-limited per internet
       connection (for the count we store only a key derived from the IP address — an HMAC, never
-      the address itself — and delete it after an hour). Each retrieval also carries the month you
+      the address itself — and a later retrieval removes it once it is older than an hour). Each retrieval also carries the month you
       created the account, the day you saved each favorite and the time you created and last changed
       each pinned loadout.
     </p>
@@ -626,7 +625,7 @@ a{color:inherit;text-decoration:none}
       handle. You choose who sees it in the account dashboard (“Who sees my online status”). By
       default only your confirmed friends see it while signed in: in their friends list and on your
       pilot profile. With “Everyone” it is readable by anyone, also without signing in: on your
-      public pilot profile, which refreshes it every 40 seconds, through the public interface and
+      public pilot profile (refreshed every 40 seconds for signed-in viewers; guests see it as at page load), through the public interface and
       for open requests. With “No one” nobody sees it; the stored timestamps and the note are then
       cleared at once, and nothing is stored while the setting applies. Even with “Everyone”, only
       your friends see the note on what you are doing. When you sign out in the account
@@ -736,8 +735,8 @@ a{color:inherit;text-decoration:none}
       the bot starts, then every 5 minutes and right after each level-up, as long as Discord is
       connected to your account (see <a href="#discord">Discord</a>).
       While Discord is connected and you are a member of the server, your
-      <a href="#profile">pilot profile</a> shows level, rank and prestige to anyone as a rank badge,
-      and anyone can read them through the public database interface; to signed-in users the
+      <a href="#profile">pilot profile</a> shows level, rank and prestige as a rank badge to signed-in visitors,
+      who can also read them through the database interface; the
       website also shows the badge for friends and in requests, search hits and suggestions. The
       website shows the other values only to you. For the reconciliation the bot sends your Discord ID to
       the account system at Supabase, even if you have no website account: when you leave the

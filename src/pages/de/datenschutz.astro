@@ -467,7 +467,7 @@ a{color:inherit;text-decoration:none}
       Ohne Anmeldung verbindet sich die Website mit Supabase nur, wenn du Konto-Funktionen nutzt
       (Anmeldung, Passwort zurücksetzen), auf zwei Arten von Seiten, die öffentliche Daten
       lesen: ein öffentliches Piloten-Profil (Profil, Favoriten und angeheftete Loadouts dieses Piloten beim Öffnen,
-      danach alle 40 Sekunden sein Online-Status, solange die Seite offen ist; hochgeladene Bilder
+      dazu sein Online-Status, wie er beim Laden war — ohne Anmeldung wird er nicht erneut abgefragt; hochgeladene Bilder
       kommen aus dem Speicher von Supabase) und die Seite Feedback (die Liste der genannten
       <a href="#testpilots">Testpiloten</a>), und auf der Seite Unterstützen, sobald du dort den
       Knopf drückst (er legt die Stripe-Bezahlseite über Supabase an und schickt dafür nur den
@@ -546,7 +546,7 @@ a{color:inherit;text-decoration:none}
       ein Profil über seinen Handle ab, immer nur eins; ohne Anmeldung lässt sich nicht die Liste
       aller Profile auf einmal abrufen, und der Abruf ist je Internet-Anschluss gebremst (für die
       Zählung speichern wir nur einen aus der IP-Adresse abgeleiteten Schlüssel — einen HMAC, nie
-      die Adresse selbst — und löschen ihn nach einer Stunde). Jeder Abruf trägt außerdem den
+      die Adresse selbst — und ein späterer Abruf entfernt ihn, sobald er älter als eine Stunde ist). Jeder Abruf trägt außerdem den
       Monat, in dem du das Konto angelegt hast, den Tag, an dem du jeden Favoriten gespeichert
       hast, und den Zeitpunkt, zu dem du jedes angeheftete Loadout angelegt und zuletzt geändert
       hast.
@@ -662,7 +662,7 @@ a{color:inherit;text-decoration:none}
       sieht, stellst du im Konto-Dashboard ein („Wer meinen Online-Status sieht“). Standardmäßig
       sehen ihn nur deine bestätigten Freunde, wenn sie angemeldet sind: in ihrer Freundesliste und
       auf deinem Piloten-Profil. Mit „Alle“ ist er für jeden lesbar, auch ohne Anmeldung: auf
-      deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden auffrischt, über die öffentliche
+      deinem öffentlichen Piloten-Profil (für Angemeldete alle 40 Sekunden aufgefrischt; Gäste sehen ihn, wie er beim Laden war), über die öffentliche
       Schnittstelle und bei offenen Anfragen. Mit „Niemand“ sieht ihn keiner; die gespeicherten
       Zeitpunkte und die Angabe werden dann sofort geleert, und es wird nichts mehr gespeichert,
       solange die Einstellung gilt. Die Angabe, was du gerade machst, sehen auch bei „Alle“ nur
@@ -779,9 +779,9 @@ a{color:inherit;text-decoration:none}
       beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg, solange Discord mit
       deinem Konto verbunden ist (siehe <a href="#discord">Discord</a>).
       Solange Discord verbunden ist und du Mitglied des Servers bist, zeigt dein
-      <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige jedem als Rang-Abzeichen, und
-      jeder kann sie über die öffentliche Datenbank-Schnittstelle abrufen; angemeldeten Nutzern
-      zeigt die Website das Abzeichen auch bei Freunden, in Anfragen, Suchtreffern und
+      <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige angemeldeten Nutzern als Rang-Abzeichen, und
+      sie können sie auch über die Datenbank-Schnittstelle abrufen; das Abzeichen
+      zeigt die Website außerdem bei Freunden, in Anfragen, Suchtreffern und
       Vorschlägen. Die übrigen Werte zeigt die Website nur dir. Für den Abgleich schickt der Bot deine Discord-ID an
       das Konto-System bei Supabase, auch wenn du kein Website-Konto hast: wenn du den Server
       verlässt, wenn sich deine Rolle „Test Pilots“ ändert und wenn du ein Level aufsteigst. Ist die

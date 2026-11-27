@@ -1,7 +1,7 @@
 {
   "_zweck": "Soll-Rechte von anon, authenticated und PUBLIC in den Schemas public und private. Gepflegt zusammen mit jeder Migration, die ein Objekt anlegt oder ein Recht aendert. Geprueft von scripts/verify-db-rights.mjs (npm run verify:db-rights, Schiene B) gegen die live wirksamen Rechte, gemessen mit supabase/rights.snapshot.sql. Mehr als hier steht: FEHLER. Weniger: WARNUNG. Fehlt eine Rolle in einem Eintrag, hat sie dort KEIN Recht. 'ausnahme' = geduldetes Zuviel mit Anlass; verschwindet das Zuviel, reisst das Tor (Zombie-Waechter).",
   "stand": "2026-11-26",
-  "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql (Grundmodell); 20261126220000_pilotenprofil_abruf_strenger.sql (Pilotprofile nur noch ueber pilot_card/pilot_public, anon ohne Listen-Zugriff)",
+  "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql (Grundmodell); 20261126220000_pilotenprofil_funktionen.sql + 20261126220100_pilotenprofil_abruf_strenger.sql (zwei Stufen: Funktionen pilot_card/pilot_public, dann anon ohne Listen-Zugriff; Soll ist der End-Stand nach Stufe 2)",
   "objekte": {
     "column public.support_progress.note": {
       "authenticated": ["UPDATE"],
@@ -215,20 +215,20 @@
 
     "view public.public_favorites": {
       "authenticated": ["SELECT"],
-      "warum": "PilotPage angemeldet; anon liest ein Profil ueber pilot_public (20261126220000); View mit Besitzerrechten"
+      "warum": "PilotPage angemeldet; anon liest ein Profil ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten"
     },
     "view public.public_showcase": {
       "authenticated": ["SELECT"],
-      "warum": "PilotPage angemeldet: angeheftete Loadouts; anon ueber pilot_public (20261126220000); View mit Besitzerrechten (20261029205000)"
+      "warum": "PilotPage angemeldet: angeheftete Loadouts; anon ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten (20261029205000)"
     },
     "view public.discord_profile_badges": { "warum": "nur Edge Function bot-role-sync (service_role), Abzeichen-Rolle auf Discord, 20261030170000" },
     "view public.profile_badges": {
       "authenticated": ["SELECT"],
-      "warum": "PilotPage angemeldet: Abzeichen Profil komplett; anon ueber pilot_public (20261126220000); View mit Besitzerrechten, Regel steht in der View (20261030171000)"
+      "warum": "PilotPage angemeldet: Abzeichen Profil komplett; anon ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten, Regel steht in der View (20261030171000)"
     },
     "view public.public_profiles": {
       "authenticated": ["SELECT"],
-      "warum": "PilotPage angemeldet (mit Socials/Discord); anon liest ein Profil ohne diese Felder ueber pilot_public (20261126220000); View mit Besitzerrechten"
+      "warum": "PilotPage angemeldet (mit Socials/Discord); anon liest ein Profil ohne diese Felder ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten"
     },
     "view public.social_profiles": {
       "authenticated": ["SELECT"],
