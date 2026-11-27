@@ -2876,17 +2876,29 @@ async function probeWerkbank(page) {
   // mineNameHtml() („3 von 3 Materialnamen ... kein Link“); Item-Knopf auf
   // /items/<id>.html („fuehrt nicht in die Items-Werkbank“); ein zusaetzlicher
   // Datenblatt-Link im Rezept („verlinkt 1 Item-Datenblatt“). Zurueckgespielt
-  // per sha256, gruen.
+  // per sha256, gruen. Nach dem Review (zweite Runde, gegen den Vorschau-Bau):
+  // EN „Iron“ ohne Mineral in mine.names und der Name ohne Mineral als
+  // gewoehnlicher Link -> „Iron (anderer Link (/items.html) statt keinem
+  // Link)“; DE items.base auf /items.html (Konfiguration und Knopf gemeinsam
+  // in der falschen Sprache) -> „... erwartet /de/items.html“. Zurueckgespielt
+  // per sha256 (64a6edb0, 84008ce5, 36abe0c6), gruen.
+  // Die Ziele haengen an der Sprache der Seite, nicht an window.__CRAFT:
+  // stuenden Konfiguration und Link gemeinsam in der falschen Sprache, saehe
+  // ein Vergleich nur untereinander nichts (Review #486).
   const zutaten = await page.evaluate(() => {
     const mine = window.__CRAFT?.mine || {};
+    const mining = (location.pathname.startsWith('/de/') ? '/de' : '') + '/topics/mining.html';
     return [...document.querySelectorAll('#cdb-modal .cbm__opt')].map((o) => {
       const el = o.querySelector('.on');
       const n = el ? [...el.childNodes].filter((k) => k.nodeType === 3).map((k) => k.textContent).join('').trim() : '';
       const mineral = mine.names?.[n];
+      // Jeder Link zaehlt, nicht nur a.cdb-mine: ein Name ohne Mineral darf
+      // gar keiner sein, einer mit Mineral nur der Fundort-Link (Review #486).
+      const link = !!el && (el.tagName === 'A' || !!el.closest('a') || !!el.querySelector('a'));
       return {
         n,
-        ist: el && el.matches('a.cdb-mine') ? el.getAttribute('href') : null,
-        soll: mineral && mine.url ? `${mine.url}?mineral=${encodeURIComponent(mineral)}#db` : null,
+        ist: !link ? null : el.matches('a.cdb-mine') ? el.getAttribute('href') : `anderer Link (${(el.closest('a') || el.querySelector('a') || el).getAttribute('href') || 'ohne Ziel'})`,
+        soll: mineral ? `${mining}?mineral=${encodeURIComponent(mineral)}#db` : null,
       };
     });
   });
@@ -2903,11 +2915,12 @@ async function probeWerkbank(page) {
     return {
       href: a ? a.getAttribute('href') : null,
       base: window.__CRAFT?.items?.base || '',
+      soll: (location.pathname.startsWith('/de/') ? '/de' : '') + '/items.html',
       blaetter: [...document.querySelectorAll('#cdb-modal a[href]')].map((x) => x.getAttribute('href')).filter((h) => /\/items\/[^/?#]+\.html(?:[?#]|$)/.test(h)),
     };
   });
-  if (!/^(?:\/de)?\/items\.html$/.test(itemZiel.base) || !itemZiel.href || !itemZiel.href.startsWith(itemZiel.base + '?item='))
-    return `Werkbank 1280 px: der Item-Knopf im Rezept fuehrt nicht in die Items-Werkbank (${itemZiel.href || 'kein Knopf'}, Werkbank-Adresse „${itemZiel.base}“)`;
+  if (itemZiel.base !== itemZiel.soll || !itemZiel.href || !itemZiel.href.startsWith(itemZiel.soll + '?item='))
+    return `Werkbank 1280 px: der Item-Knopf im Rezept fuehrt nicht in die Items-Werkbank dieser Sprache (${itemZiel.href || 'kein Knopf'}, Werkbank-Adresse „${itemZiel.base}“, erwartet ${itemZiel.soll})`;
   if (itemZiel.blaetter.length) return `Werkbank 1280 px: das Rezept verlinkt ${itemZiel.blaetter.length} Item-Datenblatt/-blaetter statt der Items-Werkbank — ${itemZiel.blaetter.slice(0, 3).join(', ')}`;
   // Der Regler bewegt Wert und Balken, und die Zeile bleibt dabei dieselbe
   // (ein neu geschriebener Balken spraenge, statt zu gleiten). Hat dieses
