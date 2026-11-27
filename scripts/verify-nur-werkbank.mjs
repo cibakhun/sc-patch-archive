@@ -132,7 +132,10 @@ for (const f of dateien) {
   const von = urlVon(f);
   if (googleArt(von)) continue;
   geprueft++;
-  const html = readFileSync(f, 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+  // Kommentare bis zum Fixpunkt entfernen: ein einzelner Durchgang kann aus
+  // Resten wie „<!<!-- -->-- … -->“ einen neuen Kommentar zusammensetzen.
+  let html = readFileSync(f, 'utf8');
+  for (let vorher = ''; vorher !== html; ) { vorher = html; html = html.replace(/<!--[\s\S]*?-->/g, ''); }
   for (const m of html.matchAll(/<a\b[^>]*?\shref\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
     const p = pfad(m[1] ?? m[2] ?? '');
     if (p == null) continue;

@@ -357,7 +357,7 @@ function pruefeBauplanP2(pfad, html) {
     const aussage = (li, art) => new RegExp(`data-mat-(?:weg|ohne)="${art}"`).test(li);
     if (!pfad.startsWith('/de/')) {
       for (const [, name, li] of eintraege) {
-        const n = name.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+        const n = name.replace(/&(amp|quot|#39);/g, (_, e) => ({ amp: '&', quot: '"', '#39': "'" })[e]);
         const a = blattMaterial.get(n) ?? { kaufen: new Set(), zerlegen: new Set() };
         a.kaufen.add(li.includes('data-mat-weg="kaufen"') ? 'ja' : 'nein');
         a.zerlegen.add(li.includes('data-mat-weg="zerlegen"') ? 'ja' : li.includes('data-mat-ohne="zerlegen"') ? 'nie' : 'leer');
