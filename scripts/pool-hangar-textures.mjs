@@ -24,6 +24,14 @@ const mb = (n) => (n / 1048576).toFixed(2);
 const share = (r) => ({ images: r.images.length, bytes: r.images.reduce((a, i) => a + i.bytes, 0), fresh: r.images.filter((i) => i.fresh).reduce((a, i) => a + i.bytes, 0) });
 
 let before = 0, after = 0, moved = 0, changed = 0;
+// Erst rechnen, dann schreiben: Die umgestellten GLBs gehen erst auf die
+// Platte, wenn jede Version steht, und gleich danach das Manifest. Wirft eine
+// Version (Lampen- oder Aufzugsdatei unlesbar), ist kein GLB geschrieben, und
+// ein zweiter Lauf stellt alles um. Andernfalls trüge das GLB schon keine
+// Bilder mehr, ein zweiter Lauf übersähe es (poolGlb liefert denselben
+// Puffer), und das Manifest behielte alte Version und Bytes (CodeRabbit an
+// #484). Im Speicher stehen nur die GLBs, die sich ändern.
+const schreiben = [];
 // file: GLB; entry: Eintrag im Manifest; version(glb): ?v= wie im Bau
 function umstellen(label, file, entry, version) {
   const buf = readFileSync(file);
@@ -32,10 +40,10 @@ function umstellen(label, file, entry, version) {
   const s = share(r);
   if (r.glb !== buf) {
     changed++;
-    if (!DRY) writeFileSync(file, r.glb);
     entry.v = version(r.glb);
     entry.bytes = r.glb.length;
     entry.pool = s;
+    schreiben.push([file, r.glb]);
   }
   console.log(`  ${label.padEnd(30)} ${mb(r.before).padStart(6)} -> ${mb(r.after).padStart(6)} MB, ${String(r.images.length).padStart(3)} Bilder ausgelagert, neu in der Ablage ${mb(s.fresh)} MB`);
 }
@@ -58,6 +66,7 @@ for (const key of [...HALL_ABLAGE].sort()) {
   });
 }
 if (DRY) { console.log(`\n  (--dry: nichts geschrieben)`); process.exit(0); }
+for (const [file, glb] of schreiben) writeFileSync(file, glb);
 writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
 // Was noch auf die Ablage zeigt: Schiffe, Innenräume, Komponenten und Hallen
 // (wie der Bau). Bis 27.11.2026 nur die Schiffe: Ein Lauf hätte die Bilder
