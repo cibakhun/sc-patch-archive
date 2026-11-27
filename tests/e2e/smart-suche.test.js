@@ -44,8 +44,11 @@ describe('Suchkern', () => {
     assert.deepEqual(r.hits.map((h) => `${h.kind}:${h.key}:${h.t}`), ['pk:SuperHeavy:super heavy', 'kat:helme:helm', 'sys:pyro:pyro']);
     assert.deepEqual(r.words, ['morozov']);
     assert.deepEqual(erkenne('cutty', vocab, []).words, ['cutlass']);
-    // Derselbe Begriff zweimal ist ein Treffer.
-    assert.equal(erkenne('pyro pyro', vocab, ['sys']).hits.length, 1);
+    // Derselbe Begriff zweimal ist ein Treffer, und keiner bleibt als freies Wort.
+    const zwei = erkenne('pyro pyro', vocab, ['sys']);
+    assert.equal(zwei.hits.length, 1);
+    assert.deepEqual(zwei.words, []);
+    assert.deepEqual(erkenne('helm pyro helmet pyro', vocab, ['kat', 'sys']).words, []);
   });
 
   test('wortWert: ganzes Wort vor Anfang vor Teilstueck vor Tippfehler, Rest ab drei Zeichen', () => {
@@ -64,6 +67,8 @@ describe('Suchkern', () => {
     assert.equal(ohneBegriff('Pyro  Helme', 'pyro'), 'Helme');
     assert.equal(ohneBegriff('Morozov Super Heavy', 'super heavy'), 'Morozov');
     assert.equal(ohneBegriff('Größe 3 Laser', 'grosse 3'), 'Laser');
+    // Jedes Vorkommen, sonst kaeme der Chip nach dem Klick wieder.
+    assert.equal(ohneBegriff('Pyro Helm pyro', 'pyro'), 'Helm');
   });
 
   test('der Hangar nutzt denselben Kern', () => {

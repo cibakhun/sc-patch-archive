@@ -103,10 +103,13 @@ export function erkenne(q, vocab, arten, muster = []) {
   for (const kind of arten) for (const e of vocab[kind] ?? []) for (const w of e.w) phrases.push({ kind, key: e.k, w: fold(w) });
   phrases.sort((a, b) => b.w.length - a.w.length);
   for (const p of phrases) {
-    const at = p.w ? s.indexOf(` ${p.w} `) : -1;
-    if (at < 0) continue;
-    if (!hits.some((h) => h.kind === p.kind && h.key === p.key)) hits.push({ kind: p.kind, key: p.key, t: p.w });
-    s = `${s.slice(0, at)} ${s.slice(at + p.w.length + 1)}`;
+    if (!p.w) continue;
+    // Jedes Vorkommen geht aus dem Rest („pyro pyro“ laesst kein freies
+    // „pyro“ zurueck), der Begriff zaehlt einmal.
+    for (let at = s.indexOf(` ${p.w} `); at >= 0; at = s.indexOf(` ${p.w} `)) {
+      if (!hits.some((h) => h.kind === p.kind && h.key === p.key)) hits.push({ kind: p.kind, key: p.key, t: p.w });
+      s = `${s.slice(0, at)} ${s.slice(at + p.w.length + 1)}`;
+    }
   }
   const words = s.split(' ').filter(Boolean).map((w) => fold(vocab.nick?.[w] ?? w));
   return { hits, words };
@@ -141,15 +144,19 @@ export function wortWert(w, felder, voll, typos = true) {
 
 /**
  * Nimmt einen erkannten Begriff aus der Suche, im Wortlaut des Besuchers:
- * gesucht wird die Wortfolge, deren Faltung der Begriff ist.
+ * gesucht wird die Wortfolge, deren Faltung der Begriff ist, jedes
+ * Vorkommen (wie erkenne()).
  *   ohneBegriff('Pyro  Helme', 'pyro') === 'Helme'
  * @param {string} q @param {string} t
  */
 export function ohneBegriff(q, t) {
   const raw = String(q ?? '').split(/\s+/).filter(Boolean);
   const want = t.split(' ').length;
-  for (let i = 0; i + want <= raw.length; i++) {
-    if (fold(raw.slice(i, i + want).join(' ')) === t) return [...raw.slice(0, i), ...raw.slice(i + want)].join(' ');
+  const rest = [];
+  let weg = false;
+  for (let i = 0; i < raw.length;) {
+    if (i + want <= raw.length && fold(raw.slice(i, i + want).join(' ')) === t) { i += want; weg = true; } else rest.push(raw[i++]);
   }
-  return fold(q).replace(t, ' ').replace(/\s+/g, ' ').trim();
+  if (weg) return rest.join(' ');
+  return fold(q).split(t).join(' ').replace(/\s+/g, ' ').trim();
 }
