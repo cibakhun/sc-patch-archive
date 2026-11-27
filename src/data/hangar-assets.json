@@ -21336,7 +21336,7 @@
     },
     "util-lrgtop": {
       "url": "/hangar/hall/util-lrgtop.glb",
-      "v": "d7f5089a",
+      "v": "808ac234",
       "tris": 1815479,
       "trisRaw": 574108,
       "textures": 263,
@@ -22105,7 +22105,7 @@
         }
       },
       "floor": 2.501,
-      "bytes": 22842612,
+      "bytes": 13939740,
       "game": "13165946",
       "room": {
         "center": [
@@ -22127,11 +22127,16 @@
         "decals.glb",
         "schrift.glb"
       ],
-      "gameVersion": "4.10.3-live.13165946"
+      "gameVersion": "4.10.3-live.13165946",
+      "pool": {
+        "images": 263,
+        "bytes": 8893878,
+        "fresh": 7546070
+      }
     },
     "util-medtop": {
       "url": "/hangar/hall/util-medtop.glb",
-      "v": "577a73c6",
+      "v": "be444da1",
       "tris": 1334693,
       "trisRaw": 467069,
       "textures": 250,
@@ -22865,7 +22870,7 @@
         }
       },
       "floor": 6.481,
-      "bytes": 19065744,
+      "bytes": 10690060,
       "game": "13165946",
       "room": {
         "center": [
@@ -22887,11 +22892,16 @@
         "decals.glb",
         "schrift.glb"
       ],
-      "gameVersion": "4.10.3-live.13165946"
+      "gameVersion": "4.10.3-live.13165946",
+      "pool": {
+        "images": 250,
+        "bytes": 8366990,
+        "fresh": 0
+      }
     },
     "util-smltop": {
       "url": "/hangar/hall/util-smltop.glb",
-      "v": "00007f12",
+      "v": "b0123078",
       "tris": 929357,
       "trisRaw": 432192,
       "textures": 245,
@@ -23633,7 +23643,7 @@
         }
       },
       "floor": 6.5,
-      "bytes": 16052508,
+      "bytes": 7897004,
       "game": "13165946",
       "room": {
         "center": [
@@ -23655,11 +23665,16 @@
         "decals.glb",
         "schrift.glb"
       ],
-      "gameVersion": "4.10.3-live.13165946"
+      "gameVersion": "4.10.3-live.13165946",
+      "pool": {
+        "images": 245,
+        "bytes": 8147074,
+        "fresh": 0
+      }
     },
     "util-xltop": {
       "url": "/hangar/hall/util-xltop.glb",
-      "v": "4d8bc0a1",
+      "v": "8495388f",
       "tris": 3514537,
       "trisRaw": 714802,
       "textures": 258,
@@ -24416,7 +24431,7 @@
         }
       },
       "floor": 2.493,
-      "bytes": 35732696,
+      "bytes": 26734416,
       "game": "13165946",
       "room": {
         "center": [
@@ -24438,7 +24453,12 @@
         "decals.glb",
         "schrift.glb"
       ],
-      "gameVersion": "4.10.3-live.13165946"
+      "gameVersion": "4.10.3-live.13165946",
+      "pool": {
+        "images": 258,
+        "bytes": 8989610,
+        "fresh": 271618
+      }
     }
   },
   "hallLite": {

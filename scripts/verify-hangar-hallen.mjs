@@ -91,6 +91,19 @@
        und es bleibt unter ANKUNFT_MAX; Klinke MIN_ANKUNFT. Ein Bild ohne
        ausgelieferte Halle ist nur eine WARNUNG. Neue Bilder:
        scripts/build-hangar-ankunft.mjs
+   [7] Bilder (27.11.2026, Hangar-Leistung): Die Hallen fester Größe
+       legen ihre Bilder in die gemeinsame Ablage dist/hangar/tex
+       (HALL_ABLAGE in scripts/lib/glb-texpool.mjs). Bis dahin trug jede
+       ihre WebP-Bilder im GLB, 7,8 bis 8,6 MB je Halle, die am PC bei
+       jedem Erstbesuch mitkamen und ungenutzt blieben, weil der Viewer
+       jedes Bild aus seinem komprimierten Zwilling lädt. Je ausgelieferter
+       Halle: kein Bild mehr im GLB, jeder Verweis ../tex/<inhalt>.webp
+       liegt in dist/ und trägt den Namen seines Inhalts (sonst gehörte der
+       Zwilling zu einem anderen Bild), und beide Seiten nennen dem
+       Ladebalken die Summe ihrer Bytes (opts.texBytes; ohne sie stünde
+       der Teil Halle voll, während die Bilder noch laden). Klinke
+       MIN_ABLAGE. Ein Bau, der eine Halle wieder mit eingebetteten Bildern
+       schreibt, reißt hier.
 
    Schiene A: liest dist/ und für [3] das Manifest
    src/data/hangar-assets.json. Kein git, kein Netz, kein Kindprozess. Im
@@ -717,6 +730,25 @@
        nur 3 Ankunftsbild(er) in Ordnung, Klinke 5“; dazu `ankunft` aus
        beiden Seiten gestrichen, 6 FEHLER: je Halle „[6] util-smltop: kein
        Ankunftsbild (StageConfig ankunft) …“ und „[6] nur 0 … Klinke 5“.
+   (ä) 27.11.2026, die Bilder der Hallen ([7]) im Cloud-Rechner gegen den
+       Vorschau-Bau, jede Gegenprobe in dist/ und danach zurückgestellt.
+       Erste Runde: die alte util-medtop.glb mit eingebetteten Bildern
+       zurück, ein Bild der Ablage gelöscht, das drei Hallen nennen, in
+       hangar.html die Bildsumme von util-smltop um 1 geändert, unter
+       anderem „[7] hangar.html und de/hangar.html nennen dem Ladebalken
+       verschiedene Bildsummen …“, „[7] util-xltop: 1 Bild(er) fehlen in
+       dist/hangar/tex (7f3f60d9a37939b3) …“ und „[7] nur 0 Halle(n) …,
+       Klinke 4“ (die alte Medium-Halle fiel schon in [1] an ihrer Größe).
+       Zweite Runde, die Bytes der alten Medium-Halle in beiden Seiten
+       nachgezogen und ein Bild der Ablage mit fremdem Inhalt: „[7]
+       util-medtop: 250 von 250 Bildern noch im GLB …“ und „[7]
+       util-smltop: 1 Bild(er) der Ablage tragen nicht den Namen ihres
+       Inhalts (22b2b3c1917fca1e) …“. Dritte Runde, nur die Seiten: „[7]
+       util-smltop: die Seite nennt dem Ladebalken keine Bytes …“ und
+       „[7] util-lrgtop: die Seite nennt dem Ladebalken 8892878 Bytes …,
+       sie haben 8893878 …“, Klinke 2 von 4. Dazu verify:hangar [17] mit
+       einem gelöschten Bild, das nur die Hallen nennen: je Halle „[17]
+       hall/util-lrgtop.glb -> 005450171df51a1a.webp fehlt …“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -751,6 +783,7 @@ const STUFEN = ['S', 'M', 'L', 'XL'];
 // [6] Ankunftsbilder: vier Hallen und die Werkhalle (22.11.2026); Obergrenze je Bild in Bytes
 const MIN_ANKUNFT = 5, ANKUNFT_MAX = 100 * 1024;
 const MIN_HALLEN = 4; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle; 18.11.2026: 4, dazu Small, Medium und XL)
+const MIN_ABLAGE = 4; // [7] davon mit allen Bildern in der gemeinsamen Ablage (27.11.2026: alle vier)
 const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff (18.11.2026: alle vier)
 // je Halle, gemessen am gebauten Stand: Lampen des Spiels, Teile des Bodentors, Dreiecke der Schrift im Modell,
 // Dreiecke ausgeschalteter Schirme im Modell, vom Build ausgeschaltete Schirme, Tafeln mit Logo, Netze mit
@@ -1487,6 +1520,47 @@ const ankLose = Object.keys(ank).filter((k) => !ankBrauchen.includes(k));
 if (ankGut < MIN_ANKUNFT) fail(`[6] nur ${ankGut} Ankunftsbild(er) in Ordnung, Klinke ${MIN_ANKUNFT}`);
 say(`    ${ankGut} von ${ankBrauchen.length} Ankunftsbild(ern) in Ordnung (Klinke ${MIN_ANKUNFT}), zusammen ${(ankBytes / 1024).toFixed(1)} KB, das groesste hoechstens ${ANKUNFT_MAX / 1024} KB${ankBrauchen.length ? `: ${ankBrauchen.join(', ')}` : ''}`);
 if (ankLose.length) say(`    WARNUNG: Ankunftsbild(er) ohne ausgelieferte Halle: ${ankLose.join(', ')} (public/hangar/ankunft/), laedt niemand`);
+
+/* ---------- [7] Bilder ---------- */
+say('[7] Bilder: jede ausgelieferte Halle fester Groesse traegt keine Bilder mehr selbst, jeder Verweis liegt in dist/hangar/tex unter seinem Inhalt, und die Seite nennt dem Ladebalken ihre Summe');
+const texSeiten = ankSeiten.map((c) => c?.opts?.texBytes ?? null);
+if (JSON.stringify(texSeiten[0]) !== JSON.stringify(texSeiten[1])) fail(`[7] ${PAGES[0].file} und ${PAGES[1].file} nennen dem Ladebalken verschiedene Bildsummen (opts.texBytes) — je nach Sprache liefe er anders`);
+const ABLAGE_URI = /^\.\.\/tex\/([0-9a-f]{16})\.webp$/;
+let ablageGut = 0, ablageBilder = 0, ablageBytes = 0;
+const ablageZeilen = [];
+for (const [id, { hall }] of HALLEN) {
+  const pfad = String(hall.url).split('?')[0];
+  const neu = `node scripts/pool-hangar-textures.mjs (verlustfrei) oder die Halle neu bauen (scripts/build-hangar-assets.mjs legt sie selbst ab, HALL_ABLAGE in scripts/lib/glb-texpool.mjs)`;
+  const buf = readFileSync(inDist(hall.url));
+  let json = null;
+  try { json = buf.readUInt32LE(16) === 0x4e4f534a ? JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12))) : null; } catch { /* unten */ }
+  if (!json) { fail(`[7] ${id}: ${pfad} hat keinen lesbaren JSON-Teil`); continue; }
+  const imgs = json.images ?? [];
+  const drin = imgs.filter((i) => i.bufferView !== undefined);
+  const fremd = imgs.filter((i) => i.bufferView === undefined && !ABLAGE_URI.test(i.uri ?? ''));
+  const fehlt = [], falsch = [];
+  let summe = 0;
+  for (const i of imgs) {
+    const m = ABLAGE_URI.exec(i.uri ?? '');
+    if (!m) continue;
+    const f = join(DIST, 'hangar/tex', `${m[1]}.webp`);
+    if (!existsSync(f)) { fehlt.push(m[1]); continue; }
+    const b = readFileSync(f);
+    if (createHash('sha256').update(b).digest('hex').slice(0, 16) !== m[1]) { falsch.push(m[1]); continue; }
+    summe += b.length;
+  }
+  if (!imgs.length) { fail(`[7] ${id}: ${pfad} nennt gar keine Bilder — die Halle stuende ohne Karten, oder die Pruefung liefe leer`); continue; }
+  if (drin.length) { fail(`[7] ${id}: ${drin.length} von ${imgs.length} Bildern noch im GLB — am PC kaemen sie bei jedem Erstbesuch mit und blieben ungenutzt (der Viewer laedt die Zwillinge); ${neu}`); continue; }
+  if (fremd.length) { fail(`[7] ${id}: ${fremd.length} Bild(er) mit einem Verweis ausserhalb der Ablage (${String(fremd[0].uri).slice(0, 60)}), erwartet ../tex/<inhalt>.webp`); continue; }
+  if (fehlt.length) { fail(`[7] ${id}: ${fehlt.length} Bild(er) fehlen in dist/hangar/tex (${fehlt.slice(0, 3).join(', ')}${fehlt.length > 3 ? ', …' : ''}) — das Material bliebe ohne diese Karte, wo es keinen Zwilling gibt (Ablage nicht mit eingecheckt?)`); continue; }
+  if (falsch.length) { fail(`[7] ${id}: ${falsch.length} Bild(er) der Ablage tragen nicht den Namen ihres Inhalts (${falsch.slice(0, 3).join(', ')}) — ihr Zwilling gehoert zu einem anderen Bild`); continue; }
+  const nennt = texSeiten[0]?.[pfad];
+  if (nennt !== summe) { fail(`[7] ${id}: die Seite nennt dem Ladebalken ${nennt ?? 'keine'} Bytes fuer die Bilder von ${pfad}, sie haben ${summe} — der Teil Halle des Balkens stuende ${nennt == null ? 'voll, solange die Bilder noch laden' : 'falsch'} (HangarApp.astro texBytes, Manifest hall.${id}.pool)`); continue; }
+  ablageGut++; ablageBilder += imgs.length; ablageBytes += summe;
+  ablageZeilen.push(`${id} ${imgs.length} Bilder ${(summe / 1048576).toFixed(1)} MB`);
+}
+if (ablageGut < MIN_ABLAGE) fail(`[7] nur ${ablageGut} Halle(n) fester Groesse mit allen Bildern in der Ablage, Klinke ${MIN_ABLAGE}`);
+say(`    ${ablageGut} von ${HALLEN.size} Halle(n) mit allen Bildern in der Ablage (Klinke ${MIN_ABLAGE}), ${ablageBilder} Verweise, ${(ablageBytes / 1048576).toFixed(1)} MB, die am PC nicht mehr im GLB mitkommen${ablageZeilen.length ? `: ${ablageZeilen.join(', ')}` : ''}`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-hallen: ${fehler.length} FEHLER`);
