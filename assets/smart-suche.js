@@ -87,7 +87,9 @@ export function preisMuster(ohneEinheit = () => '') {
  * @returns {{ hits: Treffer[], words: string[] }}
  *
  * @typedef {{ kind: string, re: RegExp, key: (...g: string[]) => unknown }} Muster
- * @typedef {{ kind: string, key: any, t: string }} Treffer
+ * @typedef {{ kind: string, key: any, t: string, alle?: string[] }} Treffer
+ *   t: der Wortlaut (gefaltet); alle: jeder Wortlaut desselben Begriffs in
+ *   der Suche, nur wenn es mehr als einer ist (t zuerst).
  */
 export function erkenne(q, vocab, arten, muster = []) {
   let s = ` ${fold(q)} `;
@@ -106,8 +108,12 @@ export function erkenne(q, vocab, arten, muster = []) {
     if (!p.w) continue;
     // Jedes Vorkommen geht aus dem Rest („pyro pyro“ laesst kein freies
     // „pyro“ zurueck), der Begriff zaehlt einmal.
+    // Steht derselbe Begriff in zwei Wortlauten da („schwer heavy“), haelt
+    // der Treffer beide in alle, damit der Chip beide herausnimmt.
     for (let at = s.indexOf(` ${p.w} `); at >= 0; at = s.indexOf(` ${p.w} `)) {
-      if (!hits.some((h) => h.kind === p.kind && h.key === p.key)) hits.push({ kind: p.kind, key: p.key, t: p.w });
+      const h = hits.find((x) => x.kind === p.kind && x.key === p.key);
+      if (!h) hits.push({ kind: p.kind, key: p.key, t: p.w });
+      else if (h.t !== p.w && !(h.alle ?? []).includes(p.w)) h.alle = [...(h.alle ?? [h.t]), p.w];
       s = `${s.slice(0, at)} ${s.slice(at + p.w.length + 1)}`;
     }
   }
@@ -145,11 +151,21 @@ export function wortWert(w, felder, voll, typos = true) {
 /**
  * Nimmt einen erkannten Begriff aus der Suche, im Wortlaut des Besuchers:
  * gesucht wird die Wortfolge, deren Faltung der Begriff ist, jedes
- * Vorkommen (wie erkenne()).
+ * Vorkommen (wie erkenne()). t ist ein Wortlaut oder mehrere (Liste, oder
+ * durch Zeilenumbruch getrennt, wie ein Chip sie traegt: fold() laesst
+ * keinen Umbruch stehen).
  *   ohneBegriff('Pyro  Helme', 'pyro') === 'Helme'
- * @param {string} q @param {string} t
+ *   ohneBegriff('Schwer heavy Helm', 'schwer\nheavy') === 'Helm'
+ * @param {string} q @param {string | readonly string[]} t
+ * @returns {string}
  */
 export function ohneBegriff(q, t) {
+  const ts = (Array.isArray(t) ? t : String(t ?? '').split('\n')).filter(Boolean);
+  return ts.reduce((rest, x) => ohneWortlaut(rest, x), String(q ?? ''));
+}
+
+/** @param {string} q @param {string} t ein Wortlaut */
+function ohneWortlaut(q, t) {
   const raw = String(q ?? '').split(/\s+/).filter(Boolean);
   const want = t.split(' ').length;
   const rest = [];

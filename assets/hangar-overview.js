@@ -1548,7 +1548,7 @@ export function boot(doc) {
     const chips = [];
     for (const h of p.hits) {
       const name = hitLabel(h);
-      chips.push(el('li', {}, name, el('button', { type: 'button', class: 'hgx-x', 'data-drop': 'q', 'data-t': h.t, 'aria-label': fillMessage({ other: m.remove }, { name }, loc) }, '×')));
+      chips.push(el('li', {}, name, el('button', { type: 'button', class: 'hgx-x', 'data-drop': 'q', 'data-t': (h.alle ?? [h.t]).join('\n'), 'aria-label': fillMessage({ other: m.remove }, { name }, loc) }, '×')));
     }
     $('hgx-active-list').replaceChildren(...chips);
     const facets = pills.some((b) => facetOn(b.dataset.facet));

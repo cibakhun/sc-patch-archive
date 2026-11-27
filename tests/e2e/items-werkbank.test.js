@@ -609,6 +609,24 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.strictEqual(n(), 2, 'geladen ist geladen');
     assert.deepStrictEqual(s.p.fehler, []);
   });
+
+  test('90. Steht ein Begriff in zwei Wortlauten da, nimmt sein Chip beide heraus', async () => {
+    const s = await seite();
+    const alle = s.kacheln().length;
+    await s.tippe('Pistolen pistols');
+    assert.deepStrictEqual(chipTexte(s), ['Pistolen']);
+    await s.klick(chips(s)[0]);
+    assert.strictEqual(s.$('#wz-q').value, '');
+    assert.strictEqual(chips(s).length, 0);
+    assert.strictEqual(s.kacheln().length, alle);
+    // Ebenso fuer die Panzerung, und der Rest bleibt im Wortlaut stehen.
+    await s.tippe('Schwer  Eta heavy');
+    assert.strictEqual(chips(s).length, 1, chipTexte(s).join(' | '));
+    await s.klick(chips(s)[0]);
+    assert.strictEqual(s.$('#wz-q').value, 'Eta');
+    assert.strictEqual(chips(s).length, 0);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
 });
 
 describe('Adresse', () => {

@@ -49,6 +49,14 @@ describe('Suchkern', () => {
     assert.equal(zwei.hits.length, 1);
     assert.deepEqual(zwei.words, []);
     assert.deepEqual(erkenne('helm pyro helmet pyro', vocab, ['kat', 'sys']).words, []);
+    // Zwei Wortlaute desselben Begriffs: ein Treffer, der beide kennt, damit
+    // der Chip beide herausnehmen kann. Mit einem Wortlaut bleibt alle weg.
+    const beide = erkenne('Schwer heavy Helm', vocab, ['kat', 'pk']);
+    assert.deepEqual(beide.hits.map((h) => `${h.kind}:${h.key}:${h.t}`), ['pk:Heavy:schwer', 'kat:helme:helm']);
+    assert.deepEqual(beide.hits[0].alle, ['schwer', 'heavy']);
+    assert.equal(beide.hits[1].alle, undefined);
+    assert.deepEqual(beide.words, []);
+    assert.deepEqual(erkenne('heavy schwer heavy', vocab, ['pk']).hits, [{ kind: 'pk', key: 'Heavy', t: 'schwer', alle: ['schwer', 'heavy'] }]);
   });
 
   test('wortWert: ganzes Wort vor Anfang vor Teilstueck vor Tippfehler, Rest ab drei Zeichen', () => {
@@ -69,6 +77,14 @@ describe('Suchkern', () => {
     assert.equal(ohneBegriff('Größe 3 Laser', 'grosse 3'), 'Laser');
     // Jedes Vorkommen, sonst kaeme der Chip nach dem Klick wieder.
     assert.equal(ohneBegriff('Pyro Helm pyro', 'pyro'), 'Helm');
+    // Mehrere Wortlaute eines Begriffs, als Liste oder wie ein Chip sie traegt.
+    assert.equal(ohneBegriff('Schwer heavy Helm', 'schwer\nheavy'), 'Helm');
+    assert.equal(ohneBegriff('Helm HELMET Pyro', ['helmet', 'helm']), 'Pyro');
+    const q = 'Schwer heavy Helm';
+    const r = erkenne(q, { pk: [{ k: 'Heavy', w: ['schwer', 'heavy'] }] }, ['pk']);
+    assert.deepEqual(erkenne(ohneBegriff(q, r.hits[0].alle), { pk: [{ k: 'Heavy', w: ['schwer', 'heavy'] }] }, ['pk']).hits, []);
+    // Ohne Wortlaut bleibt die Suche, wie sie ist.
+    assert.equal(ohneBegriff('Helm', ''), 'Helm');
   });
 
   test('der Hangar nutzt denselben Kern', () => {

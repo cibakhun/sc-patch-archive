@@ -948,7 +948,8 @@
     }
     if (S.pk) chip('pk', weightLabel(S.pk));
     // Was die Suche erkannt hat; ein Klick nimmt den Begriff aus der Suche.
-    if (P && S.tab === 'items') P.hits.forEach(function (h) { chip('q', begriffText(h), begriffFarbe(h), h.t); });
+    // Stand der Begriff in mehreren Wortlauten da, nimmt der Chip alle heraus.
+    if (P && S.tab === 'items') P.hits.forEach(function (h) { chip('q', begriffText(h), begriffFarbe(h), (h.alle || [h.t]).join('\n')); });
     el.aktiv.innerHTML = c.join('');
     // Im Reiter Sets wirkt nur die Panzerungsklasse; nur sie zaehlt.
     var nF = S.tab === 'sets' ? (S.pk ? 1 : 0)
