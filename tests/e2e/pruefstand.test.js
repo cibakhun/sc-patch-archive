@@ -153,6 +153,24 @@ test('import() aus klassischem Skript: nur mit importe, sonst Rueckfall der Seit
   mit.schliesse();
 });
 
+test('import() mit relativem Ziel gilt ab dem Skript, nicht ab der Seite', async () => {
+  // Wie im Browser: /de/rel.html laedt /assets/rel.js, dessen import('./kern.js')
+  // meint /assets/kern.js, nicht /de/kern.js. Ein Inline-Skript zaehlt ab der Seite.
+  fs.mkdirSync(path.join(dist, 'de'), { recursive: true });
+  fs.writeFileSync(path.join(dist, 'assets', 'kern.js'), "export const wort = (n) => n + ' Woerter';\n");
+  fs.writeFileSync(path.join(dist, 'de', 'kern.js'), "export const wort = () => 'aus de';\n");
+  fs.writeFileSync(path.join(dist, 'assets', 'rel.js'), `import('./kern.js').then(function (m) { document.getElementById('k').textContent = m.wort(2); },
+    function (f) { document.getElementById('k').textContent = 'Rueckfall ' + f.message; });\n`);
+  fs.writeFileSync(path.join(dist, 'de', 'rel.html'), seite('<div id="k"></div><div id="i"></div>', `<script src="/assets/rel.js"></script>
+  <script>import('./kern.js').then(function (m) { document.getElementById('i').textContent = m.wort(1); });</script>`));
+  const p = await oeffneSeite({ ...opts, seite: 'de/rel.html', importe: true });
+  await p.settle(1000);
+  assert.equal(p.document.getElementById('k').textContent, '2 Woerter');
+  assert.equal(p.document.getElementById('i').textContent, 'aus de', 'inline: ab der Seite /de/');
+  assert.deepEqual(p.fehler, []);
+  p.schliesse();
+});
+
 test('Abbruch nach top-level await wird Befund', async () => {
   fs.writeFileSync(path.join(dist, 'assets', 'tla-kaputt.js'), "await Promise.resolve();\nnochEineUndefinedFunction();\n");
   fs.writeFileSync(path.join(dist, 'tla.html'), seite('', '<script type="module" src="/assets/tla-kaputt.js"></script>'));
