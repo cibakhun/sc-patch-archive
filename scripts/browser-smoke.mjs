@@ -1431,17 +1431,17 @@ async function probeTerminal(page) {
   if (s.inert || s.ueb) return `${wo}: nach der Kachel ist das Fenster ${s.inert ? 'nicht bedienbar (inert)' : 'bedienbar'}, der Ueberblick ${s.ueb ? 'noch zu sehen' : 'weg'}`;
   if (s.verlauf !== start.verlauf) return `${wo}: die Kachel schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
 
-  // 2 · Bereich wechseln (eine schlanke Datenseite), ohne Eintrag im Verlauf
-  if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht eine Datenseite`;
+  // 2 · Bereich wechseln, ohne Eintrag im Verlauf. Seit dem 26.11.2026 ist
+  // /items.html die Items-Werkbank, eine Seite mit voller Navigation: Ihre
+  // Kopfzeile (#topbar) bleibt im Fenster verborgen wie die des Startbereichs.
+  if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht ihn`;
   await klick('#hgx-term a[data-term="items"]');
   if (!(await steht(start.bereiche.items))) return `${wo}: „Items“ in der Leiste brachte ${start.bereiche.items} nicht ins Fenster (dort steht ${(await stand()).pfad})`;
   s = await stand();
   if (s.marke !== 'items') return `${wo}: nach dem Wechsel ist „${s.marke}“ markiert statt „items“`;
   if (!s.zurueck) return `${wo}: nach dem Wechsel bleibt der Zurueck-Pfeil gesperrt`;
   if (s.verlauf !== start.verlauf) return `${wo}: der Wechsel im Fenster schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
-  if (!s.daten) return `${wo}: ${start.bereiche.items} traegt keine Kopfleiste .dp-bar mehr`;
-  if (s.daten.start || s.daten.knopf || s.daten.sprache || !s.daten.pfad)
-    return `${wo}: Datenseite im Fenster zeigt Startlink ${s.daten.start}, Suchknopf ${s.daten.knopf}, Sprachschalter ${s.daten.sprache}, Pfad ${s.daten.pfad} — Soll: nur der Pfad`;
+  if (s.kopf) return `${wo}: die Kopfzeile von ${start.bereiche.items} (#topbar) steht im Fenster unter der Leiste des Terminals`;
   // „In eigenem Tab öffnen“ meint die Seite im Fenster, ohne dass jemand den Link schon geklickt hat:
   // Mittelklick und Kontextmenue kennen kein click (Review PR #355). Dasselbe fuer eine Adresse, die
   // die Seite aendert, ohne neu zu laden: nachgezogen wird, bevor der Link ausgeloest wird.
@@ -1456,6 +1456,26 @@ async function probeTerminal(page) {
   });
   if (anker !== '#probe') return `${wo}: „In eigenem Tab öffnen“ folgt einer Adresse nicht, die die Seite im Fenster ohne Neuladen aendert (Anker „${anker}“ statt „#probe“)`;
 
+  // 2a · eine schlanke Datenseite (Kopfleiste .dp-bar, Suche ueber
+  // data-scs-boot) im Fenster. Keine Seite der Leiste ist mehr eine; die
+  // Kategorielisten der Items sind es und gehoeren zum Bereich „items“. Die
+  // Werkbank nennt sie im Quelltext (verify:ia [3]), ein Link im Fenster
+  // bringt die erste hin.
+  const datenPfad = await page.evaluate(() => {
+    const a = document.getElementById('hgx-term-frame').contentDocument?.querySelector('a[href*="/items/category/"]');
+    return a ? new URL(a.href).pathname : null;
+  });
+  if (!datenPfad) return `${wo}: ${start.bereiche.items} nennt keine Kategorieliste (a[href*="/items/category/"]) — die Probe braucht eine schlanke Datenseite`;
+  await imFenster(datenPfad);
+  if (!(await steht(datenPfad))) return `${wo}: ein Link im Fenster brachte ${datenPfad} nicht ins Fenster (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.marke !== 'items') return `${wo}: auf ${datenPfad} ist „${s.marke}“ markiert statt „items“`;
+  if (s.verlauf !== start.verlauf) return `${wo}: der Link im Fenster schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+  if (!s.daten) return `${wo}: ${datenPfad} traegt keine Kopfleiste .dp-bar mehr`;
+  if (s.daten.start || s.daten.knopf || s.daten.sprache || !s.daten.pfad)
+    return `${wo}: Datenseite im Fenster zeigt Startlink ${s.daten.start}, Suchknopf ${s.daten.knopf}, Sprachschalter ${s.daten.sprache}, Pfad ${s.daten.pfad} — Soll: nur der Pfad`;
+  if (s.eigen !== datenPfad) return `${wo}: „In eigenem Tab öffnen“ zeigt nach dem Link auf ${s.eigen} statt auf ${datenPfad}`;
+
   // 3 · Suche auf der Datenseite (holt sie erst ueber data-scs-boot)
   await klick('#hgx-term-search');
   if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
@@ -1469,12 +1489,15 @@ async function probeTerminal(page) {
   s = await stand();
   if (!s.start || s.marke || !s.inert || !s.zurueck) return `${wo}: nach „Überblick“ ist ${s.start ? '' : 'der Knopf nicht markiert, '}${s.marke ? `„${s.marke}“ noch markiert, ` : ''}das Fenster ${s.inert ? 'inert' : 'bedienbar'}, der Pfeil ${s.zurueck ? 'frei' : 'gesperrt'} — Soll: „Überblick“ markiert, Fenster inert, Pfeil frei`;
   await klick('#hgx-term-back');
-  if (!(await vorn('seite', 2000))) return `${wo}: der Pfeil vom Ueberblick zurueck zu ${start.bereiche.items} braucht laenger als 2 s — die Seite liegt schon darunter`;
+  if (!(await vorn('seite', 2000))) return `${wo}: der Pfeil vom Ueberblick zurueck zu ${datenPfad} braucht laenger als 2 s — die Seite liegt schon darunter`;
   s = await stand();
-  if (s.pfad !== start.bereiche.items || s.marke !== 'items') return `${wo}: der Pfeil vom Ueberblick zurueck zeigt ${s.pfad} („${s.marke}“) statt ${start.bereiche.items}`;
-  if (!(await page.evaluate(() => document.getElementById('hgx-term-frame').contentWindow.__probeDok === 1))) return `${wo}: der Pfeil vom Ueberblick zurueck lud ${start.bereiche.items} neu, statt die Seite darunter zu zeigen`;
+  if (s.pfad !== datenPfad || s.marke !== 'items') return `${wo}: der Pfeil vom Ueberblick zurueck zeigt ${s.pfad} („${s.marke}“) statt ${datenPfad}`;
+  if (!(await page.evaluate(() => document.getElementById('hgx-term-frame').contentWindow.__probeDok === 1))) return `${wo}: der Pfeil vom Ueberblick zurueck lud ${datenPfad} neu, statt die Seite darunter zu zeigen`;
 
-  // 4 · der Pfeil fuehrt zurueck; darunter liegt noch der Ueberblick
+  // 4 · der Pfeil fuehrt Schritt fuer Schritt zurueck: zur Werkbank, dann
+  // zum Startbereich; darunter liegt noch der Ueberblick
+  await klick('#hgx-term-back');
+  if (!(await steht(start.bereiche.items))) return `${wo}: der Zurueck-Pfeil brachte von ${datenPfad} nicht ${start.bereiche.items} zurueck (dort steht ${(await stand()).pfad})`;
   await klick('#hgx-term-back');
   if (!(await steht(start.home))) return `${wo}: der Zurueck-Pfeil brachte ${start.home} nicht zurueck (dort steht ${(await stand()).pfad})`;
   s = await stand();
