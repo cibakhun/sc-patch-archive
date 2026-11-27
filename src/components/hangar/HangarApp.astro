@@ -447,4 +447,4 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
     hangar-overview.js statisch importiert (./smart-suche.js). Die Abbildung
     gibt ihm seine versionierte URL, sonst haelt der Browser ihn einen Tag
     (verify:smart-suche [1]). */}
-<script type="importmap" is:inline set:html={JSON.stringify({ imports: { three: '/vendor/three/three.module.min.js', 'three/addons/': '/vendor/three/addons/', '/assets/smart-suche.js': sucheSrc } })}></script>
+<script type="importmap" is:inline set:html={jsonForScript({ imports: { three: '/vendor/three/three.module.min.js', 'three/addons/': '/vendor/three/addons/', '/assets/smart-suche.js': sucheSrc } })}></script>
