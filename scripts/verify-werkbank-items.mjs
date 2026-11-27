@@ -13,7 +13,8 @@
    Je Item mit Datenblatt, beide Sprachen:
    [1] Wege: dieselben Karten in „So bekommst du es“ (data-weg).
    [2] Missionen zum Bauplan: dieselbe Zahl.
-   [3] Ab Werk: dieselbe Zahl Schiffe.
+   [3] Ab Werk: dieselben Schiffe (Namen, mehrfache bleiben mehrfach), und
+       jedes ist verlinkt.
    [4] Aehnliche Items: dieselben, in derselben Reihenfolge.
    [5] Gleichnamige Items: dieselben.
    [6] Set-Preis: derselbe Text.
@@ -24,6 +25,8 @@
    [10] Kaufen nach System: jede Bezugszeile (gepaart ueber ihren Ort)
         traegt dasselbe System; vertauschte Systeme zweier Zeilen fallen
         auf, auch wenn die Menge der Systeme gleich bleibt.
+   [13] Technische Daten: dieselben Zeilen, Bezeichnung und Wert, in
+        derselben Reihenfolge, die Varianten eingeschlossen.
    Je Item des Katalogs und je Set, beide Sprachen:
    [11] Kein Weg aufs Blatt: kein href im Blatt der Werkbank zeigt auf ein
         Datenblatt oder Verzeichnis (Item-, Bauplan-, Schiffs-, Missions-
@@ -79,6 +82,8 @@ const KLINKE = {
   fahrzeug: 170, // Fahrzeug-Items mit Datenblatt (178)
   spanne: 1450, // Blaetter mit Preisspanne (1.499)
   systemZeilen: 56000, // verglichene Bezugszeilen mit System (57.976)
+  werte: 3650, // Blaetter mit technischen Daten (3.773)
+  werteZeilen: 11000, // verglichene Wertezeilen (11.285)
   sets: 135, // Sets der Werkbank, auf Blatt-Links geprueft (143)
 };
 
@@ -121,6 +126,8 @@ const ab = (s, marke, ende) => {
   return s.slice(i, j < 0 ? undefined : j);
 };
 const alle = (re, s) => [...s.matchAll(re)].map((m) => m[1]);
+/** [13] Werte-Zeilen „Bezeichnung=Wert“ in Folge der Seite. */
+const werteZeilen = (re, s) => [...s.matchAll(re)].map((m) => `${text(m[1])}=${text(m[2])}`).join('|');
 /** [10] Je Bezugszeile „Ort=System“, sortiert (mehrfache Zeilen bleiben
  *  mehrfach): nur so faellt auf, wenn zwei Zeilen ihre Systeme tauschen. */
 function zeilenPaare(s, tag, ortRe) {
@@ -153,6 +160,7 @@ function blattAntworten(html) {
     wege: alle(/data-weg="([a-z-]+)"/g, bw).sort().join(','),
     missionen: mehr ? misLi - 1 + Number(mehr[1].replace(/[.,]/g, '')) : misLi,
     serie: (serie.match(/<a class="dp-chip"/g) ?? []).length,
+    serieNamen: alle(/<a class="dp-chip"[^>]*>([\s\S]*?)<\/a>/g, serie).map(text).sort().join('|'),
     aehnlich: alle(/<li data-item="([^"]+)"/g, aeh).join(','),
     zwilling: alle(/href="(?:\/de)?\/items\/([^"/]+)\.html"/g, zw).sort().join(','),
     setPreis: setp ? text(setp[1]) : '',
@@ -161,6 +169,8 @@ function blattAntworten(html) {
     spanne: spanne ? spanne[1].trim() : '',
     // Ort = Text der ersten Zelle bis zur Unterzeile (dp-wo: wo im System).
     systeme: zeilenPaare(tab, 'tr', /<td\b[^>]*>([^<]*)/),
+    // Technische Daten und je Variante (ItemDetail.astro: li.dp-stat).
+    werte: werteZeilen(/<li class="dp-stat"[^>]*>\s*<b[^>]*>([\s\S]*?)<\/b>\s*<span[^>]*>([\s\S]*?)<\/span>/g, html),
   };
 }
 
@@ -179,6 +189,8 @@ function werkbankAntworten(html) {
     missionen: mis ? Number(mis[1]) : 0,
     serie: serie ? Number(serie[1]) : 0,
     serieChips: (html.match(/<a class="wz-tag" href=/g) ?? []).length,
+    serieNamen: [...html.matchAll(/<ul class="wzb-chips wzb-serie"[^>]*>([\s\S]*?)<\/ul>/g)]
+      .flatMap((m) => alle(/<a class="wz-tag" href=[^>]*>([\s\S]*?)<\/a>/g, m[1])).map(text).sort().join('|'),
     aehnlich: alle(/<li data-item="([^"]+)"/g, aeh).join(','),
     zwilling: alle(/data-oeffne="([^"]+)"/g, zw).sort().join(','),
     setPreis: setp ? text(setp[1]) : '',
@@ -186,6 +198,7 @@ function werkbankAntworten(html) {
     fahrzeug: html.includes('data-fahrzeug'),
     spanne: spanne ? spanne[1].trim() : '',
     systeme: zeilenPaare(liste, 'li', /<b>([^<]*)<\/b>/),
+    werte: werteZeilen(/<div class="wzb-wert"[^>]*>\s*<span[^>]*>([\s\S]*?)<\/span>\s*<b[^>]*>([\s\S]*?)<\/b>/g, html),
     melden: html.includes('data-melden'),
   };
 }
@@ -248,7 +261,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   await p.settle(500);
   if (!n.wege()) fehler.push(`${lang}: /items-wege.json ist nicht geladen — wegeUrl in window.__WZI, Datei in dist/ und Laenge gegen den Katalog pruefen`);
   n.leere();
-  const z = (zahl[lang] = { items: 0, blaetter: 0, wege: 0, missionen: 0, serie: 0, aehnlich: 0, zwilling: 0, setPreis: 0, werkzeuge: 0, fahrzeug: 0, spanne: 0, systemZeilen: 0, sets: 0 });
+  const z = (zahl[lang] = { items: 0, blaetter: 0, wege: 0, missionen: 0, serie: 0, aehnlich: 0, zwilling: 0, setPreis: 0, werkzeuge: 0, fahrzeug: 0, spanne: 0, systemZeilen: 0, werte: 0, werteZeilen: 0, sets: 0 });
   const blattOrdner = join(DIST, lang === 'de' ? 'de/items' : 'items');
   const melde = (it, was) => fehler.push(`${lang}: ${it.id} — ${was}`);
   for (const it of n.items()) {
@@ -269,6 +282,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
     if (b.missionen !== w.missionen) melde(it, `[2] Missionen zum Bauplan: Blatt ${b.missionen}, Werkbank ${w.missionen}`);
     if (b.serie) z.serie++;
     if (b.serie !== w.serie || w.serie !== w.serieChips) melde(it, `[3] ab Werk: Blatt ${b.serie} Schiffe, Werkbank ${w.serie} (${w.serieChips} verlinkt)`);
+    else if (b.serieNamen !== w.serieNamen) melde(it, `[3] ab Werk: Blatt [${b.serieNamen}], Werkbank [${w.serieNamen}]`);
     if (b.aehnlich) z.aehnlich++;
     if (b.aehnlich !== w.aehnlich) melde(it, `[4] aehnliche Items: Blatt [${b.aehnlich}], Werkbank [${w.aehnlich}]`);
     if (b.zwilling) z.zwilling++;
@@ -283,6 +297,8 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
     if (b.spanne !== w.spanne) melde(it, `[9] Preisspanne: Blatt „${b.spanne}“, Werkbank „${w.spanne}“`);
     z.systemZeilen += b.systeme ? b.systeme.split('|').filter((s) => !s.endsWith('=ohne')).length : 0;
     if (b.systeme !== w.systeme) melde(it, `[10] Systeme der Bezugszeilen: Blatt [${b.systeme}], Werkbank [${w.systeme}]`);
+    if (b.werte) { z.werte++; z.werteZeilen += b.werte.split('|').length; }
+    if (b.werte !== w.werte) melde(it, `[13] Technische Daten: Blatt [${b.werte}], Werkbank [${w.werte}]`);
   }
   for (const st of n.sets()) {
     let html;
@@ -297,7 +313,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
 /* ---------- Selbstauskunft ---------- */
 console.log(`verify:werkbank-items — Bau ${DIST}, Skript ${JS === join(DIST, 'assets', 'items-werkbank.js') ? 'ausgeliefert' : JS} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
 for (const [lang, z] of Object.entries(zahl)) {
-  console.log(`${lang}: ${de(z.items)} Items, ${de(z.blaetter)} mit Datenblatt verglichen · Wege ${de(z.wege)} · Missionen ${de(z.missionen)} · ab Werk ${de(z.serie)} · aehnlich ${de(z.aehnlich)} · gleichnamig ${de(z.zwilling)} · Set-Preis ${de(z.setPreis)} · Werkzeuge ${de(z.werkzeuge)} · Fahrzeug ${de(z.fahrzeug)} · Spanne ${de(z.spanne)} · Systemzeilen ${de(z.systemZeilen)} · ${z.sets} Sets`);
+  console.log(`${lang}: ${de(z.items)} Items, ${de(z.blaetter)} mit Datenblatt verglichen · Wege ${de(z.wege)} · Missionen ${de(z.missionen)} · ab Werk ${de(z.serie)} · aehnlich ${de(z.aehnlich)} · gleichnamig ${de(z.zwilling)} · Set-Preis ${de(z.setPreis)} · Werkzeuge ${de(z.werkzeuge)} · Fahrzeug ${de(z.fahrzeug)} · Spanne ${de(z.spanne)} · Systemzeilen ${de(z.systemZeilen)} · Werte ${de(z.werte)} (${de(z.werteZeilen)} Zeilen) · ${z.sets} Sets`);
   for (const [k, min] of Object.entries(KLINKE)) {
     if ((z[k] ?? 0) < min) fehler.push(`${lang}: nur ${de(z[k] ?? 0)} bei „${k}“ (Klinke ${de(min)}) — vergleicht das Tor noch, oder fehlt der Werkbank ein Abschnitt?`);
   }

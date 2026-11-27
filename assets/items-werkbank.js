@@ -240,6 +240,13 @@
     if (s.shieldHp) out.push([tr('statShieldHp', 'Schild-HP'), fmt(s.shieldHp)]);
     if (s.regen) out.push([tr('statRegen', 'Schild-Regen'), fmt(s.regen) + '/s']);
     if (s.driveSpeed) out.push([tr('statQtSpeed', 'QT-Geschwindigkeit'), fmt(Math.round(s.driveSpeed / 1e6)) + ' Mm/s']);
+    // Flugblaetter: dieselben Flugwerte wie das Datenblatt (statRows).
+    if (s.scmSpeed) out.push([tr('statScm', 'SCM-Geschwindigkeit'), fmt(s.scmSpeed) + ' m/s']);
+    if (s.maxSpeed) out.push([tr('statMaxSpeed', 'Höchstgeschwindigkeit'), fmt(s.maxSpeed) + ' m/s']);
+    if (s.boostForward) out.push([tr('statBoost', 'Boost vorwärts'), fmt(s.boostForward) + ' m/s']);
+    if (s.pitch) out.push([tr('statPitch', 'Nicken'), fmt(s.pitch) + ' °/s']);
+    if (s.yaw) out.push([tr('statYaw', 'Gieren'), fmt(s.yaw) + ' °/s']);
+    if (s.roll) out.push([tr('statRoll', 'Rollen'), fmt(s.roll) + ' °/s']);
     if (s.cooldown) out.push([tr('statCooldown', 'Abklingzeit'), fmt(s.cooldown) + ' s']);
     if (s.coolingRate) out.push([tr('statCooling', 'Kühlleistung'), fmt(s.coolingRate)]);
     if (s.powerOutput) out.push([tr('statPower', 'Leistung'), fmt(s.powerOutput)]);

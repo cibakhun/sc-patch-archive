@@ -881,4 +881,20 @@ describe('Was sonst nur das Datenblatt wusste', () => {
     assert.strictEqual(u.querySelectorAll('.wzu__was li').length, 5);
     assert.match(u.textContent, /Kaufen nach System/);
   });
+
+  test('73. Ein Flugblatt zeigt die Flugwerte wie das Datenblatt', async () => {
+    // CodeRabbit zu PR #487: statRows (src/lib/itemStats.ts) kennt sie seit
+    // IA C8, die Werttabelle der Werkbank kannte sie nicht.
+    const db = makeDb();
+    db.items.find((x) => x.id === 'delta-relic').game = {
+      stats: { scmSpeed: 203, maxSpeed: 1075, boostForward: 425, pitch: 32.5, yaw: 27.5, roll: 95 },
+    };
+    const s = await seite({ db });
+    await s.klick(s.kachel('delta-relic'));
+    const zeilen = [...s.blatt().querySelectorAll('.wzb-wert')].map((z) => `${z.children[0].textContent}=${z.children[1].textContent}`);
+    assert.deepStrictEqual(zeilen, [
+      'SCM-Geschwindigkeit=203 m/s', 'Höchstgeschwindigkeit=1.075 m/s', 'Boost vorwärts=425 m/s',
+      'Nicken=32,5 °/s', 'Gieren=27,5 °/s', 'Rollen=95 °/s',
+    ]);
+  });
 });
