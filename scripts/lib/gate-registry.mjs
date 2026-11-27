@@ -1437,7 +1437,7 @@ export const CHECKS = [
     // sieht kein Test im Pruefstand, nur der gebaute Stand. Kein git, kein
     // Netz, kein Kindprozess; unter 1 s.
     // VORGEFUEHRT ROT am 27.11.2026 (Vorschau-Bau dieses Stands, Dateien in
-    // dist/ geaendert und per Sicherung zurueck, sha1 gleich) viermal:
+    // dist/ geaendert und per Sicherung zurueck, sha1 gleich) fuenfmal:
     // (a) Import-Map auf hangar.html ohne /assets/smart-suche.js: 1 FEHLER
     // [1]; Exit 1. (b) dist/assets/smart-suche.js geaendert und ohneBegriff
     // umbenannt: 5 FEHLER = 2 [1] und 2 [2] (Hash e0888421 gegen fe1b5bce),
@@ -1448,12 +1448,18 @@ export const CHECKS = [
     // Exit 1. (d) nach den deutschen Waffenwoertern: C.suche.nick beider
     // Sprachen mit „pyro“ -> rifle (zugleich Systemwort) und „flammenwerfer“
     // -> flamethrower (in keinem Item-Namen): 2 FEHLER [4]; Exit 1.
+    // (e) CodeRabbit-Review zu PR #489: [1] vergleicht das Importziel samt
+    // Abfrage. dist/assets/hangar-overview.js mit
+    // from './smart-suche.js?v=00000000': 4 FEHLER = 2 [1] „mit fester
+    // Abfrage“ (je Hangar-Seite; vorher hielt [1] die Map fuer
+    // /assets/smart-suche.js fuer passend), dazu [3] und Klinke exporte;
+    // Exit 1. Datei per Sicherung zurueck, gruen.
     id: 'verify:smart-suche',
     npm: 'verify:smart-suche',
     script: 'scripts/verify-smart-suche.mjs',
     rail: 'A',
     checks:
-      'jeder relative Import in dist/assets/*.js (hangar-overview.js -> smart-suche.js) steht auf jeder Seite, die das importierende Skript laedt, in einer Import-Map vor dem ersten Modul mit der Versionsadresse, deren Hash zum Inhalt in dist/ passt; C.sucheUrl der Items-Werkbank beider Sprachen zeigt auf denselben Kern in dist/ mit passendem Hash; jeder Name, den Hangar und Werkbank vom Kern nutzen, ist in der gebauten Datei eine exportierte Funktion; das Vokabular der Werkbank ist in beiden Sprachen gleich, erkennt jedes Blatt des Kategoriebaums mit deutschem und englischem Namen und jede Gruppe ausser Sonstiges, meint keine Kategorie ausserhalb des Baums und gibt keinem gefalteten Wort zwei Bedeutungen; jedes deutsche Wort fuer einen englischen Namensteil (Gewehr -> rifle) ist kein Begriff des Vokabulars, und sein Ziel steht als Wort in einem Item-Namen des Katalogs; Klinken fuer Hangar-Seiten (nur Vorschau), Sprachen, genutzte Namen (Vorschau 7, live ohne Hangar 5), Eintraege, Blaetter, Gruppen, Woerter und deutsche Namenswoerter',
+      'jeder relative Import in dist/assets/*.js (hangar-overview.js -> smart-suche.js) steht auf jeder Seite, die das importierende Skript laedt, mit seinem Ziel samt Abfrage in einer Import-Map vor dem ersten Modul mit der Versionsadresse, deren Hash zum Inhalt in dist/ passt; C.sucheUrl der Items-Werkbank beider Sprachen zeigt auf denselben Kern in dist/ mit passendem Hash; jeder Name, den Hangar und Werkbank vom Kern nutzen, ist in der gebauten Datei eine exportierte Funktion; das Vokabular der Werkbank ist in beiden Sprachen gleich, erkennt jedes Blatt des Kategoriebaums mit deutschem und englischem Namen und jede Gruppe ausser Sonstiges, meint keine Kategorie ausserhalb des Baums und gibt keinem gefalteten Wort zwei Bedeutungen; jedes deutsche Wort fuer einen englischen Namensteil (Gewehr -> rifle) ist kein Begriff des Vokabulars, und sein Ziel steht als Wort in einem Item-Namen des Katalogs; Klinken fuer Hangar-Seiten (nur Vorschau), Sprachen, genutzte Namen (Vorschau 7, live ohne Hangar 5), Eintraege, Blaetter, Gruppen, Woerter und deutsche Namenswoerter',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

@@ -81,13 +81,16 @@ let fold = null;
 /* ---------- [1] Frische der relativen Importe ---------- */
 const ASSETS = join(DIST, 'assets');
 const IMPORT_RE = /\bfrom\s*['"](\.{1,2}\/[^'"]+)['"]|\bimport\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g;
+// Das Ziel samt Abfrage: eine Map fuer /assets/b.js greift nicht fuer
+// import './b.js?v=alt', der Browser laedt dann weiter die alte Adresse.
 const importe = []; // { von: '/assets/a.js', ziel: '/assets/b.js' }
 for (const f of readdirSync(ASSETS)) {
   if (!f.endsWith('.js')) continue;
   const code = readFileSync(join(ASSETS, f), 'utf8');
   const von = `/assets/${f}`;
   for (const m of code.matchAll(IMPORT_RE)) {
-    const ziel = new URL(m[1] || m[2], `https://x${von}`).pathname;
+    const u = new URL(m[1] || m[2], `https://x${von}`);
+    const ziel = u.pathname + u.search;
     if (!importe.some((x) => x.von === von && x.ziel === ziel)) importe.push({ von, ziel });
   }
 }
@@ -120,9 +123,11 @@ if (imp.length) {
     if (map.kaputt) { fehler.push(`[1] ${seite}: Import-Map ist kein JSON (${map.kaputt})`); continue; }
     if (modul >= 0 && map.at > modul) fehler.push(`[1] ${seite}: Import-Map steht hinter dem ersten Modul und greift nicht`);
     for (const x of treffer) {
-      const soll = existsSync(distPfad(x.ziel)) ? `${x.ziel}?v=${hash(distPfad(x.ziel))}` : null;
+      const datei = x.ziel.replace(/[?#].*$/, '');
+      const soll = existsSync(distPfad(datei)) ? `${datei}?v=${hash(distPfad(datei))}` : null;
       const ist = map.imports[x.ziel];
       if (!soll) fehler.push(`[1] ${seite}: ${x.von} importiert ${x.ziel}, das fehlt in dist/`);
+      else if (!ist && datei !== x.ziel) fehler.push(`[1] ${seite}: ${x.von} importiert ${x.ziel} mit fester Abfrage — die Import-Map greift dafuer nicht, die Version gehoert in die Map (import ohne Abfrage)`);
       else if (!ist) fehler.push(`[1] ${seite}: Import-Map ohne ${x.ziel} (importiert von ${x.von}) — ohne Versionsadresse liefert der Rand die alte Datei`);
       else if (ist !== soll) fehler.push(`[1] ${seite}: Import-Map zeigt ${x.ziel} auf ${ist}, der Inhalt in dist/ hat ${soll}`);
     }
