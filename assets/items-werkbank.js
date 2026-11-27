@@ -1774,28 +1774,168 @@
     if (haupt) haupt.insertAdjacentHTML('afterend', h);
     else akt.insertAdjacentHTML('afterbegin', h);
   }
-  function zeigeI3d(id) {
-    var m = I3D && I3D[id], it = BYID[id], d = I3D_DLG;
-    if (!m || !it || !d) return;
-    // Titel, Groesse und Modell wie auf der Item-Seite (Item3dDialog.astro).
-    d.dataset.i3dModel = m.url;
-    d.setAttribute('aria-label', d.dataset.title.replace('{name}', it._n));
-    d.querySelector('[data-i3d-name]').textContent = it._n;
-    d.querySelector('[data-i3d-size]').textContent = m.kb
-      ? d.dataset.size.replace('{mb}', (m.kb / 1024).toLocaleString(DE ? 'de-DE' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
-      : '';
+  // Auswahl unter der Buehne (Krisz 27.11.2026, wie im Prototyp): dieses
+  // Item, seine anderen Farben einzeln oder alle nebeneinander, das ganze Set
+  // getragen und dessen Einzelteile. Jede Ansicht ist eine Liste von Items
+  // und eine Art (einzeln, nebeneinander, getragen); der Betrachter liest
+  // sie aus data-i3d-modelle und data-i3d-art. Gezeigt wird nur, was ein
+  // Modell hat; bleibt ausser dem Item nichts, bleibt die Auswahl verborgen.
+  var I3D_REIHE_MAX = 6;            // nebeneinander hoechstens so viele Teile
+  var I3D_UNTERANZUG = 'tcs-4-undersuit'; // wenn das Set keinen eigenen hat
+  var I3D_STELLE = { Helmet: 'Helmet', Core: 'Torso', Torso: 'Torso', Arms: 'Arms', Legs: 'Legs', Backpack: 'Backpack', FullBody: 'Undersuit', Undersuit: 'Undersuit' };
+  var I3D_STELLE_WORT = /\b(?:armou?r|helmet|core|torso|arms|legs|backpack|undersuit|exploration|suit)\b/gi;
+  var I3D_WAHL = I3D_DLG && I3D_DLG.querySelector('[data-i3d-wahl]');
+  var i3dAnsichten = [], i3dJetzt = -1;
+  function i3dMit(it) { return !!(it && I3D && I3D[it.id]); }
+  function i3dStelle(it) {
+    var p = it.game && it.game.part;
+    if (p && I3D_STELLE[p]) return I3D_STELLE[p];
+    var m = /\b(helmet|core|torso|arms|legs|backpack|undersuit)\b/i.exec(it.name || '');
+    return m ? I3D_STELLE[m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase()] : null;
+  }
+  // Die Farbe eines Set-Teils: sein Name ohne die Woerter des Set-Namens und
+  // ohne die Stelle („Corbel Legs Raider Camo“ im Set Corbel: „Raider Camo“).
+  // Ausserhalb eines Sets der Zusatz in Anfuehrungszeichen.
+  function i3dFarbe(it, st) {
+    if (!st) { var q = /["“„]([^"“”„]+)["“”]/.exec(it._n); return q ? q[1].trim() : ''; }
+    var n = ' ' + String(it._n).replace(/["“”„]/g, ' ') + ' ';
+    String(st.name).split(/\s+/).forEach(function (wort) {
+      if (!wort) return;
+      n = n.replace(new RegExp('\\s' + wort.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=\\s)', 'i'), ' ');
+    });
+    return n.replace(I3D_STELLE_WORT, ' ').replace(/\s+/g, ' ').trim();
+  }
+  // Der Name ohne Farbe („Corbel Legs“), fuer den Titel nebeneinander.
+  function i3dGrundname(it, st) {
+    var f = i3dFarbe(it, st);
+    if (!st) return it._basis;
+    if (!f) return it._n;
+    var i = it._n.toLowerCase().indexOf(f.toLowerCase());
+    return i < 0 ? st.name : (it._n.slice(0, i) + ' ' + it._n.slice(i + f.length)).replace(/["\u201c\u201d\u201e]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function i3dOrd(a, b) { return a._o - b._o; }
+  // Andere Farben desselben Teils: im Set dieselbe Stelle, sonst dasselbe
+  // Grundmodell (Name ohne Zusatz) in derselben Kategorie.
+  function i3dFarbenVon(it) {
+    var st = setOf(it), stelle = st && i3dStelle(it);
+    var l = st && stelle
+      ? setTeile(st).filter(function (x) { return i3dStelle(x) === stelle; })
+      : ITEMS.filter(function (x) { return x._basis === it._basis && x.category === it.category; });
+    return l.filter(function (x) { return x.id !== it.id && i3dMit(x); }).sort(i3dOrd);
+  }
+  // Das ganze Set getragen: je Stelle das Teil in der Farbe des Items, sonst
+  // das Grundmodell oder das erste; ohne eigenen Unteranzug der TCS-4, damit
+  // der Koerper nicht hohl bleibt. Erst ab zwei Ruestungsteilen ein Set.
+  function i3dSetVon(it) {
+    var st = setOf(it);
+    if (!st) return null;
+    var farbe = i3dFarbe(it, st).toLowerCase(), stellen = karte(), gleich = true;
+    setTeile(st).filter(i3dMit).sort(i3dOrd).forEach(function (x) {
+      var k = i3dStelle(x);
+      if (!k) return;
+      var f = i3dFarbe(x, st).toLowerCase(), r = x.id === it.id ? 3 : f === farbe ? 2 : f === '' ? 1 : 0;
+      if (!stellen[k] || r > stellen[k].r) stellen[k] = { it: x, r: r };
+    });
+    var teile = [];
+    SLOT_ORDER.forEach(function (k) {
+      if (!stellen[k]) return;
+      if (stellen[k].r < 2) gleich = false;
+      teile.push({ it: stellen[k].it, stelle: k, eigen: stellen[k].r >= 2 });
+    });
+    var ruestung = teile.filter(function (t) { return t.stelle !== 'Undersuit'; }).length;
+    if (ruestung < 2) return null;
+    if (!stellen.Undersuit && BYID[I3D_UNTERANZUG] && i3dMit(BYID[I3D_UNTERANZUG])) teile.push({ it: BYID[I3D_UNTERANZUG], stelle: 'Undersuit', eigen: false });
+    var name = gleich && farbe ? st.name + ' ' + i3dFarbe(it, st) : st.name;
+    return { teile: teile, name: name };
+  }
+  function i3dAnsicht(items, art, titel) {
+    return { ids: items.map(function (x) { return x.id; }), art: items.length < 2 ? 'einzeln' : art, titel: titel };
+  }
+  function i3dChip(i, text, voll, zusatz) {
+    return '<button type="button" class="i3d__chip' + (zusatz || '') + '" data-i3d-ansicht="' + i + '" aria-pressed="false"' +
+      (voll && voll !== text ? ' title="' + esc(voll) + '"' : '') + '>' + esc(text) + '</button>';
+  }
+  function i3dReihe(lbl, chips) {
+    return '<div class="i3d__reihe" role="group" aria-label="' + esc(lbl) + '"><p class="i3d__lbl" aria-hidden="true">' + esc(lbl) + '</p>' + chips + '</div>';
+  }
+  function i3dWahlBauen(it) {
+    var A = [i3dAnsicht([it], 'einzeln', it._n)], h = '';
+    var st = setOf(it), farben = i3dFarbenVon(it);
+    var reihen = [i3dReihe(w('i3dDieses'), i3dChip(0, it._n))];
+    if (farben.length) {
+      var chips = farben.map(function (x) {
+        A.push(i3dAnsicht([x], 'einzeln', x._n));
+        return i3dChip(A.length - 1, i3dFarbe(x, st) || w('i3dGrund'), x._n);
+      }).join('');
+      var reihe = [it].concat(farben).slice(0, I3D_REIHE_MAX), gesamt = farben.length + 1;
+      A.push(i3dAnsicht(reihe, 'nebeneinander', i3dGrundname(it, st) + ': ' + reihe.map(function (x) { return i3dFarbe(x, st) || w('i3dGrund'); }).join(', ')));
+      chips += i3dChip(A.length - 1, gesamt > I3D_REIHE_MAX
+        ? fuell(w('i3dAuswahl'), { n: I3D_REIHE_MAX, total: gesamt })
+        : fuell(w('i3dAlle'), { n: gesamt }), '', ' i3d__chip--alle');
+      reihen.push(i3dReihe(w('i3dFarben'), chips));
+    }
+    var satz = i3dSetVon(it);
+    if (satz) {
+      var getragen = fuell(w('i3dGetragen'), { name: satz.name });
+      A.push(i3dAnsicht(satz.teile.map(function (t) { return t.it; }), 'getragen', getragen));
+      reihen.push(i3dReihe(w('i3dSet'), i3dChip(A.length - 1, getragen)));
+      var teile = satz.teile.filter(function (t) { return t.it.id !== it.id; }).map(function (t) {
+        A.push(i3dAnsicht([t.it], 'einzeln', t.it._n));
+        return i3dChip(A.length - 1, t.eigen ? tr('slot' + t.stelle, t.stelle) : t.it._n, t.it._n);
+      }).join('');
+      if (teile) reihen.push(i3dReihe(w('i3dTeile'), teile));
+    }
+    i3dAnsichten = A;
+    i3dJetzt = -1;
+    if (I3D_WAHL) {
+      h = reihen.length > 1 ? reihen.join('') : '';
+      I3D_WAHL.innerHTML = h;
+      I3D_WAHL.hidden = !h;
+    }
+  }
+  function i3dMb(kb) { return (kb / 1024).toLocaleString(NF, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  // Setzt Titel, Groesse und Modelle der Ansicht an den Dialog (wie auf der
+  // Item-Seite, Item3dDialog.astro) und laesst den Betrachter laden.
+  function i3dZeigeAnsicht(i) {
+    var a = i3dAnsichten[i], d = I3D_DLG;
+    if (!a || !d) return;
+    var urls = [], kb = 0;
+    a.ids.forEach(function (id) { var m = I3D && I3D[id]; if (m) { urls.push(m.url); kb += m.kb; } });
+    if (!urls.length) return;
+    i3dJetzt = i;
+    d.dataset.i3dModel = urls[0];
+    d.dataset.i3dModelle = urls.join(' ');
+    d.dataset.i3dArt = a.art;
+    d.setAttribute('aria-label', d.dataset.title.replace('{name}', a.titel));
+    d.querySelector('[data-i3d-name]').textContent = a.titel;
+    d.querySelector('[data-i3d-size]').textContent = !kb ? ''
+      : urls.length > 1 ? fuell(w('i3dTeileGroesse'), { n: urls.length, mb: i3dMb(kb) })
+        : d.dataset.size.replace('{mb}', i3dMb(kb));
+    if (I3D_WAHL) Array.prototype.forEach.call(I3D_WAHL.querySelectorAll('[data-i3d-ansicht]'), function (b) {
+      b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-i3d-ansicht')) === i));
+    });
     if (!d.open) d.showModal();
     i3dBetrachter = i3dBetrachter || import(d.dataset.src);
-    i3dBetrachter.then(function (mod) { if (d.open) mod.zeige(d); }).catch(function () {
+    i3dBetrachter.then(function (mod) { if (d.open && i3dJetzt === i) mod.zeige(d); }).catch(function () {
       i3dBetrachter = null;
       var s = d.querySelector('[data-i3d-status]');
       s.textContent = d.dataset.fail;
       s.hidden = false;
     });
   }
+  function zeigeI3d(id) {
+    var it = BYID[id];
+    if (!i3dMit(it) || !I3D_DLG) return;
+    i3dWahlBauen(it);
+    i3dZeigeAnsicht(0);
+  }
   if (I3D_DLG) {
     I3D_DLG.querySelector('[data-i3d-zu]').addEventListener('click', function () { I3D_DLG.close(); });
-    I3D_DLG.addEventListener('click', function (e) { if (e.target === I3D_DLG) I3D_DLG.close(); });
+    I3D_DLG.addEventListener('click', function (e) {
+      if (e.target === I3D_DLG) { I3D_DLG.close(); return; }
+      var b = e.target.closest && e.target.closest('[data-i3d-ansicht]');
+      if (b && I3D_WAHL && I3D_WAHL.contains(b)) i3dZeigeAnsicht(Number(b.getAttribute('data-i3d-ansicht')));
+    });
   }
 
   function zeigeBlatt(html, opt) {

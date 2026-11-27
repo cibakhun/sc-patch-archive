@@ -4,7 +4,10 @@
 // und der Items-Werkbank (ItemsWerkbank.astro), die darin nacheinander das
 // jeweils gewählte Item zeigt: dort steht anfangs kein Modell am Dialog,
 // assets/items-werkbank.js setzt data-i3d-model, Titel und Größe beim
-// Öffnen und lädt die Liste aller Modelle von data-i3d-liste.
+// Öffnen und lädt die Liste aller Modelle von data-i3d-liste. Dort füllt sie
+// auch die Auswahl unter der Bühne (data-i3d-wahl: andere Farben, ganzes Set
+// getragen, Einzelteile); auf Item- und Blueprint-Seite bleibt sie leer und
+// verborgen.
 //
 // Der Betrachter steht als data-src am Dialog, damit verify:hangar-schalter [2]
 // ihn auf jeder Live-Seite findet, falls der Schalter einmal versagt.
@@ -57,6 +60,7 @@ const titel = name ? fill(t('i3dTitle'), { name }) : t('i3dOpen');
     <div class="i3d__buehne" data-i3d-stage>
       <p class="i3d__status" data-i3d-status role="status" aria-live="polite">{t('i3dLoading')}</p>
     </div>
+    <div class="i3d__wahl" data-i3d-wahl hidden></div>
     <footer class="i3d__fuss">
       <span class="i3d__hinweis i3d__hinweis--maus">{t('i3dHint')}</span>
       <span class="i3d__hinweis i3d__hinweis--touch">{t('i3dHintTouch')}</span>
@@ -69,7 +73,7 @@ const titel = name ? fill(t('i3dTitle'), { name }) : t('i3dOpen');
 .i3d-auf svg{flex:none}
 .i3d{width:min(1100px,94vw);height:min(780px,90vh);max-width:none;max-height:none;margin:auto;padding:0;border:1px solid var(--line);border-radius:14px;color:var(--text);background:radial-gradient(120% 90% at 50% 38%,#232033 0%,#15131e 55%,#0d0c14 100%);box-shadow:0 30px 90px -20px rgba(0,0,0,.8),var(--glow);overflow:hidden}
 .i3d::backdrop{background:rgba(6,5,12,.74);backdrop-filter:blur(3px)}
-.i3d__box{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%}
+.i3d__box{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;height:100%}
 .i3d__kopf{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem .5rem 1.1rem;border-bottom:1px solid var(--line-soft)}
 .i3d__titel{flex:1;min-width:0;margin:0;font-family:var(--font-display);font-size:clamp(.98rem,2.4vw,1.15rem);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .i3d__zu{display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border:1px solid var(--line-soft);border-radius:999px;background:none;color:var(--muted);cursor:pointer}
@@ -78,6 +82,14 @@ const titel = name ? fill(t('i3dTitle'), { name }) : t('i3dOpen');
 .i3d__buehne canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .i3d__buehne canvas:active{cursor:grabbing}
 .i3d__status{position:absolute;inset:auto 0 45%;margin:0;padding:0 1rem;text-align:center;color:var(--muted);font-size:var(--fs-9)}
+.i3d__wahl{display:grid;gap:.45rem;max-height:32dvh;overflow:auto;padding:.65rem 1.1rem;border-top:1px solid var(--line-soft)}
+.i3d__wahl[hidden]{display:none}
+.i3d__reihe{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .4rem}
+.i3d__lbl{flex:0 0 8.5rem;margin:0;color:var(--muted);font-size:var(--fs-6);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.i3d__chip{display:inline-flex;align-items:center;min-height:2.1rem;padding:.3rem .75rem;border:1px solid var(--line-soft);border-radius:999px;background:none;color:var(--text);font:600 var(--fs-9)/1.2 var(--font-ui,inherit);cursor:pointer}
+.i3d__chip:hover,.i3d__chip:focus-visible{border-color:var(--accent)}
+.i3d__chip[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.i3d__chip--alle{border-style:dashed}
 .i3d__fuss{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;padding:.6rem 1.1rem .8rem;border-top:1px solid var(--line-soft);color:var(--muted);font-size:var(--fs-6)}
 .i3d__hinweis{flex:1 1 16rem}
 .i3d__hinweis--touch{display:none}
@@ -88,7 +100,7 @@ const titel = name ? fill(t('i3dTitle'), { name }) : t('i3dOpen');
    (:where zaehlt nicht). */
 :where(.i3d__zurueck){display:inline-flex;align-items:center;font:700 var(--fs-9)/1.2 var(--font-ui,inherit);letter-spacing:var(--ls-6,normal);border:1px solid var(--line-soft);border-radius:2px;padding:.5rem 1rem;color:var(--muted);background:none;cursor:pointer}
 :where(.i3d__zurueck:hover,.i3d__zurueck:focus-visible){color:var(--text);border-color:var(--accent)}
-@media (max-width:640px){.i3d{width:100vw;height:100dvh;border:0;border-radius:0}.i3d__hinweis{flex-basis:100%}}
+@media (max-width:640px){.i3d{width:100vw;height:100dvh;border:0;border-radius:0}.i3d__hinweis{flex-basis:100%}.i3d__lbl{flex-basis:100%}.i3d__wahl{max-height:38dvh;padding:.55rem .8rem}}
 </style>
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
