@@ -2863,6 +2863,52 @@ async function probeWerkbank(page) {
   if (kopf.emblem < 28 || !kopf.bild) return `Werkbank 1280 px: der Rezeptkopf zeigt kein Emblem (${kopf.emblem} px, Bild ${kopf.bild})`;
   if (kopf.art !== kopf.karte) return `Werkbank 1280 px: das Emblem zeigt „${kopf.art}“, die gewaehlte Kachel „${kopf.karte}“`;
   if (kopf.felder < 3) return `Werkbank 1280 px: der Rezeptkopf hat nur ${kopf.felder} Kennwert-Felder`;
+  // Zutaten: der Materialname ist der Weg zu den Fundorten (Krisz 27.11.2026:
+  // „einfach auf den Namen der Material [klicken] und man kommt bei der
+  // Mining Seite raus“; eine eigene Materialwege-Liste hat die Werkbank nicht
+  // mehr). Im gezeichneten Rezept fuehrt jeder Name mit Mineral in
+  // window.__CRAFT.mine genau dorthin, keiner ohne Mineral ist ein Link.
+  // verify:bezugswege [17] haelt diese Ziele gegen „Abbauen“ auf dem Blatt;
+  // erst beides zusammen sichert den Sprung vom Rezept zum Fundort (Hinweis
+  // von CodeRabbit an #486). Vorgefuehrt rot (27.11.2026) mit je einem
+  // Eingriff in dist/assets/crafting-app.js, jeder in beiden Sprachen mit
+  // der Meldung, die ihn meint: Zutatenname als <span> statt
+  // mineNameHtml() („3 von 3 Materialnamen ... kein Link“); Item-Knopf auf
+  // /items/<id>.html („fuehrt nicht in die Items-Werkbank“); ein zusaetzlicher
+  // Datenblatt-Link im Rezept („verlinkt 1 Item-Datenblatt“). Zurueckgespielt
+  // per sha256, gruen.
+  const zutaten = await page.evaluate(() => {
+    const mine = window.__CRAFT?.mine || {};
+    return [...document.querySelectorAll('#cdb-modal .cbm__opt')].map((o) => {
+      const el = o.querySelector('.on');
+      const n = el ? [...el.childNodes].filter((k) => k.nodeType === 3).map((k) => k.textContent).join('').trim() : '';
+      const mineral = mine.names?.[n];
+      return {
+        n,
+        ist: el && el.matches('a.cdb-mine') ? el.getAttribute('href') : null,
+        soll: mineral && mine.url ? `${mine.url}?mineral=${encodeURIComponent(mineral)}#db` : null,
+      };
+    });
+  });
+  if (!zutaten.length) return 'Werkbank 1280 px: das Rezept zeigt keine Zutaten (#cdb-modal .cbm__opt)';
+  const zutatFalsch = zutaten.filter((z) => z.ist !== z.soll);
+  if (zutatFalsch.length) return `Werkbank 1280 px: ${zutatFalsch.length} von ${zutaten.length} Materialnamen im Rezept fuehren nicht zu ihren Fundorten — ${zutatFalsch.slice(0, 3).map((z) => `${z.n || '?'} (${z.ist || 'kein Link'} statt ${z.soll || 'keinem Link'})`).join(', ')}`;
+  if (!zutaten.some((z) => z.ist)) return `Werkbank 1280 px: keiner der ${zutaten.length} Materialnamen im Rezept ist ein Fundort-Link`;
+  // Das fertige Item oeffnet die Items-Werkbank, nicht das Datenblatt (Krisz
+  // 27.11.2026: „statt item-datenblatt soll es zum neuen item seite
+  // leiten“): der Knopf zeigt auf /items.html?item= der Sprache der Seite,
+  // und kein Link im Rezept fuehrt auf ein Item-Datenblatt (/items/<id>.html).
+  const itemZiel = await page.evaluate(() => {
+    const a = document.querySelector('#cdb-modal a[data-item-link]');
+    return {
+      href: a ? a.getAttribute('href') : null,
+      base: window.__CRAFT?.items?.base || '',
+      blaetter: [...document.querySelectorAll('#cdb-modal a[href]')].map((x) => x.getAttribute('href')).filter((h) => /\/items\/[^/?#]+\.html(?:[?#]|$)/.test(h)),
+    };
+  });
+  if (!/^(?:\/de)?\/items\.html$/.test(itemZiel.base) || !itemZiel.href || !itemZiel.href.startsWith(itemZiel.base + '?item='))
+    return `Werkbank 1280 px: der Item-Knopf im Rezept fuehrt nicht in die Items-Werkbank (${itemZiel.href || 'kein Knopf'}, Werkbank-Adresse „${itemZiel.base}“)`;
+  if (itemZiel.blaetter.length) return `Werkbank 1280 px: das Rezept verlinkt ${itemZiel.blaetter.length} Item-Datenblatt/-blaetter statt der Items-Werkbank — ${itemZiel.blaetter.slice(0, 3).join(', ')}`;
   // Der Regler bewegt Wert und Balken, und die Zeile bleibt dabei dieselbe
   // (ein neu geschriebener Balken spraenge, statt zu gleiten). Hat dieses
   // Rezept keinen Regler, nimmt die Probe das naechste mit einem.

@@ -1734,15 +1734,17 @@
   // -0 (kleiner negativer Wert, auf 0 gerundet) zeigt toLocaleString als "-0".
   function fmtSmart(v) { var r = roundSmart(v); return (r === 0 ? 0 : r).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
 
-  // Adresse des Item-Datenblatts zu Rezept i, oder null. CFG.items (aus
-  // CraftingApp.astro) traegt nur Abweichungen: sonst ist die Item-Adresse
-  // der Slug, den die Karte des Rezepts verlinkt (/crafting/<slug>.html).
+  // Das Item zu Rezept i in der Items-Werkbank (Krisz 27.11.2026: „statt
+  // item-datenblatt soll es zum neuen item seite leiten“; Datenblaetter sind
+  // nur noch fuer Suchmaschinen), oder null. CFG.items (aus CraftingApp.astro)
+  // traegt die Adresse der Items-Werkbank und nur Abweichungen der Id: sonst
+  // ist die Item-Id der Slug, den die Karte des Rezepts verlinkt
+  // (/crafting/<slug>.html).
   function itemSheetUrl(i) {
     var id = itemSheetId(i);
-    return id ? CFG.items.base + id + '.html' : null;
+    return id ? CFG.items.base + '?item=' + encodeURIComponent(id) : null;
   }
-  // Item-Id zu Rezept i (Adresse des Datenblatts, Schluessel ?item= der
-  // Items-Werkbank), oder null.
+  // Item-Id zu Rezept i (Schluessel ?item= der Items-Werkbank), oder null.
   function itemSheetId(i) {
     var L = CFG.items;
     var n = +i;
@@ -1866,12 +1868,11 @@
       if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
       html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
     }
-    // Zum Item-Datenblatt, wo es eines gibt (09.11.2026, Skizze 016: Preise,
-    // Fundorte und Werte stehen dort); sonst auf die Items-Seite mit dem Item.
-    // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
-    var itemUrl = itemSheetUrl(i);
-    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + (WB && WBT.itemSheet ? '<span>' + esc(WBT.itemSheet) + '</span>' : tr('openItem', 'Item-Datenblatt öffnen')) + pfeil + '</a>';
-    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/items.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Item ansehen') + pfeil + '</a>';
+    // Zum Item in der Items-Werkbank (Preise, Fundorte und Werte stehen dort;
+    // Krisz 27.11.2026: nicht mehr zum Datenblatt). Ohne bekannte Item-Id
+    // sucht sie das Item beim Namen. DE liegt unter /de/, EN im Root.
+    var itemUrl = itemSheetUrl(i) || ((CFG.items && CFG.items.base) || ((CFG.lang === 'de' ? '/de' : '') + '/items.html')) + '?item=' + encodeURIComponent(b.name);
+    html += '<a class="cbm__xlink" data-item-link href="' + esc(itemUrl) + '">' + (WB && WBT.itemPage ? '<span>' + esc(WBT.itemPage) + '</span>' : tr('openInFinder', 'Item ansehen')) + pfeil + '</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
       html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + (WB && WBT.dismantle ? '<span>' + esc(WBT.dismantle) + '</span>' : tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen')) + pfeil + '</button>';
