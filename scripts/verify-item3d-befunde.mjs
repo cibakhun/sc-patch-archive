@@ -27,9 +27,12 @@
          (27.11.2026): gebacken wurde aus Hand-Listen für Rüstung und
          Waffen; Kleidung, Werkzeuge, Verbrauchsgüter und Sonstiges standen
          auf keiner, und kein Tor merkte es. Je Katalog-Bereich eine Klinke
-         für die Modelle der Liste. Ist der Katalog seit dem Lauf ein
-         anderer (Datenlauf), ist das nur WARNUNG: neue Items warten auf den
-         nächsten Lauf.
+         für die Modelle der Liste, gezählt nach den Bereichen des Laufs
+         (abdeckung.bereiche; bei gleichem Katalog müssen sie den heutigen
+         gleichen). Ist der Katalog seit dem Lauf ein anderer (Datenlauf),
+         ist das nur WARNUNG: neue Items warten auf den nächsten Lauf, und
+         ein umgeordnetes oder gestrichenes Item reißt keine Klinke
+         (Review #488).
 
    Selbstauskunft: Items, Merkmale, Einordnungen und Schicksale je Bereich
    gezählt, mit Klinken. Kein git, kein Netz, kein Kindprozess — liest nur
@@ -142,8 +145,8 @@ const katalog = JSON.parse(katalogText).items ?? [];
 const katalogAbdruck = createHash('sha256').update(katalogText).digest('hex').slice(0, 16);
 const ab = bericht.abdeckung;
 const schicksal = new Map(); // id -> 'liste' | 'angehalten' | Grund der Lücke
-if (!ab || typeof ab !== 'object' || !ab.zahl || !ab.luecken || typeof ab.katalog !== 'string') {
-  fail('[5] Bericht ohne Abdeckung (abdeckung): er stammt aus einem Lauf vor scripts/item3d/liste.mjs — mit der Liste aus dem ganzen Katalog neu backen und scripts/item3d/manifest.mjs --liste … laufen lassen');
+if (!ab || typeof ab !== 'object' || !ab.zahl || !ab.luecken || !ab.bereiche || typeof ab.katalog !== 'string') {
+  fail('[5] Bericht ohne vollständige Abdeckung (abdeckung mit zahl, luecken, bereiche): er stammt aus einem Lauf vor dem heutigen scripts/item3d/liste.mjs — mit der Liste aus dem ganzen Katalog neu backen und scripts/item3d/manifest.mjs --liste … laufen lassen');
 } else {
   let mehrfach = 0;
   const setze = (id, s) => { if (schicksal.has(id)) { mehrfach++; if (mehrfach <= 10) fail(`[5] ${id}: hat zwei Schicksale (${schicksal.get(id)} und ${s})`); } else schicksal.set(id, s); };
@@ -170,15 +173,37 @@ if (!ab || typeof ab !== 'object' || !ab.zahl || !ab.luecken || typeof ab.katalo
   } else {
     WARN.push(`[5] Katalog seit dem Lauf geändert (Lauf ${ab.katalog}, heute ${katalogAbdruck}): ${ohneSchicksal.length} neue Items ohne Schicksal, ${nichtImKatalog.length} Schicksale für Items, die es nicht mehr gibt — beim nächsten Lauf neu backen (scripts/item3d/liste.mjs)`);
   }
+  // Bereiche: die des Laufs zählen (ein späterer Datenlauf, der Items
+  // umordnet oder streicht, soll keine Klinke reißen, Review #488). Ein Item,
+  // das der Lauf nicht kannte (seither umbenannt), zählt nach dem heutigen
+  // Katalog. Bei gleichem Katalog müssen beide übereinstimmen.
+  const bereichHeute = new Map(katalog.map((i) => [i.id, (i.category ?? 'Other').split(' / ')[0]]));
+  const bereichLauf = new Map();
+  let bDoppelt = 0, bAnders = 0;
+  for (const [b, l] of Object.entries(ab.bereiche)) {
+    if (!Array.isArray(l)) { fail(`[5] Bereich „${b}“ ist keine Liste`); continue; }
+    for (const id of l) {
+      if (bereichLauf.has(id)) { bDoppelt++; if (bDoppelt <= 5) fail(`[5] ${id}: steht in zwei Bereichen (${bereichLauf.get(id)} und ${b})`); continue; }
+      bereichLauf.set(id, b);
+    }
+  }
+  if (bereichLauf.size !== z.katalog) fail(`[5] Bereiche nennen ${bereichLauf.size} Items, der Katalog des Laufs hatte ${z.katalog}`);
+  if (ab.katalog === katalogAbdruck) {
+    for (const [id, b] of bereichLauf) {
+      if (bereichHeute.get(id) === b) continue;
+      bAnders++;
+      if (bAnders <= 5) fail(`[5] ${id}: Bereich ${b} laut Bericht, ${bereichHeute.get(id) ?? '(nicht im Katalog)'} laut Katalog — bei gleichem Katalog passt der Bericht nicht zu ihm`);
+    }
+    if (bAnders > 5) fail(`[5] … und ${bAnders - 5} weitere Items mit anderem Bereich`);
+  }
   // Selbstauskunft und Klinke je Bereich
-  const bereich = new Map(katalog.map((i) => [i.id, (i.category ?? 'Other').split(' / ')[0]]));
   const je = {};
   for (const [id, s] of schicksal) {
-    const b = bereich.get(id) ?? '(nicht im Katalog)';
+    const b = bereichLauf.get(id) ?? bereichHeute.get(id) ?? '(nicht im Katalog)';
     const e = (je[b] ??= { liste: 0, angehalten: 0, luecken: 0 });
     if (s === 'liste') e.liste++; else if (s === 'angehalten') e.angehalten++; else e.luecken++;
   }
-  console.log(`[5] Abdeckung: Katalog ${katalog.length} Items (${ab.katalog === katalogAbdruck ? 'derselbe wie beim Lauf' : 'seit dem Lauf geändert'}), ${ids.length} in der Liste, ${Object.keys(angehalten).length} angehalten, ${nLuecken} Lücken mit Grund`);
+  console.log(`[5] Abdeckung: Katalog ${katalog.length} Items (${ab.katalog === katalogAbdruck ? 'derselbe wie beim Lauf' : 'seit dem Lauf geändert'}), ${ids.length} in der Liste, ${Object.keys(angehalten).length} angehalten, ${nLuecken} Lücken mit Grund; Bereiche des Laufs für ${bereichLauf.size} Items${ab.katalog === katalogAbdruck ? `, ${bAnders} anders als heute` : ''}`);
   for (const [b, e] of Object.entries(je).sort((x, y) => y[1].liste - x[1].liste)) console.log(`    ${b.padEnd(18)} ${String(e.liste).padStart(5)} Modelle  ${String(e.angehalten).padStart(4)} angehalten  ${String(e.luecken).padStart(5)} Lücken`);
   const gruende = Object.entries(ab.luecken).sort((x, y) => y[1].length - x[1].length);
   console.log(`    Lücken nach Grund: ${gruende.slice(0, 8).map(([g, l]) => `${g} ${l.length}`).join('; ')}`);

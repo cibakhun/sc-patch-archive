@@ -28,8 +28,10 @@ neue Art im Spiel wird ohne Zutun gebacken, und hat sie kein Modell
 (Lackierung, Charakter-Farbe, Schiffsregler), steht das mit Grund im
 Bauprotokoll. `manifest.mjs` schreibt in den Befundbericht unter
 `abdeckung` für jedes Katalog-Item, das weder in der Liste noch angehalten
-ist, den Grund (ohne Record, ohne Modell, gescheitert, offen). Das Tor zählt
-das je Katalog-Bereich und hat dort Klinken.
+ist, den Grund (ohne Record, ohne Modell, gescheitert, offen), und unter
+`abdeckung.bereiche` den Bereich jedes Katalog-Items zur Zeit des Laufs. Das
+Tor zählt nach diesen Bereichen und hat dort Klinken; ein späterer
+Datenlauf, der Items umordnet oder streicht, reißt sie nicht.
 
 ## Die Tabelle entscheidet, nicht der Bäcker
 
@@ -157,6 +159,8 @@ gegen die Tabelle dieses Checkouts:
 3. Kein Merkmal wurde seit dem Lauf umgeordnet.
 4. Jede benannte Ausnahme ist noch in Gebrauch.
 5. Jedes Item des Katalogs hat genau ein Schicksal (Liste, angehalten oder
-   Lücke mit Grund), und kein Katalog-Bereich fällt unter seine Klinke. Ist
-   der Katalog seit dem Lauf ein anderer (Datenlauf), ist das nur eine
-   WARNUNG: neue Items warten auf den nächsten Lauf.
+   Lücke mit Grund), und kein Katalog-Bereich (gezählt nach den Bereichen
+   des Laufs) fällt unter seine Klinke. Ist der Katalog seit dem Lauf ein
+   anderer (Datenlauf), ist das nur eine WARNUNG: neue Items warten auf den
+   nächsten Lauf. Bei gleichem Katalog müssen die Bereiche im Bericht die
+   heutigen sein.

@@ -17,9 +17,12 @@
 // neue Art im Spiel wird gebacken, ohne dass jemand eine Liste anfasst; hat
 // sie kein Modell (Lackierung, Charakter-Farbe, Schiffsregler), steht das je
 // Item mit Grund im Bauprotokoll (fehler.jsonl) und im Befundbericht.
-// Die Liste trägt den Fingerabdruck des Katalogs und die Zahl je Schicksal;
-// manifest.mjs übernimmt beides in den Befundbericht, und das Tor
-// verify:item3d-befunde prüft, dass die Zahlen den ganzen Katalog abdecken.
+// Die Liste trägt den Fingerabdruck des Katalogs, die Zahl je Schicksal und
+// den Bereich jedes Katalog-Items (bereiche); manifest.mjs übernimmt das in
+// den Befundbericht, und das Tor verify:item3d-befunde prüft, dass die Zahlen
+// den ganzen Katalog abdecken. Seine Klinke je Bereich zählt nach den
+// Bereichen DIESES Laufs: Ordnet ein späterer Datenlauf Items um oder streicht
+// welche, bleibt sie still, bis neu gebacken wird (Review #488).
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -70,8 +73,12 @@ for (const it of katalog) {
   zahl.liste++;
 }
 
+// Bereich = erster Teil der Katalog-Kategorie, wie im Tor
+const bereiche = {};
+for (const it of katalog) (bereiche[(it.category ?? 'Other').split(' / ')[0]] ??= []).push(it.id);
+
 const fingerabdruck = createHash('sha256').update(katalogText).digest('hex').slice(0, 16);
-writeFileSync(ZIEL, JSON.stringify({ katalog: fingerabdruck, zahl, liste, ohneRecord }));
+writeFileSync(ZIEL, JSON.stringify({ katalog: fingerabdruck, zahl, liste, ohneRecord, bereiche }));
 
 const proArt = (o) => Object.entries(o.reduce((m, e) => ((m[e] = (m[e] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]);
 console.log(`Katalog ${zahl.katalog} Items (${fingerabdruck}): ${zahl.liste} zu backen (${liste.filter((e) => e.weg === 'name').length} über den Namen gefunden), ${zahl.ohneRecord} ohne Record -> ${ZIEL}`);

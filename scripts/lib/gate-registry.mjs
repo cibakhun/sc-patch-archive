@@ -319,7 +319,7 @@ export const CHECKS = [
     script: 'scripts/verify-item3d-befunde.mjs',
     rail: 'A',
     checks:
-      'jedes Modell der 3D-Liste hat Befunde aus dem Massenlauf (src/data/item-3d-befunde.json) und keins steht zugleich unter „angehalten“; kein gelistetes Item traegt ein Spielmaterial-Merkmal, das die Tabelle scripts/lib/item3d-merkmale.mjs nicht kennt oder als Fehler fuehrt; jedes Merkmal ist heute so eingeordnet wie beim Lauf (sonst neu backen); jede benannte Ausnahme haengt an mindestens einem gelisteten Item; jedes Item des Katalogs (assets/universal-items.json) hat genau ein Schicksal (Liste, angehalten oder Luecke mit Grund), Katalog seit dem Lauf geaendert nur WARNUNG; Klinke fuer gepruefte Modelle und je Katalog-Bereich',
+      'jedes Modell der 3D-Liste hat Befunde aus dem Massenlauf (src/data/item-3d-befunde.json) und keins steht zugleich unter „angehalten“; kein gelistetes Item traegt ein Spielmaterial-Merkmal, das die Tabelle scripts/lib/item3d-merkmale.mjs nicht kennt oder als Fehler fuehrt; jedes Merkmal ist heute so eingeordnet wie beim Lauf (sonst neu backen); jede benannte Ausnahme haengt an mindestens einem gelisteten Item; jedes Item des Katalogs (assets/universal-items.json) hat genau ein Schicksal (Liste, angehalten oder Luecke mit Grund), Katalog seit dem Lauf geaendert nur WARNUNG; Klinke fuer gepruefte Modelle und je Katalog-Bereich, gezaehlt nach den Bereichen des Laufs (bei gleichem Katalog muessen sie den heutigen gleichen)',
   },
   {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach

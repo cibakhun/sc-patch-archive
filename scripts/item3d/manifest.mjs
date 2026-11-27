@@ -44,6 +44,7 @@ const [OUT, ZIEL] = argv;
 if (!OUT || !ZIEL || !LISTE || (!ALLE && !ENV)) { console.error('Aufruf: node scripts/item3d/manifest.mjs <out> <ziel.json> --liste <liste.json> --env <r2.env> [--bucket …]  |  … --alle'); process.exit(2); }
 const backliste = JSON.parse(readFileSync(LISTE, 'utf8'));
 if (!Array.isArray(backliste?.liste) || typeof backliste?.katalog !== 'string' || !backliste?.zahl) { console.error(`${LISTE} ist keine Liste aus scripts/item3d/liste.mjs`); process.exit(2); }
+if (!backliste.bereiche || typeof backliste.bereiche !== 'object') { console.error(`${LISTE} hat keine Bereiche (bereiche): mit dem heutigen scripts/item3d/liste.mjs neu erzeugen`); process.exit(2); }
 const inBackliste = new Set(backliste.liste.map((e) => e.id));
 const BERICHT = join(dirname(ZIEL), 'item-3d-befunde.json');
 
@@ -138,6 +139,12 @@ for (const [id, g] of Object.entries(backliste.ohneRecord ?? {})) zuLuecke(`ohne
 const lueckenSortiert = Object.fromEntries(Object.entries(luecken).sort((x, y) => y[1].length - x[1].length || x[0].localeCompare(y[0])).map(([g, l]) => [g, l.sort()]));
 const nLuecken = Object.values(luecken).reduce((n, l) => n + l.length, 0);
 const abdeckung = { katalog: backliste.katalog, zahl: { katalog: backliste.zahl.katalog, gelistet: Object.keys(items).length, angehalten: Object.keys(angehalten).length, luecken: nLuecken } };
+// Bereich jedes Katalog-Items zur Zeit des Laufs: danach zählt die Klinke je
+// Bereich im Tor, auch wenn ein späterer Datenlauf Items umordnet oder
+// streicht (Review #488). Eine Zeile je Bereich.
+const bereiche = Object.fromEntries(Object.entries(backliste.bereiche).sort((x, y) => x[0].localeCompare(y[0])).map(([b, l]) => [b, [...l].sort()]));
+const nBereiche = Object.values(bereiche).reduce((n, l) => n + l.length, 0);
+if (nBereiche !== backliste.zahl.katalog) { console.error(`FEHLER: Bereiche der Liste nennen ${nBereiche} Items, der Katalog des Laufs hat ${backliste.zahl.katalog}`); process.exit(1); }
 
 const alt = existsSync(ZIEL) ? JSON.parse(readFileSync(ZIEL, 'utf8')) : {};
 const neu = {
@@ -156,7 +163,7 @@ writeFileSync(ZIEL, `{\n "_": ${JSON.stringify(neu._)},\n "base": ${JSON.stringi
 // Modelldatei), damit das Tor einen Bericht aus einem anderen Lauf erkennt.
 const liste = [...merkmale.keys()].map((k) => [k, einordnen(k).art]);
 const fingerabdruck = sha16(JSON.stringify(Object.entries(items).map(([id, e]) => [id, e[0]])));
-writeFileSync(BERICHT, `{\n "_": ${JSON.stringify('Items in 3D: Befunde je Item aus dem Massenlauf (scripts/item3d/manifest.mjs). merkmale: [Merkmal, Einordnung] nach scripts/lib/item3d-merkmale.mjs; items und angehalten: je Item die Indizes seiner Merkmale (angehalten: nur die anhaltenden). abdeckung: Schicksal jedes Katalog-Items, das weder gelistet noch angehalten ist, nach Grund (scripts/item3d/liste.mjs). Das Tor verify:item3d-befunde prüft Liste und Bericht gegen die Tabelle und gegen den Katalog.')},\n "tabelle": ${JSON.stringify(TABELLE)},\n "liste": ${JSON.stringify(fingerabdruck)},\n "merkmale": [\n${liste.map((e) => `  ${JSON.stringify(e)}`).join(',\n')}\n ],\n "items": ${block(imBericht)},\n "angehalten": ${block(angehalten)},\n "abdeckung": {\n  "katalog": ${JSON.stringify(abdeckung.katalog)},\n  "zahl": ${JSON.stringify(abdeckung.zahl)},\n  "luecken": {\n${Object.entries(lueckenSortiert).map(([g, l]) => `   ${JSON.stringify(g)}: ${JSON.stringify(l)}`).join(',\n')}\n  }\n }\n}\n`);
+writeFileSync(BERICHT, `{\n "_": ${JSON.stringify('Items in 3D: Befunde je Item aus dem Massenlauf (scripts/item3d/manifest.mjs). merkmale: [Merkmal, Einordnung] nach scripts/lib/item3d-merkmale.mjs; items und angehalten: je Item die Indizes seiner Merkmale (angehalten: nur die anhaltenden). abdeckung: Schicksal jedes Katalog-Items, das weder gelistet noch angehalten ist, nach Grund, und der Bereich jedes Katalog-Items zur Zeit des Laufs (scripts/item3d/liste.mjs). Das Tor verify:item3d-befunde prüft Liste und Bericht gegen die Tabelle und gegen den Katalog.')},\n "tabelle": ${JSON.stringify(TABELLE)},\n "liste": ${JSON.stringify(fingerabdruck)},\n "merkmale": [\n${liste.map((e) => `  ${JSON.stringify(e)}`).join(',\n')}\n ],\n "items": ${block(imBericht)},\n "angehalten": ${block(angehalten)},\n "abdeckung": {\n  "katalog": ${JSON.stringify(abdeckung.katalog)},\n  "zahl": ${JSON.stringify(abdeckung.zahl)},\n  "luecken": {\n${Object.entries(lueckenSortiert).map(([g, l]) => `   ${JSON.stringify(g)}: ${JSON.stringify(l)}`).join(',\n')}\n  },\n  "bereiche": {\n${Object.entries(bereiche).map(([b, l]) => `   ${JSON.stringify(b)}: ${JSON.stringify(l)}`).join(',\n')}\n  }\n }\n}\n`);
 
 const kb = Object.values(items).reduce((s, e) => s + e[1], 0);
 const n = Object.keys(items).length;

@@ -553,7 +553,9 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
   // Stufe 1 spart bei Rüstung und Waffen die Hälfte der Dreiecke. Kleine
   // Requisiten haben dort oft nur noch einen Klotz (Schachfigur: 18
   // Dreiecke statt einer Figur): Behält Stufe 1 weniger als ein Viertel der
-  // Dreiecke von Stufe 0, gilt Stufe 0 (Befund „Stufe 1 zu grob“).
+  // Dreiecke von Stufe 0, gilt Stufe 0 (Befund „Stufe 1 zu grob“). Nur für
+  // Stufe 1: eine ausdrücklich verlangte gröbere Stufe (--lod 2) bleibt, wie
+  // sie ist (Review #488).
   const LOD_MIN_ANTEIL = 0.25;
   const netzDatei = (p) => (/\.skin$/i.test(p) ? p.replace(/\.skin$/i, '.skinm') : `${p}m`);
   const dreiecke = (p) => { const b = provider.read(netzDatei(p)); if (!b) return 0; try { return readSkinMesh(b).idx.length / 3; } catch { return 0; } };
@@ -561,8 +563,10 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     if (!l) return skin;
     const p = skin.replace(/(_lod\d)?\.(skin|cga|cgf)$/i, `_lod${l}.$2`);
     if (!provider.has(p) || p === skin) return skin;
-    const t0 = dreiecke(skin), t1 = dreiecke(p);
-    if (t0 && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
+    if (l === 1) {
+      const t0 = dreiecke(skin), t1 = dreiecke(p);
+      if (t0 && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
+    }
     return p;
   }
   // UV außerhalb von 0..1 (Zierleisten-Atlas, wiederholt) wird in die Kachel
