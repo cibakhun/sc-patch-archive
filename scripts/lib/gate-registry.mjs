@@ -1340,12 +1340,26 @@ export const CHECKS = [
     // die drei Koeder keiner, Exit 1. Der Stand vor dieser Runde meldete auf
     // derselben Seite einen FEHLER, und zwar den falschen (den Anker im
     // Attributwert). Seite per Sicherung zurueck (sha256 gleich).
+    // Dritte Runde Review #482: Grundsatz „nur echte Kommentare fallen weg,
+    // im Zweifel zaehlt ein Anker“. Tagnamen enden nur an Leerraum, „/“
+    // oder „>“ (<title-card> ist kein <title>), Anfuehrungszeichen schliessen
+    // nur direkt nach „=“ einen Wert ein, und Rohtext (script, style,
+    // textarea, title, xmp, iframe, noembed, noframes) wird nach Ankern
+    // durchsucht, nur nicht nach Kommentaren. Am echten Bau keine Aenderung
+    // (Vorschau-Bau 1.458.412 Links vorher wie nachher).
+    // VORGEFUEHRT ROT am 27.11.2026 (Vorschau-Bau von 02babc45) mit den
+    // sieben Links von oben und drei neuen in /topics/mining.html: ein Anker
+    // in <title-card>, ein Anker hinter <div class=a'b> (vorher verschluckt
+    // bis zum naechsten „'“) und ein Anker in <svg><title>. Meldungen:
+    // sieben FEHLER [2], die drei Koeder keiner, Exit 1. Der Stand 02babc45
+    // meldete auf derselben Seite vier und uebersah die drei neuen. Seite
+    // per Sicherung zurueck (sha256 gleich).
     id: 'verify:nur-werkbank',
     npm: 'verify:nur-werkbank',
     script: 'scripts/verify-nur-werkbank.mjs',
     rail: 'A',
     checks:
-      'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (in einem Durchgang wie der HTML-Tokenizer gelesen: ohne Kommentare, keine Anker aus Attributwerten, Anker in Skriptvorlagen mitgezaehlt; href als ganzes Attribut gelesen, Zeichenreferenzen wie im HTML-Parser entschluesselt, gegen die Seite aufgeloest und normalisiert, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+      'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (in einem Durchgang wie der HTML-Tokenizer gelesen: nur echte Kommentare fallen weg, keine Anker aus Attributwerten, Tagnamen ganz verglichen, Anker in Rohtext wie Skriptvorlagen mitgezaehlt; href als ganzes Attribut gelesen, Zeichenreferenzen wie im HTML-Parser entschluesselt, gegen die Seite aufgeloest und normalisiert, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

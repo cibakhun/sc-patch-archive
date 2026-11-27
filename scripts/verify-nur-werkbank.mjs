@@ -115,29 +115,36 @@ function pfad(h, basis = '/') {
   return x;
 }
 
-/* Anker in einem Durchgang wie der HTML-Tokenizer (Review #482): Kommentare
- * (auch „<!-->“ und unbeendete) und Pseudo-Kommentare „<!…>“/„<?…>“ fallen
- * weg; ein „<!--“ in einem Attributwert oder im Text eines <script> ist
- * keiner, und ein „<a“ in einem Attributwert ist kein Anker. Ein Durchgang
- * reicht, weil nichts erneut nach Kommentaren gelesen wird: in
- * „<<!-- -->!-- <a href=…> -->“ ist der Anker auch im Browser echt.
- * Skripttext wird weiter nach Ankern durchsucht, weil Vorlagen darin
- * Links fuer Menschen erzeugen. */
-const TAGREST = String.raw`((?:[^>"']|"[^"]*"|'[^']*')*)`;
+/* Anker in einem Durchgang wie der HTML-Tokenizer (Review #482). Grundsatz:
+ * nur echte Kommentare fallen weg, im Zweifel zaehlt ein Anker.
+ * - Kommentare (auch „<!-->“ und unbeendete) und Pseudo-Kommentare
+ *   „<!…>“/„<?…>“ fallen weg. Ein Durchgang reicht, weil nichts erneut nach
+ *   Kommentaren gelesen wird: in „<<!-- -->!-- <a href=…> -->“ ist der Anker
+ *   auch im Browser echt.
+ * - Ein Tag endet am ersten „>“ ausserhalb eines Werts; Anfuehrungszeichen
+ *   schliessen wie im Tokenizer nur direkt nach „=“ einen Wert ein. Ein
+ *   „<!--“ oder „<a“ in einem Attributwert ist darum weder Kommentar noch Anker.
+ * - Tagnamen enden nur an Leerraum, „/“ oder „>“: <title-card> ist kein <title>.
+ * - Rohtext (<script>, <style>, <textarea>, <title>, <xmp>, <iframe>,
+ *   <noembed>, <noframes>) kennt keine Kommentare, wird aber weiter nach
+ *   Ankern durchsucht: Vorlagen in Skripten erzeugen echte Links, und in SVG
+ *   sind <title> und <style> gar kein Rohtext. */
+const TRENNER = String.raw`(?=[\t\n\f\r />])`;
+const TAGREST = String.raw`((?:[^>"'=]|=[\t\n\f\r ]*"[^"]*"|=[\t\n\f\r ]*'[^']*'|=|["'])*)`;
+const ROHTEXT = 'script|style|textarea|title|xmp|iframe|noembed|noframes';
 const TOKEN = new RegExp([
-  String.raw`<(script|style|textarea|title)\b${TAGREST}>([\s\S]*?)(?:<\/\1\s*>|$)`,
+  String.raw`<(${ROHTEXT})${TRENNER}${TAGREST}>([\s\S]*?)(?:<\/\1${TRENNER}[^>]*>|$)`,
   String.raw`<!--(?:-?>|[\s\S]*?--!?>|[\s\S]*$)`,
   String.raw`<[!?][^>]*>?`,
-  String.raw`<(\/?[a-z][^\s\/>]*)${TAGREST}>`,
+  String.raw`<(\/?[a-z][^\t\n\f\r />]*)${TAGREST}>`,
   String.raw`[^<]+`,
   '<',
 ].join('|'), 'gi');
-const ANKER = new RegExp(String.raw`<a\b${TAGREST}>`, 'gi');
+const ANKER = new RegExp(String.raw`<a${TRENNER}${TAGREST}>`, 'gi');
 function* ankerAttribute(html) {
   for (const m of html.matchAll(TOKEN)) {
-    if (m[1]) {
-      if (m[1].toLowerCase() === 'script') for (const [, attr] of m[3].matchAll(ANKER)) yield attr;
-    } else if (m[4] && m[4].toLowerCase() === 'a') yield m[5];
+    if (m[1]) { for (const [, attr] of m[3].matchAll(ANKER)) yield attr; }
+    else if (m[4] && m[4].toLowerCase() === 'a') yield m[5];
   }
 }
 
