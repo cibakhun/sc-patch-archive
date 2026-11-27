@@ -373,10 +373,7 @@
       return COLL.compare(a._basis, b._basis) || a._var - b._var || COLL.compare(a._n, b._n) || (a.id < b.id ? -1 : 1);
     });
     ord.forEach(function (it, i) { it._o = i; });
-    if (SU) {
-      ITEMS.forEach(function (it) { it._mk = mfrName(it.game && it.game.manufacturer); suchFelder(it); });
-      bauVokabular();
-    }
+    if (SU) sucheAn();
     SETLISTE.forEach(function (s) { s._h = [s.name, s.manufacturer, s.weight].filter(Boolean).join('\n').toLowerCase(); });
     SETLISTE.sort(function (a, b) { return COLL.compare(a.name, b.name); });
   }
@@ -407,7 +404,7 @@
   var PG = 0;             // Generation der Suche (Merker an den Items)
   var TYPO = [];          // je freiem Wort: Tippfehler zaehlen?
   var HLW = [];           // Woerter zum Hervorheben
-  var wegeFuerSuche = false;
+  var wegeWarten = 0;     // letzter Aufruf, der auf die Wege wartet
   var BEGRIFF_WORTE = karte(); // Art|Schluessel -> einzelne Woerter des Begriffs
   var ARTEN = ['kat', 'grp', 'art', 'pk', 'sel', 'sys', 'maker'];
   // „s3“, „S 3“, „size 3“, „Größe 3“: Groesse 0 bis 12.
@@ -418,12 +415,20 @@
   function ladeSuche() {
     if (!C.sucheUrl) return Promise.resolve();
     return import(C.sucheUrl).then(function (m) {
+      if (SU) return;
       SU = m;
       MUSTER = [GROESSE, m.preisMuster()];
+      // Kam der Kern erst nach dem Katalog (Frist in ladeKatalog), greift
+      // die Smart-Suche jetzt, mit dem, was schon im Suchfeld steht.
+      if (bereit && !ladeFehler) { sucheAn(); anwenden({ ohneUrl: true }); }
     }).catch(function (e) {
       console.warn('Items-Werkbank: Suchkern nicht geladen, Suche ohne Erkennung.', e);
       SU = null;
     });
+  }
+  function sucheAn() {
+    ITEMS.forEach(function (it) { it._mk = mfrName(it.game && it.game.manufacturer); suchFelder(it); });
+    bauVokabular();
   }
   // Was ein freies Wort an einem Item trifft (wortWert in smart-suche.js).
   function suchFelder(it) {
@@ -563,6 +568,18 @@
     });
     return best;
   }
+  // Was die Karte bei einer Systemsuche zeigt und wonach „Preis“ sortiert:
+  // die Zeile dort, ohne Preis keiner (kein auswaertiger neben einem Ort
+  // dort); ohne Systemsuche der guenstigste Preis ueberhaupt.
+  function kartenZeile(it) {
+    if (!P || !it.obtain.length) return null;
+    if (it._zg !== PG) { it._zg = PG; it._zz = suchZeile(it); }
+    return it._zz;
+  }
+  function kartenPreis(it) {
+    var zz = kartenZeile(it);
+    return zz ? (zz.price > 0 ? zz.price : null) : it._p;
+  }
   function benannt(it, h) {
     if (h.kind === 'price' || h.kind === 'size') return false;
     var ws = h.t.split(' '), i;
@@ -662,11 +679,12 @@
       return nb - na || a._o - b._o;
     });
     var auf = s === 'preis';
+    list.forEach(function (it) { it._sp = kartenPreis(it); });
     return list.sort(function (a, b) {
-      if (a._p == null && b._p == null) return a._o - b._o;
-      if (a._p == null) return 1;
-      if (b._p == null) return -1;
-      return (auf ? a._p - b._p : b._p - a._p) || a._o - b._o;
+      if (a._sp == null && b._sp == null) return a._o - b._o;
+      if (a._sp == null) return 1;
+      if (b._sp == null) return -1;
+      return (auf ? a._sp - b._sp : b._sp - a._sp) || a._o - b._o;
     });
   }
   function setPasst(s) {
@@ -711,9 +729,12 @@
     liesSuche();
     // Ein System („pyro“) braucht die Zuordnung der Verkaufsstellen
     // (/items-wege.json); bis sie da ist, bleibt die Liste, wie sie war.
-    if (P && !WEGE && C.wegeUrl && !wegeFuerSuche && P.hits.some(function (h) { return h.kind === 'sys'; })) {
-      wegeFuerSuche = true;
-      ladeWege().then(function () { anwenden(opt); });
+    // Danach zeichnet nur der letzte wartende Aufruf, einmal, auch wenn der
+    // Abruf scheiterte; die naechste Suche versucht es dann erneut.
+    if (P && !WEGE && C.wegeUrl && !opt.nachWege && P.hits.some(function (h) { return h.kind === 'sys'; })) {
+      var nr = ++wegeWarten, weiter = { nachWege: true };
+      Object.keys(opt).forEach(function (k) { if (!(k in weiter)) weiter[k] = opt[k]; });
+      ladeWege().then(function () { if (nr === wegeWarten) anwenden(weiter); });
       return;
     }
     sortWahl();
@@ -772,9 +793,11 @@
     var st = setOf(it);
     if (st && st.id !== S.set) tags += '<li><button type="button" class="wz-tag" data-set="' + esc(st.id) + '" title="' + esc(tr('facetSet', 'Set')) + '"><span class="wi wi--layers" aria-hidden="true"></span>' + esc(st.name) + '</button></li>';
     var preis, ort, erz;
-    var zz = it.obtain.length ? suchZeile(it) : null;
-    if (zz && zz.price > 0) {
-      preis = '<span class="wz-k__preis">' + esc(auec(zz.price)) + '</span>';
+    var zz = kartenZeile(it);
+    if (zz) {
+      preis = zz.price > 0
+        ? '<span class="wz-k__preis">' + esc(auec(zz.price)) + '</span>'
+        : '<span class="wz-k__preis is-still">' + esc(kindLabel(zz.kind)) + '</span>';
     } else if (it._p != null) {
       preis = '<span class="wz-k__preis">' + (it.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + esc(auec(it._p)) + '</span>';
     } else if (it.obtain.length) {
@@ -2410,15 +2433,20 @@
   requestAnimationFrame(function () { document.documentElement.classList.add('wz-bereit'); });
   setTimeout(function () { wz.classList.remove('wz-auftakt'); }, Math.round(1500 * ZT));
 
+  var SUCHE_FRIST = 4000;
+  function frist(pr, ms) {
+    return new Promise(function (r) { pr.then(r, r); setTimeout(r, ms); });
+  }
   function ladeKatalog() {
     ladeFehler = false;
     el.gitter.setAttribute('aria-busy', 'true');
-    // Der Suchkern laedt neben dem Katalog; fehlt er, sucht die Werkbank
-    // nach Teilstuecken wie zuvor.
+    // Der Suchkern laedt neben dem Katalog, der aber hoechstens SUCHE_FRIST
+    // auf ihn wartet; fehlt er, sucht die Werkbank nach Teilstuecken wie
+    // zuvor, kommt er spaeter, greift er dann (ladeSuche).
     Promise.all([fetch(C.dbUrl || '/assets/universal-items.json').then(function (r) {
       if (!r.ok) throw new Error('items db http ' + r.status);
       return r.json();
-    }), SU ? null : ladeSuche()]).then(function (a) {
+    }), SU ? null : frist(ladeSuche(), SUCHE_FRIST)]).then(function (a) {
       var db = a[0];
       vorbereiten(db || {});
       bereit = true;

@@ -158,6 +158,9 @@ const CRAFT = {
  * opt.sucheUrl: Adresse des Suchkerns statt der gebauten (Ausfall pruefen);
  * opt.echtesVokabular: Kategorien und Gruppen der Suche wie gebaut statt
  * SUCHE_KAT/SUCHE_GRP zum Fixture-Baum.
+ * opt.kernHaengt: der Suchkern kommt erst mit window.__gibKern() (ein
+ * Abruf, der haengt). Rueckgabe antworten: die Antworten des Pruefstands,
+ * ein Test darf sie spaeter aendern.
  */
 async function seite(opt = {}) {
   const lang = opt.sprache || 'de';
@@ -183,13 +186,14 @@ async function seite(opt = {}) {
     // laedt (Kopfleiste, Hilfe, Zaehler), prueft verify:clienttext.
     skripte: (e) => e.name === SKRIPT || (e.code != null && e.code.includes('window.__WZI=')),
     umbau: (name, code) => {
-      if (name === SKRIPT) return QUELLE;
+      if (name === SKRIPT) return opt.kernHaengt ? QUELLE.replace('import(C.sucheUrl)', 'window.__kernSpaet(C.sucheUrl)') : QUELLE;
       // Kategoriebaum und Erze aus dem Fixture, sonst gilt die gebaute
       // Konfiguration. Die Suche kennt dann die Kategorien des Fixtures; Fundart,
       // Panzerung, Seltenheit und Systeme bleiben wie gebaut.
       const suche = opt.echtesVokabular ? '' : `window.__WZI.suche.kat = ${JSON.stringify(SUCHE_KAT)}; window.__WZI.suche.grp = ${JSON.stringify(SUCHE_GRP)};`;
       const url = opt.sucheUrl === undefined ? '' : `window.__WZI.sucheUrl = ${JSON.stringify(opt.sucheUrl)};`;
-      return `${code}\nwindow.__WZI.baum = ${JSON.stringify(BAUM)}; window.__WZI.erze = ${JSON.stringify(ERZE)}; ${suche} ${url}`;
+      const spaet = opt.kernHaengt ? 'window.__kernSpaet = function (u) { return new Promise(function (r) { window.__gibKern = function () { r(import(u)); }; }); };' : '';
+      return `${code}\n${spaet} window.__WZI.baum = ${JSON.stringify(BAUM)}; window.__WZI.erze = ${JSON.stringify(ERZE)}; ${suche} ${url}`;
     },
   });
   // Abrufe mitzaehlen (die Rezeptdatei laedt erst mit dem ersten Blatt).
@@ -222,7 +226,7 @@ async function seite(opt = {}) {
   const blatt = () => $('#wz-blatt-inh');
   const filter = (attr, wert) => doc.querySelector(`#wz-schublade .wz-f[data-${attr}="${wert}"]`);
   const sortiere = async (wert) => { const s = $('#wz-sort'); s.value = wert; p.fire(s, 'change'); await p.settle(300); };
-  return { p, doc, $, T, W, kacheln, namen, kachel, zahl, tippe, klick, blatt, filter, sortiere, adressen, abrufe, geladen };
+  return { p, doc, $, T, W, kacheln, namen, kachel, zahl, tippe, klick, blatt, filter, sortiere, adressen, abrufe, geladen, antworten };
 }
 
 const ALLE = 10;
@@ -547,6 +551,63 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     for (const k of ['art', 'pk', 'sel', 'sys']) assert.ok(V[k].length >= 3, k);
     assert.strictEqual(V.nick.gewehr, 'rifle');
     assert.strictEqual(V.nick['scharfschützengewehr'], V.nick.scharfschuetzengewehr);
+  });
+
+  test('87. System: Karte ohne auswaertigen Preis, „Preis“ sortiert nach dem Preis dort', async () => {
+    // Theta Helmet: Stanton 100, Pyro 900; Alpha Rifle: Stanton 1000, in Pyro
+    // nur als Loot (Security Bunker hier in Pyro). Bei „pyro“ zaehlt der Preis
+    // dort, nicht der guenstigste irgendwo (CodeRabbit zu PR #489).
+    const db = makeDb();
+    db.items.push({
+      id: 'theta-helmet', name: 'Theta Helmet', category: 'Armour / Combat / Light',
+      obtain: [{ kind: 'shop', loc: 'Armor Shop - Lorville', price: 100 }, { kind: 'shop', loc: 'Cubby Blast - Area 18', price: 900 }],
+    });
+    const wege = makeWege(db);
+    wege.sys['Security Bunker'] = 'Pyro';
+    const s = await seite({ db, wege });
+    const fuss = (id) => {
+      const k = s.kachel(id);
+      return `${k.querySelector('.wz-k__preis').textContent} @ ${k.querySelector('.wz-k__ort span:not(.wi)').textContent}`;
+    };
+    await s.tippe('pyro');
+    assert.deepStrictEqual(s.namen().sort(), ['Alpha Rifle', 'Beta Helmet', 'Eta Pistol', 'Theta Helmet']);
+    assert.strictEqual(fuss('alpha-rifle'), `${s.T.kindLoot} @ Security Bunker`, 'kein Stanton-Preis neben dem Fundort in Pyro');
+    assert.strictEqual(fuss('theta-helmet'), '900 aUEC @ Cubby Blast - Area 18');
+    await s.sortiere('preis');
+    assert.deepStrictEqual(s.namen(), ['Beta Helmet', 'Theta Helmet', 'Eta Pistol', 'Alpha Rifle']);
+    await s.sortiere('preis-z');
+    assert.deepStrictEqual(s.namen(), ['Eta Pistol', 'Theta Helmet', 'Beta Helmet', 'Alpha Rifle']);
+    await s.tippe('');
+    assert.deepStrictEqual(s.namen().slice(0, 5), ['Epsilon Runner', 'Eta Pistol', 'Alpha Rifle', 'Beta Helmet', 'Theta Helmet'], 'ohne System der guenstigste Preis');
+    assert.match(fuss('theta-helmet'), /^ab 100 aUEC/);
+  });
+
+  test('88. Haengt der Suchkern, zeigt die Werkbank den Katalog und sucht, sobald er kommt', async () => {
+    const s = await seite({ kernHaengt: true });
+    await s.p.settle(4000);
+    assert.strictEqual(s.kacheln().length, ALLE, 'der Katalog wartet nicht ewig auf den Kern');
+    await s.tippe('pyro');
+    assert.strictEqual(chips(s).length, 0);
+    s.p.window.__gibKern();
+    await s.p.settle(300);
+    assert.deepStrictEqual(chipTexte(s), ['Pyro']);
+    assert.deepStrictEqual(s.namen().sort(), ['Beta Helmet', 'Eta Pistol']);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('89. Scheitert der Abruf der Wege, versucht es die naechste Suche erneut, ohne Schleife', async () => {
+    const s = await seite({ wege: { status: 503, body: '' } });
+    const n = () => s.geladen.filter((x) => x === '/de/items-wege.json').length;
+    await s.tippe('pyro');
+    await s.p.settle(1000);
+    assert.strictEqual(n(), 1, 'ein Abruf, kein neuer Versuch im Folgeaufruf');
+    s.antworten.set('/de/items-wege.json', JSON.stringify(makeWege(makeDb())));
+    await s.tippe('Pyro');
+    assert.strictEqual(n(), 2);
+    assert.deepStrictEqual(s.namen().sort(), ['Beta Helmet', 'Eta Pistol']);
+    await s.tippe('pyro helm');
+    assert.strictEqual(n(), 2, 'geladen ist geladen');
+    assert.deepStrictEqual(s.p.fehler, []);
   });
 });
 
