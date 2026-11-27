@@ -86,17 +86,36 @@ export const SHADER = {
       HOLOGRAPHIC_PROJECTION: m(N, null, 'Hologramm als Fläche in Grundfarbe'),
       LUT_TINTING: m(N, null, 'Farbverlauf-Tönung fehlt'),
       TERRAIN_BLENDING: m(O, null, 'Übergang zum Gelände'),
+      // Seit 27.11.2026 (Essen, Werkzeuge, Sonstiges): Belege je Schalter und
+      // Platz aus den Materialien (Dateiendungen _detail/_udm, _sss/_opac,
+      // _glow_gradient/_glow_colour/_glow_pulse), Zuordnung nur nach Platz.
+      DETAIL_MAPPING: m(N, null, 'Feinstruktur der Detailkarte fehlt'),
+      ALPHAMASK_DETAILMAP: m(N, null, 'Feinstruktur der Detailkarte fehlt'),
+      TRANSMITTANCE_LIGHTING: m(N, null, 'Durchscheinen bei Gegenlicht fehlt (Essen, Blätter)'),
+      USE_DAMAGE_MAP: m(O, null, 'Schadensbild: ein neues Item ist unbeschädigt'),
+      DISPLACEMENT_MAPPING: m(O, null, 'Höhenrelief'),
+      PHONG_TESSELLATION: m(O, null, 'Glättung aus der Nähe'),
+      WIND_BENDING_MAIN: m(O, null, 'Bewegung im Wind'),
+      WIND_BENDING_DETAIL: m(O, null, 'Bewegung im Wind'),
+      OCEAN_SWAY: m(O, null, 'Schaukeln'),
+      CONFORM_TO_TERRAIN: m(O, null, 'Anpassung an den Boden'),
     },
     plaetze: {
       TexSlot1: m(J, 'farbe'),
       TexSlot2: m(J, 'normale'),
       TexSlot3: m(N, 'normale2', 'Normalen der zweiten Schicht'),
       TexSlot4: m(J, 'glanzfarbe', 'Glanzfarbe je Texel, mal Specular'),
+      TexSlot6: m(N, 'detail', 'Detailkarte (Feinstruktur) fehlt'),
+      TexSlot7: m(N, 'leuchtverlauf', 'Leuchten fehlt (Verlauf der Leuchtanimation)'),
       TexSlot8: m(O, 'hoehe'),
       TexSlot9: m(N, 'farbe2', 'Farbe der zweiten Schicht'),
       TexSlot10: m(N, 'glanzfarbe2', 'Glanz der zweiten Schicht'),
       TexSlot11: m(O, 'hoehe2'),
       TexSlot12: m(N, 'mischmaske', 'Maske der zweiten Schicht'),
+      TexSlot13: m(N, 'detail2', 'Detailkarte der zweiten Schicht fehlt'),
+      TexSlot15: m(N, 'leuchtfarbe', 'Leuchten fehlt (Farbe der Leuchtanimation)'),
+      TexSlot16: m(O, 'leuchtpuls', 'Takt der Leuchtanimation'),
+      TexSlot17: m(N, 'durchscheinen', 'Durchscheinen bei Gegenlicht fehlt'),
     },
   },
   MeshDecal: {
@@ -108,6 +127,11 @@ export const SHADER = {
       STENCIL_AS_STICKER: m(W, null, 'Schablonen-Logo in Palettenfarbe fehlt'),
       VERTCOLORS: m(N, null, 'Eckfarben nicht eingerechnet'),
       USE_DAMAGE_MAP: m(O, null, 'Schadensbild'),
+      // Beschriftung, die das Spiel zur Laufzeit in ein Bild rendert (Name
+      // der Ware auf Frachtkisten): Platz 1 heißt dann $RenderToTexture, es
+      // gibt keine Datei, der Aufdruck fällt als „ohne Bild“ weg.
+      USE_RTT_UV_FOR_DIFFUSE: m(W, null, 'Beschriftung zur Laufzeit gerendert: fehlt'),
+      VERTDATA: m(N, null, 'Eckdaten des Aufdrucks nicht eingerechnet'),
     },
     plaetze: {
       TexSlot1: m(J, 'farbe'),
@@ -203,6 +227,16 @@ export const BAU = {
   // Ausführungen eines Netzes (SubGeometry mit Tag, eigener Farbe oder
   // eigenem Material) werden über das Ende des Record-Namens gewählt.
   'Ausführung nicht gefunden': m(F, null, 'das Netz hat Ausführungen, keine passt zum Record: das Modell zeigte die Grundausführung'),
+  // Detailstufe: Stufe 1, außer sie behält weniger als ein Viertel der
+  // Dreiecke (Schachfiguren hatten dort 18 Dreiecke).
+  'Stufe 1 zu grob': m(J, null, 'Stufe 0 gebacken, Stufe 1 war nur ein Klotz'),
+  // Darstellung: beide Handschuhe nebeneinander statt in Armhaltung, sonst
+  // sind sie im Bild zwei Punkte. Form und Material unverändert.
+  'Handschuhe nebeneinander': m(J, null, 'beide Handschuhe zur Mitte gerückt'),
+  // Teil einer .cga an einem Knoten, dessen Vorfahren gestellt sind: Lage über
+  // die ganze Kette (bis 27.11.2026 nur gegen den Elternknoten, der Sack der
+  // Erz-Kapseln hing quer neben dem Gehäuse).
+  Knotenkette: m(J, null, 'Teil an verschachteltem Knoten: Lage über die Kette der Elternknoten'),
 };
 
 // Benannte Ausnahmen: ein Merkmal, das unter einer Bedingung anders gilt.

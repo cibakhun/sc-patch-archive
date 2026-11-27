@@ -1,7 +1,8 @@
 // Items in 3D, Massenlauf: backt alle Items einer Liste zu Web-Modellen.
 // Läuft auf dem Rechner mit Spielinstallation (Schiene C), nicht im Tor.
 //
-//   node scripts/item3d/batch.mjs --p4k <Data.p4k> --list items-armor.json --out <ordner> [--workers 6]
+//   node scripts/item3d/batch.mjs --p4k <Data.p4k> --list <liste.json> --out <ordner> [--workers 6]
+//                                 (Liste aus scripts/item3d/liste.mjs: der ganze Katalog)
 //   node scripts/item3d/batch.mjs --raw <rohOrdner> --out <ordner>    (Probe ohne Spiel)
 //   node scripts/item3d/batch.mjs --p4k … --list … --out … --zensus <datei.jsonl>
 //                                 (nur Merkmale je Item, nichts backen; ~30 s)
@@ -105,7 +106,12 @@ async function main() {
   } else {
     const { openP4k } = await import(libUrl('p4k.mjs'));
     const { openDataCore } = await import(libUrl('datacore.mjs'));
-    const list = JSON.parse(readFileSync(LIST, 'utf8'));
+    // Nur die Liste aus liste.mjs (ganzer Katalog, je Item ein Schicksal).
+    // Hand-Listen ließen ganze Arten aus, ohne dass es jemand merkte
+    // (Kleidung, Werkzeuge, Verbrauchsgüter bis 27.11.2026).
+    const roh = JSON.parse(readFileSync(LIST, 'utf8'));
+    if (!Array.isArray(roh?.liste) || typeof roh?.katalog !== 'string') { console.error(`${LIST} ist keine Liste aus scripts/item3d/liste.mjs (Hand-Listen lassen Arten aus): erst node scripts/item3d/liste.mjs <liste.json>`); process.exit(2); }
+    const list = roh.liste;
     const p4k = openP4k(P4K);
     log('p4k', p4k.entryCount, 'Einträge');
     let db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
