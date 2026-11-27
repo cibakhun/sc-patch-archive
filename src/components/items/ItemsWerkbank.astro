@@ -9,7 +9,8 @@
 //
 // Was statisch im HTML steht (ohne Skript lesbar und krabbelbar): Reiter,
 // Bedienleiste, die Leiste aller Gruppen und Kategorien als echte Links auf
-// die Kategorielisten, der Ueberblick im Blatt mit den Gruppen und Zahlen.
+// die Kategorielisten, der Ueberblick im Blatt mit Zahlen und dem, was das
+// Blatt zu jedem Item beantwortet.
 // Die Treffer selbst zeichnet assets/items-werkbank.js aus dem Katalog
 // (assets/universal-items.json), wie bisher der Finder.
 import { createHash } from 'node:crypto';
@@ -28,6 +29,7 @@ import { db, items, armorSets, ITEM_PATCH, num } from '../../lib/items';
 import { ITEM3D_LISTE_URL } from '../../lib/item3d';
 import { itemsWege } from '../../lib/itemsWerkbankWege';
 import { BEZUGSWEGE_UI } from '../../i18n/bezugswegeText';
+import { ORTE_DE } from '../../i18n/lootText';
 import { recipeForItem } from '../../lib/crafting';
 import { datumLang } from '../../lib/datenstand';
 import Item3dDialog from '../Item3dDialog.astro';
@@ -50,7 +52,6 @@ const craftUrl = `/assets/crafting-db.json?v=${ver('assets/crafting-db.json')}`;
 const baum = kategorieBaum(lang);
 const total = db.counts.items;
 const mitQuelle = db.counts.withObtain;
-const groesste = Math.max(...baum.map((g) => g.n));
 // Was das Datenblatt beantwortet, fuer das Blatt der Werkbank (Krisz
 // 27.11.2026: „wofür sollte ein User den Datenblatt öffnen?“). Laedt mit dem
 // ersten geoeffneten Item, wie das Rezept (src/lib/itemsWerkbankWege.ts).
@@ -74,6 +75,16 @@ const W = {
     ueTitel: 'Item-Katalog', ueLead: `${n(total)} Items aus Star Citizen ${ITEM_PATCH}: Werte, Preise und Fundorte. Wähle eine Gruppe oder ein Item.`,
     kItems: 'Items', kQuelle: 'mit Bezugsquelle', kHerstellbar: 'herstellbar', kSets: 'Sets',
     tippSuche: 'Suche', tippBlaettern: 'blättern', tippEsc: 'schließen',
+    // Ueberblick: was das Blatt beantwortet, statt der Gruppen, die links
+    // schon stehen (Krisz 27.11.2026: „das ist doch nur das was links schon ist“).
+    ueWas: 'Im Blatt zu jedem Item',
+    ueWasListe: [
+      ['shop', 'Kaufen nach System', 'Preis ab, Spanne und jede Verkaufsstelle, nach System gefiltert.'],
+      ['loot', 'Finden', 'Bestätigte Fundorte und wo es sonst auftaucht.'],
+      ['tier', 'Herstellen', 'Rezept und Missionen zum Bauplan, weiter in die Crafting-Werkbank.'],
+      ['ship', 'Ab Werk', 'Welche Schiffe und Fahrzeuge es ab Werk verbaut haben.'],
+      ['tag', 'Vergleichen', 'Ähnliche Items und der Preis des ganzen Sets.'],
+    ],
     craftOeffnen: 'Im Crafting öffnen', craftMehr: '{n} weitere in der Crafting-Werkbank',
     setAnsehen: 'Set ansehen', setTeile: 'Teile in der Liste zeigen',
     schiffZeigen: 'In der Schiffsliste zeigen', fahrzeugWerte: 'Die technischen Daten dieses Fahrzeugs stehen in der Schiffsliste.',
@@ -98,6 +109,14 @@ const W = {
     ueTitel: 'Item catalog', ueLead: `${n(total)} items from Star Citizen ${ITEM_PATCH}: stats, prices and locations. Pick a group or an item.`,
     kItems: 'Items', kQuelle: 'with a source', kHerstellbar: 'craftable', kSets: 'Sets',
     tippSuche: 'search', tippBlaettern: 'step through', tippEsc: 'close',
+    ueWas: 'In every item sheet',
+    ueWasListe: [
+      ['shop', 'Buy by system', 'Lowest price, range and every shop, filtered by system.'],
+      ['loot', 'Find', 'Confirmed loot locations and where else it turns up.'],
+      ['tier', 'Craft', 'Recipe and the missions for the blueprint, on into the crafting workbench.'],
+      ['ship', 'Stock fit', 'Which ships and vehicles come with it fitted.'],
+      ['tag', 'Compare', 'Similar items and the price of the full set.'],
+    ],
     craftOeffnen: 'Open in crafting', craftMehr: '{n} more in the crafting workbench',
     setAnsehen: 'View set', setTeile: 'Show parts in the list',
     schiffZeigen: 'Show in the ship list', fahrzeugWerte: 'This vehicle’s technical data is in the ship list.',
@@ -122,6 +141,9 @@ const CFG = {
   // die Antworten fuehren: nur in Werkbaenke und Werkzeuge.
   wegeUrl: wege.url,
   bw: BEZUGSWEGE_UI[lang],
+  // Ortsarten ohne bestaetigten Ort sind eigener Text und stehen in der
+  // Sprache der Seite, wie obtainLabel() sie aufs Datenblatt schreibt.
+  lootOrte: de ? ORTE_DE : undefined,
   schiffe: href('/schiffe.html', lang),
   wikelo: href('/topics/wikelo-emporium.html', lang),
   bruch: href('/fracturing.html', lang),
@@ -260,8 +282,8 @@ const allePfad = href('/items.html', lang);
     {/* Ohne Skript: die Kategorien stehen offen da und fuehren auf ihre
         Listen (unter 1180 px dort, wo sonst die Chips stehen); Suche und
         Treffer brauchen das Skript und sagen das. Was ohne Skript nichts
-        tut, ist weg: Reiter, Bedienleiste, Tastenhilfe, die Gruppen-Kacheln
-        im Ueberblick. Die Rueckwege im Kopf bleiben. */}
+        tut, ist weg: Reiter, Bedienleiste, Tastenhilfe, der Inhalt des
+        Ueberblicks. Die Rueckwege im Kopf bleiben. */}
     <noscript>
       <style is:inline set:html={`.wz-rail{display:block!important}.wz-gr__liste{display:block!important}.wz-gr__kopf,.wz-gitter,.wz-chips,.wz-reiter,.wz-bar,.wz-hilfe,.wzu .wzb-inh{display:none!important}.wz-rail .wz-gr__titel[hidden]{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z e";gap:.05rem .6rem;align-items:center;margin:0;padding:.48rem .55rem;font-size:var(--fs-7);font-weight:700;line-height:1.2;color:var(--tx)}.wz-gr__titel>.wz-z{grid-area:z}.wz-gr__titel>span:not([class]){grid-area:n}.wz-rail .wz-gr__titel>em{grid-area:e;justify-self:start;margin:0;padding:0;background:none;font-style:normal;font-size:var(--fs-2);font-weight:600;letter-spacing:var(--ls-5);color:var(--mu)}.wz-ohne-js{margin:.8rem 0;color:var(--mu);font-size:var(--fs-7)}@media (min-width:821px) and (max-width:1179px){.wz-rail{grid-area:chips;margin-bottom:1rem}}`}></style>
       <p class="wz-ohne-js">{W.ohneJs}</p>
@@ -298,14 +320,12 @@ const allePfad = href('/items.html', lang);
             <div><span>{W.kSets}</span><b>{n(armorSets.length)}</b></div>
           </div>
           <div class="wzb-inh">
-            <h3 class="wzb-h">{W.gruppen}<em>{baum.length}</em></h3>
-            <div class="wzu__gr">
-              {baum.map((g) => (
-                <button class="wzu__g" type="button" data-gruppe={g.slug} style={`--kc:${g.farbe};--anteil:${Math.max(4, Math.round((g.n / groesste) * 100))}%`}>
-                  <span class="wz-z" data-g={g.g} aria-hidden="true"></span><b>{g.name}</b><small>{n(g.n)} {W.nItems} · {g.blaetter.length} {W.kategorien}</small><i aria-hidden="true"></i>
-                </button>
+            <h3 class="wzb-h">{W.ueWas}</h3>
+            <ul class="wzu__was">
+              {W.ueWasListe.map(([zeichen, titel, text]) => (
+                <li><span class="wzu__z" aria-hidden="true"><span class={`wi wi--${zeichen}`}></span></span><b>{titel}</b><small>{text}</small></li>
               ))}
-            </div>
+            </ul>
             <ul class="wzu__tipp">
               <li><kbd>/</kbd>{W.tippSuche}</li>
               <li><kbd>↑</kbd><kbd>↓</kbd>{W.tippBlaettern}</li>

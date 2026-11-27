@@ -112,6 +112,8 @@
   function obtainText(o) {
     if (o.kind === 'exclusive') return exclusiveLabel(o.reason);
     if (o.ort) return DE ? (o.locDe || o.loc) : o.loc;
+    // Ortsart ohne bestaetigten Ort: eigener Text, in der Sprache der Seite.
+    if (o.kind === 'loot' && C.lootOrte && Object.prototype.hasOwnProperty.call(C.lootOrte, o.loc)) return C.lootOrte[o.loc];
     return o.loc;
   }
   // Zwilling von woText() in src/lib/items.ts.
@@ -1203,10 +1205,6 @@
       .catch(function () { wegeLaeuft = null; });
     return wegeLaeuft;
   }
-  // Rezept und Wege zusammen; scheitert eins, kommt das andere trotzdem.
-  function ladeZusatz() {
-    return Promise.all([ladeCraft(), ladeWege()]);
-  }
   function bw(k) { var s = C.bw && C.bw[k]; return s == null ? k : s; }
   function fuell(s, v) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
   function schiffHref(name) { return (C.schiffe || '/schiffe.html') + '?q=' + encodeURIComponent(name); }
@@ -1555,9 +1553,13 @@
     // der juengste Aufruf fuellt das Blatt.
     var platz = document.getElementById('wzb-craft');
     var oben = document.getElementById('wzb-wege'), unten = document.getElementById('wzb-mehr');
-    var fuelle = function () { craftEinsetzen(it, platz); wegeEinsetzen(it, oben, unten); };
-    if (CRAFT && WEGE) fuelle();
-    else ladeZusatz().then(fuelle);
+    // Jeder Abschnitt kommt, sobald seine Datei da ist; „Falschen Wert
+    // melden“ steht sofort und wartet auf keine.
+    if (unten) unten.innerHTML = mehrHtml(it, {});
+    if (CRAFT) craftEinsetzen(it, platz);
+    else ladeCraft().then(function () { craftEinsetzen(it, platz); });
+    if (WEGE) wegeEinsetzen(it, oben, unten);
+    else ladeWege().then(function () { wegeEinsetzen(it, oben, unten); });
     var akt = document.getElementById('wzb-akt');
     if (I3D) i3dEinsetzen(it, akt);
     else if (I3D_DLG) { var l3 = ladeI3d(); if (l3) l3.then(function () { i3dEinsetzen(it, akt); }); }
@@ -1828,6 +1830,13 @@
       // „Alle Verkaufsstellen ↓“ & Co.: im Blatt zum Abschnitt, Fokus dorthin.
       var ziel = document.getElementById(t.getAttribute('data-sprung'));
       if (ziel && el.inh.contains(ziel)) {
+        if (ziel.id === 'wzb-quellen') {
+          // „Alle“ heisst alle: auch die Zeilen hinter „Alle zeigen“ und die
+          // anderer Systeme. Die gemerkte Systemwahl bleibt fuers naechste Item.
+          var mehrQ = el.inh.querySelector('[data-alle-quellen]');
+          if (mehrQ) mehrQ.remove();
+          zeigeSystem(el.inh, '');
+        }
         try { ziel.scrollIntoView({ block: 'start', behavior: STILL.matches ? 'auto' : 'smooth' }); } catch (e4) { ziel.scrollIntoView(); }
         try { ziel.focus({ preventScroll: true }); } catch (e5) {}
       }

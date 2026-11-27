@@ -391,15 +391,12 @@ button.wz-tag:hover{background:color-mix(in srgb,var(--akz) 20%,transparent);col
 /* Ueberblick (Blatt ohne Auswahl) */
 .wzu .wzb-kopf{padding-right:1.4rem}
 .wzu__lead{margin:.4rem 0 0;max-width:46ch;font-size:var(--fs-6);line-height:1.5;color:var(--mu)}
-.wzu__gr{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(11.5rem,100%),1fr));gap:.45rem}
-.wzu__g{position:relative;display:grid;justify-content:stretch;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z c";align-items:center;gap:.05rem .65rem;padding:.6rem .7rem .7rem;border:1px solid var(--hl);border-radius:10px;background:var(--e2);text-align:left;overflow:hidden;transition:border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
-.wzu__g .wz-z{grid-area:z;width:34px;height:34px;border-radius:9px}
-.wzu__g b{grid-area:n;font-size:var(--fs-7);font-weight:800;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wzu__g small{grid-area:c;font-size:var(--fs-3);font-weight:700;letter-spacing:var(--ls-5);color:var(--mu)}
-.wzu__g i{position:absolute;left:0;bottom:0;height:2px;width:var(--anteil,10%);background:var(--kc);opacity:.75;transform-origin:0 50%}
-.wzu__g:hover{border-color:color-mix(in srgb,var(--kc) 60%,transparent);background:color-mix(in srgb,var(--kc) 8%,var(--e2));transform:translateY(-2px)}
-.wzu__g:hover .wz-z{background:color-mix(in srgb,var(--kc) 22%,transparent)}
-.wzu__g:active{transform:scale(.98)}
+.wzu__was{display:grid;gap:.3rem;margin:0;padding:0;list-style:none}
+.wzu__was li{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"z n" "z t";align-items:center;gap:0 .65rem;padding:.42rem .7rem;border:1px solid var(--hl);border-radius:10px;background:var(--e2)}
+.wzu__z{grid-area:z;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--akz) 14%,transparent);color:var(--akz)}
+.wzu__z .wi{width:16px;height:16px}
+.wzu__was b{grid-area:n;font-size:var(--fs-6);font-weight:800;color:var(--tx)}
+.wzu__was small{grid-area:t;font-size:var(--fs-4);line-height:1.4;color:var(--mu)}
 .wzu__tipp{display:flex;flex-wrap:wrap;gap:.35rem .9rem;margin:1.1rem 0 0;padding:0;list-style:none;font-size:var(--fs-4);color:var(--mu)}
 .wzu__tipp kbd{margin-right:.25rem;padding:.02rem .35rem;border:1px solid var(--hl2);border-bottom-width:2px;border-radius:4px;background:var(--e0);font-family:inherit;font-size:var(--fs-3);color:var(--tx)}
 
@@ -513,8 +510,8 @@ html.wz-bereit .wz-schublade{transition:transform calc(var(--dur-slow)*var(--zt)
 ${Array.from({ length: 10 }, (_, i) => `.wz.wz-auftakt .wz-rail .wz-gr:nth-of-type(${i + 1}){animation-delay:calc(${90 + i * 28}ms*var(--zt))}`).join('\n')}
 @media (min-width:821px){
   .wz.wz-auftakt > .wz-blatt .wz-blatt__box{animation:wz-blende calc(.5s*var(--zt)) var(--out) calc(80ms*var(--zt)) both}
-  .wz.wz-auftakt .wzu__g{animation:wz-auf calc(.45s*var(--zt)) var(--out) both}
-${Array.from({ length: 10 }, (_, i) => `  .wz.wz-auftakt .wzu__g:nth-child(${i + 1}){animation-delay:calc(${220 + i * 34}ms*var(--zt))}`).join('\n')}
+  .wz.wz-auftakt .wzu__was li{animation:wz-auf calc(.45s*var(--zt)) var(--out) both}
+${Array.from({ length: 5 }, (_, i) => `  .wz.wz-auftakt .wzu__was li:nth-child(${i + 1}){animation-delay:calc(${220 + i * 40}ms*var(--zt))}`).join('\n')}
 }
 /* Kacheln: jede, die beim ersten Bild im Fenster stehen kann (wz-auf setzt
    das Skript, wenn der Katalog da ist, und nimmt sie wieder ab). */

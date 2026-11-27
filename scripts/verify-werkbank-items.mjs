@@ -21,13 +21,21 @@
    [8] Fahrzeug: zeigt das Blatt aufs Schiff, zeigt die Werkbank in die
        Schiffsliste.
    [9] Preisspanne: dieselbe.
-   [10] Kaufen nach System: die Zeilen tragen dieselben Systeme.
+   [10] Kaufen nach System: jede Bezugszeile (gepaart ueber ihren Ort)
+        traegt dasselbe System; vertauschte Systeme zweier Zeilen fallen
+        auf, auch wenn die Menge der Systeme gleich bleibt.
    Je Item des Katalogs und je Set, beide Sprachen:
    [11] Kein Weg aufs Blatt: kein href im Blatt der Werkbank zeigt auf ein
         Datenblatt oder Verzeichnis (Item-, Bauplan-, Schiffs-, Missions-
-        blatt, Kategorieliste, Blueprint-Verzeichnis, Set-Seite).
+        blatt, Kategorieliste, Blueprint-Verzeichnis, Set-Seite). Jedes
+        href zaehlt, gleich wie zitiert, aufgeloest gegen die Werkbank-Seite
+        wie im Browser (auch „items/x.html“ ohne Schraegstrich).
+   Je Item des Katalogs, beide Sprachen:
    [12] Melden je Item: jedes Item-Blatt der Werkbank hat „Falschen Wert
-        melden“.
+        melden“, wie jedes Item-Datenblatt. Sets nicht: die Set-Seite hatte
+        nie eine Meldeaktion, und das Meldeformular kennt keinen Set-Schluessel
+        (SEITE_OK in FeedbackForm.astro); jedes Teil meldet sich im eigenen
+        Blatt.
 
    Selbstauskunft: druckt je Sprache verglichene Items und je Pruefung die
    Zahl der Blaetter, auf denen es etwas zu vergleichen gab, und reisst
@@ -85,7 +93,7 @@ const NAHT = `
   window.__pruefnaht = {
     bereit: function () { return bereit; },
     ladeFehler: function () { return ladeFehler; },
-    laden: function () { return typeof ladeZusatz === 'function' ? ladeZusatz() : ladeCraft(); },
+    laden: function () { return Promise.all([ladeCraft(), typeof ladeWege === 'function' ? ladeWege() : null]); },
     wege: function () { return typeof WEGE === 'undefined' ? null : WEGE; },
     leere: function () { if (io) io.disconnect(); el.gitter.innerHTML = ''; },
     items: function () { return ITEMS; },
@@ -113,6 +121,18 @@ const ab = (s, marke, ende) => {
   return s.slice(i, j < 0 ? undefined : j);
 };
 const alle = (re, s) => [...s.matchAll(re)].map((m) => m[1]);
+/** [10] Je Bezugszeile „Ort=System“, sortiert (mehrfache Zeilen bleiben
+ *  mehrfach): nur so faellt auf, wenn zwei Zeilen ihre Systeme tauschen. */
+function zeilenPaare(s, tag, ortRe) {
+  const out = [];
+  for (const m of s.matchAll(new RegExp(`<${tag}\\b([^>]*)>([\\s\\S]*?)</${tag}>`, 'g'))) {
+    const sys = /\sdata-sys="([^"]*)"/.exec(m[1]);
+    if (!sys) continue;
+    const ort = ortRe.exec(m[2]);
+    out.push(`${ort ? text(ort[1]) : '?'}=${sys[1]}`);
+  }
+  return out.sort().join('|');
+}
 
 /** Was das gebaute Datenblatt beantwortet. */
 function blattAntworten(html) {
@@ -139,7 +159,8 @@ function blattAntworten(html) {
     werkzeuge: (wz.match(/<a\b/g) ?? []).length,
     fahrzeug: html.includes('data-specs-schiff'),
     spanne: spanne ? spanne[1].trim() : '',
-    systeme: alle(/<tr\b[^>]*\sdata-sys="([^"]*)"/g, tab).sort().join('|'),
+    // Ort = Text der ersten Zelle bis zur Unterzeile (dp-wo: wo im System).
+    systeme: zeilenPaare(tab, 'tr', /<td\b[^>]*>([^<]*)/),
   };
 }
 
@@ -164,7 +185,7 @@ function werkbankAntworten(html) {
     werkzeuge: (html.match(/data-werkzeug="/g) ?? []).length,
     fahrzeug: html.includes('data-fahrzeug'),
     spanne: spanne ? spanne[1].trim() : '',
-    systeme: alle(/<li\b[^>]*\sdata-sys="([^"]*)"/g, liste).sort().join('|'),
+    systeme: zeilenPaare(liste, 'li', /<b>([^<]*)<\/b>/),
     melden: html.includes('data-melden'),
   };
 }
@@ -181,11 +202,18 @@ const BLATT_ZIEL = [
   [/^\/(?:de\/)?missionen\/[^/]+\.html$/, 'Missionsblatt'],
   [/^\/(?:de\/)?armor-sets\.html$/, 'Set-Seite'],
 ];
-function blattZiele(html) {
+// Jedes href eines Ankers, gleich wie zitiert, aufgeloest wie im Browser
+// gegen die Seite der Werkbank: auch „items/x.html“ fuehrt aufs Blatt.
+const HREF = /<a\b[^>]*?\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi;
+function blattZiele(html, seite) {
   const out = [];
-  for (const m of html.matchAll(/<a\b[^>]*\shref="([^"]*)"/g)) {
-    const pfad = m[1].replace(/&amp;/g, '&').split(/[?#]/)[0].replace(/^https?:\/\/[^/]+/, '');
-    for (const [re, name] of BLATT_ZIEL) if (re.test(pfad)) { out.push(`${name} ${m[1]}`); break; }
+  const basis = new URL(seite, 'https://pruef.invalid/');
+  for (const m of html.matchAll(HREF)) {
+    const roh = (m[1] ?? m[2] ?? m[3] ?? '').replace(/&(?:amp|#39|#x27|quot);/g, (e) => ENT[e]).trim();
+    let url;
+    try { url = new URL(roh, basis); } catch { out.push(`unlesbares Ziel ${roh}`); continue; }
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') continue;
+    for (const [re, name] of BLATT_ZIEL) if (re.test(url.pathname)) { out.push(`${name} ${roh}`); break; }
   }
   return out;
 }
@@ -228,7 +256,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
     try { html = n.blatt(it); } catch (err) { melde(it, `Blatt der Werkbank bricht ab: ${err.message}`); continue; }
     p.ernte();
     z.items++;
-    for (const ziel of blattZiele(html)) melde(it, `[11] Blatt der Werkbank fuehrt aufs ${ziel}`);
+    for (const ziel of blattZiele(html, seite)) melde(it, `[11] Blatt der Werkbank fuehrt aufs ${ziel}`);
     const w = werkbankAntworten(html);
     if (!w.melden) melde(it, '[12] kein „Falschen Wert melden“ im Blatt der Werkbank');
     const datei = join(blattOrdner, `${it.id}.html`);
@@ -253,14 +281,14 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
     if (b.fahrzeug !== w.fahrzeug) melde(it, `[8] Fahrzeug: Blatt ${b.fahrzeug ? 'zeigt aufs Schiff' : 'ohne'}, Werkbank ${w.fahrzeug ? 'zeigt in die Schiffsliste' : 'ohne'}`);
     if (b.spanne) z.spanne++;
     if (b.spanne !== w.spanne) melde(it, `[9] Preisspanne: Blatt „${b.spanne}“, Werkbank „${w.spanne}“`);
-    z.systemZeilen += b.systeme ? b.systeme.split('|').filter((s) => s !== 'ohne').length : 0;
+    z.systemZeilen += b.systeme ? b.systeme.split('|').filter((s) => !s.endsWith('=ohne')).length : 0;
     if (b.systeme !== w.systeme) melde(it, `[10] Systeme der Bezugszeilen: Blatt [${b.systeme}], Werkbank [${w.systeme}]`);
   }
   for (const st of n.sets()) {
     let html;
     try { html = n.satz(st); } catch (err) { fehler.push(`${lang}: Set ${st.id} — Blatt bricht ab: ${err.message}`); continue; }
     z.sets++;
-    for (const ziel of blattZiele(html)) fehler.push(`${lang}: Set ${st.id} — [11] Blatt der Werkbank fuehrt aufs ${ziel}`);
+    for (const ziel of blattZiele(html, seite)) fehler.push(`${lang}: Set ${st.id} — [11] Blatt der Werkbank fuehrt aufs ${ziel}`);
   }
   for (const f of p.fehler.splice(0)) fehler.push(`${lang}: ${seite} — ${f}`);
   p.schliesse();

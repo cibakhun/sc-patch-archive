@@ -212,7 +212,7 @@ const NAHT = `
     gefragtBW: function () { return Object.keys(__gefragtBW); },
     bereit: function () { return bereit; },
     ladeFehler: function () { return ladeFehler; },
-    laden: function () { return ladeZusatz(); },
+    laden: function () { return Promise.all([ladeCraft(), ladeWege()]); },
     leere: function () { if (io) io.disconnect(); el.gitter.innerHTML = ''; },
     items: function () { return ITEMS; },
     sets: function () { return SETLISTE; },

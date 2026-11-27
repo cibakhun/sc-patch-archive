@@ -136,7 +136,8 @@ const CRAFT = {
  * Oeffnet die Items-Seite mit dem Fixture.
  * opt.db: Katalog (Objekt) oder { status } fuer einen Fehler; opt.craft
  * ebenso; opt.wege: /items-wege.json (Vorgabe: makeWege zum Katalog) oder
- * { status }; opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
+ * { status } oder ein Versprechen darauf (kommt, wenn der Test es einloest);
+ * opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
  */
 async function seite(opt = {}) {
   const lang = opt.sprache || 'de';
@@ -146,7 +147,7 @@ async function seite(opt = {}) {
   const craft = opt.craft === undefined ? CRAFT : opt.craft;
   antworten.set('/assets/crafting-db.json', craft && craft.status ? craft : JSON.stringify(craft));
   const wege = opt.wege === undefined ? (db && db.items ? makeWege(db) : { status: 404, body: '' }) : opt.wege;
-  antworten.set(lang === 'de' ? '/de/items-wege.json' : '/items-wege.json', wege && wege.status ? wege : JSON.stringify(wege));
+  antworten.set(lang === 'de' ? '/de/items-wege.json' : '/items-wege.json', wege && (wege.status || typeof wege.then === 'function') ? wege : JSON.stringify(wege));
   const abrufe = [];
   const p = await oeffneSeite({
     dist: DIST,
@@ -799,5 +800,65 @@ describe('Was sonst nur das Datenblatt wusste', () => {
     await s.klick(s.kachel('alpha-rifle'));
     await s.klick(s.kachel('beta-helmet'));
     assert.strictEqual(n(), 1);
+  });
+
+  test('68. Rezept und Melden warten nicht auf die Wege-Datei', async () => {
+    const db = makeDb();
+    let loese;
+    const s = await seite({ db, wege: new Promise((r) => { loese = r; }) });
+    await s.klick(s.kachel('alpha-rifle'));
+    const b = s.blatt();
+    assert.ok(b.querySelector('.wzb-craft'), 'Rezept fehlt, solange die Wege-Datei laedt');
+    assert.ok(b.querySelector('[data-melden]'), '„Falschen Wert melden“ fehlt, solange die Wege-Datei laedt');
+    assert.ok(b.querySelector('#wzb-wege'), 'Platz der Wege verschwindet, bevor die Datei da ist');
+    assert.strictEqual(b.querySelectorAll('[data-weg]').length, 0);
+    loese(JSON.stringify(makeWege(db)));
+    await s.p.settle(300);
+    assert.ok(s.blatt().querySelector('[data-weg="herstellen"]'), 'Wege kommen nicht nach');
+    assert.ok(s.blatt().querySelector('[data-melden]'));
+  });
+
+  test('69. „Alle Verkaufsstellen ↓“ zeigt alle Zeilen, auch hinter „Alle zeigen“ und bei gewaehltem System', async () => {
+    const db = makeDb();
+    const helm = db.items.find((x) => x.id === 'beta-helmet');
+    for (let i = 1; i <= 8; i++) helm.obtain.push({ kind: 'shop', loc: `Shop ${i} - Area 18`, price: 900 + i });
+    const wege = makeWege(db);
+    for (let i = 1; i <= 8; i++) wege.sys[`Shop ${i} - Area 18`] = 'Stanton';
+    const s = await seite({ db, wege });
+    await s.klick(s.kachel('beta-helmet'));
+    const b = s.blatt();
+    const sichtbar = () => [...b.querySelectorAll('.wzb-q li[data-z]')].filter((li) => !li.hidden).length;
+    assert.strictEqual(sichtbar(), 8, 'mehr als acht Zeilen sollten erst verdeckt sein');
+    await s.klick(b.querySelector('button[data-sys="pyro"]'));
+    assert.strictEqual(sichtbar(), 1);
+    await s.klick(b.querySelector('[data-weg="kaufen"] [data-sprung="wzb-quellen"]'));
+    assert.strictEqual(sichtbar(), 10, '„Alle“ zeigt nicht alle');
+    assert.strictEqual(b.querySelector('[data-alle-quellen]'), null);
+    assert.strictEqual(b.querySelector('button[data-sys=""]').getAttribute('aria-pressed'), 'true');
+    // Die gemerkte Wahl gilt weiter fuers naechste Item.
+    assert.strictEqual(s.p.window.localStorage.getItem('vb-system'), 'pyro');
+  });
+
+  test('70. Ortsarten ohne bestaetigten Ort stehen in der Sprache der Seite', async () => {
+    const neu = () => {
+      const db = makeDb();
+      db.items.find((x) => x.id === 'gamma-jacket').obtain = [{ kind: 'loot', loc: 'Crusader System Bunkers' }];
+      return db;
+    };
+    const de = await seite({ db: neu() });
+    await de.klick(de.kachel('gamma-jacket'));
+    assert.match(de.blatt().querySelector('.wzb-q').textContent, /Bunker rund um Crusader/);
+    const en = await seite({ db: neu(), sprache: 'en' });
+    await en.klick(en.kachel('gamma-jacket'));
+    assert.match(en.blatt().querySelector('.wzb-q').textContent, /Crusader System Bunkers/);
+  });
+
+  test('71. Der Ueberblick zeigt, was das Blatt beantwortet, keine zweite Gruppenliste', async () => {
+    const s = await seite();
+    const u = s.blatt().querySelector('.wzu');
+    assert.ok(u, 'kein Ueberblick');
+    assert.strictEqual(u.querySelectorAll('[data-gruppe]').length, 0, 'die Gruppen stehen schon links');
+    assert.strictEqual(u.querySelectorAll('.wzu__was li').length, 5);
+    assert.match(u.textContent, /Kaufen nach System/);
   });
 });

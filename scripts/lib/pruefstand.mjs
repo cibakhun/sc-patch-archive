@@ -285,10 +285,13 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     const ziel = new URL(String(u && u.url ? u.url : u), url);
     if (ziel.origin !== url.origin) throw new TypeError('Failed to fetch (Pruefstand: kein Netz)');
     geladen.push(ziel.pathname);
-    // `antworten` (Pfad -> Text oder { status, body }) ersetzt einzelne
+    // `antworten` (Pfad -> Text, { status, body } oder ein Versprechen darauf) ersetzt einzelne
     // Abrufe, etwa den Item-Katalog durch ein Fixture in den Tests.
     if (antworten && antworten.has(ziel.pathname)) {
-      const a = antworten.get(ziel.pathname);
+      let a = antworten.get(ziel.pathname);
+      // Ein Versprechen haelt die Antwort zurueck, bis der Test es einloest
+      // (eine Datei, die langsam kommt).
+      if (a && typeof a.then === 'function') a = await a;
       if (a instanceof Error) throw a;
       return typeof a === 'string' ? antwort(200, a) : antwort(a.status ?? 200, a.body ?? '');
     }

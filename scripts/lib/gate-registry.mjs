@@ -1381,12 +1381,21 @@ export const CHECKS = [
     // 18.924 [11] (9.462 Items je Sprache); Exit 1. Gruen mit dem
     // ausgelieferten Skript. Erster Lauf fand einen Lesefehler des Tors
     // selbst ([2] las auf dem Blatt nur bis zur ersten Missionszeile).
+    // (c) nach dem CodeRabbit-Review (PR #487): [10] vergleicht Paare
+    // Ort=System statt der sortierten Systeme, [11] liest jedes href (auch
+    // einfach zitiert) und loest es gegen die Seite auf. --js auf eine Kopie,
+    // die die Systeme der Bezugszeilen um eine Zeile verschiebt (gleiche
+    // Menge, falsche Zuordnung) und „items/<id>.html“ einfach zitiert neben
+    // „Melden“ setzt: 26.014 FEHLER = 7.090 [10] und 18.924 [11]; Exit 1.
+    // Der erste Lauf der Paare fand 1.057 echte FEHLER auf DE: Ortsarten
+    // ohne bestaetigten Ort standen in der Werkbank englisch, auf dem Blatt
+    // deutsch (behoben: C.lootOrte aus src/i18n/lootText.ts).
     id: 'verify:werkbank-items',
     npm: 'verify:werkbank-items',
     script: 'scripts/verify-werkbank-items.mjs',
     rail: 'A',
     checks:
-      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk, dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne und je Bezugszeile dasselbe Sternsystem; kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, und jedes traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
+      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk, dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne und je Bezugszeile (gepaart ueber ihren Ort) dasselbe Sternsystem; kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, gleich wie das href zitiert ist und aufgeloest gegen die Werkbank-Seite; jedes Item-Blatt der Werkbank traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
