@@ -71,14 +71,16 @@
 //      das Item so markiert (game.ohneWerte / nichtImSpiel). Klinke fuer die
 //      Flugblaetter mit Werten, Decke fuer die Blaetter „nicht im Spiel".
 //  17  Crafting-Werkbank wie das Bauplan-Blatt (Krisz 27.11.2026 im Bericht
-//      „Datenblätter und Werkbänke“: „alle drei wege auf die werkbank
-//      einbauen“, „hier soll craftingwerkbank wie datenblatt funktionieren“).
-//      window.__CRAFT.wege beider Werkbank-Seiten kennt jedes Material der
-//      Bauplan-Seiten, mit derselben Aussage zu Kaufen und Zerlegen; die
-//      Rezepte ohne Mission mit einem Weg zum Item und die Wikelo-Bauplaene
-//      sind so viele wie die Seiten, die das sagen; alle Texte stehen da, und
-//      das ausgelieferte Skript zeichnet sie. Klinke fuer die Rezepte ohne
-//      Mission mit Weg.
+//      „Datenblätter und Werkbänke“: „hier soll craftingwerkbank wie
+//      datenblatt funktionieren“). Eine eigene Materialwege-Liste hat die
+//      Werkbank nicht (Krisz 27.11.2026: der Materialname fuehrt zur Mining-
+//      Seite): in beiden Sprachen fuehrt der Name jedes Materials, das auf den
+//      Bauplan-Seiten einen Fundort hat, genau dorthin, wohin „Abbauen“ auf
+//      dem Blatt fuehrt. Die Rezepte ohne Mission mit einem Weg zum Item und
+//      die Wikelo-Bauplaene sind so viele wie die Seiten, die das sagen; alle
+//      Texte stehen da, und das ausgelieferte Skript zeichnet Fundort-Link
+//      und Quelle. Klinken fuer Materialien mit Fundort und fuer die Rezepte
+//      ohne Mission mit Weg.
 // SELBSTAUSKUNFT ohne Urteil: Kaufzeilen ohne Systemangabe (Fremdquelle,
 // nie FEHLER, Grundsatz 3).
 //
@@ -112,6 +114,9 @@ const KLINKEN = {
   flugblaetter: 128,
   // [17] 27.11.2026: Rezepte ohne Mission, deren Item einen Weg hat (846).
   werkbankOhneMission: 820,
+  // [17] 27.11.2026: Materialien der Bauplan-Seiten mit Fundort (36); die
+  // Werkbank fuehrt sie ueber den Materialnamen zur Mining-Seite.
+  werkbankFundorte: 34,
 };
 // Decken (P2): nur nach UNTEN. Item-Blaetter beider Sprachen ganz ohne Weg —
 // vor D6 430 (215 je Sprache), danach 278.
@@ -199,8 +204,9 @@ let poolZeilen = 0;
 const poolTextFalsch = [];
 const planerDoppelt = [];
 let materialSeiten = 0;
-// [17] Material -> was die Bauplan-Seiten (EN) dazu sagen: kaufen ja/nein,
-// zerlegen ja/nie/leer (je Seite, ein Material steht auf vielen).
+// [17] Material -> wohin „Abbauen“ auf den Bauplan-Seiten (EN) fuehrt: die
+// Fundort-Adressen (je Seite, ein Material steht auf vielen), leer = kein
+// Fundort. Die Werkbank muss mit dem Materialnamen genau dorthin fuehren.
 const blattMaterial = new Map();
 let materialMitItem = 0;
 const materialFehlt = [];
@@ -358,9 +364,9 @@ function pruefeBauplanP2(pfad, html) {
     if (!pfad.startsWith('/de/')) {
       for (const [, name, li] of eintraege) {
         const n = name.replace(/&(amp|quot|#39);/g, (_, e) => ({ amp: '&', quot: '"', '#39': "'" })[e]);
-        const a = blattMaterial.get(n) ?? { kaufen: new Set(), zerlegen: new Set() };
-        a.kaufen.add(li.includes('data-mat-weg="kaufen"') ? 'ja' : 'nein');
-        a.zerlegen.add(li.includes('data-mat-weg="zerlegen"') ? 'ja' : li.includes('data-mat-ohne="zerlegen"') ? 'nie' : 'leer');
+        const a = blattMaterial.get(n) ?? new Set();
+        const abbau = /<a href="([^"]*)" data-mat-weg="abbauen"/.exec(li)?.[1];
+        a.add(abbau ? abbau.replace(/&amp;/g, '&') : '');
         blattMaterial.set(n, a);
       }
     }
@@ -777,17 +783,29 @@ need(missionsNamen > 0 && missionsNamen >= KLINKEN.missionsNamen, `nur ${mission
 need(!missionsNameFalsch.length, `${missionsNameFalsch.length} Missionslink(s) mit anderem Namen als die Missionsseite — ${liste(missionsNameFalsch)}`);
 
 /* ---------- [17] Crafting-Werkbank wie das Bauplan-Blatt ---------- */
-console.log('\n[17] Crafting-Werkbank: Materialwege, Quelle ohne Mission und Wikelo wie auf dem Bauplan-Blatt');
+// Die Werkbank fuehrt keine eigene Liste „Woher die Materialien kommen“ mehr
+// (Krisz 27.11.2026: „einfach auf den Namen der Material [klicken] und man
+// kommt bei der Mining Seite raus“): der Materialname im Rezept ist der Weg zu
+// den Fundorten. Geprueft wird deshalb, dass er fuer jedes Material genau
+// dorthin fuehrt, wohin „Abbauen“ auf dem Bauplan-Blatt fuehrt, und dass die
+// Werkbank fuer Bauplaene ohne Mission dasselbe sagt wie das Blatt.
+console.log('\n[17] Crafting-Werkbank: Materialname fuehrt zu den Fundorten wie auf dem Bauplan-Blatt, Quelle ohne Mission und Wikelo wie dort');
 {
-  const TEXTE = ['matTitle', 'matMineNone', 'matBuyNone', 'matBuyUnknown', 'matSalvageNone', 'bpSourceTitle', 'bpSourceUnknown',
-    'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText', 'bpNextTitle', 'bpNextItem', 'bpNextItemBuy', 'bpNextItemFind',
-    'bpNextItemStock', 'bpNextItemWikelo', 'bpNextItemOpen', 'bpNextReport', 'report'];
-  const WB_TEXTE = ['wegMine', 'wegBuy', 'wegSalvage', 'wegMineLink', 'wegBuyYes', 'wegSalvageFrom', 'wegSalvageNone', 'wegSalvageTitle'];
+  const TEXTE = ['bpSourceTitle', 'bpSourceUnknown', 'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText', 'bpNextTitle',
+    'bpNextItem', 'bpNextItemBuy', 'bpNextItemFind', 'bpNextItemStock', 'bpNextItemWikelo', 'bpNextItemOpen', 'bpNextReport', 'report'];
   const appPfad = join(DIST, 'assets/crafting-app.js');
   const app = existsSync(appPfad) ? readFileSync(appPfad, 'utf8') : '';
-  for (const marke of ['data-mat-zerlegen', 'data-mat-weg="kaufen"', 'data-quelle="unbekannt"', 'data-quelle="wikelo"', 'data-quelle-weg="wikelo"', 'data-hinweis']) {
-    need(app.includes(marke), `dist/assets/crafting-app.js zeichnet „${marke}“ nicht — die Werkbank zeigt die Wege nicht mehr`);
+  for (const marke of ['cdb-mine', "'?mineral='", 'data-quelle="unbekannt"', 'data-quelle="wikelo"', 'data-quelle-weg="wikelo"', 'data-hinweis']) {
+    need(app.includes(marke), `dist/assets/crafting-app.js zeichnet „${marke}“ nicht — die Werkbank zeigt Fundorte oder Quelle nicht mehr`);
   }
+  const abbaubar = [...blattMaterial.values()].filter((z) => [...z].some(Boolean)).length;
+  // Sprachunabhaengig (gelesen werden die EN-Blaetter): einmal, nicht je Sprache.
+  const blattUneins = [...blattMaterial].filter(([, z]) => z.size !== 1)
+    .map(([name, z]) => `${name} (${[...z].map((x) => x || 'kein Fundort').join(' / ')})`);
+  console.log(`    Bauplan-Seiten: Materialien ${blattMaterial.size}, davon mit Fundort ${abbaubar} (Klinke ${KLINKEN.werkbankFundorte})   verschiedene Fundorte fuer dasselbe Material — Soll: 0   Ist: ${blattUneins.length}`);
+  need(blattMaterial.size >= 30, `nur ${blattMaterial.size} Materialien auf den Bauplan-Seiten gelesen — Muster veraltet?`);
+  need(abbaubar >= KLINKEN.werkbankFundorte, `nur ${abbaubar} Materialien mit Fundort auf den Bauplan-Seiten, Klinke ${KLINKEN.werkbankFundorte} — Ursache klaeren, nicht die Klinke senken`);
+  need(!blattUneins.length, `Bauplan-Seiten nennen fuer dasselbe Material verschiedene Fundorte — ${liste(blattUneins)}`);
   for (const pre of ['', 'de/']) {
     const datei = join(DIST, `${pre}topics/crafting.html`);
     const html = existsSync(datei) ? readFileSync(datei, 'utf8') : '';
@@ -797,36 +815,40 @@ console.log('\n[17] Crafting-Werkbank: Materialwege, Quelle ohne Mission und Wik
     vm.runInNewContext(m[1], ctx);
     const cfg = ctx.window.__CRAFT ?? {};
     const w = cfg.wege;
-    if (!w || typeof w.mat !== 'object' || !Array.isArray(w.wik) || typeof w.ohne !== 'string') {
-      fail.push(`/${pre}topics/crafting.html: window.__CRAFT.wege fehlt oder hat die Form verloren (mat, wik, ohne)`);
+    if (!w || !Array.isArray(w.wik) || typeof w.ohne !== 'string') {
+      fail.push(`/${pre}topics/crafting.html: window.__CRAFT.wege fehlt oder hat die Form verloren (wik, ohne)`);
       continue;
     }
-    const fehlt = [], kaufAnders = [], zerlegAnders = [];
-    for (const [name, a] of blattMaterial) {
-      const e = w.mat[name];
-      if (!e) { fehlt.push(name); continue; }
-      const kauf = e[0] === 1 ? 'ja' : 'nein';
-      if (a.kaufen.size !== 1 || !a.kaufen.has(kauf)) kaufAnders.push(`${name} (Blatt ${[...a.kaufen].join('/')}, Werkbank ${kauf})`);
-      const z = e[1];
-      // Das Blatt laesst das eigene Item weg; die Werkbank traegt zwei Namen
-      // und tut dasselbe. „leer“ auf einer Seite ist deshalb kein Widerspruch.
-      const nie = z === 'x', weg = Array.isArray(z) && z.length > 0 && z.every((x) => typeof x === 'string' && x);
-      if (a.zerlegen.has('nie') !== nie || (a.zerlegen.has('ja') && !weg)) zerlegAnders.push(`${name} (Blatt ${[...a.zerlegen].join('/')}, Werkbank ${JSON.stringify(z)})`);
+    // Wohin der Materialname in der Werkbank fuehrt: dieselbe Adresse, die
+    // mineHref() in assets/crafting-app.js baut.
+    const mine = cfg.mine ?? {};
+    const werkbankZiel = (name) => {
+      const mineral = mine.names?.[name];
+      return mineral && mine.url ? `${mine.url}?mineral=${encodeURIComponent(mineral)}#db` : '';
+    };
+    const ohneLink = [], anderesZiel = [];
+    let mitLink = 0;
+    for (const [name, ziele] of blattMaterial) {
+      if (ziele.size !== 1) continue; // oben gemeldet
+      const blatt = [...ziele][0];
+      const soll = blatt ? (pre ? `/${pre.slice(0, -1)}${blatt}` : blatt) : '';
+      const ist = werkbankZiel(name);
+      if (ist) mitLink++;
+      if (soll && !ist) ohneLink.push(name);
+      else if (soll !== ist) anderesZiel.push(`${name} (Blatt ${soll || 'kein Fundort'}, Werkbank ${ist || 'kein Link'})`);
     }
     const ohne = w.ohne ? w.ohne.split(';') : [];
     const ohneKaputt = ohne.filter((x) => !/^\d+:\d*[fsw]*$/.test(x) || /^\d+:$/.test(x));
-    const texte = [...TEXTE.filter((k) => typeof cfg.wegeT?.[k] !== 'string' || !cfg.wegeT[k].trim()), ...WB_TEXTE.filter((k) => typeof cfg.wbT?.[k] !== 'string' || !cfg.wbT[k].trim())];
-    console.log(`    /${pre}topics/crafting.html: Materialien ${Object.keys(w.mat).length} (auf den Blaettern ${blattMaterial.size})   ohne Mission mit Weg ${ohne.length} (Blaetter ${blattOhneMitWeg}, Klinke ${KLINKEN.werkbankOhneMission})   Wikelo-Bauplaene ${w.wik.length} (Blaetter ${blattWikelo})`);
-    console.log(`      fehlend — Soll: 0   Ist: ${fehlt.length}   Kaufen anders als das Blatt — Soll: 0   Ist: ${kaufAnders.length}   Zerlegen anders — Soll: 0   Ist: ${zerlegAnders.length}   Texte fehlen — Soll: 0   Ist: ${texte.length}`);
-    need(blattMaterial.size >= 30, `nur ${blattMaterial.size} Materialien auf den Bauplan-Seiten gelesen — Muster veraltet?`);
-    need(!fehlt.length, `/${pre}topics/crafting.html: ${fehlt.length} Material(ien) der Bauplan-Seiten ohne Weg in der Werkbank — ${liste(fehlt)}`);
-    need(!kaufAnders.length, `/${pre}topics/crafting.html: Kaufen sagt in der Werkbank etwas anderes als auf dem Blatt — ${liste(kaufAnders)}`);
-    need(!zerlegAnders.length, `/${pre}topics/crafting.html: Zerlegen sagt in der Werkbank etwas anderes als auf dem Blatt — ${liste(zerlegAnders)}`);
+    const texte = TEXTE.filter((k) => typeof cfg.wegeT?.[k] !== 'string' || !cfg.wegeT[k].trim());
+    console.log(`    /${pre}topics/crafting.html: Materialname als Fundort-Link ${mitLink} von ${abbaubar}   ohne Mission mit Weg ${ohne.length} (Blaetter ${blattOhneMitWeg}, Klinke ${KLINKEN.werkbankOhneMission})   Wikelo-Bauplaene ${w.wik.length} (Blaetter ${blattWikelo})`);
+    console.log(`      Fundort-Link fehlt — Soll: 0   Ist: ${ohneLink.length}   anderer Fundort als das Blatt — Soll: 0   Ist: ${anderesZiel.length}   Texte fehlen — Soll: 0   Ist: ${texte.length}`);
+    need(!ohneLink.length, `/${pre}topics/crafting.html: ${ohneLink.length} Material(ien) mit Fundort auf dem Blatt, deren Name in der Werkbank nicht zur Mining-Seite fuehrt — ${liste(ohneLink)}`);
+    need(!anderesZiel.length, `/${pre}topics/crafting.html: der Materialname fuehrt in der Werkbank woanders hin als „Abbauen“ auf dem Blatt — ${liste(anderesZiel)}`);
     need(!ohneKaputt.length, `/${pre}topics/crafting.html: ${ohneKaputt.length} unlesbare Eintraege in wege.ohne — ${liste(ohneKaputt)}`);
     need(ohne.length === blattOhneMitWeg, `/${pre}topics/crafting.html: ${ohne.length} Rezepte ohne Mission mit Weg zum Item, die Bauplan-Seiten nennen ${blattOhneMitWeg}`);
     need(ohne.length >= KLINKEN.werkbankOhneMission, `/${pre}topics/crafting.html: nur ${ohne.length} Rezepte ohne Mission mit Weg, Klinke ${KLINKEN.werkbankOhneMission} — Ursache klaeren, nicht die Klinke senken`);
     need(w.wik.length === blattWikelo, `/${pre}topics/crafting.html: ${w.wik.length} Wikelo-Bauplaene in der Werkbank, die Bauplan-Seiten zeigen ${blattWikelo}`);
-    need(!texte.length, `/${pre}topics/crafting.html: Texte fuer die Wege fehlen — ${liste(texte)}`);
+    need(!texte.length, `/${pre}topics/crafting.html: Texte fuer die Bauplan-Quelle fehlen — ${liste(texte)}`);
   }
 }
 
