@@ -539,6 +539,30 @@
       return false;
     });
   }
+  // Sucht der Besucher ein System („Helm Pyro unter 10k“), zeigt die Karte
+  // die Bezugszeile dort (die guenstigste, mit Preisgrenze nur bis dahin)
+  // statt der ersten. null: keine Systemsuche, oder das System steht im Namen.
+  function suchZeile(it) {
+    if (!P || !P.hits) return null;
+    var sys = [], i;
+    for (i = 0; i < P.hits.length; i++) {
+      if (P.hits[i].kind !== 'sys') continue;
+      if (benannt(it, P.hits[i])) return null;
+      sys.push(String(P.hits[i].key).toLowerCase());
+    }
+    if (!sys.length) return null;
+    var best = null;
+    it.obtain.forEach(function (o) {
+      var ss = zeilenSysteme(o), drin = false;
+      for (var j = 0; j < ss.length; j++) if (sys.indexOf(ss[j].toLowerCase()) >= 0) drin = true;
+      if (!drin) return;
+      var pr = o.price > 0 ? o.price : null;
+      if (P.kauf && (pr == null || pr > P.kauf.max)) return;
+      var bp = best && best.price > 0 ? best.price : null;
+      if (!best || (pr != null && (bp == null || pr < bp))) best = o;
+    });
+    return best;
+  }
   function benannt(it, h) {
     if (h.kind === 'price' || h.kind === 'size') return false;
     var ws = h.t.split(' '), i;
@@ -748,7 +772,10 @@
     var st = setOf(it);
     if (st && st.id !== S.set) tags += '<li><button type="button" class="wz-tag" data-set="' + esc(st.id) + '" title="' + esc(tr('facetSet', 'Set')) + '"><span class="wi wi--layers" aria-hidden="true"></span>' + esc(st.name) + '</button></li>';
     var preis, ort, erz;
-    if (it._p != null) {
+    var zz = it.obtain.length ? suchZeile(it) : null;
+    if (zz && zz.price > 0) {
+      preis = '<span class="wz-k__preis">' + esc(auec(zz.price)) + '</span>';
+    } else if (it._p != null) {
       preis = '<span class="wz-k__preis">' + (it.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + esc(auec(it._p)) + '</span>';
     } else if (it.obtain.length) {
       var nurEx = it.obtain.every(function (o) { return o.kind === 'exclusive'; });
@@ -757,8 +784,8 @@
       preis = '<span class="wz-k__preis is-still">' + esc(tr('noTradeData', 'Keine Handelsdaten')) + '</span>';
     }
     if (it.obtain.length) {
-      var extra = it.obtain.length - 1;
-      ort = '<span class="wz-k__ort" title="' + esc(obtainText(it.obtain[0])) + '"><span class="wi wi--pick" aria-hidden="true"></span><span>' + esc(obtainText(it.obtain[0])) + '</span>' + (extra > 0 ? '<i>+' + extra + '</i>' : '') + '</span>';
+      var extra = it.obtain.length - 1, zeile = zz || it.obtain[0];
+      ort = '<span class="wz-k__ort" title="' + esc(obtainText(zeile)) + '"><span class="wi wi--pick" aria-hidden="true"></span><span>' + esc(obtainText(zeile)) + '</span>' + (extra > 0 ? '<i>+' + extra + '</i>' : '') + '</span>';
     } else if ((erz = erzVon(it))) {
       ort = '<span class="wz-k__ort"><span class="wi wi--mining" aria-hidden="true"></span><span>' + esc(erz.n ? tr('oreCard', 'Abbau · {n} Fundorte').replace('{n}', fmt(erz.n)) : tr('oreCardOhne', 'Abbau')) + '</span></span>';
     } else {

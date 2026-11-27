@@ -507,17 +507,27 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
     assert.deepStrictEqual(s.p.fehler, []);
   });
 
-  test('84. System und Preis zusammen: in diesem System fuer hoechstens diesen Preis', async () => {
+  test('84. System und Preis zusammen: in diesem System fuer hoechstens diesen Preis, die Karte zeigt die Zeile dort', async () => {
     const s = await seite();
     // Beta Helmet: Lorville (Stanton) 500, Cubby Blast (Pyro) 800.
+    // Die Karte zeigt die gesuchte Zeile, nicht die erste (Lorville).
+    const fuss = () => {
+      const k = s.kachel('beta-helmet');
+      return `${k.querySelector('.wz-k__preis').textContent} @ ${k.querySelector('.wz-k__ort span:not(.wi)').textContent}`;
+    };
     await s.tippe('pyro unter 1k');
     assert.deepStrictEqual(s.namen(), ['Beta Helmet']);
+    assert.match(fuss(), /^800 aUEC @ Cubby Blast - Area 18$/);
     await s.tippe('pyro unter 600');
     assert.strictEqual(s.kacheln().length, 0, 'unter 600 gibt es den Helm nur in Stanton');
     await s.tippe('stanton unter 600');
     assert.deepStrictEqual(s.namen(), ['Beta Helmet']);
+    assert.match(fuss(), /^500 aUEC @ Armor Shop - Lorville$/);
     await s.tippe('pyro');
     assert.deepStrictEqual(s.namen().sort(), ['Beta Helmet', 'Eta Pistol']);
+    assert.match(fuss(), /^800 aUEC @ Cubby Blast - Area 18$/);
+    await s.tippe('helm');
+    assert.match(fuss(), /^ab 500 aUEC @ Armor Shop - Lorville$/, 'ohne System die Karte wie immer');
   });
 
   test('85. Deutsche Woerter fuer englische Namensteile: „Sturmgewehr“ findet Rifles', async () => {
