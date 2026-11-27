@@ -1414,12 +1414,18 @@ export const CHECKS = [
     // Chips ab Werk alle das erste Schiff nennen (Zahl gleich): 384 FEHLER,
     // alle [3], z. B. „Blatt [Blade|Vanduul Scythe], Werkbank [Blade|Blade]“;
     // Exit 1 beide Male, gruen mit dem neuen Skript.
+    // (e) Paarschluessel (zugesagt im CodeRabbit-Review zu PR #487): im
+    // Vorschau-Bau die Bezugszeile „Ship Weapons - HUR-L3“ auf
+    // de/items/10-series-greatsword-cannon.html ein zweites Mal, als Pyro:
+    // 2 FEHLER = [10] Paare weichen ab und [10] „Paarschluessel nicht
+    // eindeutig“; Exit 1. Blatt per Sicherung zurueck (sha1 gleich). Am
+    // echten Bau „Orte doppelt 0“ in beiden Sprachen.
     id: 'verify:werkbank-items',
     npm: 'verify:werkbank-items',
     script: 'scripts/verify-werkbank-items.mjs',
     rail: 'A',
     checks:
-      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk (Namen, mehrfache mehrfach, jedes verlinkt), dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne je Bezugszeile (gepaart ueber ihren Ort) dasselbe Sternsystem und dieselben technischen Daten (Bezeichnung und Wert in Folge, Varianten eingeschlossen); kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, gleich wie das href zitiert ist und aufgeloest gegen die Werkbank-Seite; jedes Item-Blatt der Werkbank traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
+      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk (Namen, mehrfache mehrfach, jedes verlinkt), dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne, je Bezugszeile (gepaart ueber ihren Ort) dasselbe Sternsystem, ein Ort mit zwei Systemen auf einem Blatt als eigener FEHLER, und dieselben technischen Daten (Bezeichnung und Wert in Folge, Varianten eingeschlossen); kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, gleich wie das href zitiert ist und aufgeloest gegen die Werkbank-Seite; jedes Item-Blatt der Werkbank traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen, Werte-Blaetter, Wertezeilen und Sets',
   },
   {
     // Neuzugang 27.11.2026 (Krisz: „können wir bei items dieses smart search
@@ -1439,7 +1445,9 @@ export const CHECKS = [
     // der deutschen Werkbank mit „pyro“ als Kategoriewort, einer Kategorie
     // ausserhalb des Baums und dem Blatt „Arme“ ohne deutschen Namen: 4
     // FEHLER [4] (Sprachen weichen ab, zwei Bedeutungen, Zombie, Name);
-    // Exit 1.
+    // Exit 1. (d) nach den deutschen Waffenwoertern: C.suche.nick beider
+    // Sprachen mit „pyro“ -> rifle (zugleich Systemwort) und „flammenwerfer“
+    // -> flamethrower (in keinem Item-Namen): 2 FEHLER [4]; Exit 1.
     id: 'verify:smart-suche',
     npm: 'verify:smart-suche',
     script: 'scripts/verify-smart-suche.mjs',

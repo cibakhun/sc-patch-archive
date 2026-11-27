@@ -68,7 +68,7 @@ const KLINKE = {
   blaetter: 65, // Blaetter des Baums, mit beiden Namen erkannt (68)
   grp: 9, // Gruppen (9)
   woerter: 290, // verschiedene gefaltete Woerter aller Arten (308)
-  nick: 30, // deutsche Woerter fuer englische Namensteile, mit Umschrift (33)
+  nick: 22, // deutsche Woerter fuer englische Namensteile, mit Umschrift (24)
 };
 
 const fehler = [];
