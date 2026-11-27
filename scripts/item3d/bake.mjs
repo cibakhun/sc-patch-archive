@@ -558,7 +558,8 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
   // sie ist (Review #488).
   const LOD_MIN_ANTEIL = 0.25;
   const netzDatei = (p) => (/\.skin$/i.test(p) ? p.replace(/\.skin$/i, '.skinm') : `${p}m`);
-  const dreiecke = (p) => { const b = provider.read(netzDatei(p)); if (!b) return 0; try { return readSkinMesh(b).idx.length / 3; } catch { return 0; } };
+  // null = Netz fehlt oder ist unlesbar; 0 = gemessen leer (Review #488).
+  const dreiecke = (p) => { const b = provider.read(netzDatei(p)); if (!b) return null; try { return readSkinMesh(b).idx.length / 3; } catch { return null; } };
   function lodPath(skin, l, bau = () => {}) {
     if (!l) return skin;
     const p = skin.replace(/(_lod\d)?\.(skin|cga|cgf)$/i, `_lod${l}.$2`);
@@ -567,9 +568,11 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
       const t0 = dreiecke(skin), t1 = dreiecke(p);
       // Nur wenn beide Zahlen bekannt sind: Eine Stufe 1 ohne lesbares Netz
       // ist nicht „zu grob“, sie bleibt gewählt, und der Aufrufer meldet
-      // „Bau Netz fehlt“ (Fehler, hält das Item an; Review #488). Im
-      // Spielstand vom 27.11.2026 hat jede der 81 877 Stufe-1-Dateien ihr Netz.
-      if (t0 && t1 && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
+      // „Bau Netz fehlt“ (Fehler, hält das Item an). Eine gemessen leere
+      // Stufe 1 (0 Dreiecke) ist dagegen zu grob, und Stufe 0 gilt. Ohne
+      // messbare Stufe 0 greift die Regel nie (Review #488). Im Spielstand
+      // vom 27.11.2026 hat jede der 81 877 Stufe-1-Dateien ihr Netz.
+      if (t0 && t1 !== null && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
     }
     return p;
   }
