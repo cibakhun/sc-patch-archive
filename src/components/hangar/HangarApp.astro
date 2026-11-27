@@ -259,6 +259,8 @@ const ankunft: Record<string, string> = Object.fromEntries((existsSync(ankunftDi
   .map((f) => [f.slice(0, -5), `/hangar/ankunft/${f}?v=${contentV([`${ankunftDir}/${f}`])}`]));
 
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
+// Suchkern des Schiffsfinders, geteilt mit der Items-Werkbank (Import-Map unten).
+const sucheSrc = versioned('assets/smart-suche.js', '/assets/smart-suche.js');
 // Stationen als Hologramme in der Halle (ROADMAP Phase 22): der Viewer lädt
 // das Modul erst, wenn die Seite eine Station in 3D zeigt
 const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo3d.js') };
@@ -441,6 +443,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
       <slot />
     </section>
 <script type="application/json" id="hg-stage" set:html={payload}></script>
-<script type="importmap" is:inline>
-{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
-</script>
+{/* Import-Map: three fuer die Buehne, dazu der Suchkern, den
+    hangar-overview.js statisch importiert (./smart-suche.js). Die Abbildung
+    gibt ihm seine versionierte URL, sonst haelt der Browser ihn einen Tag
+    (verify:smart-suche [1]). */}
+<script type="importmap" is:inline set:html={JSON.stringify({ imports: { three: '/vendor/three/three.module.min.js', 'three/addons/': '/vendor/three/addons/', '/assets/smart-suche.js': sucheSrc } })}></script>
