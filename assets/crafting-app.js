@@ -2976,7 +2976,15 @@
     calcState.q = '';
     calcState.res = {};
     calcState.res[mid] = true;
-    $$('.calc-mat-cb').forEach(function (cb) { cb.checked = cb.value === mid; });
+    // Eine alte Materialsuche darf das Ziel nicht verstecken: Suche leeren und
+    // alle Zeilen wieder zeigen wie beim Zuruecksetzen des Rechners.
+    var matSuche = $('#calc-mat-search');
+    if (matSuche) matSuche.value = '';
+    $$('.calc-mat-cb').forEach(function (cb) {
+      cb.checked = cb.value === mid;
+      var label = cb.closest('.calc-check');
+      if (label) label.style.display = '';
+    });
     sortCalcMatsList();
     calcApply();
     // Oben anfangen: Reiter, gewaehltes Material (steht nach dem Sortieren

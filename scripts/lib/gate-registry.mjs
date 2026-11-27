@@ -1314,12 +1314,21 @@ export const CHECKS = [
     // entfernt (Stand vor deren Merge), Exit 1. (Derselbe Lauf prueft noch
     // einen Teil [4] fuer das Blatt in der Werkbank; den hat Krisz am
     // 27.11.2026 zurueckgenommen, „es soll nichts eingebacken werden“.)
+    // Review #482: Links werden gegen die Seite aufgeloest, auf der sie stehen
+    // (relative Ziele, „/x/../“), und das href als ganzes Attribut gelesen.
+    // VORGEFUEHRT ROT am 27.11.2026 (Live-Bau dieses Stands) mit vier Links
+    // in /topics/mining.html: title="Pool > 1" vor href="/crafting.html",
+    // "../crafting.html", "/topics/../crafting/category/ammo-ballistic.html"
+    // und ein Koeder mit href="/crafting.html" im title-Wert vor dem echten
+    // href auf die Werkbank. Meldungen: drei FEHLER [2] (/crafting.html
+    // zweimal, /crafting/category/ammo-ballistic.html), der Koeder keiner,
+    // Exit 1; Seite per Sicherung zurueck (sha256 gleich).
     id: 'verify:nur-werkbank',
     npm: 'verify:nur-werkbank',
     script: 'scripts/verify-nur-werkbank.mjs',
     rail: 'A',
     checks:
-      'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (ohne Kommentare, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+      'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (ohne Kommentare, href als ganzes Attribut gelesen, gegen die Seite aufgeloest und normalisiert, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

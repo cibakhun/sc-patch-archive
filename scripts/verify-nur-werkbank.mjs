@@ -81,14 +81,33 @@ const urlVon = (f) => '/' + f.slice(DIST.length + 1).replace(/\\/g, '/');
 const dateien = walk(DIST).sort();
 const googleArt = (p) => GOOGLE.find((g) => g.muster.test(p)) ?? null;
 
-/** Pfad eines Link-Ziels: eigene Domain wie ein Pfad, Abfrage und Sprungmarke weg. */
-function pfad(h) {
-  let x = h.trim().replace(/&amp;/g, '&');
-  x = x.replace(/^https?:\/\/(?:www\.|staging\.)?verse-base\.com/i, '');
-  if (!x.startsWith('/')) return null;
-  x = x.split(/[?#]/)[0];
+/**
+ * Pfad eines Link-Ziels, aufgeloest gegen die Seite, auf der er steht
+ * (`basis`): relative Ziele wie „../crafting.html“ und Umwege wie
+ * „/topics/../crafting.html“ landen auf dem echten Pfad (Review #482).
+ * Eigene Domain zaehlt wie ein Pfad, fremde Herkunft und andere Schemata
+ * (mailto:, javascript:) fallen heraus; Abfrage und Sprungmarke weg.
+ */
+const EIGEN = 'https://verse-base.com';
+const EIGENE_HOSTS = /^(?:www\.|staging\.)?verse-base\.com$/i;
+function pfad(h, basis = '/') {
+  const roh = h.trim().replace(/&(amp|quot|#39);/g, (_, e) => ({ amp: '&', quot: '"', '#39': "'" })[e]);
+  let u;
+  try { u = new URL(roh, EIGEN + basis); } catch { return null; }
+  if (!/^https?:$/.test(u.protocol) || !EIGENE_HOSTS.test(u.hostname)) return null;
+  let x = u.pathname;
   try { x = decodeURI(x); } catch {}
   return x;
+}
+
+/** Attribute eines Tags, Werte als Ganzes gelesen (wie in verify-bezugswege.mjs). */
+function attribute(attr) {
+  const m = new Map();
+  for (const [, name, wert] of attr.matchAll(/([^\s"'>\/=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g)) {
+    const n = name.toLowerCase();
+    if (!m.has(n)) m.set(n, wert == null ? '' : wert.replace(/^(["'])([\s\S]*)\1$/, '$2'));
+  }
+  return m;
 }
 
 const probleme = [];
@@ -136,8 +155,12 @@ for (const f of dateien) {
   // Resten wie „<!<!-- -->-- … -->“ einen neuen Kommentar zusammensetzen.
   let html = readFileSync(f, 'utf8');
   for (let vorher = ''; vorher !== html; ) { vorher = html; html = html.replace(/<!--[\s\S]*?-->/g, ''); }
-  for (const m of html.matchAll(/<a\b[^>]*?\shref\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
-    const p = pfad(m[1] ?? m[2] ?? '');
+  // Jeder Anker als ganzes Tag, auch mit „>“ in einem Attributwert; das Ziel
+  // ist das echte href, nicht ein „href=“ im Wert eines anderen Attributs.
+  for (const [, attr] of html.matchAll(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi)) {
+    const href = attribute(attr).get('href');
+    if (href == null) continue;
+    const p = pfad(href, von);
     if (p == null) continue;
     links++;
     const g = googleArt(p);
