@@ -112,6 +112,8 @@
   function obtainText(o) {
     if (o.kind === 'exclusive') return exclusiveLabel(o.reason);
     if (o.ort) return DE ? (o.locDe || o.loc) : o.loc;
+    // Ortsart ohne bestaetigten Ort: eigener Text, in der Sprache der Seite.
+    if (o.kind === 'loot' && C.lootOrte && Object.prototype.hasOwnProperty.call(C.lootOrte, o.loc)) return C.lootOrte[o.loc];
     return o.loc;
   }
   // Zwilling von woText() in src/lib/items.ts.
@@ -238,6 +240,13 @@
     if (s.shieldHp) out.push([tr('statShieldHp', 'Schild-HP'), fmt(s.shieldHp)]);
     if (s.regen) out.push([tr('statRegen', 'Schild-Regen'), fmt(s.regen) + '/s']);
     if (s.driveSpeed) out.push([tr('statQtSpeed', 'QT-Geschwindigkeit'), fmt(Math.round(s.driveSpeed / 1e6)) + ' Mm/s']);
+    // Flugblaetter: dieselben Flugwerte wie das Datenblatt (statRows).
+    if (s.scmSpeed) out.push([tr('statScm', 'SCM-Geschwindigkeit'), fmt(s.scmSpeed) + ' m/s']);
+    if (s.maxSpeed) out.push([tr('statMaxSpeed', 'Höchstgeschwindigkeit'), fmt(s.maxSpeed) + ' m/s']);
+    if (s.boostForward) out.push([tr('statBoost', 'Boost vorwärts'), fmt(s.boostForward) + ' m/s']);
+    if (s.pitch) out.push([tr('statPitch', 'Nicken'), fmt(s.pitch) + ' °/s']);
+    if (s.yaw) out.push([tr('statYaw', 'Gieren'), fmt(s.yaw) + ' °/s']);
+    if (s.roll) out.push([tr('statRoll', 'Rollen'), fmt(s.roll) + ' °/s']);
     if (s.cooldown) out.push([tr('statCooldown', 'Abklingzeit'), fmt(s.cooldown) + ' s']);
     if (s.coolingRate) out.push([tr('statCooling', 'Kühlleistung'), fmt(s.coolingRate)]);
     if (s.powerOutput) out.push([tr('statPower', 'Leistung'), fmt(s.powerOutput)]);
@@ -311,7 +320,9 @@
     SETS = karte();
     SETLISTE = db.sets || [];
     SETLISTE.forEach(function (s) { s.manufacturer = setHersteller(s.manufacturer); SETS[s.id] = s; });
-    ITEMS.forEach(function (it) {
+    ITEMS.forEach(function (it, pos) {
+      // Position im Katalog: /items-wege.json zaehlt Items so (WEGE.i).
+      it._i = pos;
       if (FUNDORTE) lootZeilen(it);
       var g = it.game || null;
       it._root = rootOf(it.category);
@@ -910,21 +921,6 @@
     return KIND[k] || k;
   }
   var KIND_ICON = { shop: 'shop', vehicle: 'ship', loot: 'loot', exclusive: 'gem' };
-  // Kategorieliste, auf der ein Item ohne eigenes Datenblatt namentlich steht
-  // (Zwilling von kategorieSeiteVon() in src/lib/items.ts).
-  var KAT_LISTEN = null;
-  function katSeite(it) {
-    if (!it._b) return null;
-    if (!KAT_LISTEN) {
-      KAT_LISTEN = {};
-      ITEMS.forEach(function (x) { (KAT_LISTEN[x.category] || (KAT_LISTEN[x.category] = [])).push(x); });
-      Object.keys(KAT_LISTEN).forEach(function (k) { KAT_LISTEN[k].sort(function (a, b) { return a.name.localeCompare(b.name, 'en'); }); });
-    }
-    var liste = KAT_LISTEN[it.category] || [];
-    var seite = Math.floor(liste.indexOf(it) / 100) + 1;
-    return (C.katBase || '/items/category/') + it._b.s + (seite > 1 ? '-' + seite : '') + '.html';
-  }
-
   // Erze stehen im Katalog ohne Bezugsquelle, ihre Fundorte fuehrt die
   // Mining-Seite (C.erze aus erzKatalog() in src/lib/miningLinks.ts). Roh- und
   // Raffinadename zeigen auf dasselbe Mineral: „(Ore)“/„(Raw)“ fallen weg.
@@ -938,7 +934,7 @@
   }
 
   function quellenHtml(it) {
-    var h = '<h3 class="wzb-h">' + esc(w('hQuellen')) + (it.obtain.length ? '<em>' + fmt(it.obtain.length) + '</em>' : '') + '</h3>';
+    var h = '<h3 class="wzb-h" id="wzb-quellen" tabindex="-1">' + esc(w('hQuellen')) + (it.obtain.length ? '<em>' + fmt(it.obtain.length) + '</em>' : '') + '</h3>';
     var erz = erzVon(it);
     if (erz) {
       // Der Verweis selbst steht oben bei den Handlungen (blattItem).
@@ -952,7 +948,18 @@
     var preise = it.obtain.filter(function (o) { return o.price != null; }).sort(function (a, b) { return a.price - b.price; });
     var rest = it.obtain.filter(function (o) { return o.price == null; });
     var zeilen = preise.concat(rest);
+    // Fuer den System-Filter (wegeEinsetzen): Zeile i des Blatts ist zeilen[i].
+    it._zeilen = zeilen;
     var GRENZE = 8;
+    // Durchschnitt und Spanne wie ueber der Tabelle des Datenblatts.
+    var lo = preise.length ? preise[0].price : null, hi = preise.length ? preise[preise.length - 1].price : null;
+    var avg = avgPrice(it);
+    var pz = [];
+    if (avg != null) pz.push(esc(w('kSchnitt')) + ' <b>' + esc(auec(avg)) + '</b>');
+    if (lo != null && hi != null && hi !== lo) pz.push(esc(tr('priceRange', 'Preisspanne')) + ' <b data-spanne>' + esc(fmt(lo) + '–' + fmt(hi)) + '</b>');
+    if (pz.length) h += '<p class="wzb-preise">' + pz.join(' · ') + '</p>';
+    // „Kaufen nach System“: die Knoepfe setzt wegeEinsetzen(), es kennt die Systeme.
+    h += '<div class="wzb-sys" role="group" data-sysfilter hidden></div>';
     var li = zeilen.map(function (o, i) {
       var st = '';
       if (o.kind === 'loot') {
@@ -962,7 +969,7 @@
       }
       var unter = [kindLabel(o.kind)];
       if (o.wo) unter.push(woText(o.wo));
-      return '<li data-art="' + esc(o.kind) + '"' + (i >= GRENZE ? ' hidden' : '') + '>' +
+      return '<li data-art="' + esc(o.kind) + '" data-z="' + i + '"' + (i >= GRENZE ? ' hidden' : '') + '>' +
         '<span class="wzb-q__z"><span class="wi wi--' + (KIND_ICON[o.kind] || 'pick') + '" aria-hidden="true"></span></span>' +
         '<span class="wzb-q__t"><b>' + esc(obtainText(o)) + '</b><small>' + esc(unter.join(' · ')) + '</small></span>' +
         '<span class="wzb-q__p">' + (o.price != null ? '<b>' + esc(auec(o.price)) + '</b>' : '') + st + '</span>' +
@@ -974,6 +981,8 @@
         esc((DE ? 'Alle ' : 'Show all ') + fmt(zeilen.length) + (DE ? ' zeigen' : '')) + '</span><span class="wi wi--chev" aria-hidden="true"></span></button>';
     }
     var notiz = tr('volatileNote', 'Preise und Fundorte sind Patch-volatil, ingame prüfen.');
+    // Stand der Kaufpreise, wo ein Preis nicht aus dem eigenen Schnappschuss kommt (wie das Blatt).
+    if (C.preisStand && it.obtain.some(function (o) { return o.price != null && o.src !== 'schnappschuss'; })) notiz += ' ' + tr('pricesAsOf', 'Stand der Preise') + ' ' + C.preisStand + '.';
     if (it.obtain.some(function (o) { return !!o.ort; })) notiz += ' ' + tr('lootStatusNote', '');
     h += '<p class="wzb-note wzb-note--wert">' + esc(notiz) + '</p>';
     return h;
@@ -1014,23 +1023,20 @@
     // Handlungen
     h += '<div class="wzb-akt" id="wzb-akt">';
     var erzA = erzVon(it);
-    if (it._page) {
-      h += '<a class="wzb-haupt" href="' + esc(itemUrl(it)) + '"><span class="wi wi--sheet" aria-hidden="true"></span>' + esc(w('datenblatt')) + '</a>';
-    }
-    // Erze verweisen immer auf die Mining-Seite (die Quellen darunter sagen
-    // das); hat das Erz ein Datenblatt, steht der Verweis als Nebenlink.
-    if (erzA && it._page) {
-      h += '<a class="wzb-neben" href="' + esc(erzA.url) + '"><span>' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>';
-    } else if (erzA) {
+    // Kein Knopf aufs Datenblatt und keiner auf die Kategorieliste (Krisz
+    // 27.11.2026: „wofür sollte ein User den Datenblatt öffnen?“; Regel „nur
+    // Werkbänke für Menschen“ vom 26.11.2026): was das Blatt beantwortet,
+    // steht in diesem Blatt, die Kategorie filtert der Pfad oben an Ort und
+    // Stelle. Erze fuehren auf die Mining-Werkbank, die ihre Fundorte kennt.
+    if (erzA) {
       h += '<a class="wzb-haupt" href="' + esc(erzA.url) + '"><span class="wi wi--mining" aria-hidden="true"></span>' + esc(tr('oreLink', 'Fundorte auf der Mining-Seite')) + '</a>';
-    }
-    if (!it._page) {
-      var ks = katSeite(it);
-      if (ks) h += '<a class="wzb-neben" href="' + esc(ks) + '"><span>' + esc(w('kategorieListe')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>';
     }
     var st = setOf(it);
     if (st) h += '<button type="button" class="wzb-neben" data-satz="' + esc(st.id) + '"><span class="wi wi--layers" aria-hidden="true"></span><span>' + esc(w('setAnsehen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></button>';
     h += '</div>';
+    // „So bekommst du es“ und gleichnamige Items: fuellt wegeEinsetzen(),
+    // sobald /items-wege.json da ist.
+    h += '<div id="wzb-wege" class="wzb-wege"></div>';
     h += quellenHtml(it);
     var werte = statEntries(it);
     if (werte.length) {
@@ -1058,6 +1064,8 @@
     if (st) h += setTeileHtml(st, it.id, true);
     if (it.guide) h += '<h3 class="wzb-h">' + esc(w('hGuide')) + '</h3><p class="wzb-guide" lang="en">' + esc(it.guide) + '</p>';
     h += '<div id="wzb-craft"></div>';
+    // Fahrzeug, ab Werk, Werkzeuge, Aehnliches, Melden: wegeEinsetzen().
+    h += '<div id="wzb-mehr"></div>';
     h += '</div></article>';
     return h;
   }
@@ -1075,8 +1083,8 @@
         '<span class="wi wi--arrow" aria-hidden="true"></span></button></li>';
     }).join('') + '</ul>';
     if (kurz) {
-      h += '<div class="wzb-akt" style="margin-top:.5rem"><button type="button" class="wzb-neben" data-setfilter="' + esc(st.id) + '"><span>' + esc(w('setTeile')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></button>' +
-        '<a class="wzb-neben" href="' + esc((C.setBase || '/armor-sets.html') + '#' + st.id) + '"><span>' + esc(w('setSeite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a></div>';
+      h += setPreisHtml(st.id);
+      h += '<div class="wzb-akt" style="margin-top:.5rem"><button type="button" class="wzb-neben" data-setfilter="' + esc(st.id) + '"><span>' + esc(w('setTeile')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></button></div>';
     }
     return h;
   }
@@ -1095,8 +1103,8 @@
       { l: w('kKlasse'), v: st.weight ? weightLabel(st.weight) : '—', txt: true }
     ]);
     h += '<div class="wzb-inh"><div class="wzb-akt">' +
-      '<button type="button" class="wzb-haupt" data-setfilter="' + esc(st.id) + '"><span class="wi wi--grid4" aria-hidden="true"></span>' + esc(w('setTeile')) + '</button>' +
-      '<a class="wzb-neben" href="' + esc((C.setBase || '/armor-sets.html') + '#' + st.id) + '"><span>' + esc(w('setSeite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a></div>';
+      '<button type="button" class="wzb-haupt" data-setfilter="' + esc(st.id) + '"><span class="wi wi--grid4" aria-hidden="true"></span>' + esc(w('setTeile')) + '</button></div>';
+    h += setPreisHtml(st.id);
     h += setTeileHtml(st, null, false);
     h += '</div></article>';
     return h;
@@ -1131,14 +1139,10 @@
           ITEMS.forEach(function (i) {
             ((i.game && i.game.variants) || []).forEach(function (v) { if (v.guid) perGuid[v.guid] = i; });
           });
-          // Slugs exakt wie src/lib/crafting.ts (gleiche Reihenfolge, „-2" bei Dubletten).
-          var used = karte();
+          // Die Stelle in der Rezeptdatei: die Crafting-Werkbank oeffnet das
+          // Rezept damit (?bpi=) auch bei gleichnamigen Bauplaenen.
           db.blueprints.forEach(function (bp, stelle) {
             if (!bp.name) return;
-            var base = String(bp.name).toLowerCase().replace(/['’"]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'blueprint';
-            var n = (used[base] || 0) + 1;
-            used[base] = n;
-            bp.__slug = n > 1 ? base + '-' + n : base;
             bp.__stelle = stelle;
             var baut = (bp.entity_guid && perGuid[bp.entity_guid]) || perName[bp.name.toLowerCase()] || null;
             if (baut && !jeItem[baut.id]) jeItem[baut.id] = bp;
@@ -1148,6 +1152,10 @@
       })
       .catch(function () { craftLaeuft = null; });
     return craftLaeuft;
+  }
+  // Die Crafting-Werkbank mit genau diesem Rezept (?bp= Name, ?bpi= Stelle).
+  function craftHref(bp) {
+    return (C.craftPage || '/topics/crafting.html') + '?bp=' + encodeURIComponent(bp.name) + '&bpi=' + bp.__stelle;
   }
   function craftEinsetzen(it, ziel) {
     if (!ziel || !ziel.isConnected) return;
@@ -1172,9 +1180,294 @@
     var akt = document.getElementById('wzb-akt');
     if (akt) {
       akt.insertAdjacentHTML('beforeend',
-        '<a class="wzb-neben" href="' + esc((C.craftPage || '/topics/crafting.html') + '?bp=' + encodeURIComponent(bp.name) + '&bpi=' + bp.__stelle) + '"><span class="wi wi--fab" aria-hidden="true"></span><span>' + esc(w('craftOeffnen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>' +
-        (bp.__slug ? '<a class="wzb-neben" href="' + esc((C.craftBase || '/crafting/') + bp.__slug + '.html') + '"><span class="wg" data-g="bp" aria-hidden="true"></span><span>' + esc(w('rezeptSeite')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>' : ''));
+        '<a class="wzb-neben" href="' + esc(craftHref(bp)) + '"><span class="wi wi--fab" aria-hidden="true"></span><span>' + esc(w('craftOeffnen')) + '</span><span class="wi wi--arrow" aria-hidden="true"></span></a>');
     }
+  }
+
+  /* ---------- Was das Datenblatt beantwortet ---------- */
+  // Krisz 27.11.2026: „Da steht wieder ganz fett Datenblatt öffnen. Aber
+  // wofür sollte ein User den Datenblatt öffnen?“ Seither beantwortet das
+  // Blatt der Werkbank alles, was das Datenblatt beantwortet (Bericht
+  // „Datenblätter und Werkbänke“, Item-Teil): alle Wege („So bekommst du
+  // es“), die Missionen zum Bauplan, Wikelo, ab Werk, das Fahrzeug, die
+  // Werkzeuge, Aehnliches, Gleichnamiges, den Set-Preis, Kaufen nach System
+  // und Melden. Gerechnet hat der Bau, mit denselben Funktionen wie das Blatt
+  // (src/lib/itemsWerkbankWege.ts -> C.wegeUrl); hier wird nur gesetzt.
+  // verify:werkbank-items haelt jede Antwort gegen das gebaute Blatt. Links
+  // fuehren nur in Werkbaenke und Werkzeuge, nie auf ein Datenblatt.
+  var WEGE = null, wegeLaeuft = null;
+  function ladeWege() {
+    if (WEGE || !C.wegeUrl) return Promise.resolve();
+    if (wegeLaeuft) return wegeLaeuft;
+    wegeLaeuft = fetch(C.wegeUrl)
+      .then(function (r) {
+        if (!r.ok) throw new Error('items-wege http ' + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        // Positionen gelten nur fuer genau diesen Katalog.
+        if (!d || !d.i || d.i.length !== ITEMS.length) throw new Error('items-wege passt nicht zum Katalog');
+        WEGE = d;
+      })
+      .catch(function () { wegeLaeuft = null; });
+    return wegeLaeuft;
+  }
+  function bw(k) { var s = C.bw && C.bw[k]; return s == null ? k : s; }
+  function fuell(s, v) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
+  function schiffHref(name) { return (C.schiffe || '/schiffe.html') + '?q=' + encodeURIComponent(name); }
+  function wikeloHref(it) { return (C.wikelo || '/topics/wikelo-emporium.html') + '?item=' + encodeURIComponent(it.name); }
+  function pfeil() { return '<span class="wi wi--arrow" aria-hidden="true"></span>'; }
+
+  var SYSTEME = ['Stanton', 'Pyro', 'Nyx'];
+  // Zwilling von zeilenSysteme() in src/lib/bezugswege.ts.
+  function zeilenSysteme(o) {
+    if (o.kind === 'exclusive') return [];
+    if (o.wo) {
+      var keys = Object.keys(o.wo).map(function (k) { return k.toLowerCase(); });
+      return SYSTEME.filter(function (s) { return keys.indexOf(s.toLowerCase()) >= 0; });
+    }
+    var s = WEGE && WEGE.sys[o.loc];
+    return s ? [s] : [];
+  }
+  // Zwilling von kaufGruppen() in src/lib/bezugswege.ts.
+  function kaufGruppen(it) {
+    var by = karte();
+    it.obtain.forEach(function (o) {
+      if ((o.kind !== 'shop' && o.kind !== 'vehicle') || o.price == null || !(o.price > 0)) return;
+      var sys = (WEGE && WEGE.sys[o.loc]) || '';
+      var g = by[sys];
+      if (g) { g.stellen++; if (o.price < g.ab) g.ab = o.price; }
+      else by[sys] = { system: sys || null, stellen: 1, ab: o.price };
+    });
+    return SYSTEME.concat(['']).map(function (s) { return by[s]; }).filter(Boolean);
+  }
+
+  // Preiszeile eines Sets, derselbe Text wie auf dem Datenblatt
+  // (setPreisText() in src/lib/setPreisText.ts). Ohne geladene Wege ein
+  // Platzhalter, den setPreisNachtragen() fuellt.
+  function setPreisHtml(id) {
+    if (!WEGE) return '<p class="wzb-setpreis" data-setpreis-platz="' + esc(id) + '"></p>';
+    var z = WEGE.sets[id];
+    if (!z) return '';
+    return '<p class="wzb-setpreis' + (z[3] ? ' is-leer' : '') + '" data-set-preis' + (z[4] ? ' title="' + esc(z[4]) + '"' : '') + '><b>' + esc(z[0]) + '</b>' +
+      (z[1] ? '<span> · ' + esc(z[1]) + '</span>' : '') + (z[2] ? '<span class="wzb-setpreis__ort"> · ' + esc(z[2]) + '</span>' : '') + '</p>';
+  }
+  function setPreisNachtragen(root) {
+    if (!WEGE || !root) return;
+    Array.prototype.forEach.call(root.querySelectorAll('[data-setpreis-platz]'), function (p) {
+      var h = setPreisHtml(p.getAttribute('data-setpreis-platz'));
+      if (h) p.insertAdjacentHTML('beforebegin', h);
+      p.remove();
+    });
+  }
+
+  // „So bekommst du es“: Zwilling von src/components/Bezugswege.astro, je
+  // Weg eine Karte mit ihrem naechsten Schritt.
+  var MISSIONEN_OFFEN = 3, STOCK_NAMEN = 2, SCHIFFE_OFFEN = 4, ORTE_OFFEN = 3, STOCK_OFFEN = 12;
+  function wegKarte(art, titel, inhalt) {
+    return '<li class="wzb-weg' + (art === 'herstellen' ? ' wzb-weg--craft' : '') + '" data-weg="' + art + '"><span class="wzb-weg__art">' + esc(titel) + '</span>' + inhalt + '</li>';
+  }
+  function sprung(ziel, text) {
+    return '<button type="button" class="wzb-weg__l" data-sprung="' + ziel + '">' + esc(text) + ' ↓</button>';
+  }
+  // Die Herstellen-Karte: Missionen zum Bauplan und die Links in die
+  // Crafting-Werkbank. Die Links brauchen die Rezeptdatei; kommt sie erst
+  // nach den Wegen, traegt herstellenNachtragen() die Karte nach.
+  function herstellenHtml(it, e) {
+    var bp = CRAFT && CRAFT[it.id];
+    var m = e.m || [0];
+    var ch = '';
+    if (m[0] > 0) {
+      ch += '<span class="wzb-weg__n">' + esc(m[0] === 1 ? bw('craftMissionsOne') : bw('craftMissions')) + '</span>';
+      ch += '<ul class="wzb-weg__z" data-missionen="' + m[0] + '">' + m.slice(1).map(function (x) {
+        return '<li><span lang="en">' + esc(x[0]) + '</span>' + (x[1] ? esc(' (' + x[1] + ')') : '') + '</li>';
+      }).join('') + '</ul>';
+      if (m[0] > MISSIONEN_OFFEN && bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(fuell(w('craftMehr'), { n: fmt(m[0] - MISSIONEN_OFFEN) })) + ' →</a>';
+    } else if (!e.hw) {
+      ch += '<span class="wzb-weg__n" data-quelle="unbekannt">' + esc(bw('craftUnknown')) + '</span>';
+    }
+    if (e.hw) ch += '<span class="wzb-weg__n">' + esc(bw('craftWikelo')) + '</span>';
+    if (bp) ch += '<a class="wzb-weg__l" href="' + esc(craftHref(bp)) + '">' + esc(w('craftOeffnen')) + ' →</a>';
+    return ch;
+  }
+  function herstellenNachtragen(it, oben) {
+    if (!WEGE || !CRAFT || !oben || !oben.isConnected) return;
+    var e = WEGE.i[it._i] || {};
+    var k = oben.querySelector('[data-weg="herstellen"]');
+    if (!k || !e.h) return;
+    var t = document.createElement('ul');
+    t.innerHTML = wegKarte('herstellen', bw('craft'), herstellenHtml(it, e));
+    k.parentNode.replaceChild(t.firstChild, k);
+  }
+  function wegeHtml(it, e) {
+    var karten = [];
+    var gruppen = kaufGruppen(it);
+    if (gruppen.length && it._p != null) {
+      var stellen = gruppen.reduce(function (n, g) { return n + g.stellen; }, 0);
+      var h = '<strong class="wzb-weg__h">' + esc(fuell(bw('buyFrom'), { p: auec(it._p) })) + '</strong>';
+      if (gruppen.length === 1 && gruppen[0].system) {
+        h += '<span class="wzb-weg__n" data-system="' + esc(gruppen[0].system) + '">' + esc(fuell(bw(stellen === 1 ? 'buyStelleIn' : 'buyStellenIn'), { n: fmt(stellen), sys: gruppen[0].system })) + '</span>';
+      } else {
+        h += '<span class="wzb-weg__n">' + esc(stellen === 1 ? bw('buyStelle') : fuell(bw('buyStellen'), { n: fmt(stellen) })) + '</span>';
+        h += '<ul class="wzb-weg__z">' + gruppen.map(function (g) {
+          return '<li data-system="' + esc(g.system || 'ohne') + '">' + esc(fuell(bw(g.stellen === 1 ? 'buyGroupOne' : 'buyGroup'), { sys: g.system || bw('buyNoSystem'), n: fmt(g.stellen), p: auec(g.ab) })) + '</li>';
+        }).join('') + '</ul>';
+      }
+      karten.push(wegKarte('kaufen', bw('buy'), h + sprung('wzb-quellen', bw('buyAll'))));
+    }
+    var loot = it.obtain.filter(function (o) { return o.kind === 'loot'; });
+    var best = loot.filter(function (o) { return o.ort; });
+    // Unbestaetigte Orte in der Reihenfolge des Blatts (sortedObtain: nach Name).
+    var rech = loot.filter(function (o) { return !o.ort; }).sort(function (a, b) { return a.loc.localeCompare(b.loc, 'en'); });
+    var unbekannt = !!(it.game && it.game.lootable === true && it.obtain.length === 0);
+    if (loot.length || unbekannt) {
+      var fh = '';
+      if (best.length) fh += '<strong class="wzb-weg__h">' + esc(best.length === 1 ? bw('findConfirmedOne') : fuell(bw('findConfirmed'), { n: fmt(best.length) })) + '</strong>';
+      else if (rech.length) fh += '<strong class="wzb-weg__h">' + esc(rech.length === 1 ? bw('findResearchOne') : fuell(bw('findResearch'), { n: fmt(rech.length) })) + '</strong>';
+      var nq = best.length ? best : rech;
+      if (nq.length) fh += '<span class="wzb-weg__n">' + esc(nq.slice(0, ORTE_OFFEN).map(obtainText).join(', ') + (nq.length > ORTE_OFFEN ? ' …' : '')) + '</span>';
+      if (best.length && rech.length) fh += '<span class="wzb-weg__n" data-fund="recherche">' + esc(rech.length === 1 ? bw('findResearchOne') : fuell(bw('findResearch'), { n: fmt(rech.length) })) + '</span>';
+      if (unbekannt) fh += '<span class="wzb-weg__n">' + esc(bw('findUnknown')) + '</span>';
+      if (loot.length) fh += sprung('wzb-quellen', bw('findAll'));
+      karten.push(wegKarte('finden', bw('find'), fh));
+    }
+    if (e.h) karten.push(wegKarte('herstellen', bw('craft'), herstellenHtml(it, e)));
+    if (e.w) {
+      karten.push(wegKarte('wikelo', bw('wikelo'), '<span class="wzb-weg__n">' + esc(e.w === 1 ? bw('wikeloOne') : fuell(bw('wikeloMany'), { n: fmt(e.w) })) + '</span>' +
+        '<a class="wzb-weg__l" href="' + esc(wikeloHref(it)) + '">' + esc(bw('wikeloOpen')) + ' →</a>'));
+    }
+    if (e.s && e.s.length) {
+      var st = e.s.length === 1 ? fuell(bw('stockOne'), { name: e.s[0][0] })
+        : fuell(bw('stockMany'), { n: fmt(e.s.length), names: e.s.slice(0, STOCK_NAMEN).map(function (x) { return x[0]; }).join(', ') });
+      karten.push(wegKarte('ab-werk', bw('stock'), '<span class="wzb-weg__n">' + esc(st) + '</span>' + sprung('wzb-serie', bw('stockAll'))));
+    }
+    if (e.sp && e.sp.length) {
+      var sh = '<span class="wzb-weg__n">' + esc(e.sp.length === 1 ? bw('shipPartOne') : fuell(bw('shipPartMany'), { n: fmt(e.sp.length) })) + '</span><ul class="wzb-weg__z">' +
+        e.sp.slice(0, SCHIFFE_OFFEN).map(function (n) { return '<li><a href="' + esc(schiffHref(n)) + '">' + esc(n) + '</a></li>'; }).join('');
+      if (e.sp.length > SCHIFFE_OFFEN) sh += '<li>' + esc(fuell(bw('shipPartMore'), { n: fmt(e.sp.length - SCHIFFE_OFFEN), names: e.sp.slice(SCHIFFE_OFFEN).join(', ') })) + '</li>';
+      karten.push(wegKarte('schiffsteil', bw('shipPart'), sh + '</ul>'));
+    }
+    var sonder = [];
+    it.obtain.forEach(function (o) { if (o.kind === 'exclusive') { var l = obtainText(o); if (sonder.indexOf(l) < 0) sonder.push(l); } });
+    if (sonder.length) karten.push(wegKarte('sonderweg', bw('special'), '<span class="wzb-weg__n">' + esc(sonder.join(' · ')) + '</span>'));
+
+    var h2 = '<h3 class="wzb-h">' + esc(bw('title')) + '</h3>';
+    if (!karten.length) {
+      return h2 + '<p class="wzb-note" data-wege="0">' + esc(bw('none') + ' ' + bw('tip')) + ' <a href="' + esc(meldenHref(it)) + '" rel="nofollow">' + esc(bw('report')) + '</a></p>';
+    }
+    return h2 + '<ul class="wzb-wl" data-wege="' + karten.length + '">' + karten.join('') + '</ul>';
+  }
+  // Gleichnamige Items (D7): welches dieses ist und wo die anderen stehen.
+  function zwillingHtml(e) {
+    if (!e.z || !e.z.length) return '';
+    var h = '<p class="wzb-note wzb-zw" data-zwilling="' + esc(e.zs || '') + '">';
+    if (e.zs) h += esc(bw('twinThis')) + ' <b>' + esc(e.zs) + '</b>. ';
+    h += esc(bw(e.z.length === 1 ? 'twinItem' : 'twinItems')) + ' ';
+    h += e.z.map(function (z) {
+      var x = ITEMS[z[0]];
+      return x ? '<button type="button" class="wzb-link" data-oeffne="' + esc(x.id) + '">' + esc(z[1]) + '</button>' : '';
+    }).filter(Boolean).join(', ');
+    return h + '</p>';
+  }
+  function meldenHref(it) {
+    // Kennung im Formular: der Pfad des Items, wie das Datenblatt ihn
+    // schickte (Muster SEITE_OK in FeedbackForm.astro). Ein Pfad im Wert,
+    // kein Link dorthin.
+    return (C.feedback || '/feedback.html') + '?wert=' + (C.itemBase || '/items/') + encodeURIComponent(it.id) + '.html';
+  }
+  // Unter dem Rezept: Fahrzeug, ab Werk, Werkzeuge, Aehnliches, Melden.
+  function mehrHtml(it, e) {
+    var h = '';
+    if (e.v) {
+      h += '<p class="wzb-note" data-fahrzeug>' + esc(w('fahrzeugWerte')) + '</p>' +
+        '<div class="wzb-akt" style="margin-top:.5rem"><a class="wzb-neben" href="' + esc(schiffHref(it.name)) + '"><span class="wi wi--ship" aria-hidden="true"></span><span>' + esc(w('schiffZeigen')) + '</span>' + pfeil() + '</a></div>';
+    }
+    if (e.s && e.s.length) {
+      var alle = e.s.every(function (x) { return x[1]; }), keins = e.s.every(function (x) { return !x[1]; });
+      var lead = e.s.length === 1
+        ? tr(e.s[0][1] ? 'stockOneShip' : 'stockOneVehicle', '')
+        : fuell(tr(alle ? 'stockShips' : keins ? 'stockVehicles' : 'stockMixed', ''), { n: fmt(e.s.length) });
+      var chip = function (x) { return '<li><a class="wz-tag" href="' + esc(schiffHref(x[0])) + '">' + esc(x[0]) + '</a></li>'; };
+      h += '<h3 class="wzb-h" id="wzb-serie" tabindex="-1">' + esc(w('hSerie')) + '<em>' + fmt(e.s.length) + '</em></h3>' +
+        '<p class="wzb-note" style="margin:0 0 .6rem">' + esc(lead) + '</p>' +
+        '<ul class="wzb-chips wzb-serie" data-serie="' + e.s.length + '">' + e.s.slice(0, STOCK_OFFEN).map(chip).join('') + '</ul>';
+      if (e.s.length > STOCK_OFFEN) {
+        h += '<details class="wzb-mehr"><summary>' + esc(fuell(tr('stockMore', '{n}'), { n: fmt(e.s.length - STOCK_OFFEN) })) + '</summary>' +
+          '<ul class="wzb-chips wzb-serie">' + e.s.slice(STOCK_OFFEN).map(chip).join('') + '</ul></details>';
+      }
+    }
+    var wz = [];
+    if (e.f) wz.push('<a class="wzb-neben" data-werkzeug="bruch" href="' + esc(C.bruch || '/fracturing.html') + '"><span>' + esc(tr('toolFracturing', '')) + '</span>' + pfeil() + '</a>');
+    if (e.wm) wz.push('<a class="wzb-neben" data-werkzeug="wikelo-material" href="' + esc(wikeloHref(it)) + '"><span>' + esc(e.wm === 1 ? tr('toolWikeloMaterialOne', '') : fuell(tr('toolWikeloMaterial', ''), { n: fmt(e.wm) })) + '</span>' + pfeil() + '</a>');
+    if (e.w) wz.push('<a class="wzb-neben" data-werkzeug="wikelo-belohnung" href="' + esc(wikeloHref(it)) + '"><span>' + esc(e.w === 1 ? tr('toolWikeloRewardOne', '') : fuell(tr('toolWikeloReward', ''), { n: fmt(e.w) })) + '</span>' + pfeil() + '</a>');
+    if (wz.length) h += '<h3 class="wzb-h">' + esc(w('hWerkzeuge')) + '</h3><div class="wzb-akt">' + wz.join('') + '</div>';
+    if (e.r && e.r.length) {
+      var nb = e.r.map(function (n) { return ITEMS[n]; }).filter(Boolean);
+      h += '<h3 class="wzb-h">' + esc(w('hAehnlich')) + '<em>' + fmt(nb.length) + '</em></h3><ul class="wzb-zeilen" data-aehnlich>' + nb.map(function (x) {
+        // Wie die Karte auf dem Datenblatt: Preis ab, sonst wohin es gehoert.
+        var unter = x._p != null ? tr('thFrom', 'ab') + ' ' + auec(x._p)
+          : (x._gr ? x._gr.n : x._root) + (x._b && x.category.indexOf('/') > 0 ? ' · ' + x._b.n : '');
+        return '<li data-item="' + esc(x.id) + '"><button type="button" class="wzb-zeile" data-oeffne="' + esc(x.id) + '" style="--kc:' + x._kc + '">' +
+          '<span class="wz-z" data-g="' + x._g + '" aria-hidden="true"></span><span>' + esc(x._n) + '<small>' + esc(unter) + '</small></span>' + pfeil() + '</button></li>';
+      }).join('') + '</ul>';
+    }
+    h += '<p class="wzb-melden"><a href="' + esc(meldenHref(it)) + '" rel="nofollow" data-melden>' + esc(w('melden')) + '</a></p>';
+    return h;
+  }
+
+  // Kaufen nach System: Knoepfe ueber der Liste, wie die Bezugsquellen-Tabelle
+  // des Datenblatts; die Wahl teilt sich der Schluessel mit dem Blatt.
+  var SYS_SCHLUESSEL = 'vb-system';
+  function sysFilterEinsetzen(it, root) {
+    var leiste = root.querySelector('[data-sysfilter]');
+    var zeilen = it._zeilen;
+    if (!leiste || !zeilen) return;
+    var hat = karte(), ohne = false;
+    Array.prototype.forEach.call(root.querySelectorAll('.wzb-q li[data-z]'), function (li) {
+      var o = zeilen[+li.getAttribute('data-z')];
+      var ss = o ? zeilenSysteme(o) : [];
+      li.setAttribute('data-sys', ss.length ? ss.join(' ').toLowerCase() : 'ohne');
+      if (!ss.length) ohne = true;
+      ss.forEach(function (s) { hat[s] = 1; });
+    });
+    var knoepfe = SYSTEME.filter(function (s) { return hat[s]; }).map(function (s) { return [s.toLowerCase(), s]; });
+    if (ohne) knoepfe.push(['ohne', bw('buyNoSystem')]);
+    if (knoepfe.length < 2) return;
+    leiste.setAttribute('aria-label', bw('sysFilter'));
+    leiste.innerHTML = '<button type="button" class="wzb-sysb" aria-pressed="true" data-sys="">' + esc(bw('sysAll')) + '</button>' +
+      knoepfe.map(function (k) { return '<button type="button" class="wzb-sysb" aria-pressed="false" data-sys="' + k[0] + '">' + esc(k[1]) + '</button>'; }).join('');
+    leiste.hidden = false;
+    var gemerkt = '';
+    try { gemerkt = localStorage.getItem(SYS_SCHLUESSEL) || ''; } catch (e) { /* privat */ }
+    if (gemerkt && knoepfe.some(function (k) { return k[0] === gemerkt; })) zeigeSystem(root, gemerkt);
+  }
+  function zeigeSystem(root, sys) {
+    // Mit einem System stehen alle seine Zeilen da: „Alle zeigen“ entfaellt.
+    var alle = root.querySelector('[data-alle-quellen]');
+    if (alle && sys) alle.remove();
+    Array.prototype.forEach.call(root.querySelectorAll('[data-sysfilter] button[data-sys]'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-sys') === sys));
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('.wzb-q li[data-z]'), function (li) {
+      if (!sys) { if (!alle || +li.getAttribute('data-z') < 8) li.hidden = false; return; }
+      li.hidden = (li.getAttribute('data-sys') || '').split(' ').indexOf(sys) < 0;
+    });
+  }
+
+  function wegeEinsetzen(it, oben, unten) {
+    if (!WEGE) {
+      // Ohne die Datei fehlen nur die Wege; „Falschen Wert melden“ bleibt.
+      if (oben) oben.remove();
+      if (unten && unten.isConnected) unten.innerHTML = mehrHtml(it, {});
+      return;
+    }
+    var e = WEGE.i[it._i] || {};
+    if (oben && oben.isConnected) {
+      oben.innerHTML = zwillingHtml(e) + wegeHtml(it, e);
+      var root = oben.parentNode;
+      if (root) { sysFilterEinsetzen(it, root); setPreisNachtragen(root); }
+    }
+    if (unten && unten.isConnected) unten.innerHTML = mehrHtml(it, e);
   }
 
   // „In 3D ansehen“ (nur Vorschau-Bau, src/lib/item3d.ts): der Dialog steht
@@ -1207,8 +1500,8 @@
       .catch(function () { i3dLaeuft = null; });
     return i3dLaeuft;
   }
-  // Knopf ins Blatt des Items, wenn es ein Modell hat: direkt hinter
-  // „Datenblatt oeffnen“, sonst an den Anfang der Handlungen. Nur in genau
+  // Knopf ins Blatt des Items, wenn es ein Modell hat: hinter dem Hauptknopf
+  // (bei Erzen die Mining-Seite), sonst an den Anfang der Handlungen. Nur in genau
   // das Blatt, fuer das er bestellt wurde (der Rueckruf kommt spaeter).
   function i3dEinsetzen(it, akt) {
     if (!I3D || !I3D[it.id] || !akt || !akt.isConnected || akt.querySelector('[data-i3d-zeige]')) return;
@@ -1279,8 +1572,14 @@
     // anderes und wieder dieses Item, ist der alte Platzhalter weg, und nur
     // der juengste Aufruf fuellt das Blatt.
     var platz = document.getElementById('wzb-craft');
+    var oben = document.getElementById('wzb-wege'), unten = document.getElementById('wzb-mehr');
+    // Jeder Abschnitt kommt, sobald seine Datei da ist; „Falschen Wert
+    // melden“ steht sofort und wartet auf keine.
+    if (unten) unten.innerHTML = mehrHtml(it, {});
     if (CRAFT) craftEinsetzen(it, platz);
-    else ladeCraft().then(function () { craftEinsetzen(it, platz); });
+    else ladeCraft().then(function () { craftEinsetzen(it, platz); herstellenNachtragen(it, oben); });
+    if (WEGE) wegeEinsetzen(it, oben, unten);
+    else ladeWege().then(function () { wegeEinsetzen(it, oben, unten); });
     var akt = document.getElementById('wzb-akt');
     if (I3D) i3dEinsetzen(it, akt);
     else if (I3D_DLG) { var l3 = ladeI3d(); if (l3) l3.then(function () { i3dEinsetzen(it, akt); }); }
@@ -1294,6 +1593,9 @@
     S.item = null;
     zeigeBlatt(blattSatz(st));
     markiere();
+    // Die Preiszeile des Sets kommt mit /items-wege.json.
+    if (WEGE) setPreisNachtragen(el.inh);
+    else ladeWege().then(function () { setPreisNachtragen(el.inh); });
     if (!opt.still) telefonAuf();
     if (!opt.ohneUrl) schreibeUrl();
   }
@@ -1540,6 +1842,24 @@
       var b = null;
       if (gr) gr.b.forEach(function (x) { if (x.s === t.getAttribute('data-kat')) b = x; });
       if (b) { telefonZu(false); waehleKat(gr, b); }
+    } else if (t.hasAttribute('data-sys') && t.closest('[data-sysfilter]')) {
+      var sys = t.getAttribute('data-sys') || '';
+      zeigeSystem(el.inh, sys);
+      try { if (sys) localStorage.setItem(SYS_SCHLUESSEL, sys); else localStorage.removeItem(SYS_SCHLUESSEL); } catch (e3) { /* privat: nur ohne Merken */ }
+    } else if (t.hasAttribute('data-sprung')) {
+      // „Alle Verkaufsstellen ↓“ & Co.: im Blatt zum Abschnitt, Fokus dorthin.
+      var ziel = document.getElementById(t.getAttribute('data-sprung'));
+      if (ziel && el.inh.contains(ziel)) {
+        if (ziel.id === 'wzb-quellen') {
+          // „Alle“ heisst alle: auch die Zeilen hinter „Alle zeigen“ und die
+          // anderer Systeme. Die gemerkte Systemwahl bleibt fuers naechste Item.
+          var mehrQ = el.inh.querySelector('[data-alle-quellen]');
+          if (mehrQ) mehrQ.remove();
+          zeigeSystem(el.inh, '');
+        }
+        try { ziel.scrollIntoView({ block: 'start', behavior: STILL.matches ? 'auto' : 'smooth' }); } catch (e4) { ziel.scrollIntoView(); }
+        try { ziel.focus({ preventScroll: true }); } catch (e5) {}
+      }
     } else if (t.hasAttribute('data-alle-quellen')) {
       // Der Knopf verschwindet; der Fokus geht auf die erste neu gezeigte
       // Quelle, statt auf den Seitenanfang zu fallen.

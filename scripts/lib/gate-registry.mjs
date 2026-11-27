@@ -786,7 +786,7 @@ export const CHECKS = [
     script: 'scripts/verify-bezugswege.mjs',
     rail: 'A',
     checks:
-      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet), und sein Abschnitt „Technische Daten“ sagt, dass die Werte dort stehen, und verlinkt dasselbe Schiffsblatt (IA C8); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“, und jede Zahl der Spalte (auch jedes Ende einer Spanne) ist die Groesse eines Pools genau dieser Mission, gezaehlt als verschiedene Bauplaene (src/data/missions.json), nicht die Summe der Familie und nicht die Zahl ihrer Bauplan-Seiten, und Zeile fuer Zeile im Tabellenkoerper (jede traegt data-mission, auch ohne Link, und die Mission hat Pool-Daten; geprueft = Zeilen der Tabellen) sagt der sichtbare Text der Zelle („1 von 8“, „1 von 5–8“, „nur dieser“) dieselbe Zahl wie data-pool/data-pool-min, und eine Spanne steigt auf; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache; gleichnamige Seiten (aus der Ueberschrift ermittelt, nicht aus dem Hinweis) tragen alle den Hinweis data-zwilling und verlinken alle anderen, keine Seite ohne Zwilling traegt ihn; [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau dann, wenn die Zeilen mehr als ein System (oder „ohne“) nennen; [12] Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf, jeden fuer sich (als Weg data-mat-weg oder ausdrueckliches „nein“/„unbekannt“ data-mat-ohne; Zerlegen ersetzt keinen der beiden) und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; [15] jeder Link auf eine Missionsseite in der Missionstabelle eines Bauplans und im Block „So bekommst du es“ traegt denselben Namen wie die Missionsseite (ihr <title> vor „ — “: Titel samt unterscheidendem Zusatz), Klinke fuer die Zahl der Missionslinks; [16] jedes Item-Blatt beider Sprachen traegt den Abschnitt „Technische Daten“ (#technische-daten), und er ist nicht leer: Werte, Angaben (Hersteller, Beschreibung), der Link aufs Schiffsblatt oder ein benannter Hinweis „keine Leistungswerte“ (data-specs-ohne-werte) bzw. „kein Item dieses Namens im Spiel“ (data-specs-nicht-im-spiel) im Wortlaut von src/i18n/itemText.ts, genau wo der Katalog game.ohneWerte bzw. nichtImSpiel setzt (IA C8), Klinke fuer Flugblatt-Seiten mit Flugwerten, Decke fuer Blaetter „nicht im Spiel“; die Crafting-Werkbank (window.__CRAFT.wege beider Sprachen) kennt jedes Material der Bauplan-Seiten mit derselben Aussage zu Kaufen und Zerlegen, so viele Rezepte ohne Mission mit Weg zum Item und Wikelo-Bauplaene wie die Seiten, alle Texte, und das ausgelieferte Skript zeichnet sie (Klinke fuer Rezepte ohne Mission mit Weg); Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
+      'jedes Item-Blatt beider Sprachen zeigt „So bekommst du es" mit mindestens einem Weg oder Hinweis-Link; verlinkt der Block einen Bauplan, dessen Seite Missionen verlinkt, nennt er selbst mindestens eine Mission; jede Bauplan-Seite verlinkt Missionen oder sagt ihre Quelle ehrlich (data-quelle) mit Hinweis-Link auf genau diese Seite, die alte Vermutung „evtl. über Shop oder Reputation" steht nirgends; kein Blatt zeigt Feuerrate oder Magazin als Kennzahl und noch einmal im Beschreibungstext; assets/ und dist/assets/universal-items.json stehen auf dem Stand der Regel in scripts/lib/hersteller-zeilen.mjs und tragen dieselbe Feuerrate und dasselbe Magazin je Item; jedes Fahrzeug-Itemblatt verlinkt sichtbar sein eigenes Schiffsblatt (gleiche Ueberschrift wie src/lib/vehicleItems.ts zuordnet), und sein Abschnitt „Technische Daten“ sagt, dass die Werte dort stehen, und verlinkt dasselbe Schiffsblatt (IA C8); Klinken fuer Item-Blaetter, Item-Blaetter mit Missionslink, Bauplan-Seiten, Fahrzeug-Itemblaetter und Katalog-Items; zweite Stufe: [7] jede Zeile der Missionstabelle eines Bauplans nennt ihren Pool (data-pool), keine Zelle sagt nur „100 %“, und jede Zahl der Spalte (auch jedes Ende einer Spanne) ist die Groesse eines Pools genau dieser Mission, gezaehlt als verschiedene Bauplaene (src/data/missions.json), nicht die Summe der Familie und nicht die Zahl ihrer Bauplan-Seiten, und Zeile fuer Zeile im Tabellenkoerper (jede traegt data-mission, auch ohne Link, und die Mission hat Pool-Daten; geprueft = Zeilen der Tabellen) sagt der sichtbare Text der Zelle („1 von 8“, „1 von 5–8“, „nur dieser“) dieselbe Zahl wie data-pool/data-pool-min, und eine Spanne steigt auf; [8] der Planer-Knopf steht je Bauplan- und Crafting-Kategorieseite hoechstens einmal; [9] kein Seitentitel doppelt unter den Item- und Bauplan-Seiten einer Sprache; gleichnamige Seiten (aus der Ueberschrift ermittelt, nicht aus dem Hinweis) tragen alle den Hinweis data-zwilling und verlinken alle anderen, keine Seite ohne Zwilling traegt ihn; [10] Schiffsteile verlinken ihr Schiff, Decke fuer Item-Blaetter ganz ohne Weg; [11] Bezugsquellen ohne Ø-Preis je Zeile, Preisspalte nur mit Preis, keine Zelle nur mit „—“, Systemfilter genau dann, wenn die Zeilen mehr als ein System (oder „ohne“) nennen; [12] Bauplan-Seiten nennen fuer JEDES Material Abbau und Kauf, jeden fuer sich (als Weg data-mat-weg oder ausdrueckliches „nein“/„unbekannt“ data-mat-ohne; Zerlegen ersetzt keinen der beiden) und schlagen nie vor, das herzustellende Item selbst zu zerlegen; Klinken fuer Pool-Tabellen, Material-Seiten, Schiffsteile und Bezugstabellen; [13] Blueprint-Verzeichnis und Werkbank nennen je Sprache dieselbe Zahl wie die Bauplan-Seiten, gezeigt + ohne Item ergibt den Spielbestand in crafting-db.json, und die ausgelieferte Crafting-Datenbank zeigt Mengen in SCU, nirgends als cSCU; [14] „Ähnliche Items“ einer Handwaffe: gleiche Waffenart (scripts/lib/waffen-art.mjs) vor jeder anderen, erste Karte mit dieser Art, sobald die Kategorie eine zweite Waffe dieser Art kennt, hoechstens drei Ausfuehrungen je Modell, Klinke fuer Handwaffen-Blaetter; [15] jeder Link auf eine Missionsseite in der Missionstabelle eines Bauplans und im Block „So bekommst du es“ traegt denselben Namen wie die Missionsseite (ihr <title> vor „ — “: Titel samt unterscheidendem Zusatz), Klinke fuer die Zahl der Missionslinks; [16] jedes Item-Blatt beider Sprachen traegt den Abschnitt „Technische Daten“ (#technische-daten), und er ist nicht leer: Werte, Angaben (Hersteller, Beschreibung), der Link aufs Schiffsblatt oder ein benannter Hinweis „keine Leistungswerte“ (data-specs-ohne-werte) bzw. „kein Item dieses Namens im Spiel“ (data-specs-nicht-im-spiel) im Wortlaut von src/i18n/itemText.ts, genau wo der Katalog game.ohneWerte bzw. nichtImSpiel setzt (IA C8), Klinke fuer Flugblatt-Seiten mit Flugwerten, Decke fuer Blaetter „nicht im Spiel“; [17] in der Crafting-Werkbank (window.__CRAFT beider Sprachen) fuehrt der Name jedes Materials, das auf den Bauplan-Seiten einen Fundort hat, genau dorthin, wohin „Abbauen“ auf dem Blatt fuehrt (Mining-Seite mit diesem Mineral; eine eigene Materialwege-Liste hat die Werkbank nicht mehr), die Werkbank kennt so viele Rezepte ohne Mission mit Weg zum Item und Wikelo-Bauplaene wie die Seiten, alle Texte, und das ausgelieferte Skript zeichnet Fundort-Link und Quelle (Klinken fuer Materialien mit Fundort und Rezepte ohne Mission mit Weg); Kaufzeilen ohne Systemangabe nur als Selbstauskunft',
     // VORGEFUEHRT ROT am 24.11.2026 gegen den Bau dieser Lieferung, sieben
     // Eingriffe in dist/, je Datei zurueckgespielt und per sha256 geprueft:
     // Block auf /items/karna-rifle.html umbenannt, Missionslinks im Block von
@@ -952,6 +952,21 @@ export const CHECKS = [
     // nicht); exit 1. Zurueckgespielt, beide Dateien per sha256 wie vorher,
     // gruen: 36 Materialien je Sprache, 846 Rezepte ohne Mission mit Weg
     // (Klinke 820), 1 Wikelo-Bauplan.
+    // [17] umgestellt am 27.11.2026 (Krisz: „einfach auf den Namen der
+    // Material [klicken] und man kommt bei der Mining Seite raus“): die
+    // Werkbank hat keine Materialwege-Liste mehr, das Tor prueft statt Kaufen
+    // und Zerlegen, dass der Materialname zum selben Fundort fuehrt wie
+    // „Abbauen“ auf dem Blatt. VORGEFUEHRT ROT am 27.11.2026 gegen den
+    // Live-Bau: in /topics/crafting.html window.__CRAFT.mine „Iron“ auf das
+    // Mineral Copper gesetzt, in /de/topics/crafting.html „Gold“ aus
+    // mine.names gestrichen, in dist/assets/crafting-app.js „cdb-mine“
+    // ersetzt, auf /crafting/10-series-greatsword-cannon.html den Fundort von
+    // Titanium auf Tin gesetzt -> 4 FEHLER, je einer pro Eingriff (Skript
+    // zeichnet cdb-mine nicht, Blaetter uneins bei Titanium, Iron fuehrt
+    // woanders hin, Gold ohne Fundort-Link); exit 1. Zurueckgespielt, alle
+    // vier Dateien per sha256 wie vorher (8980bf21, 0d754afb, 8aac8a14,
+    // cddb8433), gruen: 36 Materialien mit Fundort (Klinke 34), Name als
+    // Fundort-Link 36 von 36 je Sprache.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
@@ -1360,6 +1375,51 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'Verzeichnisse nur fuer Google: das Blueprint-Verzeichnis (/crafting.html) und seine Kategorieseiten (/crafting/category/*) sind je Sprache gebaut (Klinken 1 und 60) und stehen im Live-Bau in der Sitemap (im Vorschau-Bau sind die Sitemaps absichtlich leer, der Teil entfaellt und die Kopfzeile sagt es); kein <a href> einer anderen gebauten Seite (in einem Durchgang wie der HTML-Tokenizer gelesen: nur echte Kommentare fallen weg, keine Anker aus Attributwerten, Tagnamen ganz verglichen, Anker in Rohtext wie Skriptvorlagen mitgezaehlt; href als ganzes Attribut gelesen, Zeichenreferenzen wie im HTML-Parser entschluesselt, gegen die Seite aufgeloest und normalisiert, Pfad ohne Abfrage und Sprungmarke, eigene Domain wie ein Pfad) zeigt auf eine dieser Seiten; kein Eintrag beider Suchregister je Sprache zeigt mit u oder c hinein; Klinken fuer gepruefte Seiten, Links und Sucheintraege; ein Bau ohne lesbaren Stempel (dist/build.json) wird abgelehnt',
+  },
+  {
+    // Neuzugang 27.11.2026 (Krisz: „Da steht wieder ganz fett Datenblatt
+    // öffnen. Aber wofür sollte ein User den Datenblatt öffnen?“). Die
+    // Items-Werkbank fuehrt nicht mehr aufs Item-Datenblatt; was nur das
+    // Blatt wusste, steht im Blatt der Werkbank, aus denselben Funktionen
+    // gerechnet (/items-wege.json, src/lib/itemsWerkbankWege.ts). Dieses Tor
+    // haelt beide gegeneinander: Werkbank im Pruefstand aus dem
+    // ausgelieferten Skript, Blatt aus dist/. Kein git, kein Netz; esbuild
+    // wie verify:clienttext. Laufzeit gut 65 s in der Cloud.
+    // VORGEFUEHRT ROT am 27.11.2026 (Live-Bau dieses Stands) zweimal:
+    // (a) --js auf das Skript von origin/staging 5a85f600 (vor dieser
+    // Lieferung): 89.760 FEHLER, darunter „/items-wege.json ist nicht
+    // geladen“, [11] Datenblatt- und Kategorielisten-Links, [12] kein
+    // „Melden“, [1] [3] [4] [10] fehlende Antworten; Exit 1.
+    // (b) --js auf eine Kopie des neuen Skripts mit Missionszahl minus eins
+    // und einem Link aufs Item-Datenblatt neben „Melden“: 20.296 FEHLER =
+    // 1.372 [2] „Blatt 12, Werkbank 11“ (686 Blaetter je Sprache) und
+    // 18.924 [11] (9.462 Items je Sprache); Exit 1. Gruen mit dem
+    // ausgelieferten Skript. Erster Lauf fand einen Lesefehler des Tors
+    // selbst ([2] las auf dem Blatt nur bis zur ersten Missionszeile).
+    // (c) nach dem CodeRabbit-Review (PR #487): [10] vergleicht Paare
+    // Ort=System statt der sortierten Systeme, [11] liest jedes href (auch
+    // einfach zitiert) und loest es gegen die Seite auf. --js auf eine Kopie,
+    // die die Systeme der Bezugszeilen um eine Zeile verschiebt (gleiche
+    // Menge, falsche Zuordnung) und „items/<id>.html“ einfach zitiert neben
+    // „Melden“ setzt: 26.014 FEHLER = 7.090 [10] und 18.924 [11]; Exit 1.
+    // Der erste Lauf der Paare fand 1.057 echte FEHLER auf DE: Ortsarten
+    // ohne bestaetigten Ort standen in der Werkbank englisch, auf dem Blatt
+    // deutsch (behoben: C.lootOrte aus src/i18n/lootText.ts).
+    // (d) zweites CodeRabbit-Review (PR #487, 7196ef3c): [3] vergleicht
+    // die Schiffsnamen, neu [13] die Werte-Zeilen (Bezeichnung=Wert, auch je
+    // Variante). --js auf das ausgelieferte Skript von 7196ef3c (ohne
+    // Flugwerte): 128 FEHLER, alle [13], alle Flugblaetter (64 je Sprache,
+    // „Blatt [SCM-Geschwindigkeit=205 m/s|…], Werkbank []“); jede andere der
+    // 11.285 Wertezeilen je Sprache stimmte schon. --js auf eine Kopie, deren
+    // Chips ab Werk alle das erste Schiff nennen (Zahl gleich): 384 FEHLER,
+    // alle [3], z. B. „Blatt [Blade|Vanduul Scythe], Werkbank [Blade|Blade]“;
+    // Exit 1 beide Male, gruen mit dem neuen Skript.
+    id: 'verify:werkbank-items',
+    npm: 'verify:werkbank-items',
+    script: 'scripts/verify-werkbank-items.mjs',
+    rail: 'A',
+    checks:
+      'die Items-Werkbank beantwortet fuer jedes Item mit Datenblatt beider Sprachen, was das gebaute Blatt beantwortet: dieselben Bezugswege, dieselbe Zahl Missionen zum Bauplan, dieselben Schiffe ab Werk (Namen, mehrfache mehrfach, jedes verlinkt), dieselben aehnlichen Items in derselben Reihenfolge, dieselben gleichnamigen Items, derselbe Set-Preis-Text, gleich viele Wege in die Werkzeuge, der Fahrzeug-Hinweis, dieselbe Preisspanne je Bezugszeile (gepaart ueber ihren Ort) dasselbe Sternsystem und dieselben technischen Daten (Bezeichnung und Wert in Folge, Varianten eingeschlossen); kein Blatt der Werkbank (jedes Item, jedes Set) verlinkt ein Item-, Schiffs-, Missions- oder Bauplan-Datenblatt, eine Kategorieliste oder ein Verzeichnis, gleich wie das href zitiert ist und aufgeloest gegen die Werkbank-Seite; jedes Item-Blatt der Werkbank traegt „Falschen Wert melden“; /items-wege.json passt zum Katalog; Klinken je Sprache fuer Items, Blaetter, Wege, Missionen, ab Werk, aehnliche, Set-Preise, Werkzeuge, Fahrzeuge, Spannen, Systemzeilen und Sets',
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

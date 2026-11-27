@@ -332,19 +332,16 @@ export function materialWege(material: string, ohne?: string | null): MaterialWe
   };
 }
 
-/* ---------- Crafting-Werkbank: dieselben Wege im Rezept ---------- */
+/* ---------- Crafting-Werkbank: woher der Bauplan kommt ---------- */
 
-// Krisz 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „alle drei wege
-// auf die werkbank einbauen“ (zum Material) und „hier soll craftingwerkbank
-// wie datenblatt funktionieren“ (Bauplan ohne Mission). Die Werkbank rendert
-// im Browser; sie bekommt hier dieselben Antworten wie das Bauplan-Blatt,
-// knapp verpackt fuer window.__CRAFT.wege (CraftingApp.astro):
-//   mat   Material -> [kaufen, zerlegen]
-//         kaufen   1 am Rohstoff-Terminal kaufbar, 0 nicht, null unbekannt
-//         zerlegen 'x' gibt das Spiel nie zurueck, null kein Item, sonst die
-//                  zwei besten Items je aUEC (wie materialWege). Zwei, damit
-//                  die Werkbank das Item des Rezepts selbst ueberspringt: es
-//                  zu zerlegen, um es zu bauen, waere kein Weg.
+// Krisz 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „hier soll
+// craftingwerkbank wie datenblatt funktionieren“ (Bauplan ohne Mission). Die
+// Werkbank rendert im Browser; sie bekommt hier dieselben Antworten wie das
+// Bauplan-Blatt, knapp verpackt fuer window.__CRAFT.wege (CraftingApp.astro).
+// Wege je Material (Abbauen, Kaufen, Zerlegen) bekommt sie nicht: im Rezept
+// ist der Materialname selbst der Link zu den Fundorten (Krisz 27.11.2026:
+// „einfach auf den Namen der Material [klicken] und man kommt bei der Mining
+// Seite raus“); die volle Liste steht weiter auf dem Bauplan-Blatt.
 //   wik   Rezepte (Index), deren Bauplan Wikelo tauscht. Wikelo gibt heute
 //         keinen Rezept-Rohstoff her (er verlangt nur welche); am Material
 //         steht er deshalb nicht, sondern am Bauplan und am fertigen Item.
@@ -355,27 +352,14 @@ export function materialWege(material: string, ohne?: string | null): MaterialWe
 //         wenn nicht kaufbar; Marken f finden, s ab Werk, w Wikelo.
 //         Beispiel „18:1097f;21:fs“. Nur Rezepte mit mindestens einem Weg.
 export interface WerkbankWege {
-  mat: Record<string, [1 | 0 | null, 'x' | string[] | null]>;
   wik: number[];
   ohne: string;
 }
 
 export function werkbankWege(): WerkbankWege {
-  const mat: WerkbankWege['mat'] = {};
   const wik: number[] = [];
   const ohne: string[] = [];
   for (const b of blueprints) {
-    for (const ing of b.ingredients ?? []) {
-      for (const o of ing.options ?? []) {
-        if (!o.name || mat[o.name]) continue;
-        const k = klein(o.name);
-        const quellen = zerlegQuellen.get(k) ?? [];
-        mat[o.name] = [
-          kaufbar.has(k) ? (kaufbar.get(k) ? 1 : 0) : null,
-          sperrliste.has(k) ? 'x' : quellen.length ? quellen.slice(0, 2).map((it) => it.name) : null,
-        ];
-      }
-    }
     if (wikeloBlueprintTrades(b.name) > 0) wik.push(b.index);
     if (b.missions?.length) continue;
     const it = itemForBlueprint(b);
@@ -386,5 +370,5 @@ export function werkbankWege(): WerkbankWege {
     const ab = w.kaufen?.ab && w.kaufen.ab > 0 ? String(Math.round(w.kaufen.ab)) : '';
     if (ab || marken) ohne.push(`${b.index}:${ab}${marken}`);
   }
-  return { mat, wik, ohne: ohne.join(';') };
+  return { wik, ohne: ohne.join(';') };
 }

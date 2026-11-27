@@ -118,7 +118,6 @@ const JS_T = {
     // des Skripts („Kategorie: … · Kaufort: …“).
     category: 'Kategorie', calcLocation: 'Kaufort',
     openInFinder: 'Item ansehen',
-    openItem: 'Item-Datenblatt öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
     whereToMine: 'Wo abbauen: {name}',
@@ -152,7 +151,6 @@ const JS_T = {
     calcRareLabel: '(rare)',
     category: 'Category', calcLocation: 'Sold at',
     openInFinder: 'View item',
-    openItem: 'Open item data sheet',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
     whereToMine: 'Where to mine: {name}',
@@ -221,13 +219,14 @@ function fmtT(sec: number | null) {
 // Reihenfolge und Index kommen aus lib/crafting (identisch mit DB.blueprints) —
 // von dort stammt auch der Slug, damit der Kartenname auf dieselbe URL zeigt
 // wie Sitemap und Blueprint-Seite.
-// Rezept -> Item-Datenblatt fuer den Link im Rezept-Fenster (09.11.2026,
-// Skizze 016: vom Rezept zum Datenblatt statt in den Item Finder). Kompakt:
-// bei 1.551 von 1.572 Rezepten mit Datenblatt ist die Item-Adresse gleich dem
-// Rezept-Slug, den die Karte ohnehin verlinkt; mitgeschickt werden nur die
-// Abweichungen und die Rezepte ohne Datenblatt (dort bleibt der Finder).
+// Rezept -> Item in der Items-Werkbank fuer den Link im Rezept-Fenster
+// (Krisz 27.11.2026: „statt item-datenblatt soll es zum neuen item seite
+// leiten“; bis dahin das Datenblatt, Skizze 016 vom 09.11.2026). Kompakt: bei
+// 1.551 von 1.572 Rezepten mit Item ist die Item-Id gleich dem Rezept-Slug,
+// den die Karte ohnehin verlinkt; mitgeschickt werden nur die Abweichungen und
+// die Rezepte ohne Item-Seite (dort sucht die Werkbank beim Namen).
 const itemLinks: { base: string; diff: Record<number, string>; none: number[] } = {
-  base: href('/items/', lang),
+  base: href('/items.html', lang),
   diff: {},
   none: [],
 };
@@ -315,20 +314,16 @@ const WB = lang === 'de'
 // Namen der Planer-Knoepfe fuer Vorleser).
 const WB_JS = lang === 'de'
   ? { missions: 'Missionen', more: 'Eins mehr', less: 'Eins weniger', remove: 'Aus dem Planer nehmen', planCount: 'Stück im Planer',
-      itemSheet: 'Item-Datenblatt', dismantle: 'Zerlege-Rechner', show: '{n} anzeigen', showNone: 'Keine Treffer',
-      poolTitle: 'Blueprints dieser Mission', poolHint: 'Ein Klick öffnet das Rezept.', minQ: 'ab Qualität',
-      // Woher die Materialien kommen: Spalten und Werte (Krisz 27.11.2026)
-      wegMine: 'Abbauen', wegBuy: 'Kaufen', wegSalvage: 'Zerlegen', wegMineLink: 'Fundorte', wegBuyYes: 'am Rohstoff-Terminal',
-      wegSalvageFrom: 'aus {item}', wegSalvageNone: 'kein Item bekannt', wegSalvageTitle: 'Zerlege-Rechner: alle Items mit {mat}' }
+      itemPage: 'Item ansehen', dismantle: 'Zerlege-Rechner', show: '{n} anzeigen', showNone: 'Keine Treffer',
+      poolTitle: 'Blueprints dieser Mission', poolHint: 'Ein Klick öffnet das Rezept.', minQ: 'ab Qualität' }
   : { missions: 'Missions', more: 'One more', less: 'One less', remove: 'Remove from planner', planCount: 'items in the planner',
-      itemSheet: 'Item data sheet', dismantle: 'Dismantle calculator', show: 'Show {n}', showNone: 'No matches',
-      poolTitle: 'Blueprints from this mission', poolHint: 'Click one to open its recipe.', minQ: 'quality from',
-      wegMine: 'Mine', wegBuy: 'Buy', wegSalvage: 'Dismantle', wegMineLink: 'Locations', wegBuyYes: 'at commodity terminals',
-      wegSalvageFrom: 'from {item}', wegSalvageNone: 'no item known', wegSalvageTitle: 'Dismantle calculator: every item with {mat}' };
-// Werkbank: Wege zu Material und Bauplan wie auf dem Bauplan-Blatt (Krisz
-// 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „alle drei wege auf die
-// werkbank einbauen“, „hier soll craftingwerkbank wie datenblatt
-// funktionieren“). Daten aus src/lib/bezugswege.ts (werkbankWege), Texte
+      itemPage: 'View item', dismantle: 'Dismantle calculator', show: 'Show {n}', showNone: 'No matches',
+      poolTitle: 'Blueprints from this mission', poolHint: 'Click one to open its recipe.', minQ: 'quality from' };
+// Werkbank: woher der Bauplan kommt, wie auf dem Bauplan-Blatt (Krisz
+// 27.11.2026 im Bericht „Datenblätter und Werkbänke“: „hier soll
+// craftingwerkbank wie datenblatt funktionieren“). Wege je Material bekommt
+// die Werkbank nicht mehr: der Materialname im Rezept fuehrt zu den Fundorten
+// (Krisz 27.11.2026). Daten aus src/lib/bezugswege.ts (werkbankWege), Texte
 // dieselben wie auf dem Blatt (src/i18n/bezugswegeText.ts).
 const bwt = bwT(lang);
 const WEGE = werkbank
@@ -342,8 +337,7 @@ const WEGE = werkbank
   : undefined;
 const WEGE_T = werkbank
   ? Object.fromEntries(
-      (['matTitle', 'matMine', 'matMineNone', 'matBuy', 'matBuyNone', 'matBuyUnknown', 'matSalvage', 'matSalvageNone',
-        'bpSourceTitle', 'bpSourceUnknown', 'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText',
+      (['bpSourceTitle', 'bpSourceUnknown', 'bpSourceUnknownText', 'bpSourceWikelo', 'bpSourceWikeloText',
         'bpNextTitle', 'bpNextItem', 'bpNextItemBuy', 'bpNextItemFind', 'bpNextItemStock', 'bpNextItemWikelo',
         'bpNextItemOpen', 'bpNextReport', 'report'] as const).map((k) => [k, bwt(k)]),
     )

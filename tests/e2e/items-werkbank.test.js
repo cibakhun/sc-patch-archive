@@ -9,6 +9,13 @@
 // Sortierung, Blatt mit Bezugsquellen, Crafting-Rezept, Fehler- und
 // Leerzustaende, Erze, Adresse.
 //
+// Seit dem 27.11.2026 fuehrt das Blatt nicht mehr aufs Item-Datenblatt
+// (Krisz: „wofür sollte ein User den Datenblatt öffnen?“); was nur das Blatt
+// wusste, kommt aus /items-wege.json (src/lib/itemsWerkbankWege.ts). Hier
+// steht ein Fixture dieser Datei in Katalog-Reihenfolge; dass die echte
+// Datei dieselben Antworten gibt wie das gebaute Blatt, prueft
+// verify:werkbank-items.
+//
 // Lauf: die GEBAUTE Seite dist/de/items.html (Markup, Texte) im Pruefstand
 // (linkedom, scripts/lib/pruefstand.mjs), darin nur das Konfigurations-
 // Skript und das KANONISCHE Skript assets/items-werkbank.js. Kategoriebaum
@@ -90,6 +97,35 @@ function makeDb(fuellung = 0) {
   };
 }
 
+/**
+ * /items-wege.json zum Fixture: Positionen wie in makeDb(). Die Orte sind
+ * erfunden zugeordnet (Cubby Blast in Pyro), damit ein Item zwei Systeme hat.
+ */
+function makeWege(db) {
+  const pos = new Map(db.items.map((it, i) => [it.id, i]));
+  const i = db.items.map(() => null);
+  const setze = (id, e) => { if (pos.has(id)) i[pos.get(id)] = e; };
+  setze('alpha-rifle', {
+    h: 1,
+    m: [5, ['Mission A', ''], ['Mission B', 'Stanton'], ['Mission C', '']],
+    s: [['Aurora MR', 1], ['Cutlass Black', 1]],
+    r: [pos.get('eta-pistol'), pos.get('zeta-pistol')],
+  });
+  setze('beta-helmet', { w: 2 });
+  setze('epsilon-runner', { v: 1 });
+  setze('eta-pistol', { f: 1, wm: 1 });
+  return {
+    sys: {
+      'Live Fire Weapons - Area 18': 'Stanton',
+      'Armor Shop - Lorville': 'Stanton',
+      'Cubby Blast - Area 18': 'Pyro',
+      'Astro Armada - Area 18': 'Stanton',
+    },
+    i,
+    sets: {},
+  };
+}
+
 const CRAFT = {
   blueprints: [
     { name: 'Alpha Rifle', craft_time_seconds: 90, tiers: 2, ingredients: [{ slot: 'Metall', options: [{ name: 'Iron', quantity_scu: 2 }] }] },
@@ -99,7 +135,9 @@ const CRAFT = {
 /**
  * Oeffnet die Items-Seite mit dem Fixture.
  * opt.db: Katalog (Objekt) oder { status } fuer einen Fehler; opt.craft
- * ebenso; opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
+ * ebenso oder ein Versprechen darauf; opt.wege: /items-wege.json (Vorgabe: makeWege zum Katalog) oder
+ * { status } oder ein Versprechen darauf (kommt, wenn der Test es einloest);
+ * opt.query: Adresse (?q=…); opt.sprache: 'de' (Vorgabe) oder 'en'.
  */
 async function seite(opt = {}) {
   const lang = opt.sprache || 'de';
@@ -107,7 +145,9 @@ async function seite(opt = {}) {
   const db = opt.db === undefined ? makeDb() : opt.db;
   antworten.set('/assets/universal-items.json', db && db.status ? db : JSON.stringify(db));
   const craft = opt.craft === undefined ? CRAFT : opt.craft;
-  antworten.set('/assets/crafting-db.json', craft && craft.status ? craft : JSON.stringify(craft));
+  antworten.set('/assets/crafting-db.json', craft && (craft.status || typeof craft.then === 'function') ? craft : JSON.stringify(craft));
+  const wege = opt.wege === undefined ? (db && db.items ? makeWege(db) : { status: 404, body: '' }) : opt.wege;
+  antworten.set(lang === 'de' ? '/de/items-wege.json' : '/items-wege.json', wege && (wege.status || typeof wege.then === 'function') ? wege : JSON.stringify(wege));
   const abrufe = [];
   const p = await oeffneSeite({
     dist: DIST,
@@ -543,12 +583,20 @@ describe('Blatt', () => {
     assert.ok(!s.blatt().querySelector('.wzb-kenn').textContent.includes(s.W.kSchnitt), 'Ø bei nur einer Quelle');
   });
 
-  test('48. Datenblatt-Link nur fuer Items mit Datenblatt', async () => {
+  test('48. Kein Weg aufs Datenblatt: kein Item-, Bauplan-, Schiffsblatt, keine Kategorieliste', async () => {
+    // Krisz 27.11.2026: „wofür sollte ein User den Datenblatt öffnen?“
     const s = await seite();
-    await s.klick(s.kachel('alpha-rifle'));
-    assert.ok(s.blatt().querySelector('a.wzb-haupt[href="/de/items/alpha-rifle.html"]'));
-    await s.klick(s.kachel('delta-relic'));
-    assert.strictEqual(s.blatt().querySelector('a.wzb-haupt[href$="/delta-relic.html"]'), null);
+    const blattZiele = /^\/(?:de\/)?(?:items\/(?!category\/)[^/]+\.html|items\/category\/|crafting(?:\.html|\/)|schiffe\/|missionen\/|armor-sets\.html)/;
+    for (const id of ['alpha-rifle', 'beta-helmet', 'epsilon-runner', 'eta-pistol', 'delta-relic']) {
+      await s.klick(s.kachel(id));
+      const b = s.blatt();
+      assert.ok(b.querySelector('#wzb-name'), id);
+      for (const a of b.querySelectorAll('a[href]')) {
+        const pfad = new URL(a.getAttribute('href'), 'https://x.test/de/items.html').pathname;
+        assert.ok(!blattZiele.test(pfad), `${id}: ${a.getAttribute('href')}`);
+      }
+      assert.strictEqual(b.querySelector('.wzb-haupt[href]'), null, `${id}: Hauptknopf fuehrt weg`);
+    }
   });
 
   test('49. Crafting-Rezept erscheint, wenn es einen Bauplan gibt; sonst kein Abschnitt', async () => {
@@ -558,7 +606,9 @@ describe('Blatt', () => {
     assert.ok(c, 'kein Rezept-Abschnitt');
     assert.ok(c.textContent.includes('Iron'));
     assert.ok(c.textContent.includes('1 min 30 s'));
-    assert.ok(s.blatt().querySelector('a[href="/de/crafting/alpha-rifle.html"]'), 'kein Link zur Blueprint-Seite');
+    // In die Crafting-Werkbank mit genau diesem Bauplan, nicht auf sein Blatt.
+    assert.ok(s.blatt().querySelector('a[href="/de/topics/crafting.html?bp=Alpha%20Rifle&bpi=0"]'), 'kein Weg in die Crafting-Werkbank');
+    assert.strictEqual(s.blatt().querySelector('a[href^="/de/crafting/"]'), null, 'Link aufs Bauplan-Blatt');
     await s.klick(s.kachel('beta-helmet'));
     assert.strictEqual(s.blatt().querySelector('.wzb-craft'), null);
     assert.strictEqual(s.blatt().querySelector('#wzb-craft'), null, 'leerer Platzhalter bleibt stehen');
@@ -630,5 +680,221 @@ describe('Erze verweisen auf die Mining-Seite', () => {
     const s = await seite();
     const ort = s.kachel('hadanite').querySelector('.wz-k__ort').textContent;
     assert.strictEqual(ort, s.T.oreCardOhne);
+  });
+});
+
+describe('Was sonst nur das Datenblatt wusste', () => {
+  test('58. „So bekommst du es“: je Weg eine Karte in der Reihenfolge des Blatts', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('alpha-rifle'));
+    const wl = s.blatt().querySelector('#wzb-wege .wzb-wl');
+    assert.ok(wl, 'keine Wege-Uebersicht');
+    const arten = [...wl.querySelectorAll(':scope > li[data-weg]')].map((li) => li.getAttribute('data-weg'));
+    assert.deepStrictEqual(arten, ['kaufen', 'finden', 'herstellen', 'ab-werk']);
+    assert.strictEqual(wl.getAttribute('data-wege'), '4');
+    // Ab Werk springt zur Schiffsliste im Blatt, nicht auf ein Schiffsblatt.
+    assert.ok(wl.querySelector('[data-weg="ab-werk"] button[data-sprung="wzb-serie"]'));
+    const chips = [...s.blatt().querySelectorAll('#wzb-mehr .wzb-serie a')].map((a) => a.getAttribute('href'));
+    assert.deepStrictEqual(chips, ['/de/schiffe.html?q=Aurora%20MR', '/de/schiffe.html?q=Cutlass%20Black']);
+  });
+
+  test('59. Missionen zum Bauplan: drei offen, der Rest in der Crafting-Werkbank', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('alpha-rifle'));
+    const k = s.blatt().querySelector('[data-weg="herstellen"]');
+    const ul = k.querySelector('[data-missionen]');
+    assert.strictEqual(ul.getAttribute('data-missionen'), '5');
+    const zeilen = [...ul.querySelectorAll('li')].map((li) => li.textContent);
+    assert.deepStrictEqual(zeilen, ['Mission A', 'Mission B (Stanton)', 'Mission C']);
+    const mehr = [...k.querySelectorAll('a')].find((a) => a.textContent.includes(s.W.craftMehr.replace('{n}', '2')));
+    assert.ok(mehr, k.textContent);
+    assert.ok(mehr.getAttribute('href').startsWith('/de/topics/crafting.html?bp='));
+  });
+
+  test('60. Kaufen nach System: Knoepfe filtern die Bezugsquellen, die Wahl bleibt', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('beta-helmet'));
+    const b = s.blatt();
+    const leiste = b.querySelector('[data-sysfilter]');
+    assert.ok(leiste && !leiste.hidden, 'keine System-Knoepfe');
+    assert.deepStrictEqual([...leiste.querySelectorAll('button')].map((x) => x.getAttribute('data-sys')), ['', 'stanton', 'pyro']);
+    // Die Kaufen-Karte nennt beide Systeme.
+    const sys = [...b.querySelectorAll('[data-weg="kaufen"] li[data-system]')].map((li) => li.getAttribute('data-system'));
+    assert.deepStrictEqual(sys.sort(), ['Pyro', 'Stanton']);
+    await s.klick(leiste.querySelector('button[data-sys="pyro"]'));
+    const sichtbar = [...b.querySelectorAll('.wzb-q li[data-z]')].filter((li) => !li.hidden).map((li) => li.textContent);
+    assert.strictEqual(sichtbar.length, 1);
+    assert.ok(sichtbar[0].includes('Cubby Blast'), sichtbar[0]);
+    assert.strictEqual(s.p.window.localStorage.getItem('vb-system'), 'pyro');
+    // Ein Item mit nur einem System bekommt keine Knoepfe.
+    await s.klick(s.kachel('eta-pistol'));
+    assert.strictEqual(s.blatt().querySelector('[data-sysfilter]').hidden, true, 'ein System allein braucht keinen Filter');
+  });
+
+  test('61. „Falschen Wert melden“ in jedem Blatt, mit dem Item als Bezug', async () => {
+    const s = await seite();
+    for (const id of ['alpha-rifle', 'delta-relic']) {
+      await s.klick(s.kachel(id));
+      const a = s.blatt().querySelector('a[data-melden]');
+      assert.ok(a, id);
+      assert.strictEqual(a.getAttribute('href'), `/de/feedback.html?wert=/de/items/${id}.html`);
+      assert.strictEqual(a.textContent, s.W.melden);
+    }
+  });
+
+  test('62. Aehnliche Items oeffnen ihr Blatt in der Werkbank', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('alpha-rifle'));
+    const ids = [...s.blatt().querySelectorAll('[data-aehnlich] li')].map((li) => li.getAttribute('data-item'));
+    assert.deepStrictEqual(ids, ['eta-pistol', 'zeta-pistol']);
+    await s.klick(s.blatt().querySelector('[data-aehnlich] button[data-oeffne="eta-pistol"]'));
+    assert.strictEqual(s.blatt().querySelector('#wzb-name').textContent, 'Eta Pistol');
+  });
+
+  test('63. Fahrzeug, Wikelo und Bruchrechner fuehren in Schiffsliste und Werkzeuge', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('epsilon-runner'));
+    assert.ok(s.blatt().querySelector('[data-fahrzeug]'));
+    assert.ok(s.blatt().querySelector('a[href="/de/schiffe.html?q=Epsilon%20Runner"]'));
+    await s.klick(s.kachel('beta-helmet'));
+    const wk = s.blatt().querySelector('[data-weg="wikelo"] a');
+    assert.strictEqual(wk.getAttribute('href'), '/de/topics/wikelo-emporium.html?item=Beta%20Helmet');
+    await s.klick(s.kachel('eta-pistol'));
+    const wz = [...s.blatt().querySelectorAll('[data-werkzeug]')].map((a) => [a.getAttribute('data-werkzeug'), a.getAttribute('href')]);
+    assert.deepStrictEqual(wz, [['bruch', '/de/fracturing.html'], ['wikelo-material', '/de/topics/wikelo-emporium.html?item=Eta%20Pistol']]);
+  });
+
+  test('64. Preisspanne steht bei den Bezugsquellen', async () => {
+    const s = await seite();
+    await s.klick(s.kachel('beta-helmet'));
+    const sp = s.blatt().querySelector('.wzb-preise [data-spanne]');
+    assert.ok(sp, 'keine Preisspanne');
+    assert.strictEqual(sp.textContent, '500–800');
+  });
+
+  test('65. Ohne /items-wege.json: Blatt ohne Wege, aber mit Melden und ohne Fehler', async () => {
+    const s = await seite({ wege: { status: 404, body: '' } });
+    await s.klick(s.kachel('alpha-rifle'));
+    const b = s.blatt();
+    assert.strictEqual(b.querySelector('#wzb-name').textContent, 'Alpha Rifle');
+    assert.strictEqual(b.querySelector('#wzb-wege'), null);
+    assert.ok(b.querySelector('a[data-melden]'));
+    assert.ok(b.querySelector('.wzb-craft'), 'Rezept fehlt mit der Wege-Datei');
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('66. Wege-Datei zu einem anderen Katalog wird verworfen, nicht falsch zugeordnet', async () => {
+    const db = makeDb();
+    const wege = makeWege(db);
+    wege.i.pop();
+    const s = await seite({ db, wege });
+    await s.klick(s.kachel('alpha-rifle'));
+    assert.strictEqual(s.blatt().querySelector('#wzb-wege'), null);
+    assert.strictEqual(s.blatt().querySelector('[data-aehnlich]'), null);
+  });
+
+  test('67. Die Wege-Datei laedt erst mit dem ersten Blatt, und nur einmal', async () => {
+    const s = await seite();
+    const n = () => s.geladen.filter((x) => x === '/de/items-wege.json').length;
+    assert.strictEqual(n(), 0, 'Wege-Datei laedt schon beim Start');
+    await s.klick(s.kachel('alpha-rifle'));
+    await s.klick(s.kachel('beta-helmet'));
+    assert.strictEqual(n(), 1);
+  });
+
+  test('68. Rezept und Melden warten nicht auf die Wege-Datei', async () => {
+    const db = makeDb();
+    let loese;
+    const s = await seite({ db, wege: new Promise((r) => { loese = r; }) });
+    await s.klick(s.kachel('alpha-rifle'));
+    const b = s.blatt();
+    assert.ok(b.querySelector('.wzb-craft'), 'Rezept fehlt, solange die Wege-Datei laedt');
+    assert.ok(b.querySelector('[data-melden]'), '„Falschen Wert melden“ fehlt, solange die Wege-Datei laedt');
+    assert.ok(b.querySelector('#wzb-wege'), 'Platz der Wege verschwindet, bevor die Datei da ist');
+    assert.strictEqual(b.querySelectorAll('[data-weg]').length, 0);
+    loese(JSON.stringify(makeWege(db)));
+    await s.p.settle(300);
+    assert.ok(s.blatt().querySelector('[data-weg="herstellen"]'), 'Wege kommen nicht nach');
+    assert.ok(s.blatt().querySelector('[data-melden]'));
+  });
+
+  test('72. Kommt das Rezept nach den Wegen, traegt die Herstellen-Karte ihre Links nach', async () => {
+    // Die Rezeptdatei ist gut viermal so gross wie die Wege-Datei: beim
+    // ersten Blatt kommen die Wege meist zuerst (CodeRabbit zu PR #487).
+    const db = makeDb();
+    let loese;
+    const s = await seite({ db, craft: new Promise((r) => { loese = r; }) });
+    await s.klick(s.kachel('alpha-rifle'));
+    const karte = () => s.blatt().querySelector('[data-weg="herstellen"]');
+    assert.ok(karte(), 'Herstellen-Karte fehlt, solange die Rezeptdatei laedt');
+    assert.strictEqual(karte().querySelectorAll('a').length, 0, 'ohne Rezept kann es keinen Link in die Crafting-Werkbank geben');
+    loese(JSON.stringify(CRAFT));
+    await s.p.settle(300);
+    const links = [...karte().querySelectorAll('a')];
+    assert.ok(links.some((a) => a.textContent.includes(s.W.craftOeffnen)), karte().textContent);
+    assert.ok(links.some((a) => a.textContent.includes(s.W.craftMehr.replace('{n}', '2'))), karte().textContent);
+    assert.ok(links.every((a) => a.getAttribute('href').startsWith('/de/topics/crafting.html?bp=')));
+    assert.strictEqual(s.blatt().querySelectorAll('[data-weg="herstellen"]').length, 1);
+    assert.deepStrictEqual(s.p.fehler, []);
+  });
+
+  test('69. „Alle Verkaufsstellen ↓“ zeigt alle Zeilen, auch hinter „Alle zeigen“ und bei gewaehltem System', async () => {
+    const db = makeDb();
+    const helm = db.items.find((x) => x.id === 'beta-helmet');
+    for (let i = 1; i <= 8; i++) helm.obtain.push({ kind: 'shop', loc: `Shop ${i} - Area 18`, price: 900 + i });
+    const wege = makeWege(db);
+    for (let i = 1; i <= 8; i++) wege.sys[`Shop ${i} - Area 18`] = 'Stanton';
+    const s = await seite({ db, wege });
+    await s.klick(s.kachel('beta-helmet'));
+    const b = s.blatt();
+    const sichtbar = () => [...b.querySelectorAll('.wzb-q li[data-z]')].filter((li) => !li.hidden).length;
+    assert.strictEqual(sichtbar(), 8, 'mehr als acht Zeilen sollten erst verdeckt sein');
+    await s.klick(b.querySelector('button[data-sys="pyro"]'));
+    assert.strictEqual(sichtbar(), 1);
+    await s.klick(b.querySelector('[data-weg="kaufen"] [data-sprung="wzb-quellen"]'));
+    assert.strictEqual(sichtbar(), 10, '„Alle“ zeigt nicht alle');
+    assert.strictEqual(b.querySelector('[data-alle-quellen]'), null);
+    assert.strictEqual(b.querySelector('button[data-sys=""]').getAttribute('aria-pressed'), 'true');
+    // Die gemerkte Wahl gilt weiter fuers naechste Item.
+    assert.strictEqual(s.p.window.localStorage.getItem('vb-system'), 'pyro');
+  });
+
+  test('70. Ortsarten ohne bestaetigten Ort stehen in der Sprache der Seite', async () => {
+    const neu = () => {
+      const db = makeDb();
+      db.items.find((x) => x.id === 'gamma-jacket').obtain = [{ kind: 'loot', loc: 'Crusader System Bunkers' }];
+      return db;
+    };
+    const de = await seite({ db: neu() });
+    await de.klick(de.kachel('gamma-jacket'));
+    assert.match(de.blatt().querySelector('.wzb-q').textContent, /Bunker rund um Crusader/);
+    const en = await seite({ db: neu(), sprache: 'en' });
+    await en.klick(en.kachel('gamma-jacket'));
+    assert.match(en.blatt().querySelector('.wzb-q').textContent, /Crusader System Bunkers/);
+  });
+
+  test('71. Der Ueberblick zeigt, was das Blatt beantwortet, keine zweite Gruppenliste', async () => {
+    const s = await seite();
+    const u = s.blatt().querySelector('.wzu');
+    assert.ok(u, 'kein Ueberblick');
+    assert.strictEqual(u.querySelectorAll('[data-gruppe]').length, 0, 'die Gruppen stehen schon links');
+    assert.strictEqual(u.querySelectorAll('.wzu__was li').length, 5);
+    assert.match(u.textContent, /Kaufen nach System/);
+  });
+
+  test('73. Ein Flugblatt zeigt die Flugwerte wie das Datenblatt', async () => {
+    // CodeRabbit zu PR #487: statRows (src/lib/itemStats.ts) kennt sie seit
+    // IA C8, die Werttabelle der Werkbank kannte sie nicht.
+    const db = makeDb();
+    db.items.find((x) => x.id === 'delta-relic').game = {
+      stats: { scmSpeed: 203, maxSpeed: 1075, boostForward: 425, pitch: 32.5, yaw: 27.5, roll: 95 },
+    };
+    const s = await seite({ db });
+    await s.klick(s.kachel('delta-relic'));
+    const zeilen = [...s.blatt().querySelectorAll('.wzb-wert')].map((z) => `${z.children[0].textContent}=${z.children[1].textContent}`);
+    assert.deepStrictEqual(zeilen, [
+      'SCM-Geschwindigkeit=203 m/s', 'Höchstgeschwindigkeit=1.075 m/s', 'Boost vorwärts=425 m/s',
+      'Nicken=32,5 °/s', 'Gieren=27,5 °/s', 'Rollen=95 °/s',
+    ]);
   });
 });
