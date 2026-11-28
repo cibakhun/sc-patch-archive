@@ -494,11 +494,12 @@
     });
     P = { hits: r.hits, words: r.words, arten: folge, kauf: null };
     // „Pyro unter 10k“: in Pyro fuer hoechstens 10k kaufen, nicht irgendwo
-    // unter 10k und in Pyro zu finden.
+    // unter 10k und in Pyro zu finden. Mehrere Grenzen gelten wie in
+    // trefferWert als „oder“, es zaehlt also die hoechste.
     if (arten.sys && arten.price) {
       P.kauf = {
         sys: arten.sys.map(function (h) { return h.key; }),
-        max: Math.min.apply(null, arten.price.map(function (h) { return h.key; }))
+        max: Math.max.apply(null, arten.price.map(function (h) { return h.key; }))
       };
     }
     PG++;
