@@ -149,8 +149,8 @@ describe('mfa.ts', () => {
     const astro = fs.readFileSync(path.resolve('src/components/account/MfaSettings.astro'), 'utf8');
     const rule = /\.mfa-secret\s*\{([^}]*)\}/.exec(astro);
     assert.ok(rule, '.mfa-secret fehlt');
-    assert.doesNotMatch(rule[1], /break-all|anywhere/, 'break-all trennt mitten in einer Gruppe („GK3 / T")');
-    assert.equal(M.groupSecret('T25FDY6BF45RXXZJGK3TSPLLUL3RBM3S'), 'T25F DY6B F45R XXZJ GK3T SPLL UL3R BM3S');
+    assert.doesNotMatch(rule[1], /break-all|anywhere/, 'break-all trennt mitten in einer Gruppe („IJK / L")');
+    assert.equal(M.groupSecret('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'), 'ABCD EFGH IJKL MNOP QRST UVWX YZ23 4567');
     // Abbrechen entfernt den angefangenen Faktor beim Anmeldedienst (sein
     // Schluessel ist danach wertlos), und Einrichten legt immer einen neuen an.
     const js = fs.readFileSync(path.resolve('src/scripts/account-mfa.ts'), 'utf8');
