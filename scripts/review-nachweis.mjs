@@ -39,7 +39,7 @@ import {
   LABEL_BEREIT, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
   anforderungNoetig, anforderungsMarke,
   zuletztGesetzt, seitenweise, statusMitKontrolle,
-  rundenLesen, beschreibungMitPr, nachweisFuerPr, istZusammenfassung,
+  rundenLesen, beschreibungMitPr, nachweisFuerPr, ersteZusammenfassung, labelAelter,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
   altesLedger, abweichendeDateien, verlaufZumHead,
 } from './lib/review-nachweis.mjs';
@@ -138,7 +138,8 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   // juengste Lauf am Ziel, also werden sie bei jedem Nachpollen neu gelesen.
   // Sonst saehe ein spaeter gestarteter und abgebrochener Lauf am Ziel nur
   // der naechste Prozess (Review #477, Runde 4).
-  const zieleZusammenfassung = new Set(kommentareRoh.filter((k) => k.user?.login === CR && istZusammenfassung(k.body)).flatMap((k) => bereicheAusText(k.body)).map((r) => r.b));
+  const zf = ersteZusammenfassung(kommentareRoh.filter((k) => k.user?.login === CR));
+  const zieleZusammenfassung = new Set(zf ? bereicheAusText(zf.body).map((r) => r.b) : []);
   const laeufeJeCommit = {};
   for (const c of commits) {
     // Beim Nachpollen: der Head immer, ein Ziel einer Zusammenfassung immer,
@@ -211,7 +212,7 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   // sind feste Belege, jeder andere Text nur fuer den juengsten Lauf.
   const bereiche = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body).map((x) => ({ ...x, quelle: 'review' }))),
-    ...kommentare.filter((k) => k.author === CR && istZusammenfassung(k.body)).flatMap((k) => bereicheAusText(k.body).map((x) => ({ ...x, quelle: 'zusammenfassung', stand: Date.parse(k.geaendert || '') }))),
+    ...[ersteZusammenfassung(kommentare.filter((k) => k.author === CR))].filter(Boolean).flatMap((k) => bereicheAusText(k.body).map((x) => ({ ...x, quelle: 'zusammenfassung', stand: Date.parse(k.geaendert || '') }))),
     ...(bericht ? ledgerLesen(bericht.body).map((x) => ({ ...x, quelle: 'ledger' })) : []),
   ];
   const imPr = new Set(commits);
@@ -374,12 +375,10 @@ const bereitGesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
    Label, das Sekunden nach dem Push gesetzt wurde, gehoert zum neuen
    Stand (Opus-Review #477, Runde 2). */
 async function labelAelterAlsHead(head) {
-  const gesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
-  if (gesetzt === null) return null;
+  if (zuletztGesetzt(ereignisse, LABEL_BEREIT) === null) return null;
   const suiten = (await api(`${R}/commits/${head}/check-suites?per_page=100`)).check_suites || [];
-  let anker = Math.min(...suiten.map((x) => Date.parse(x.created_at)).filter(Number.isFinite));
-  if (!Number.isFinite(anker)) anker = Date.parse((await api(`${R}/commits/${head}`)).commit?.committer?.date || '');
-  return Number.isFinite(anker) ? gesetzt < anker : null;
+  const datum = suiten.some((x) => Number.isFinite(Date.parse(x.created_at || ''))) ? null : (await api(`${R}/commits/${head}`)).commit?.committer?.date;
+  return labelAelter(ereignisse, LABEL_BEREIT, suiten, datum);
 }
 
 // Neuer Stand: das Label gehoerte zum alten.

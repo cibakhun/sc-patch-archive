@@ -57,7 +57,8 @@ ist, entscheidet Krisz, nie eine Automatik.
    Push ab, der neue Stand wird also nicht ungefragt geprüft. Wird der Lauf
    zum Push abgebrochen, bevor er das Label abnimmt (cubic schreibt die
    PR-Beschreibung kurz nach jedem Push neu), erkennt der nächste Lauf ein
-   Label, das vor dem Push gesetzt wurde, und nimmt es ebenfalls ab. Tor erneut
+   Label, das vor dem Push gesetzt wurde, und nimmt es ebenfalls ab (auch
+   nach einem Force-Push zurück auf einen früheren Commit). Tor erneut
    grün, Label wieder setzen: Der Workflow fordert einmal an, CodeRabbit
    prüft inkrementell nur die neuen Commits, und der Nachweis setzt die
    Runden zusammen (siehe „Abdeckung“).
@@ -158,6 +159,8 @@ kommen aus einem festen Commit des Zielzweigs, nicht aus zwei Abrufen des
 Zweignamens. Bereiche liest der Nachweis nur aus CodeRabbits Reviews und
 seiner Zusammenfassung, nie aus einer Chat-Antwort (die könnte jeder per
 Erwähnung mit einer passenden Zeile bestellen) und nie aus Codeblöcken.
+Zusammenfassung ist nur der früheste CodeRabbit-Kommentar, der mit ihrer
+Marke beginnt und keine Antwort-Marke trägt.
 
 ## Abdeckung über mehrere Runden
 
@@ -210,7 +213,9 @@ maßgebliche Liste steht in `KRITISCHE_PFADE` und `KRITISCHE_SIGNALE`.
 - **Inhalt außerhalb der Pfade** (geänderte Zeilen im Diff): Service-Rolle
   oder Geheimschlüssel, `SECURITY DEFINER`, RLS-Policies, `GRANT`/`REVOKE`,
   Sicherheits-Kopfzeilen, Stripe, Anmelde-API, und das Entfernen oder
-  Ändern von Tor-Skripten in `package.json`.
+  Ändern von Tor-Skripten in `package.json`. Lässt GitHub den Diff einer
+  geänderten Datei weg (zu groß), ist die Suche blind: dann kritisch,
+  außer bei JSON-Daten (jede `.json` außer `package.json`).
 - **300 oder mehr geänderte Dateien:** Dann liefert der feste Vergleich
   nicht alle Dateien, und gelöschte Dateien der PR-Liste lassen sich nicht
   an den geprüften Stand binden (siehe „Warten“). Im Zweifel kritisch.

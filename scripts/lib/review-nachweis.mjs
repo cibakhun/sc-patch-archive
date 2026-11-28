@@ -120,7 +120,16 @@ export function kritischeGruende(dateien, labels = []) {
     for (const name of [f.filename, f.previous_filename].filter(Boolean)) {
       for (const [re, warum] of KRITISCHE_PFADE) if (re.test(name)) dazu(`${warum}: ${name}`);
     }
-    if (typeof f.patch !== 'string') continue;
+    if (typeof f.patch !== 'string') {
+      /* GitHub laesst `patch` bei grossen Diffs weg; dann sieht die Suche
+         nach Signalen nichts. Im Zweifel kritisch (Opus-Review #477,
+         Runde 3). Ausgenommen JSON ausser package.json: Daten und
+         Lockfiles tragen keines der Signale (gemessen: 3 von 20 PRs
+         #470 bis #491 hatten nur grosse JSON-Daten ohne patch). */
+      const daten = /\.json$/i.test(f.filename || '') && !/(^|\/)package\.json$/.test(f.filename || '');
+      if (Number(f.changes) > 0 && !daten) dazu(`Diff ohne Inhalt (zu gross, Signale nicht pruefbar): ${f.filename}`);
+      continue;
+    }
     for (const zeile of f.patch.split('\n')) {
       if (!/^[+-]/.test(zeile) || /^(\+\+\+|---)/.test(zeile)) continue;
       const inhalt = zeile.slice(1);
@@ -250,6 +259,24 @@ export function anforderungAmHead(kommentare, head) {
 
 /** Alle Anforderungen, gleich fuer welchen Stand. */
 const alleAnforderungen = (kommentare) => vomAnforderer(kommentare).filter((k) => /<!--\s*review-nachweis:anforderung\s+sha=[0-9a-f]{40}\s*-->/.test(k.body || ''));
+
+/** Gehoert das zuletzt gesetzte Label zu einem aelteren Stand als dem Head?
+    Anker ist die frueheste Check-Suite des Heads (GitHub-Uhr, entsteht beim
+    ersten Push des Commits), sonst das Commit-Datum. Kehrt der Head per
+    Force-Push auf einen frueheren Commit zurueck (A -> B -> A), liegt diese
+    Suite vor dem Label fuer B; deshalb zaehlt auch das juengste
+    `head_ref_force_pushed` als Anker (Opus-Review #477, Runde 3).
+    true/false, null = nicht zu entscheiden. */
+export function labelAelter(ereignisse, label, suiten, commitDatum) {
+  const gesetzt = zuletztGesetzt(ereignisse, label);
+  if (gesetzt === null) return null;
+  let anker = Math.min(...(suiten || []).map((x) => Date.parse(x.created_at || '')).filter(Number.isFinite));
+  if (!Number.isFinite(anker)) anker = Date.parse(commitDatum || '');
+  if (!Number.isFinite(anker)) return null;
+  const force = (ereignisse || []).filter((e) => e.event === 'head_ref_force_pushed').map((e) => Date.parse(e.created_at || '')).filter(Number.isFinite);
+  if (force.length) anker = Math.max(anker, ...force);
+  return gesetzt < anker;
+}
 
 /** Juengstes Setzen eines Labels (ms) aus den Issue-Ereignissen, sonst null. */
 export function zuletztGesetzt(ereignisse, label) {
@@ -432,7 +459,25 @@ export function bereicheAusText(text) {
    die koennte jeder per Erwaehnung mit einer passenden Zeile bestellen
    (Opus-Review #477, Runde 2). Marke wie in den echten Kommentaren. */
 export const CR_ZUSAMMENFASSUNG = '<!-- This is an auto-generated comment: summarize by coderabbit.ai -->';
-export const istZusammenfassung = (body) => String(body || '').includes(CR_ZUSAMMENFASSUNG);
+/* Ein Teilstring reicht nicht: eine bestellte Chat-Antwort kann die Marke
+   im Text wiederholen (Opus-Review #477, Runde 3). Die echte
+   Zusammenfassung BEGINNT mit der Marke (hoechstens nach CodeRabbits
+   Kopfmarke), eine Chat-Antwort beginnt mit der Antwort-Marke
+   (gemessen an allen CodeRabbit-Kommentaren von #477, 28.11.2026). */
+export const CR_KOPF = '<!-- coderabbit-ai-generated:v1 -->';
+export const CR_ANTWORT = '<!-- This is an auto-generated reply by CodeRabbit -->';
+export function istZusammenfassung(body) {
+  const t = String(body || '').replace(/^\uFEFF/, '').trimStart();
+  const rest = t.startsWith(CR_KOPF) ? t.slice(CR_KOPF.length).trimStart() : t;
+  return rest.startsWith(CR_ZUSAMMENFASSUNG) && !t.includes(CR_ANTWORT);
+}
+/** Die eine Zusammenfassung des PRs: CodeRabbit legt sie einmal an und
+    schreibt sie danach nur um. Zaehlt also nur der frueheste passende
+    Kommentar (kleinste id); jeder spaetere mit Marke ist keine. */
+export function ersteZusammenfassung(kommentare) {
+  const passend = (kommentare || []).filter((k) => istZusammenfassung(k.body));
+  return passend.length ? passend.reduce((x, y) => (Number(y.id) < Number(x.id) ? y : x)) : null;
+}
 
 /* ---------------------------------------------------------------
    Abdeckung. CodeRabbit: Kette aus Bereichen. Quelle eines Bereichs ist

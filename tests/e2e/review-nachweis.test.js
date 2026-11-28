@@ -19,7 +19,7 @@ import {
   seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
-  CR_ZUSAMMENFASSUNG, istZusammenfassung,
+  CR_ZUSAMMENFASSUNG, istZusammenfassung, CR_KOPF, CR_ANTWORT, ersteZusammenfassung, labelAelter,
 } from '../../scripts/lib/review-nachweis.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
@@ -96,6 +96,19 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
     assert.equal(istZusammenfassung(`${CR_ZUSAMMENFASSUNG}\nWalkthrough`), true);
     assert.equal(istZusammenfassung(`Reviewing files that changed between ${BASIS} and ${C}.`), false);
   });
+  // Opus-Review #477, Runde 3: eine bestellte Chat-Antwort wiederholt die Marke.
+  test('ROT: Chat-Antwort mit Marke ist keine Zusammenfassung; nur die frueheste zaehlt', () => {
+    const zeile = `Reviewing files that changed between ${BASIS} and ${C}.`;
+    assert.equal(istZusammenfassung(`${CR_KOPF}\n\n${CR_ANTWORT}\n${CR_ZUSAMMENFASSUNG}\n${zeile}`), false, 'Antwort-Marke');
+    assert.equal(istZusammenfassung(`Klar:\n${CR_ZUSAMMENFASSUNG}\n${zeile}`), false, 'Marke nicht am Anfang');
+    assert.equal(istZusammenfassung(`${CR_ZUSAMMENFASSUNG}\n${zeile}\n${CR_ANTWORT}`), false, 'Antwort-Marke spaeter');
+    // Echte Form (#477, 28.11.2026): Kopfmarke, Leerzeile, Marke.
+    assert.equal(istZusammenfassung(`${CR_KOPF}\n\n${CR_ZUSAMMENFASSUNG}\n<!-- review_stack_entry_start -->`), true);
+    const echt = { id: 10, body: `${CR_KOPF}\n\n${CR_ZUSAMMENFASSUNG}\nalt` };
+    const spaeter = { id: 20, body: `${CR_ZUSAMMENFASSUNG}\n${zeile}` };
+    assert.equal(ersteZusammenfassung([spaeter, echt]), echt);
+    assert.equal(ersteZusammenfassung([{ id: 5, body: `${CR_ANTWORT}\n${CR_ZUSAMMENFASSUNG}` }]), null);
+  });
   test('lueckenlose Kette Basis -> A -> B -> C deckt C ab', () => {
     const r = codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: A }, { a: A, b: B }, { a: B, b: C }], commits: [A, B, C], head: C, vorfahren: { [BASIS]: true } });
     assert.equal(r.abgedeckt, true);
@@ -169,6 +182,13 @@ describe('Review-Nachweis: kritische Aenderungen', () => {
   });
   test('umbenannte Datei zaehlt mit ihrem alten Namen', () => {
     assert.ok(kritischeGruende([{ filename: 'docs/alt.sql', previous_filename: 'supabase/migrations/1_x.sql' }]).length);
+  });
+  // Opus-Review #477, Runde 3: GitHub laesst `patch` bei grossen Diffs weg.
+  test('ROT: geaenderte Datei ohne patch ist kritisch, ausser JSON-Daten', () => {
+    assert.ok(kritischeGruende([{ filename: 'src/lib/gross.ts', status: 'modified', changes: 4000 }]).some((g) => /ohne Inhalt/.test(g)));
+    assert.ok(kritischeGruende([{ filename: 'package.json', status: 'modified', changes: 900 }]).length, 'package.json');
+    assert.deepEqual(kritischeGruende([{ filename: 'src/data/item-3d.json', status: 'modified', changes: 50000 }]), [], 'Daten');
+    assert.deepEqual(kritischeGruende([{ filename: 'docs/bild.png', status: 'added', changes: 0 }]), [], 'Binaerdatei');
   });
   test('Label "kritisch" macht kritisch', () => {
     assert.ok(kritischeGruende(DOKU, ['kritisch']).length);
@@ -819,6 +839,22 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(ab(unklar), true, 'im Zweifel ab');
   });
 
+  // Opus-Review #477, Runde 3: Force-Push zurueck auf einen frueheren Commit.
+  test('ROT: A -> B -> A per Force-Push: das Label fuer B gilt nicht fuer A', () => {
+    const L = (t) => ({ event: 'labeled', label: { name: 'review-ready' }, created_at: t });
+    const F = (t) => ({ event: 'head_ref_force_pushed', created_at: t });
+    const suiteA = [{ created_at: '2026-11-28T10:00:00Z' }];
+    // A gepusht 10:00, B 11:00, Label fuer B 11:05, zurueck auf A 12:00.
+    assert.equal(labelAelter([L('2026-11-28T11:05:00Z'), F('2026-11-28T12:00:00Z')], 'review-ready', suiteA), true);
+    // Gegenprobe: Label nach der Rueckkehr gehoert zu A.
+    assert.equal(labelAelter([F('2026-11-28T12:00:00Z'), L('2026-11-28T12:00:05Z')], 'review-ready', suiteA), false);
+    // Ein Force-Push vor dem Push des Heads aendert nichts.
+    assert.equal(labelAelter([F('2026-11-28T09:00:00Z'), L('2026-11-28T10:00:05Z')], 'review-ready', suiteA), false);
+    assert.equal(labelAelter([], 'review-ready', suiteA), null);
+    assert.equal(labelAelter([L('2026-11-28T10:00:05Z')], 'review-ready', [], undefined), null);
+    assert.equal(labelAelter([L('2026-11-28T10:00:05Z')], 'review-ready', [], '2026-11-28T10:00:00Z'), false, 'Commit-Datum');
+  });
+
   // Runde 5: Auch die Freigabe selbst kann waehrend der Token-Pruefung entfallen.
   test('ROT: Label ab oder zurueck zum Draft waehrend der Token-Pruefung: keine Anforderung', () => {
     const ohne = laeufer([prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready']), prMit(KOPF, [])], mitAnforderung);
@@ -1009,5 +1045,22 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   test('Gegenprobe: ist der neue Lauf am Ziel fertig, geht der Bereich ins Ledger', () => {
     const text = bericht(zielLauf(NEU_FERTIG));
     assert.ok(text.includes(`"a":"${BASIS2}","b":"${A2}"`), text);
+  });
+
+  // Opus-Review #477, Runde 3: per Erwaehnung bestellte Chat-Antwort mit Marke und Bereichszeile.
+  test('ROT: gefaelschte Zusammenfassung in einer Chat-Antwort belegt keinen Bereich', () => {
+    const zeile = `Reviewing files that changed between ${BASIS2} and ${A2}.`;
+    const gefaelscht = (body, extra = []) => laeufer([prMit(KOPF)], { routen: {
+      'GET repos/o/r/pulls/477/commits': [[{ sha: A2, parents: [{ sha: BASIS2 }] }, { sha: KOPF, parents: [{ sha: A2 }] }]],
+      [`GET repos/o/r/commits/${A2}/check-runs`]: [{ check_runs: [NEU_FERTIG] }],
+      'GET repos/o/r/issues/477/comments': [[...extra, { ...zusammenfassung, id: 9, body }]],
+      [`GET repos/o/r/compare/${BASIS2}...staging`]: [{ status: 'ahead' }],
+    } });
+    const antwort = bericht(gefaelscht(`${CR_KOPF}\n\n${CR_ANTWORT}\n${CR_ZUSAMMENFASSUNG}\n${zeile}`));
+    assert.ok(!antwort.includes(`"a":"${BASIS2}","b":"${A2}"`), 'Chat-Antwort zaehlte als Zusammenfassung');
+    // Spaeterer Kommentar mit Marke am Anfang neben der echten (frueheren) Zusammenfassung: zaehlt nicht.
+    const echt = { ...zusammenfassung, id: 3, body: `${CR_KOPF}\n\n${CR_ZUSAMMENFASSUNG}\nWalkthrough` };
+    const zweite = bericht(gefaelscht(`${CR_ZUSAMMENFASSUNG}\n${zeile}`, [echt]));
+    assert.ok(!zweite.includes(`"a":"${BASIS2}","b":"${A2}"`), 'zweite Zusammenfassung zaehlte');
   });
 });
