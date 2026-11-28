@@ -316,7 +316,11 @@ export const CHECKS = [
     // Nach Review #490 zaehlt ein auskommentierter Container nicht mehr:
     // in beiden Seiten <!-- … --> um den Container gesetzt -> die Fassung
     // davor blieb gruen („2 mit Auswahl“), die neue gibt 2 FEHLER [6], exit 1;
-    // zurueckgespielt, sha256 wie vorher, wieder gruen.
+    // zurueckgespielt, sha256 wie vorher, wieder gruen. Danach liest [6]
+    // Kommentare beim Durchgang mit, statt sie herauszuschneiden (Hinweis
+    // der Code-Analyse auf #490, wie verify:sprachweiche): auskommentiert
+    // und hinter </dialog> verschoben je 2 FEHLER [6], exit 1; ein
+    // Kommentar mit </dialog> vor dem Container bleibt gruen.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein

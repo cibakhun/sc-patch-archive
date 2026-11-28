@@ -231,9 +231,22 @@ if (!vorschau) {
     }
   }
   const LISTE_ATTR = /\sdata-i3d-liste="([^"]*)"/;
-  // Der ganze Dialog, nicht nur sein Anfangs-Tag: die Auswahl steht darin.
-  const DIALOG_GANZ = /<dialog\b[^>]*\bdata-i3d\b[^>]*>[\s\S]*?<\/dialog>/;
-  const WAHL = /<[a-z]+\b[^>]*\sdata-i3d-wahl[\s>=]/;
+  // Die Auswahl muss im Dialog stehen, und ein auskommentierter Container
+  // zaehlt nicht. Ein Durchgang findet Kommentare, Anfang und Ende des
+  // Dialogs und den Container zugleich; Treffer, die mit "<!--" beginnen,
+  // werden uebersprungen (nichts wird aus dem HTML entfernt, wie in
+  // verify:sprachweiche).
+  const WAHL_LESEN = /<!--[\s\S]*?(?:-->|$)|<dialog\b[^>]*\bdata-i3d\b[^>]*>|<\/dialog>|<[a-z]+\b[^>]*\sdata-i3d-wahl[\s>=]/g;
+  const dialogMitWahl = (html) => {
+    let imDialog = false;
+    for (const [t] of html.matchAll(WAHL_LESEN)) {
+      if (t.startsWith('<!--')) continue;
+      if (t.startsWith('</dialog')) { if (imDialog) return false; continue; }
+      if (t.startsWith('<dialog')) { imDialog = true; continue; }
+      if (imDialog) return true;
+    }
+    return false;
+  };
   let werkbankMitWahl = 0;
   const CFG_LISTE = /"i3dListe":"([^"]*)"/;
   let werkbankMitDialog = 0;
@@ -251,9 +264,7 @@ if (!vorschau) {
     const cfg = CFG_LISTE.exec(html)?.[1];
     if (cfg !== url) fail(`[6] ${s}: Seiten-Einstellung i3dListe=${cfg ?? '(fehlt)'} passt nicht zum Dialog (${url ?? '(nichts)'})`);
     if (url && cfg === url) werkbankMitDialog++;
-    // Ohne HTML-Kommentare: ein auskommentierter Container zaehlt nicht.
-    const sichtbar = html.replace(/<!--[\s\S]*?-->/g, '');
-    if (WAHL.test(DIALOG_GANZ.exec(sichtbar)?.[0] ?? '')) werkbankMitWahl++;
+    if (dialogMitWahl(html)) werkbankMitWahl++;
     else fail(`[6] ${s}: Dialog ohne Auswahl (data-i3d-wahl) — andere Farben, Set und Einzelteile faenden keinen Platz`);
   }
   // Sonst traegt keine Seite in dist/ die Liste, auch keine in Unterordnern
