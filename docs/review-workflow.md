@@ -291,14 +291,20 @@ Daten: jedem Status (auch dem „Warte“), dem Label `ohne-cubic` und dem
 Bericht. Kam während der Erhebung ein neuer Stand, schreibt der Lauf
 nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
 Vor der Anforderung muss außerdem die Freigabe noch stehen (Label
-`review-ready` gesetzt, kein Draft). Die Basis prüft der Lauf genauso:
-Wechselt der Zielzweig, endet er ohne Status (das Ereignis `edited` hat
-einen eigenen Lauf); rücken nur neue Commits auf den Zielzweig, bleibt die
-Zusammenführungsbasis und damit die Dateiliste gleich; verschiebt sie sich
-trotzdem, scheitert er sichtbar („Auswertung gescheitert“).
+`review-ready` gesetzt, kein Draft), gelesen im letzten Abruf vor dem
+Befehl. Bis zum Befehl bleiben Millisekunden; was dort durchrutscht, ist
+höchstens eine Anforderung für genau diesen Head (GitHub kennt kein
+bedingtes Anlegen eines Kommentars). Die Basis prüft der Lauf genauso.
+Basis ist die Spitze des Zielzweigs, nicht `base.sha` des PRs: GitHub
+zieht `base.sha` nicht nach (gemessen an #477: `6e0b4af`, während
+`staging` 64 Commits weiter war). Wechselt der Zielzweig, endet der Lauf
+ohne Status (das Ereignis `edited` hat einen eigenen Lauf); rückt die
+Spitze nur weiter, bleibt die Zusammenführungsbasis und damit die
+Dateiliste gleich; verschiebt sie sich trotzdem, scheitert er sichtbar
+(„Auswertung gescheitert“).
 Ein Head, der wechselt und zurückkehrt (A, B, wieder A), besteht diese
 Nachfrage; deshalb sind auch die Daten an den Stand gebunden. Die Dateien
-kommen aus dem Vergleich zweier fester Commits (`compare/<Basis>...<Head>`),
+kommen aus dem Vergleich zweier fester Commits (`compare/<Spitze>...<Head>`),
 der nicht davon abhängt, wohin der Head inzwischen zeigt; die PR-Liste
 gilt dem jeweils aktuellen Head, und eine Liste von B nur aus gelöschten
 Dateien verriete B nicht einmal (gemessen an 21 PRs, #460 bis #480: beide
@@ -315,7 +321,9 @@ nach liest (gemessen in 81 PRs stimmte die Liste, zugesagt ist es nicht).
 Passt etwas nicht, erhebt der Lauf alles neu, höchstens dreimal, und
 bricht dann ab, ohne selbst ein Urteil zu schreiben; der letzte Schritt
 des Workflows setzt dann „Auswertung gescheitert: Stand NICHT bewertet“
-(rot) auf den Stand des Ereignisses. Beim Nachpollen liest der Lauf den Head,
+(rot) auf den Stand, den der Lauf gelesen hat (`BEWERTET_HEAD`; scheitert
+er schon davor, auf den des Ereignisses). Ein Push zwischen Ereignis und
+Abruf ließe sonst ein früheres Grün am gelesenen Stand stehen. Beim Nachpollen liest der Lauf den Head,
 jeden Stand, dessen Lauf noch nicht fertig war, und jedes Ziel eines
 Bereichs aus einer Zusammenfassung neu: ein dort später begonnener und
 abgebrochener Lauf nimmt dem Bereich den Beleg.
@@ -367,6 +375,16 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   kein Merge.
 - **Kritisch-Erkennung** ist eine Heuristik; das Label `kritisch` schließt
   ihre Lücken.
+- **Basis nach dem Urteil.** Die Bindung an die Zusammenführungsbasis
+  prüft der Lauf nur, solange er läuft; ein Push auf den Zielzweig startet
+  keinen Lauf. Ein grüner Stand bleibt trotzdem gültig, weil sich die
+  Zusammenführungsbasis eines offenen PRs ohne neuen Head nicht verschieben
+  kann, solange `staging` nur Squash-Merges annimmt (die Commits eines
+  Zweigs werden so nie Vorfahren von `staging`), kein Force-Push und kein
+  direkter Push möglich ist. Das leistet das Ruleset (Vorschlag unten); bis
+  es aktiv ist und nach jedem Bypass auf `staging` offene PRs mit Label
+  `nachweis-neu` neu bewerten lassen. Nach `main` gehen nur Release-PRs
+  von `staging`, und deren Merge schließt den einzigen offenen.
 - **300 oder mehr geänderte Dateien.** Dann bindet die PR-Liste nur, was sie
   selbst verrät: die ersten 300 Dateien des Vergleichs, die Quelle jeder
   nicht gelöschten Datei und die Dateizahl des PRs. Kehrt der Head genau
@@ -385,7 +403,8 @@ Erst nach Krisz' Freigabe auf Basis der Testergebnisse:
 - **`staging`:** PR Pflicht, Squash-Merge, Status-Checks `site / build`,
   `bot`, `dependencies`, `review-nachweis` erforderlich, Konversationen
   müssen aufgelöst sein, kein Force-Push, Löschen verboten. Bypass nur für
-  Krisz.
+  Krisz. Squash-Merge, kein Force-Push und PR-Pflicht tragen hier auch den
+  Nachweis (siehe Grenzen, „Basis nach dem Urteil“).
 - **`main`:** PR Pflicht, **Merge-Commit** (kein Squash, kein Rebase),
   Status-Checks `site / build`, `bot`, `dependencies` und
   `review-nachweis` (im Release-Modus) erforderlich, Konversationen müssen

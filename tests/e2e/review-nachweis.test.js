@@ -550,28 +550,30 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FAKE = pathToFileURL(join(WURZEL, 'tests', 'e2e', 'helpers', 'fake-github.js')).href;
 const KOPF = h('a'), NEU = h('c');
-const ZIEL = h('e'); // Spitze des Zielzweigs, wie sie der PR nennt (base.sha)
+const ZIEL = h('e'); // Spitze des Zielzweigs (base.sha des PRs und Spitze von staging)
 const prMit = (sha, labels = [], x = {}) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging', sha: ZIEL }, head: { sha, ref: 'claude/x' }, labels: labels.map((name) => ({ name })), changed_files: 1, ...x });
 const lauf = (x) => ({ app: { slug: 'coderabbitai' }, name: 'CodeRabbit', output: { title: x.title || '', summary: x.summary || '' }, ...x });
 const laeuft = lauf({ status: 'in_progress', conclusion: null, started_at: '2026-11-28T03:00:00Z' });
 const datei = (sha, filename = 'README.md') => ({ filename, status: 'modified', contents_url: `https://api.github.com/repos/o/r/contents/${filename}?ref=${sha}` });
-function laeufer(pulls, { routen = {}, env = {} } = {}) {
+function laeufer(pulls, { routen = {}, env = {}, args = [] } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-'));
-  const szenario = join(dir, 'szenario.json'), log = join(dir, 'anfragen.log');
+  const szenario = join(dir, 'szenario.json'), log = join(dir, 'anfragen.log'), umgebung = join(dir, 'github-env');
   writeFileSync(szenario, JSON.stringify({ routen: {
     'GET repos/o/r/pulls/477': pulls,
+    'GET repos/o/r/branches/staging': [{ commit: { sha: ZIEL } }],
     'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF }]],
     [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [laeuft] }],
     // Dateien fest am Stand: Vergleich Basis...Head (die PR-Liste erst ab 300 Dateien).
     [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: [datei(KOPF)] }],
     ...routen,
   } }));
-  const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs')], {
+  const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs'), ...args], {
     encoding: 'utf8', timeout: 30_000,
-    env: { ...process.env, FAKE_GITHUB: szenario, FAKE_GITHUB_LOG: log, REPO: 'o/r', PR_NUMMER: '477', GH_TOKEN: 'test', ANFORDERUNG_TOKEN: '', EREIGNIS: '', AKTION: '', LABEL: '', LAUF_URL: '', WARTEN_MIN: '0.02', TAKT_S: '0.2', ...env },
+    env: { ...process.env, FAKE_GITHUB: szenario, FAKE_GITHUB_LOG: log, GITHUB_ENV: umgebung, REPO: 'o/r', PR_NUMMER: '477', GH_TOKEN: 'test', ANFORDERUNG_TOKEN: '', EREIGNIS: '', AKTION: '', LABEL: '', LAUF_URL: '', WARTEN_MIN: '0.02', TAKT_S: '0.2', ...env },
   });
   const anfragen = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map((z) => JSON.parse(z)) : [];
-  return { ...r, anfragen, schreibend: anfragen.filter((x) => !x.schluessel.startsWith('GET ')) };
+  const github_env = existsSync(umgebung) ? readFileSync(umgebung, 'utf8') : '';
+  return { ...r, anfragen, github_env, schreibend: anfragen.filter((x) => !x.schluessel.startsWith('GET ')) };
 }
 const zustaende = (r) => r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body.state);
 
@@ -788,11 +790,15 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   });
 
   // Runde 5: Die Dateiliste ist der Vergleich ab der Zusammenfuehrungsbasis.
+  // Runde 6: Basis ist die Spitze des Zielzweigs (base.sha zieht GitHub
+  // nicht nach); `spitzen` gibt sie der Reihe nach je Abruf zurueck.
   const NEUBASIS = h('d'), ZB = h('9');
-  const mitBasis = (zielNeu, zbNeu) => ({ routen: {
+  const mitBasis = (zbNeu, ...spitzen) => ({ routen: {
+    'GET repos/o/r/branches/staging': (spitzen.length ? spitzen : [ZIEL]).map((sha) => ({ commit: { sha } })),
     [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: [datei(KOPF)], merge_base_commit: { sha: ZB } }],
     [`GET repos/o/r/compare/${NEUBASIS}...${KOPF}`]: [{ files: [datei(KOPF)], merge_base_commit: { sha: zbNeu } }],
   } });
+  const nach = (r, schluessel) => r.anfragen.findIndex((x) => x.schluessel === schluessel);
 
   test('ROT: wechselt der Zielzweig waehrend der Erhebung, schreibt der Lauf nichts', () => {
     const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'main', sha: ZIEL } })], mitBasis());
@@ -801,30 +807,55 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.deepEqual(r.schreibend, []);
   });
 
-  test('ROT: verschiebt sich die Zusammenfuehrungsbasis, scheitert der Lauf ohne Urteil', () => {
-    const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'staging', sha: NEUBASIS } })], mitBasis(NEUBASIS, h('5')));
+  test('ROT: verschiebt sich die Zusammenfuehrungsbasis, scheitert der Lauf ohne Urteil, auch bei gleichem base.sha', () => {
+    // base.sha bleibt ZIEL (GitHub zieht es nicht nach), die Spitze rueckt auf NEUBASIS.
+    const r = laeufer([prMit(KOPF)], mitBasis(h('5'), ZIEL, NEUBASIS));
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben \(9999999 -> 5555555\)/);
     assert.deepEqual(r.schreibend, []);
   });
 
+  test('ROT: veraltetes base.sha: verglichen wird gegen die Spitze des Zielzweigs', () => {
+    const r = laeufer([prMit(KOPF)], mitBasis(ZB, NEUBASIS));
+    assert.equal(r.status, 0, r.stderr);
+    assert.ok(nach(r, `GET repos/o/r/compare/${NEUBASIS}...${KOPF}`) >= 0, 'Vergleich ab der Spitze');
+    assert.equal(nach(r, `GET repos/o/r/compare/${ZIEL}...${KOPF}`), -1, 'nicht ab base.sha');
+  });
+
+  test('Nachmessen an gemergten PRs (trocken): Basis ist base.sha, die Spitze enthielte den PR schon', () => {
+    const r = laeufer([prMit(KOPF, [], { state: 'closed' })], { ...mitBasis(ZB, NEUBASIS), args: ['--pr', '477', '--trocken', '--auch-geschlossen'] });
+    assert.equal(r.status, 0, r.stderr);
+    assert.ok(nach(r, `GET repos/o/r/compare/${ZIEL}...${KOPF}`) >= 0);
+    assert.equal(nach(r, 'GET repos/o/r/branches/staging'), -1);
+    assert.deepEqual(r.schreibend, []);
+  });
+
   test('Gegenprobe: ruecken nur neue Commits auf den Zielzweig, laeuft er normal weiter', () => {
-    const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'staging', sha: NEUBASIS } })], mitBasis(NEUBASIS, ZB));
+    const r = laeufer([prMit(KOPF)], mitBasis(ZB, ZIEL, NEUBASIS));
     assert.equal(r.status, 0, r.stderr);
     assert.equal(zustaende(r)[0], 'pending');
     assert.equal(zustaende(r).at(-1), 'failure', 'ohne Review rot wie sonst');
   });
 
+  test('ROT: die Freigabe vor dem Befehl kommt aus dem Abruf nach dem Basisvergleich', () => {
+    // Spitze: Erhebung, vor der Token-Pruefung, danach (weitergerueckt, gleiche Zusammenfuehrungsbasis).
+    const r = laeufer([prMit(KOPF, ['review-ready'])], { ...mitAnforderung, routen: { ...mitAnforderung.routen, ...mitBasis(ZB, ZIEL, ZIEL, NEUBASIS).routen } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(anforderungen(r).length, 1);
+    const befehl = r.anfragen.findIndex((x) => x.schluessel === 'POST repos/o/r/issues/477/comments');
+    const letzterPr = r.anfragen.slice(0, befehl).map((x) => x.schluessel).lastIndexOf('GET repos/o/r/pulls/477');
+    assert.ok(letzterPr > nach(r, `GET repos/o/r/compare/${NEUBASIS}...${KOPF}`), 'PR nach dem Vergleich gelesen');
+  });
+
   // Nachfrage zu Runde 5: auch das Label `ohne-cubic` und der Bericht kommen
-  // aus den erhobenen Daten. Ohne Wartezeit liest der Lauf den PR viermal:
-  // Start, vor dem Label, vor dem Status, vor dem Bericht.
-  const sofort = (zbNeu) => ({ ...mitBasis(NEUBASIS, zbNeu), env: { WARTEN_MIN: '0' } });
-  const verschoben = { base: { ref: 'staging', sha: NEUBASIS } };
+  // aus den erhobenen Daten. Ohne Wartezeit liest der Lauf die Spitze
+  // viermal: Erhebung, vor dem Label, vor dem Status, vor dem Bericht.
+  const sofort = (zbNeu, ...spitzen) => ({ ...mitBasis(zbNeu, ...spitzen), env: { WARTEN_MIN: '0' } });
   const cubicLabel = (r) => r.schreibend.filter((x) => x.schluessel.includes('/labels'));
   const berichte = (r) => r.schreibend.filter((x) => x.schluessel === 'POST repos/o/r/issues/477/comments');
 
   test('ROT: verschiebt sich die Basis vor dem Label ohne-cubic, aendert der Lauf es nicht', () => {
-    const r = laeufer([prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(h('5')));
+    const r = laeufer([prMit(KOPF)], sofort(h('5'), ZIEL, NEUBASIS));
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben/);
     assert.deepEqual(r.schreibend, [], 'kein Label, kein Status, kein Bericht');
@@ -835,7 +866,7 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   });
 
   test('ROT: verschiebt sich die Basis nach dem Status, schreibt der Lauf keinen Bericht', () => {
-    const r = laeufer([prMit(KOPF), prMit(KOPF), prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(h('5')));
+    const r = laeufer([prMit(KOPF)], sofort(h('5'), ZIEL, ZIEL, ZIEL, NEUBASIS));
     assert.notEqual(r.status, 0);
     assert.equal(zustaende(r).length, 1, 'der Status davor stand noch auf festen Daten');
     assert.deepEqual(berichte(r), [], 'kein Bericht aus der alten Liste');
@@ -848,10 +879,37 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(zustaende(r).at(-1), 'failure');
     assert.equal(berichte(r).length, 1);
     // Ruecken nur neue Commits auf den Zielzweig, gilt die Liste weiter.
-    const n = laeufer([prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(ZB));
+    const n = laeufer([prMit(KOPF)], sofort(ZB, ZIEL, NEUBASIS));
     assert.equal(n.status, 0, n.stderr);
     assert.equal(cubicLabel(n).length, 1);
     assert.equal(berichte(n).length, 1);
+  });
+
+  // Runde 6: Scheitert der Lauf, markiert der Workflow den bewerteten Stand.
+  const fehlerSchritt = () => {
+    const yml = readFileSync(join(WURZEL, '.github', 'workflows', 'review-nachweis.yml'), 'utf8').split('\n');
+    const i = yml.findIndex((z) => z.includes('name: Gescheitert, Stand als nicht bewertet markieren'));
+    const lauf = yml.findIndex((z, j) => j > i && z.trim() === 'run: |');
+    const rumpf = [];
+    for (const z of yml.slice(lauf + 1)) { if (z.trim() && !z.startsWith('          ')) break; rumpf.push(z.slice(10)); }
+    return rumpf.join('\n');
+  };
+  const fehlerLauf = (env) => {
+    const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-fehler-'));
+    writeFileSync(join(dir, 'curl'), '#!/bin/sh\nfor a in "$@"; do echo "$a"; done > "$CURL_LOG"\n', { mode: 0o755 });
+    const r = spawnSync('bash', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}:${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
+    assert.equal(r.status, 0, r.stderr);
+    return readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').find((z) => z.includes('/statuses/'));
+  };
+
+  test('ROT: Ereignis-Stand ungleich bewertetem Stand: der Fehlerschritt markiert den bewerteten', () => {
+    const r = laeufer([prMit(KOPF)], mitBasis(h('5'), ZIEL, NEUBASIS));
+    assert.notEqual(r.status, 0);
+    assert.equal(r.github_env, `BEWERTET_HEAD=${KOPF}\n`, 'die Auswertung nennt ihren Stand, auch wenn sie scheitert');
+    assert.equal(fehlerLauf({ BEWERTET_HEAD: KOPF, PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${KOPF}`);
+    // Ohne Angabe (Abbruch vor dem ersten Abruf) oder mit Unsinn: der Stand des Ereignisses.
+    assert.equal(fehlerLauf({ PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`);
+    assert.equal(fehlerLauf({ BEWERTET_HEAD: 'x;y', PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`);
   });
 
   // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben

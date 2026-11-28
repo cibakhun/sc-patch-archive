@@ -43,6 +43,7 @@ import {
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
   altesLedger, abweichendeDateien, verlaufZumHead,
 } from './lib/review-nachweis.mjs';
+import { appendFileSync } from 'node:fs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
 const TROCKEN = process.argv.includes('--trocken');
@@ -110,6 +111,13 @@ async function gleicheStaende(head) {
   return (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== NUMMER).map((p) => p.number);
 }
 
+// Spitze eines Zweigs, als fester Commit fuer den Vergleich.
+async function zielSpitze(ref) {
+  const sha = (await api(`${R}/branches/${ref.split('/').map(encodeURIComponent).join('/')}`)).commit?.sha;
+  if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error(`Spitze von ${ref} nicht lesbar`);
+  return sha;
+}
+
 const cacheLaeufe = new Map();
 const cacheVorfahr = new Map();
 async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
@@ -148,11 +156,18 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
      (GitHub-Doku); ab 300 gilt die PR-Liste (bis 3000), gebunden ueber
      abweichendeDateien und die Dateizahl des PRs. Geloeschte Dateien bindet
      auch das nicht; deshalb ist ein PR ab 300 Dateien kritisch
-     (kritischeGruende). */
-  const vergleich = await api(`${R}/compare/${pr.base.sha}...${head}`);
+     (kritischeGruende).
+     Basis ist die Spitze des Zielzweigs, nicht `base.sha` des PRs: GitHub
+     zieht `base.sha` nicht nach, wenn der Zielzweig weiterrueckt (gemessen
+     an #477: `base.sha` 6e0b4af, staging 64 Commits weiter; Review #477,
+     Runde 6). Der Merge nimmt die Zusammenfuehrungsbasis mit der Spitze.
+     Geschlossene PRs (nur trocken, zum Nachmessen): `base.sha`, die Basis
+     beim Merge; die Spitze enthielte den gemergten PR schon (0 Dateien). */
+  const spitze = pr.state === 'open' ? await zielSpitze(pr.base.ref) : pr.base.sha;
+  const vergleich = await api(`${R}/compare/${spitze}...${head}`);
   const fest = vergleich.files || [];
   // Gegen diese Basis gilt die Dateiliste; headNochGleich prueft sie vor jedem Schreiben.
-  basis = { ref: pr.base.ref, sha: pr.base.sha, zusammen: vergleich.merge_base_commit?.sha || null };
+  basis = { ref: pr.base.ref, sha: spitze, zusammen: vergleich.merge_base_commit?.sha || null };
   const vollstaendig = fest.length < VERGLEICH_MAX;
   const dateien = vollstaendig ? fest : await alle(`${R}/pulls/${NUMMER}/files`, 30);
   /* Gehoeren Commits und Dateien zum festgehaltenen Head? Ein Head, der
@@ -288,17 +303,29 @@ async function status(sha, u) {
    gepushte Commits mischen sonst Dateien eines neuen Stands in das Urteil
    ueber den alten. Dann schreibt dieser Lauf nichts mehr; der Lauf zum
    neuen Stand uebernimmt (Review #477). Trocken wird nichts geschrieben.
-   Dasselbe fuer die Basis (Review #477, Runde 5): Die Dateiliste ist der
-   Vergleich ab der Zusammenfuehrungsbasis. Wechselt der Zielzweig, kommt
-   ein Lauf zum Ereignis "edited". Ruecken nur neue Commits auf den
-   Zielzweig, bleibt die Zusammenfuehrungsbasis gleich und die Liste gilt;
-   verschiebt sie sich (Zielzweig umgeschrieben oder Teile dieses Stands
-   dort eingeflossen), gibt es kein Ereignis: dann scheitert der Lauf
-   sichtbar, statt ein Urteil aus der alten Liste zu schreiben.
-   Rueckgabe: der frisch gelesene PR. */
+   Dasselbe fuer die Basis (Review #477, Runden 5 und 6): Die Dateiliste ist
+   der Vergleich ab der Zusammenfuehrungsbasis mit der Spitze des
+   Zielzweigs. Wechselt der Zielzweig, kommt ein Lauf zum Ereignis
+   "edited". Rueckt die Spitze nur weiter, bleibt die Zusammenfuehrungsbasis
+   gleich und die Liste gilt; verschiebt sie sich (Zielzweig umgeschrieben
+   oder Teile dieses Stands dort eingeflossen), gibt es kein Ereignis: dann
+   scheitert der Lauf sichtbar, statt ein Urteil aus der alten Liste zu
+   schreiben.
+   Rueckgabe: der PR aus dem letzten Abruf, nach dem Basisvergleich; daran
+   prueft der Aufrufer die Freigabe (Review #477, Runde 6). */
 let basis = null;
 async function headNochGleich(sha) {
   if (TROCKEN) return null;
+  if (basis) {
+    const spitze = await zielSpitze(basis.ref);
+    if (spitze !== basis.sha) {
+      const zusammen = (await api(`${R}/compare/${spitze}...${sha}`)).merge_base_commit?.sha || null;
+      if (!zusammen || zusammen !== basis.zusammen) {
+        throw new Error(`Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben (${String(basis.zusammen).slice(0, 7)} -> ${String(zusammen).slice(0, 7)}): Stand ${sha.slice(0, 7)} nicht bewertet`);
+      }
+      basis = { ...basis, sha: spitze };
+    }
+  }
   const jetzt = await api(`${R}/pulls/${NUMMER}`);
   if (jetzt.head.sha !== sha || jetzt.state !== 'open') {
     console.log('Neuer Stand oder PR geschlossen waehrend der Erhebung — der Lauf dazu uebernimmt.');
@@ -308,13 +335,6 @@ async function headNochGleich(sha) {
     console.log(`Zielzweig waehrend der Erhebung geaendert (${basis.ref} -> ${jetzt.base.ref}) — der Lauf dazu uebernimmt.`);
     process.exit(0);
   }
-  if (basis && jetzt.base.sha !== basis.sha) {
-    const zusammen = (await api(`${R}/compare/${jetzt.base.sha}...${sha}`)).merge_base_commit?.sha || null;
-    if (!zusammen || zusammen !== basis.zusammen) {
-      throw new Error(`Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben (${String(basis.zusammen).slice(0, 7)} -> ${String(zusammen).slice(0, 7)}): Stand ${sha.slice(0, 7)} nicht bewertet`);
-    }
-    basis = { ...basis, sha: jetzt.base.sha };
-  }
   return jetzt;
 }
 
@@ -322,6 +342,11 @@ async function headNochGleich(sha) {
 let pr = await api(`${R}/pulls/${NUMMER}`);
 console.log(`PR #${NUMMER} ${pr.base.ref} <- ${pr.head.ref}, Head ${pr.head.sha.slice(0, 7)}, Ereignis ${EREIGNIS || '-'}/${AKTION || '-'}${LABEL ? ` (${LABEL})` : ''}, Auswertung aus ${QUELLE}`);
 if (pr.state !== 'open' && !(TROCKEN && process.argv.includes('--auch-geschlossen'))) { console.log('PR ist nicht offen — nichts zu tun.'); process.exit(0); }
+// Scheitert der Lauf, markiert der letzte Schritt des Workflows diesen
+// Stand, den bewerteten, nicht den des Ereignisses: ein Push zwischen
+// Ereignis und Abruf liesse sonst ein frueheres Gruen hier stehen (Review
+// #477, Runde 6).
+if (!TROCKEN && process.env.GITHUB_ENV && /^[0-9a-f]{40}$/.test(pr.head.sha)) appendFileSync(process.env.GITHUB_ENV, `BEWERTET_HEAD=${pr.head.sha}\n`);
 const labels = () => pr.labels.map((l) => l.name);
 
 // `nachweis-neu` ist nur der Anstoss zu diesem Lauf (z. B. nach einer Ausnahme).
@@ -383,7 +408,11 @@ if (anforderungNoetig(d)) {
       const jetzt = await headNochGleich(head);
       // Freigabe noch da? Label ab oder zurueck zum Draft waehrend der
       // Pruefung: dann geht kein Befehl hinaus; das Ereignis dazu hat einen
-      // eigenen Lauf (Review #477, Runde 5).
+      // eigenen Lauf (Review #477, Runde 5). `jetzt` ist der letzte Abruf vor
+      // dem Befehl (Runde 6). Bis zum POST bleibt ein Rest von Millisekunden:
+      // GitHub kennt kein bedingtes Anlegen eines Kommentars. Was dort
+      // durchrutscht, ist hoechstens eine Anforderung fuer genau diesen Head
+      // (Marke je Stand, kein zweiter Befehl): Kosten, kein Urteil.
       if (jetzt.draft || !(jetzt.labels || []).some((l) => l.name === LABEL_BEREIT)) {
         console.log(`Freigabe waehrend der Token-Pruefung entfallen (${jetzt.draft ? 'Draft' : `Label ${LABEL_BEREIT} fehlt`}) — keine Anforderung, der Lauf dazu uebernimmt.`);
         process.exit(0);
