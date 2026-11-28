@@ -1076,23 +1076,50 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       if (!handle) { showState('find'); return; }
       if (!/^[a-z0-9_]{3,24}$/.test(handle)) { showState('notfound'); return; }
 
-      const [profileRes, favsRes, showRes, thumbs, badgeRes] = await Promise.all([
-        supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
-        supabase.from('public_favorites').select('*').eq('handle', handle).order('created_at', { ascending: false }),
-        // Angeheftete Loadouts (Schaufenster), in der Reihenfolge des Piloten
-        supabase.from('public_showcase').select('id, pos, entry').eq('handle', handle).order('pos'),
-        // Große Schiffsbilder wie die Kacheln im Konto; ohne Datei die kleinen.
-        fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
-        // Abzeichen "Profil komplett" (Sicht profile_badges); fehlt sie, kein Abzeichen.
-        supabase.from('profile_badges').select('profile_complete').eq('handle', handle).maybeSingle(),
-      ]);
-      if (profileRes.error) throw profileRes.error;
-      const p = profileRes.data;
-      if (!p) { showState('notfound'); return; }
-      const favs = favsRes.error ? [] : favsRes.data || [];
+      // Große Schiffsbilder wie die Kacheln im Konto; ohne Datei die kleinen.
+      const thumbs = await fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Record<string, string>;
       type Lo = { ship: string; name?: string; slots?: Record<string, string>; racks?: Record<string, string>; paint?: string };
+
+      // Angemeldet liest die Seite die Views direkt (mit Socials/Discord und
+      // Freunde-Präsenz). Ohne Anmeldung liefert pilot_public genau EIN Profil
+      // über seinen Handle, OHNE Socials/Discord und ohne Listen-Zugriff; die
+      // Funktion ist je Anschluss gebremst (20261126220000).
+      const signedIn = !!(await supabase.auth.getSession().then(({ data }) => data?.session).catch(() => null));
+
+      let p: Record<string, any> | null;
+      let favs: any[];
+      let showRows: any[];
+      let badgeComplete: boolean;
+
+      if (signedIn) {
+        const [profileRes, favsRes, showRes, badgeRes] = await Promise.all([
+          supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
+          supabase.from('public_favorites').select('*').eq('handle', handle).order('created_at', { ascending: false }),
+          // Angeheftete Loadouts (Schaufenster), in der Reihenfolge des Piloten
+          supabase.from('public_showcase').select('id, pos, entry').eq('handle', handle).order('pos'),
+          // Abzeichen "Profil komplett" (Sicht profile_badges); fehlt sie, kein Abzeichen.
+          supabase.from('profile_badges').select('profile_complete').eq('handle', handle).maybeSingle(),
+        ]);
+        if (profileRes.error) throw profileRes.error;
+        p = profileRes.data;
+        if (!p) { showState('notfound'); return; }
+        favs = favsRes.error ? [] : favsRes.data || [];
+        showRows = showRes.error ? [] : showRes.data || [];
+        badgeComplete = badgeRes.data?.profile_complete === true;
+      } else {
+        const { data: bundle, error } = await supabase.rpc('pilot_public', { p_handle: handle });
+        if (error) throw error;
+        const b = bundle as { profile?: Record<string, any> | null; favorites?: any[]; showcase?: any[]; badge?: boolean; throttled?: boolean } | null;
+        if (b?.throttled) { showState('error'); return; }
+        p = b?.profile ?? null;
+        if (!p) { showState('notfound'); return; }
+        favs = b?.favorites || [];
+        showRows = b?.showcase || [];
+        badgeComplete = b?.badge === true;
+      }
+
       // Angeheftete Loadouts öffnen den Hangar; ohne ihn (Live-Bau) keine.
-      const shown = HANGAR_ON ? (showRes.error ? [] : showRes.data || []).map((r: { entry: Lo }) => r.entry).filter((e: Lo) => e && e.ship) : [];
+      const shown = HANGAR_ON ? showRows.map((r: { entry: Lo }) => r.entry).filter((e: Lo) => e && e.ship) : [];
 
       const name = p.display_name || p.handle;
 
@@ -1166,18 +1193,20 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       // Seite social_profiles: dort sehen ihn auch Freunde und man selbst.
       // Scheitert das einmal (etwa Netz, abgelaufene Sitzung), faellt nur diese
       // Abfrage auf public_profiles zurueck; die naechste fragt wieder social_profiles.
-      let presenceView: 'public_profiles' | 'social_profiles' = 'public_profiles';
-      const pollPresence = async (view = presenceView): Promise<void> => {
-        const { data, error } = await supabase.from(view).select('presence, status_state').eq('handle', handle).maybeSingle();
-        if (error && view === 'social_profiles') return pollPresence('public_profiles');
-        if (data) applyPresence(data.presence, data.status_state);
-      };
-      supabase.auth.getSession().then(({ data: auth }) => {
-        if (auth?.session) { presenceView = 'social_profiles'; pollPresence(); }
-      }).catch(() => { /* bleibt public_profiles */ });
-      // Live-Präsenz: alle 40s neu abfragen (offline entsteht durch Zeitablauf,
-      // kein DB-Event -> Polling statt Realtime).
-      setInterval(() => void pollPresence(), 40000);
+      // Live-Präsenz nur für Angemeldete: sie lesen social_profiles (dort
+      // sehen Freunde und man selbst den Status) und frischen alle 40s nach
+      // (offline entsteht durch Zeitablauf, kein DB-Event -> Polling). Anonyme
+      // sehen den Status vom Laden (p.presence, nur bei Sichtbarkeit „Alle");
+      // sie haben keinen direkten View-Zugriff mehr und fragen nicht nach.
+      if (signedIn) {
+        const pollPresence = async (view: 'social_profiles' | 'public_profiles' = 'social_profiles'): Promise<void> => {
+          const { data, error } = await supabase.from(view).select('presence, status_state').eq('handle', handle).maybeSingle();
+          if (error && view === 'social_profiles') return pollPresence('public_profiles');
+          if (data) applyPresence(data.presence, data.status_state);
+        };
+        pollPresence();
+        setInterval(() => void pollPresence(), 40000);
+      }
 
       // Identity
       $('ppName')!.textContent = name;
@@ -1211,7 +1240,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       if (p.is_tester === true) {
         badges.push(`<span class="pp-badge pp-badge--tester"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l1.9 4.3 4.6.5-3.4 3.2.9 4.6-4-2.3-4 2.3.9-4.6-3.4-3.2 4.6-.5z"/></svg>${esc(COPY.testPilot)}</span>`);
       }
-      if (badgeRes.data?.profile_complete === true) {
+      if (badgeComplete) {
         badges.push(`<span class="pp-badge pp-badge--complete"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l1.8 1.8L14.8 7.3M8.5 14.2L7 21.5l5-2.5 5 2.5-1.5-7.3"/></svg>${esc(COPY.profileComplete)}</span>`);
       }
       if (p.created_at) {

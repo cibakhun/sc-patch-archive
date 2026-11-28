@@ -122,17 +122,17 @@ describe('Teilen: eigene Link-Vorschau je Pilot', () => {
       await m.page(r);
       return { r, calls };
     };
-    const ok = await run(() => Promise.resolve({ status: 200, json: () => Promise.resolve([KRISZ]) }));
+    const ok = await run(() => Promise.resolve({ status: 200, json: () => Promise.resolve(KRISZ) }));
     assert.strictEqual(ok.r.sent.code, 200);
     assert.strictEqual(ok.r.headersOut['Content-Type'], 'text/html; charset=utf-8');
     assert.match(ok.r.sent.body, /<title>Krisz \(@krisz\)/);
-    assert.match(ok.calls[0].url, /\/rest\/v1\/public_profiles\?select=[a-z_,]+&handle=eq\.krisz&limit=1$/, 'Handle nicht klein geschrieben oder Abfrage anders');
+    assert.match(ok.calls[0].url, /\/rest\/v1\/rpc\/pilot_card\?p_handle=krisz$/, 'Handle nicht klein geschrieben oder Abruf anders');
     assert.ok(ok.calls[0].opt.headers.apikey, 'ohne apikey');
     for (const bad of [
       () => Promise.reject(new Error('netz')),
       () => Promise.resolve({ status: 500, json: () => Promise.resolve(null) }),
       () => Promise.resolve({ status: 200, json: () => Promise.reject(new Error('json')) }),
-      () => Promise.resolve({ status: 200, json: () => Promise.resolve([]) }),
+      () => Promise.resolve({ status: 200, json: () => Promise.resolve(null) }),
     ]) {
       const { r } = await run(bad);
       assert.strictEqual(r.sent.code, 200);

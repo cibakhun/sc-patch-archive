@@ -1,7 +1,7 @@
 {
   "_zweck": "Soll-Rechte von anon, authenticated und PUBLIC in den Schemas public und private. Gepflegt zusammen mit jeder Migration, die ein Objekt anlegt oder ein Recht aendert. Geprueft von scripts/verify-db-rights.mjs (npm run verify:db-rights, Schiene B) gegen die live wirksamen Rechte, gemessen mit supabase/rights.snapshot.sql. Mehr als hier steht: FEHLER. Weniger: WARNUNG. Fehlt eine Rolle in einem Eintrag, hat sie dort KEIN Recht. 'ausnahme' = geduldetes Zuviel mit Anlass; verschwindet das Zuviel, reisst das Tor (Zombie-Waechter).",
-  "stand": "2026-10-30",
-  "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql",
+  "stand": "2026-11-26",
+  "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql (Grundmodell); 20261126220000_pilotenprofil_funktionen.sql + 20261126220100_pilotenprofil_abruf_strenger.sql (zwei Stufen: Funktionen pilot_card/pilot_public, dann anon ohne Listen-Zugriff; Soll ist der End-Stand nach Stufe 2)",
   "objekte": {
     "column public.support_progress.note": {
       "authenticated": ["UPDATE"],
@@ -70,6 +70,16 @@
     "function public.refinery_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
     "function public.chat_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
     "function public.chat_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
+    "function public.pilot_card(p_handle text)": {
+      "anon": ["EXECUTE"],
+      "authenticated": ["EXECUTE"],
+      "warum": "Link-Vorschau eines Piloten (nginx/pilot.js): sieben Karten-Felder ueber den Handle, ohne Bremse (20261126220000)"
+    },
+    "function public.pilot_public(p_handle text)": {
+      "anon": ["EXECUTE"],
+      "authenticated": ["EXECUTE"],
+      "warum": "oeffentliche Pilotenseite fuer anon: ein Profil ueber den Handle, ohne Socials/Discord, mit Favoriten/Loadouts/Abzeichen, Bremse je Anschluss (20261126220000)"
+    },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
     "function public.refinery_jobs_guard()": { "warum": "Triggerfunktion auf refinery_jobs (Obergrenze je Konto); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
@@ -104,6 +114,7 @@
     },
 
     "sequence private.checkout_attempts_id_seq": { "warum": "identity, nur service_role" },
+    "sequence private.pilot_views_id_seq": { "warum": "identity, nur das Besitzerrecht von pilot_public (security definer); kein Clientrecht (20261126220000)" },
     "sequence private.register_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence private.rsi_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence public.direct_messages_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
@@ -114,6 +125,8 @@
 
     "table private.chat_discord_notified": { "warum": "nur chat_discord_due/chat_discord_sent (security definer), 20261124100000" },
     "table private.checkout_attempts": { "warum": "nur checkout_rate_ok (security definer)" },
+    "table private.pilot_views": { "warum": "Bremse der Pilotenseite; nur pilot_public (security definer) (20261126220000)" },
+    "table private.pilot_rate_secret": { "warum": "Geheimwert der Pilotenseiten-Bremse; nur pilot_public (security definer); nie im Repository (20261126220000)" },
     "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
     "table private.rsi_attempts": { "warum": "nur rsi_rate_ok (service_role)" },
     "table private.rsi_challenges": { "warum": "nur Edge Function verify-rsi (service_role)" },
@@ -206,25 +219,21 @@
     },
 
     "view public.public_favorites": {
-      "anon": ["SELECT"],
       "authenticated": ["SELECT"],
-      "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
+      "warum": "PilotPage angemeldet; anon liest ein Profil ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten"
     },
     "view public.public_showcase": {
-      "anon": ["SELECT"],
       "authenticated": ["SELECT"],
-      "warum": "PilotPage (oeffentlich): angeheftete Loadouts; View mit Besitzerrechten (20261029205000)"
+      "warum": "PilotPage angemeldet: angeheftete Loadouts; anon ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten (20261029205000)"
     },
     "view public.discord_profile_badges": { "warum": "nur Edge Function bot-role-sync (service_role), Abzeichen-Rolle auf Discord, 20261030170000" },
     "view public.profile_badges": {
-      "anon": ["SELECT"],
       "authenticated": ["SELECT"],
-      "warum": "PilotPage (oeffentlich): Abzeichen Profil komplett; View mit Besitzerrechten, Regel steht in der View (20261030171000)"
+      "warum": "PilotPage angemeldet: Abzeichen Profil komplett; anon ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten, Regel steht in der View (20261030171000)"
     },
     "view public.public_profiles": {
-      "anon": ["SELECT"],
       "authenticated": ["SELECT"],
-      "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
+      "warum": "PilotPage angemeldet (mit Socials/Discord); anon liest ein Profil ohne diese Felder ueber pilot_public; anon ohne direkten SELECT seit 20261126220100; View mit Besitzerrechten"
     },
     "view public.social_profiles": {
       "authenticated": ["SELECT"],

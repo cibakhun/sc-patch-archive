@@ -442,8 +442,7 @@ a{color:inherit;text-decoration:none}
     <p class="muted">
       When you are not signed in, the website only connects to Supabase when you use account
       features (sign-in, password reset), on two kinds of pages that read public data — a public
-      pilot profile (that pilot's profile, favorites and pinned loadouts when opened, then that pilot's online status
-      every 40 seconds while the page is open; uploaded images come from Supabase's storage) and the
+      pilot profile (that pilot's profile, favorites and pinned loadouts when opened, and that pilot's online status as it stood when the page loaded — without signing in it is not polled again; uploaded images come from Supabase's storage) and the
       Feedback page (the list of credited <a href="#testpilots">test pilots</a>) — and on the Support
       page once you press the button there (it creates the Stripe payment page via Supabase,
       sending only the amount you chose and the page language). Nothing that identifies you is
@@ -503,25 +502,28 @@ a{color:inherit;text-decoration:none}
     <h2 id="profile">Public pilot profile</h2>
     <p>
       Your profile is not public at first. Only when you set a <strong>handle</strong> in the
-      dashboard does /pilot/&lt;handle&gt; become visible to anyone, even without signing in: handle,
-      display name, bio, profile picture or icon, banner, role, status and status text, org name,
-      RSI handle and whether it is verified, where applicable the “Test Pilot” badge, your names on
-      Twitch, YouTube and X, since when you have been a member, your
+      dashboard does /pilot/&lt;handle&gt; become reachable through its link, even without signing
+      in. Without signing in it shows: handle, display name, bio, profile picture or icon, banner,
+      role, status and status text, org name, RSI handle and whether it is verified, where
+      applicable the “Test Pilot” badge, since when you have been a member, your
       <a href="#presence">online status</a> if you have shared it with everyone, all your favorites
       including your ship fleet as long as “Show favorites on my public page” is switched on in the
       profile (it is by default), and up to three loadouts you pin to your public profile under
       “Saved”, each with the ship, the name you gave it, the chosen components and missile racks and
-      the paint. If you
-      are linked with Discord and a member of our Discord server, the profile also shows a rank
-      badge with your rank, level and prestige there (see
-      <a href="#discord-server">Discord server</a>). The website's public database interface
-      returns the same details, with the month you created the account, the day you saved each
-      favorite and the time you created and last changed each pinned loadout, and for all profiles
-      with a handle at once.
+      the paint. Your names on Twitch, YouTube and X and — if you are linked with Discord and a
+      member of our Discord server — the rank badge with your rank, level and prestige (see
+      <a href="#discord-server">Discord server</a>) are shown only to signed-in visitors. The
+      website retrieves a profile through its handle, one at a time; without signing in you cannot
+      retrieve the list of all profiles at once, and the retrieval is rate-limited per internet
+      connection (for the count we store only a key derived from the IP address — an HMAC, never
+      the address itself — and a later retrieval removes it once it is older than an hour). Each retrieval also carries the month you
+      created the account, the day you saved each favorite and the time you created and last changed
+      each pinned loadout.
     </p>
     <p>
-      Signed-in users can additionally read the internal account ID of every profile with a handle
-      through the interface. If you have uploaded your own profile picture or banner, the ID is also
+      Signed-in users additionally see, on a profile, your names on Twitch, YouTube and X and the
+      Discord rank badge, can retrieve profiles as a list, and can read the internal account ID of
+      every profile with a handle through the interface. If you have uploaded your own profile picture or banner, the ID is also
       part of its address, together with the time of the upload, and can therefore be read by
       anyone (see <a href="#accounts">user account</a>). Signed-in users, even without a handle of
       their own, can also find profiles with a handle in the account dashboard: from two typed
@@ -623,7 +625,7 @@ a{color:inherit;text-decoration:none}
       handle. You choose who sees it in the account dashboard (“Who sees my online status”). By
       default only your confirmed friends see it while signed in: in their friends list and on your
       pilot profile. With “Everyone” it is readable by anyone, also without signing in: on your
-      public pilot profile, which refreshes it every 40 seconds, through the public interface and
+      public pilot profile (refreshed every 40 seconds for signed-in viewers; guests see it as at page load), through the public interface and
       for open requests. With “No one” nobody sees it; the stored timestamps and the note are then
       cleared at once, and nothing is stored while the setting applies. Even with “Everyone”, only
       your friends see the note on what you are doing. When you sign out in the account
@@ -733,8 +735,8 @@ a{color:inherit;text-decoration:none}
       the bot starts, then every 5 minutes and right after each level-up, as long as Discord is
       connected to your account (see <a href="#discord">Discord</a>).
       While Discord is connected and you are a member of the server, your
-      <a href="#profile">pilot profile</a> shows level, rank and prestige to anyone as a rank badge,
-      and anyone can read them through the public database interface; to signed-in users the
+      <a href="#profile">pilot profile</a> shows level, rank and prestige as a rank badge to signed-in visitors,
+      who can also read them through the database interface; the
       website also shows the badge for friends and in requests, search hits and suggestions. The
       website shows the other values only to you. For the reconciliation the bot sends your Discord ID to
       the account system at Supabase, even if you have no website account: when you leave the

@@ -24,10 +24,13 @@
    Ausfallsicher in jede Richtung: unbekannter Handle, Netzfehler,
    Zeitueberlauf (1,5 s), unlesbare Antwort — immer die unveraenderte
    Seite, die dann wie bisher selbst im Browser laedt. Gelesen wird
-   nur die oeffentliche Sicht public_profiles mit dem oeffentlichen
-   Schluessel (derselbe steht im Seiten-JS, src/consts.ts; ein Test
-   haelt beide gleich). Alles aus dem Profil geht escaped in Attribute,
-   Bild-Adressen nur von dieser Seite oder https.
+   genau EIN Pilot ueber die Funktion rpc/pilot_card (die sieben
+   Karten-Felder, ohne Socials/Discord, ueber den Handle, nie eine
+   Liste) mit dem oeffentlichen Schluessel (derselbe steht im Seiten-JS,
+   src/consts.ts; ein Test haelt beide gleich). Seit 20261126220000
+   liest anon die Views public_profiles & Co. nicht mehr direkt.
+   Alles aus dem Profil geht escaped in Attribute, Bild-Adressen nur
+   von dieser Seite oder https.
    ============================================================ */
 
 import fs from 'fs';
@@ -40,7 +43,6 @@ const SUPABASE_PUBLISHABLE = 'sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J';
 // Wie die Seite selbst (PilotPage.astro): klein geschrieben, 3–24 Zeichen.
 const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
 const FETCH_TIMEOUT_MS = 1500;
-const COLS = 'handle,display_name,bio,banner_url,avatar_url,avatar_color,org_name';
 
 const TEXT = {
   de: { tail: ' | VerseBase', fallback: 'Pilotenprofil auf VerseBase: Status, Rolle und Flotte.' },
@@ -116,14 +118,16 @@ function profile(handle) {
   const zeit = new Promise((resolve) => {
     timer = setTimeout(() => resolve(null), FETCH_TIMEOUT_MS);
   });
+  // Genau ein Pilot ueber seinen Handle (STABLE -> GET erlaubt). Antwort ist
+  // das Karten-Objekt oder null (unbekannter Handle), nie eine Liste.
   const abruf = ngx
-    .fetch(url + '/rest/v1/public_profiles?select=' + COLS + '&handle=eq.' + handle + '&limit=1', {
+    .fetch(url + '/rest/v1/rpc/pilot_card?p_handle=' + handle, {
       headers: { apikey: key, Accept: 'application/json' },
     })
     .then((reply) => (reply.status === 200 ? reply.json() : null))
-    .then((rows) => {
+    .then((row) => {
       clearTimeout(timer);
-      return rows && rows.length ? rows[0] : null;
+      return row && typeof row === 'object' ? row : null;
     });
   return Promise.race([abruf, zeit]);
 }
