@@ -45,6 +45,7 @@ import {
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
   rundenLesen, beschreibungMitPr, nachweisFuerPr,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
+  altesLedger,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -135,6 +136,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
   const gleicherStand = await gleicheStaende(head);
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at, geaendert: k.updated_at || k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
+  if (bericht && altesLedger(bericht.body)) console.log('Ledger der ersten Fassung im Bericht: nicht gelesen, dessen Bereiche zaehlen nur mit eigenem Beleg.');
   // Jeder Bereich traegt seine Quelle: abgegebene Reviews und das Ledger
   // sind feste Belege, jeder andere Text nur fuer den juengsten Lauf.
   const bereiche = [
@@ -234,6 +236,10 @@ async function status(sha, u) {
   letzterStatus = schluessel;
   console.log(`Status ${STATUS_KONTEXT} fuer ${sha.slice(0, 7)}: ${u.state} — ${beschreibung}`);
   if (TROCKEN) return;
+  // Unmittelbar vor jedem Schreiben, auch dem "Warte" in der Schleife: ist
+  // der Head inzwischen ein anderer, ueberschriebe der Status sonst ein
+  // Urteil des alten Stands mit einem aus gemischten Daten (Review #477).
+  await headNochGleich(sha);
   await api(`${R}/statuses/${sha}`, { method: 'POST', body: { state: u.state, description: beschreibung, context: STATUS_KONTEXT, target_url: LAUF || undefined } });
 }
 

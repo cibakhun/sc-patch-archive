@@ -17,8 +17,13 @@ import {
   anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
-  angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche,
+  angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
 } from '../../scripts/lib/review-nachweis.mjs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const h = (c) => c.repeat(40).slice(0, 40);
 const BASIS = h('b'), A = h('1'), B = h('2'), C = h('3'), FREMD = h('f');
@@ -109,7 +114,7 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
   test('Ledger: Bereiche ueberleben im eigenen Bericht', () => {
     const text = berichtText({ state: 'success', description: 'x', bericht: [] }, { bereiche: [{ a: A, b: B }, { a: A, b: B }], lauf: 'u', quelle: 'q' });
     assert.deepEqual(ledgerLesen(text), [{ a: A, b: B }]);
-    assert.deepEqual(ledgerLesen('<!-- review-nachweis:bereiche [kaputt -->'), []);
+    assert.deepEqual(ledgerLesen('<!-- review-nachweis:bereiche2 [kaputt -->'), []);
   });
 });
 
@@ -574,5 +579,67 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
     assert.ok(ledgerBereiche(fertig).some((r) => r.a === BASIS && r.b === B), 'der fertige full review wird festgehalten');
     const text = berichtText({ state: 'success', description: 'x', bericht: [] }, { bereiche: ledgerBereiche(fertig), lauf: '-', quelle: '-' });
     assert.deepEqual(ledgerLesen(text).map(k).sort(), ledgerBereiche(fertig).map(k).sort());
+  });
+});
+
+describe('Review-Nachweis: Nachtraege zu Runde 3 (Review #477)', () => {
+  const SPAET_ABBRUCH = { ...CR_ABBRUCH, started_at: '2026-11-27T10:00:00Z' };
+  const inkr = { a: A, b: B, quelle: 'review' };
+  const abgebrochenVoll = { a: BASIS, b: B, quelle: 'zusammenfassung', stand: Date.parse('2026-11-27T10:00:05Z') };
+  const luecke = (bereiche, laeufeA = [CR_AUS_SKIP]) => lage({ commits: [A, B], pr: { head_sha: B }, laeufeJeCommit: { [A]: laeufeA, [B]: [CR_FERTIG, SPAET_ABBRUCH] }, bereiche });
+  const ausBericht = (text) => ledgerLesen(text).map((x) => ({ ...x, quelle: 'ledger' }));
+
+  test('Ledger der ersten Fassung wird nicht gelesen: der Bereich eines abgebrochenen full review schliesst keine Luecke', () => {
+    // So schrieb die erste Fassung: jeden gesehenen Bereich, auch Basis..B
+    // aus der Zusammenfassung eines spaeter abgebrochenen full review.
+    const alt = `<!-- review-nachweis:bericht -->\n<!-- review-nachweis:bereiche ${JSON.stringify([{ a: BASIS, b: B }])} -->`;
+    assert.equal(altesLedger(alt), true);
+    assert.deepEqual(ledgerLesen(alt), []);
+    assert.notEqual(bewerte(luecke([inkr, abgebrochenVoll, ...ausBericht(alt)])).state, 'success');
+    // Fassung 2 schreibt nur Belegtes und wird gelesen: Basis..A war ein
+    // fertiger Lauf an A, dessen Zusammenfassung inzwischen ueberschrieben ist.
+    const neu = berichtText({ state: 'failure', description: 'x', bericht: [] }, { bereiche: [{ a: BASIS, b: A }], lauf: '-', quelle: '-' });
+    assert.equal(altesLedger(neu), false);
+    assert.deepEqual(ledgerLesen(neu), [{ a: BASIS, b: A }]);
+    assert.equal(bewerte(luecke([inkr, ...ausBericht(neu)], [CR_FERTIG])).state, 'success', 'ein belegter Bereich aus dem Ledger schliesst die Luecke');
+  });
+
+  // Der Laeufer selbst, gegen feste GitHub-Antworten (tests/e2e/helpers/fake-github.js).
+  const WURZEL = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const FAKE = pathToFileURL(join(WURZEL, 'tests', 'e2e', 'helpers', 'fake-github.js')).href;
+  const KOPF = h('a'), NEU = h('c');
+  const prMit = (sha) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging' }, head: { sha, ref: 'claude/x' }, labels: [] });
+  const laeuft = { app: { slug: 'coderabbitai' }, name: 'CodeRabbit', status: 'in_progress', conclusion: null, output: { title: '', summary: '' }, started_at: '2026-11-28T03:00:00Z' };
+  function laeufer(pulls) {
+    const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-'));
+    const szenario = join(dir, 'szenario.json'), log = join(dir, 'anfragen.log');
+    writeFileSync(szenario, JSON.stringify({ routen: {
+      'GET repos/o/r/pulls/477': pulls,
+      'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF }]],
+      [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [laeuft] }],
+      'GET repos/o/r/pulls/477/files': [[{ filename: 'README.md' }]],
+    } }));
+    const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs')], {
+      encoding: 'utf8', timeout: 30_000,
+      env: { ...process.env, FAKE_GITHUB: szenario, FAKE_GITHUB_LOG: log, REPO: 'o/r', PR_NUMMER: '477', GH_TOKEN: 'test', ANFORDERUNG_TOKEN: '', EREIGNIS: '', AKTION: '', LABEL: '', LAUF_URL: '', WARTEN_MIN: '0.02', TAKT_S: '0.2' },
+    });
+    const anfragen = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').map((z) => JSON.parse(z)) : [];
+    return { ...r, anfragen };
+  }
+
+  test('Laeufer: wechselt der Head waehrend der Erhebung, schreibt er keinen Status mehr, auch kein "Warte"', () => {
+    const r = laeufer([prMit(KOPF), prMit(NEU)]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /Neuer Stand oder PR geschlossen waehrend der Erhebung/);
+    assert.deepEqual(r.anfragen.filter((x) => x.schluessel.startsWith('POST ')), [], 'kein Status, kein Label, kein Bericht auf dem alten Stand');
+  });
+
+  test('Gegenprobe Laeufer: bleibt der Head, schreibt er "Warte" und am Ende sein Urteil', () => {
+    const r = laeufer([prMit(KOPF)]);
+    assert.equal(r.status, 0, r.stderr);
+    const zust = r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body.state);
+    assert.equal(zust[0], 'pending', 'erst Warte');
+    assert.equal(zust.at(-1), 'failure', 'nach Ablauf der Wartezeit nicht geprueft');
+    assert.ok(r.anfragen.some((x) => x.schluessel === 'POST repos/o/r/issues/477/comments'), 'Bericht geschrieben');
   });
 });

@@ -144,7 +144,10 @@ Der Nachweis ist deshalb erst grün, wenn die Runden zusammen **jede
 - CodeRabbit überschreibt seine Zusammenfassung bei jeder Runde. Damit eine
   Runde ohne Kommentare ihren Bereich nicht verliert, hält der
   Bericht-Kommentar jeden belegten Bereich fest (verborgenes Ledger); ein
-  unbelegter (Runde läuft noch oder brach ab) kommt nicht hinein.
+  unbelegter (Runde läuft noch oder brach ab) kommt nicht hinein. Gelesen
+  wird nur diese Fassung (`review-nachweis:bereiche2`): die erste schrieb
+  jeden gesehenen Bereich, auch den einer abgebrochenen Runde; ihre
+  Bereiche zählen nur mit eigenem Beleg.
 - **cubic**: Ein voller Review setzt die Abdeckung, inkrementelle Reviews
   und Merge-Commits („not needed for merge commit“) setzen sie fort, alles
   andere (Limit, Rewrite, nicht gestartet) bricht sie. Der Head selbst
@@ -264,9 +267,9 @@ veraltet). Die Marke selbst zählt nie als Review. Jedes neue
 Ereignis bricht den wartenden Lauf ab und startet neu
 (`cancel-in-progress`). Ändert sich der Head während des Wartens, endet der
 Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst. Dasselbe gilt
-unmittelbar vor der Anforderung und vor dem Schreiben des Status: Kam
-während der Erhebung ein neuer Stand, schreibt der Lauf nichts, damit kein
-Urteil aus gemischten Daten am alten Stand hängt. Beim Nachpollen liest
+unmittelbar vor der Anforderung und vor jedem Schreiben eines Status,
+auch des „Warte“: Kam während der Erhebung ein neuer Stand, schreibt der
+Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt. Beim Nachpollen liest
 der Lauf den Head und jeden Stand neu, dessen Lauf noch nicht fertig war.
 
 ## Grenzen (bewusst offen)

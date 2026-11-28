@@ -431,8 +431,8 @@ export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufe
   return { abgedeckt: erreicht.has(head), kette, verworfen, gueltig: gueltig.length, gueltigeBereiche: gueltig };
 }
 
-/** Was ins Ledger geht: das alte Ledger und jeder Bereich, der jetzt
-    belegt ist. Ein unbelegter Bereich (Lauf laeuft noch oder brach ab)
+/** Was ins Ledger geht: das bisherige Ledger (nur Fassung 2, siehe
+    ledgerLesen) und jeder Bereich, der jetzt belegt ist. Ein unbelegter Bereich (Lauf laeuft noch oder brach ab)
     wird nicht festgehalten, sonst wuerde er spaeter als fester Beleg
     gelesen (Review #477). */
 export function ledgerBereiche(d) {
@@ -637,8 +637,15 @@ export function rundenLesen(text) {
   try { return JSON.parse(m[1]).filter((x) => SHA.test(x)); } catch { return []; }
 }
 
+/* Nur die Fassung 2 (`bereiche2`): sie haelt ausschliesslich belegte
+   Bereiche fest (ledgerBereiche). Die erste Fassung schrieb jeden gesehenen
+   Bereich, auch den eines spaeter abgebrochenen Laufs; sie wird nicht mehr
+   gelesen, ihre Bereiche zaehlen nur mit eigenem Beleg (Review #477). */
+export const LEDGER_MARKE = 'review-nachweis:bereiche2';
+export const altesLedger = (text) => /<!-- review-nachweis:bereiche \[/.test(String(text || ''));
+
 export function ledgerLesen(text) {
-  const m = /<!-- review-nachweis:bereiche (\[[^]*?\]) -->/.exec(String(text || ''));
+  const m = /<!-- review-nachweis:bereiche2 (\[[^]*?\]) -->/.exec(String(text || ''));
   if (!m) return [];
   try { return JSON.parse(m[1]).filter((r) => SHA.test(r.a) && SHA.test(r.b)); } catch { return []; }
 }
@@ -655,7 +662,7 @@ export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {
     ...(urteil.bericht || []),
     '',
     `<sub>Automatischer Bericht, bei jedem Ereignis neu geschrieben. Auswertung aus: ${quelle}. [Lauf](${lauf}). Regeln: docs/review-workflow.md</sub>`,
-    `<!-- review-nachweis:bereiche ${JSON.stringify(eindeutig)} -->`,
+    `<!-- ${LEDGER_MARKE} ${JSON.stringify(eindeutig)} -->`,
     `<!-- review-nachweis:runden ${JSON.stringify([...new Set(runden)])} -->`,
   ].join('\n');
 }
