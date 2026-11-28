@@ -236,9 +236,9 @@ ist anbieterneutral und bleibt gültig.
 
 ### Crafting-Karten: Bauteil-Kennwerte
 
-> Quelle: Discord-Rückmeldung von [SYN] Froggy — „awesome to actually see the
-> different sizes on what components are and what grade they are like A B C.
-> Aswell if they a mill industrial and so forth." Belege und Messung:
+> Quelle: Rückmeldung eines Mitglieds im Discord-Forum #feedback: Größe und
+> Grade (A, B, C) der Bauteile auf den Karten sehen, dazu, ob ein Bauteil
+> militärisch, industriell usw. ist. Belege und Messung:
 > `.planning/notes/crafting-karten-groesse-grade-ton.md`.
 
 - [x] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert

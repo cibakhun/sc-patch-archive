@@ -1,7 +1,7 @@
 ---
 title: "Crafting-Karten: Größe, Grade und Ton — Datenlage und Messung"
 date: 2026-08-06
-context: "Discord-Feedback [SYN] Froggy; Erkundung vor der Planung"
+context: "Rückmeldung eines Mitglieds (#feedback); Erkundung vor der Planung"
 branch: feature/crafting-card-size-grade-tone
 ---
 
@@ -9,7 +9,7 @@ branch: feature/crafting-card-size-grade-tone
 
 ## Anlass
 
-Discord-Feedback von **[SYN] Froggy**: auf den Blueprint-Karten der Crafting-Datenbank
+Rückmeldung eines Mitglieds (#feedback): auf den Blueprint-Karten der Crafting-Datenbank
 soll direkt sichtbar sein, (a) welche **Größe** ein Bauteil hat, (b) welchen
 **Grade/Klasse** (A, B, C, D) und (c) welchen **Ton** — military, industrial,
 civilian, stealth. Genannte Beispiele: Allegro, Atlas, Cassandra, Cirrus, Drift,
@@ -37,7 +37,7 @@ Blueprints tragen ein `SizeN`-Segment im Kategorie-String (ausschließlich Quant
 Die Angaben kommen daher aus `universal-items.json`: `game.size`, `game.grade`,
 `game.class`, zusätzlich `game.manufacturer`, `game.subType`, `game.guid`.
 
-Froggys „Ton" ist exakt **`game.class`**. Ein Feld `tone` gibt es nicht.
+Der erfragte „Ton" ist exakt **`game.class`**. Ein Feld `tone` gibt es nicht.
 
 ## Messung 1 — ist der Namens-Join belastbar?
 
@@ -73,7 +73,7 @@ Item-Eintrag zeigen. Vor Auslieferung einzeln prüfen:
 
 Ohne Item-Treffer: 14 von 1594.
 
-## Messung 2 — die Ton-Lücke betrifft nicht Froggys Bauteile
+## Messung 2 — die Ton-Lücke betrifft nicht die erfragten Bauteile
 
 Grobzahl über alle Blueprints wäre: `class` nur bei 406 von 1580 (~26 %). Nach
 Kategorie aufgeschlüsselt löst sich das auf:
@@ -94,7 +94,7 @@ Kategorie aufgeschlüsselt löst sich das auf:
 Oberkategorien: Armour 913 BP (size/grade 889, **class 0**), Vehiclegear 467
 (452/452/**319**), Weapons 174 (165/165/87), Ammo 36 (36/36/**0**).
 
-**Genau die Bauteile, nach denen Froggy fragt, haben den Ton zu ~98 %.**
+**Genau die Bauteile, nach denen die Rückmeldung fragt, haben den Ton zu ~98 %.**
 Die Nullen stehen bei Rüstung und Schiffswaffen — und beide sind keine echten Lücken:
 
 - **Schiffswaffen** tragen ihren Ton bereits im Kategorie-String:
@@ -110,7 +110,7 @@ Wertebereich `class`: Ballistic 150, Civilian 124, Military 75, Industrial 65,
 Stealth 32, Competition 28, Melee 23, Gadget 19, Electron 10, Rocket 4, Foam Dart 4,
 Laser 3, je 1× Salvage and Repair / Medical / Mining / Cutter / Tractor Beam.
 
-## Stichprobe (Froggys eigene Beispiele)
+## Stichprobe (die Beispiele aus der Rückmeldung)
 
 | Blueprint | size | grade | class |
 |---|---|---|---|

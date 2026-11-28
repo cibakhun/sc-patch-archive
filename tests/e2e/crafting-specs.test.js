@@ -102,7 +102,7 @@ function specChips(card) {
   }));
 }
 
-// Froggys eigene Beispiele (05-01) plus die Referenzkarten dieses Plans:
+// Die Beispiele aus der Rückmeldung (05-01) plus die Referenzkarten dieses Plans:
 // die drei zusaetzlichen game.class-Karten (Lotus, Cassandra, Cirrus) und die
 // beiden Schiffswaffen, deren Ton NICHT aus game.class kommt, sondern aus dem
 // Kategorie-Pfad (D-04) — sowie Agure als Beleg, dass Groesse 0 ein echter
