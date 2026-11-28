@@ -105,9 +105,19 @@ async function laeufeFuer(sha) {
     async (seite) => (await api(`${R}/commits/${sha}/check-runs?filter=all&per_page=100&page=${seite}`)).check_runs || [],
     { max: 5, was: `Check-Laeufe von ${sha.slice(0, 7)}` },
   );
-  return laeufe
-    .filter((l) => ['coderabbitai', 'cubic-dev-ai'].includes(l.app?.slug))
-    .map((l) => ({ app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at, completed_at: l.completed_at }));
+  const eigene = laeufe.filter((l) => ['coderabbitai', 'cubic-dev-ai'].includes(l.app?.slug));
+  /* Zweig der Check-Suite je cubic-Lauf: eine Suite gibt es je App und
+     Commit einmal, ihr `head_branch` ist der Zweig des ersten Pushs. Ein
+     Commit, den ein anderer PR zuerst gepusht hat (Merge eines fremden
+     Zweigs), traegt dessen Lauf (Opus-Review #477, Runde 5). */
+  const zweige = new Map();
+  if (eigene.some((l) => l.app.slug === 'cubic-dev-ai')) {
+    for (const x of (await api(`${R}/commits/${sha}/check-suites?per_page=100`)).check_suites || []) zweige.set(x.id, x.head_branch ?? null);
+  }
+  return eigene.map((l) => ({
+    app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at, completed_at: l.completed_at,
+    ...(l.app.slug === 'cubic-dev-ai' ? { zweig: zweige.get(l.check_suite?.id) ?? null } : {}),
+  }));
 }
 
 // Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
@@ -124,6 +134,7 @@ async function zielSpitze(ref) {
 
 const cacheLaeufe = new Map();
 const cacheVorfahr = new Map();
+const cacheConfig = new Map();
 async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const head = pr.head.sha;
   const commitListe = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => ({ sha: c.sha, parents: (c.parents || []).map((p) => p.sha) }));
@@ -219,6 +230,26 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
     ...(bericht ? ledgerLesen(bericht.body).map((x) => ({ ...x, quelle: 'ledger' })) : []),
   ];
   const imPr = new Set(commits);
+  /* Andere PRs vom selben Zweig (offen oder geschlossen): ihre cubic-Laeufe
+     haengen an denselben Commits. Ein Lauf in ihrer Lebenszeit ist nicht
+     zuzuordnen und zaehlt nicht (Opus-Review #477, Runde 5). */
+  const besitzer = REPO.split('/')[0];
+  const fremdeZeiten = (await alle(`${R}/pulls?state=all&head=${encodeURIComponent(`${besitzer}:${pr.head.ref}`)}`, 3))
+    .filter((p) => p.number !== NUMMER).map((p) => [Date.parse(p.created_at || ''), p.closed_at ? Date.parse(p.closed_at) : Infinity]);
+  /* CodeRabbit liest `.coderabbit.yaml` aus dem PR-Zweig. Weicht sie an einem
+     geprueften Zwischenstand von der Basis ab, kann eine Runde Teile
+     ausgeblendet haben, auch wenn der Enddiff sie nicht mehr aendert
+     (Opus-Review #477, Runde 5). */
+  // Je fester Commit unveraenderlich: einmal lesen.
+  const crConfig = async (ref) => {
+    if (!cacheConfig.has(ref)) cacheConfig.set(ref, (await api(`${R}/contents/.coderabbit.yaml?ref=${ref}`).catch((e) => (/HTTP 404/.test(e.message) ? {} : Promise.reject(e))))?.sha || null);
+    return cacheConfig.get(ref);
+  };
+  const configBasis = await crConfig(basis.zusammen || basis.sha);
+  const zwischenKritisch = [];
+  for (const b of [...new Set(reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)).map((r) => r.b))].filter((b) => imPr.has(b) && b !== head)) {
+    if ((await crConfig(b)) !== configBasis) zwischenKritisch.push(`CodeRabbit-Konfiguration an geprueftem Zwischenstand ${b.slice(0, 7)} geaendert`);
+  }
   // Runden, die ein Umschreiben ueberdauern: CodeRabbits Reviews bleiben am
   // PR, ihr Bereich endet am geprueften Stand; dazu das eigene Ledger und
   // die Laeufe jedes angeforderten Stands, der nicht mehr im PR liegt
@@ -256,7 +287,7 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
       head_sha: head, labels: pr.labels.map((l) => l.name),
     },
     commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
-    bereitGesetzt, fruehereRunden, vorlaeufigeRunden,
+    bereitGesetzt, fruehereRunden, vorlaeufigeRunden, fremdeZeiten, zwischenKritisch,
     // cubic-Laeufe zaehlen erst ab Eroeffnung des PRs bzw. letztem Wechsel des Zielzweigs.
     kontextAb: Math.max(...[pr.created_at, ...ereignisse.filter((e) => e.event === 'base_ref_changed').map((e) => e.created_at)].map((t) => Date.parse(t || '')).filter(Number.isFinite)),
   };

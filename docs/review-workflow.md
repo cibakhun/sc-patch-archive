@@ -160,7 +160,11 @@ Zweignamens. Bereiche liest der Nachweis nur aus CodeRabbits Reviews und
 seiner Zusammenfassung, nie aus einer Chat-Antwort (die könnte jeder per
 Erwähnung mit einer passenden Zeile bestellen) und nie aus Codeblöcken.
 Zusammenfassung ist nur der früheste CodeRabbit-Kommentar, der mit ihrer
-Marke beginnt und keine Antwort-Marke trägt.
+Marke beginnt und keine Antwort-Marke trägt. cubic-Läufe zählen nur ab Eröffnung des PRs
+bzw. dem letzten Wechsel des Zielzweigs, nur aus einer Check-Suite dieses
+Zweigs und nicht aus der Lebenszeit eines anderen PRs vom selben Zweig.
+Weicht `.coderabbit.yaml` an einem von CodeRabbit geprüften Zwischenstand
+von der Basis ab, ist der PR kritisch.
 
 ## Abdeckung über mehrere Runden
 
@@ -386,8 +390,11 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   zuzuordnen. Abhilfe: eigenes Agentenkonto mit eingeschränkten Rechten.
 - **Workflow-Datei aus dem PR.** Bei `pull_request` kommt die YAML-Datei
   aus dem PR. Das Gate-Skript selbst kommt aus dem Zielzweig, aber ein PR
-  könnte die YAML so ändern, dass es nicht läuft. Deshalb ist jede Änderung
-  unter `.github/` kritisch. `pull_request_target` würde das lösen und ist
+  kann die YAML ändern: so, dass es nicht läuft, oder so, dass sie Skript
+  und Logik aus dem PR holt oder `FREIGABE_KONTEN` erweitert; dann
+  entscheidet sein eigener Code, auch über „kritisch“, und schreibt ein
+  echtes Grün. Die Einstufung von `.github/` als kritisch schützt dagegen
+  nicht, sie macht die Änderung nur sichtbar. `pull_request_target` würde das lösen und ist
   in diesem Repo bewusst verboten (`verify:supply-chain`). Endgültige
   Abhilfe: Agentenkonto plus Pflicht-Freigabe durch Krisz (CODEOWNERS)
   für `.github/`.

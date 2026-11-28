@@ -590,11 +590,19 @@ export function ledgerBereiche(d) {
     am Commit, nicht am PR): ein gestapelter PR, der auf `staging`
     umgestellt wird, oder ein zweiter PR auf denselben Head. Er zaehlt
     nicht (Opus-Review #477, Runde 4). */
-export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb }) {
+export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb, headRef, fremdeZeiten = [] }) {
   let abgedeckt = false;
   let amHead = { art: 'fehlt' };
   const spur = [];
-  const imKontext = (l) => !Number.isFinite(kontextAb) || Date.parse(l.started_at || '') >= kontextAb;
+  /* Dazu (Runde 5): der Lauf stammt aus einer Suite dieses Zweigs (`zweig`,
+     vom Skript immer gesetzt) und nicht aus der Lebenszeit eines anderen
+     PRs vom selben Zweig (`fremdeZeiten`, [ab, bis] in ms). */
+  const imKontext = (l) => {
+    const t = Date.parse(l.started_at || '');
+    if (Number.isFinite(kontextAb) && !(t >= kontextAb)) return false;
+    if ('zweig' in l && headRef && l.zweig !== headRef) return false;
+    return !fremdeZeiten.some(([ab, bis]) => !(t < ab || t > bis));
+  };
   for (const c of commits) {
     const laeufe = (laeufeJeCommit[c] || []).filter(istCubic).filter(imKontext);
     if (!laeufe.length) continue;
@@ -671,7 +679,7 @@ export function bewerte(d) {
     return s('failure', 'PR hat 3000+ Dateien: Kritisch-Erkennung unvollstaendig, bitte aufteilen', { bericht: ['3000 oder mehr Dateien: die API liefert nicht alle, der Nachweis bleibt aus.'] });
   }
 
-  const gruende = kritischeGruende(d.dateien || [], labels);
+  const gruende = [...kritischeGruende(d.dateien || [], labels), ...(d.zwischenKritisch || [])];
   const kritisch = gruende.length > 0;
 
   // CodeRabbit
@@ -680,7 +688,7 @@ export function bewerte(d) {
   const crBeleg = crHead.art === 'geprueft' && crAbd.abgedeckt;
 
   // cubic
-  const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {}, kontextAb: d.kontextAb });
+  const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {}, kontextAb: d.kontextAb, headRef: d.pr.head_ref, fremdeZeiten: d.fremdeZeiten || [] });
   const cuBeleg = cuAbd.abgedeckt;
 
   const runden = rundenZahl(d);

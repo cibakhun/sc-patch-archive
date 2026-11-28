@@ -224,6 +224,20 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
     assert.notEqual(mit(vor, Date.parse('2026-11-28T10:00:00Z')).state, 'success', 'voller Review vor dem Wechsel auf staging');
     assert.equal(mit(nach, Date.parse('2026-11-28T10:00:00Z')).state, 'success', 'Gegenprobe: danach');
   });
+  // Opus-Review #477, Runde 5: fremder cubic-Lauf am eigenen Commit.
+  test('ROT: cubic-Lauf aus fremdem Zweig oder aus der Zeit eines anderen PRs vom selben Zweig zaehlt nicht', () => {
+    const lauf = (zweig, t = '2026-11-28T11:00:00Z') => ({ ...CU_VOLL, started_at: t, zweig });
+    const mit = (l, x = {}) => bewerte(lage({ laeufeJeCommit: { [C]: [l] }, bereiche: [], ...x }));
+    assert.notEqual(mit(lauf('feature-y')).state, 'success', 'Suite eines anderen Zweigs (Merge)');
+    assert.notEqual(mit(lauf(null)).state, 'success', 'Suite unbekannt');
+    assert.notEqual(mit(lauf('claude/x'), { fremdeZeiten: [[Date.parse('2026-11-28T10:30:00Z'), Date.parse('2026-11-28T11:30:00Z')]] }).state, 'success', 'anderer PR vom selben Zweig offen');
+    assert.equal(mit(lauf('claude/x'), { fremdeZeiten: [[Date.parse('2026-11-28T09:00:00Z'), Date.parse('2026-11-28T10:00:00Z')]] }).state, 'success', 'Gegenprobe');
+  });
+  test('ROT: .coderabbit.yaml an geprueftem Zwischenstand geaendert macht kritisch', () => {
+    const u = bewerte(lage({ zwischenKritisch: ['CodeRabbit-Konfiguration an geprueftem Zwischenstand 1111111 geaendert'] }));
+    assert.notEqual(u.state, 'success');
+    assert.ok(u.bericht.some((z) => /CodeRabbit-Konfiguration an geprueftem Zwischenstand/.test(z)), u.bericht.join('\n'));
+  });
   test('T7 ROT: kein Label, kein Review am Head', () => {
     const u = bewerte(lage({ pr: { labels: [] }, laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }] }));
     assert.equal(u.state, 'failure');
@@ -715,6 +729,22 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.match(bericht(r), /\*\*kritisch\*\*/, 'der kritische Stand A bleibt kritisch');
     assert.match(bericht(r), /\.github\/workflows\/deploy\.yml/);
     assert.ok(!r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls/477/files'), 'unter 300 Dateien keine PR-Liste');
+  });
+
+  // Opus-Review #477, Runde 5: der Laeufer liest Zweig der Suite, andere PRs und die Konfiguration am Zwischenstand.
+  test('ROT: Laeufer: Konfiguration am Zwischenstand abweichend -> kritisch; Suite-Zweig und andere PRs werden gelesen', () => {
+    const ZW = h('6');
+    const r = laeufer([prMit(KOPF)], { routen: {
+      'GET repos/o/r/pulls/477/commits': [[{ sha: ZW, parents: [{ sha: ZIEL }] }, { sha: KOPF, parents: [{ sha: ZW }] }]],
+      'GET repos/o/r/pulls/477/reviews': [[{ user: { login: 'coderabbitai[bot]' }, body: `Reviewing files that changed from the base of the PR and between ${ZIEL} and ${ZW}.` }]],
+      [`GET repos/o/r/commits/${ZW}/check-runs`]: [{ check_runs: [{ app: { slug: 'cubic-dev-ai' }, name: 'cubic', status: 'completed', conclusion: 'success', output: { title: 'AI review completed', summary: CU_VOLL.summary }, started_at: '2026-11-28T11:00:00Z', check_suite: { id: 5 } }] }],
+      [`GET repos/o/r/commits/${ZW}/check-suites`]: [{ check_suites: [{ id: 5, head_branch: 'feature-y' }] }],
+      'GET repos/o/r/contents/.coderabbit.yaml': [{ sha: h('1') }, { sha: h('2') }],
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(bericht(r), /CodeRabbit-Konfiguration an geprueftem Zwischenstand 6666666 geaendert/);
+    assert.ok(r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls'), 'andere PRs vom Zweig gelesen');
+    assert.ok(r.anfragen.some((x) => x.schluessel === `GET repos/o/r/commits/${ZW}/check-suites`), 'Suite-Zweig gelesen');
   });
 
   // Opus-Review #477, Runde 4: leerer oder gekuerzter Vergleich unter 300.
