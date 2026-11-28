@@ -86,6 +86,8 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   wird also nie ungefragt geprüft. Nach den Fixes und erneutem Tor: Label
   wieder setzen. Nach einem Rate-Limit: Label ab und nach der Wartezeit neu
   setzen, das gibt genau eine neue Anforderung desselben Stands frei.
+  Ebenso, wenn CodeRabbit nicht reagiert: frühestens 40 Minuten nach der
+  Anforderung Label ab und neu.
 - **Runden, bis nichts mehr zu bemängeln ist** (Krisz, 28.11.2026; kein
   Limit mehr): nach jeder Runde fixen, Tor, Label neu setzen, bis eine
   Runde ohne neuen Befund durchgeht. Erst dann ist der PR fertig für den

@@ -75,6 +75,11 @@ export const KRITISCHE_PFADE = [
      nimmt einen Pruefer still aus dem Auslieferungs-Tor (Review #477). */
   [/^scripts\/(lib\/gate-registry|run-gate|verify-wiring)\.mjs$/, 'Tor-Kette (welche Pruefer im Tor laufen)'],
   [/^scripts\/(verify-supply-chain|audit-csp|_write-csp-hashes)\.mjs$/, 'Sicherheits-Tor (Lieferkette, CSP)'],
+  /* Opus-Review #477, Runde 9: Ausnahmeliste des Testpilot-Tors und das
+     Soll der wirksamen Datenbankrechte sind Sicherheits-Tore; die
+     Kontoseiten fuer MFA, Sicherheit und Uebersicht tragen Konto und MFA (V3). */
+  [/^scripts\/(verify-gate|verify-db-rights)\.mjs$/, 'Sicherheits-Tor (Testpilot-Ausnahmen, Datenbankrechte)'],
+  [/^src\/scripts\/account-(mfa|security|dashboard)\.ts$/, 'Konto, Sicherheit oder MFA (Browser-Logik)'],
   /* V3 (Krisz 26.11.2026): Aenderungen an Review-Gates und Berechtigungen
      sind immer kritisch. CLAUDE.md legt fest, was der Agent darf (nie
      mergen, main tabu, Ausnahmen nur mit Freigabe); docs/review-workflow.md
@@ -349,19 +354,30 @@ export function unlesbareRunden(d) {
 }
 
 /** Darf derselbe Stand noch einmal angefordert werden? Nur nach einem
-    Rate-Limit: Hat CodeRabbit auf die juengste Anforderung mit "rate
-    limited" geantwortet und wurde `review-ready` danach neu gesetzt
-    (`d.bereitGesetzt`, ms), gibt das genau eine neue Anforderung frei. Ein
+    Rate-Limit oder ohne Reaktion: Hat CodeRabbit auf die juengste
+    Anforderung mit "rate limited" geantwortet und wurde `review-ready`
+    danach neu gesetzt (`d.bereitGesetzt`, ms), oder kam seit ihr gar kein
+    Lauf und wurde das Label fruehestens KEINE_REAKTION_MIN Minuten nach ihr
+    neu gesetzt, gibt das genau eine neue Anforderung frei. Ein
     Mensch oder der Agent setzt das Label, sobald das Limit vorbei ist;
     von selbst wiederholt der Workflow nichts. */
 export function wiederholungErlaubt(d) {
   const head = d.pr.head_sha;
   const tAnf = anforderungAmHead(d.kommentare, head);
+  if (tAnf === null || !Number.isFinite(d.bereitGesetzt)) return false;
   const letzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
-  if (tAnf === null || !letzter || codeRabbitLauf(letzter).art !== 'ratenlimit') return false;
-  const tLimit = Date.parse(letzter.started_at || '');
-  return Number.isFinite(tLimit) && tLimit >= tAnf && Number.isFinite(d.bereitGesetzt) && d.bereitGesetzt > tLimit;
+  const tLetzter = Date.parse(letzter?.started_at || '');
+  /* Keine Reaktion (Opus-Review #477, Runde 9): kein CodeRabbit-Lauf am
+     Head seit der Anforderung, und das Label wurde erst nach Ablauf der
+     Wartezeit neu gesetzt. Sonst bliebe der Stand ohne neuen Commit rot. */
+  if (!(Number.isFinite(tLetzter) && tLetzter >= tAnf)) return d.bereitGesetzt >= tAnf + KEINE_REAKTION_MIN * 60_000;
+  if (codeRabbitLauf(letzter).art !== 'ratenlimit') return false;
+  return d.bereitGesetzt > tLetzter;
 }
+
+/** Minuten ohne CodeRabbit-Lauf nach einer Anforderung, ab denen ein neu
+    gesetztes Label sie wiederholen darf (Wartezeit des Workflows). */
+export const KEINE_REAKTION_MIN = 40;
 
 /** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im
     Draft, nie doppelt (ausser nach einem Rate-Limit mit neu gesetztem
@@ -686,7 +702,7 @@ export function bewerte(d) {
 
   // GitHub liefert hoechstens 3000 Dateien je PR: darueber sieht die
   // Kritisch-Erkennung nicht alles.
-  if ((d.dateien || []).length >= 3000) {
+  if ((d.dateien || []).length >= 3000 || d.dateienZuViele) {
     return s('failure', 'PR hat 3000+ Dateien: Kritisch-Erkennung unvollstaendig, bitte aufteilen', { bericht: ['3000 oder mehr Dateien: die API liefert nicht alle, der Nachweis bleibt aus.'] });
   }
 

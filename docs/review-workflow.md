@@ -138,7 +138,7 @@ Grund nennt.
 | Label fehlt, kein Review angefordert | ❌ failure |
 | Derselbe Stand ist Head eines weiteren offenen PRs | ❌ failure, „nicht eindeutig“ (der Status hängt am Commit, nicht am PR) |
 | Der Lauf selbst scheitert (API-Fehler, Abbruch im Skript, eine Liste länger als gelesen) | ❌ failure, „Auswertung gescheitert“; ein früherer Erfolg auf demselben Stand bleibt nicht stehen |
-| 250 oder mehr Commits, 3000 oder mehr Dateien | ❌ failure (die API liefert nicht alle) |
+| 250 oder mehr Commits, 3000 oder mehr Dateien | ❌ failure (die API liefert nicht alle; „bitte aufteilen“) |
 
 Was **nie** zählt: der grüne CodeRabbit-Haken allein (er wird auch bei
 Skip und Rate-Limit grün), ein Review auf einem älteren Commit, ein Review,
@@ -271,6 +271,11 @@ und die Release-Prüfung nimmt das jüngste Urteil, das genau diesen PR
 nennt. Ein späterer PR vom selben Stand, der nach anderen Regeln grün
 wurde (etwa als normaler PR), zählt so nicht für einen kritischen PR, der
 rot gemergt worden wäre.
+
+Dateien und Prüfer-Läufe des Releases selbst erhebt der Nachweis nicht:
+Sie entscheiden dort nichts, und ab 3000 Dateien wäre die Dateiliste
+nicht vollständig lesbar. So bleibt auch ein großer Release bewertbar,
+notfalls über die Release-Ausnahme.
 
 Das trifft zwangsläufig den ersten Release nach Einführung des Gates: PRs,
 die davor gemergt wurden, tragen keinen Nachweis. Dafür und für andere
@@ -407,7 +412,9 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   Agentenkonto steht nie in `FREIGABE_KONTEN`.
 - **Reaktion von CodeRabbit.** Reagiert CodeRabbit nicht auf die
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
-  (rot, nie grün). Die Marke der Anforderung zählt nur von den
+  (rot, nie grün). Ausweg ohne neuen Commit: Label `review-ready` ab und
+  frühestens 40 Minuten nach der Anforderung neu setzen. Kam seitdem kein
+  CodeRabbit-Lauf am Stand, gibt das genau eine neue Anforderung frei. Die Marke der Anforderung zählt nur von den
   Anforderungskonten; eine Marke von jemand anderem unterdrückt keine
   Anforderung und zählt nicht als Runde. Wer den Token des Agentenkontos
   hätte, könnte das weiterhin (siehe oben); auch dann macht eine Marke nie
@@ -447,7 +454,10 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   viele wartende Läufe), scheitert auch der Fehlerschritt, und ein früheres
   Grün auf demselben Stand kann stehen bleiben. Reviews lösen deshalb nur
   von Bots und Konten mit Rechten einen Lauf aus. Vor dem Merge den
-  Bericht auf den Stand prüfen.
+  Bericht auf den Stand prüfen. Ein Release-Lauf kostet je enthaltenem
+  Commit eine Anfrage (`commits/{sha}/pulls`) und je PR eine weitere
+  (seine Status), bei 250 Commits also bis rund 500; Läufe und Dateien des
+  Releases liest er nicht.
 - **Fast-Forward auf einen anderswo gepushten Commit.** Wird der
   `synchronize`-Lauf abgebrochen, bevor er das Label abnimmt, kann der
   nächste Lauf das alte `review-ready` für neu halten und einmal zu früh

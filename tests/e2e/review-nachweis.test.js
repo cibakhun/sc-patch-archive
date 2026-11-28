@@ -1215,3 +1215,72 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.ok(!zweite.includes(`"a":"${BASIS2}","b":"${A2}"`), 'zweite Zusammenfassung zaehlte');
   });
 });
+
+describe('Review-Nachweis: Runde 9 (Opus-Review #477)', () => {
+  const zustand = (r) => r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body);
+  const vieleDateien = (n) => Array.from({ length: n }, (_, i) => ({ ...datei(KOPF, `data/d${String(i).padStart(4, '0')}.json`), sha: h('9') }));
+  const seitenVon = (liste) => Object.fromEntries(Array.from({ length: Math.ceil(liste.length / 100) }, (_, i) => [`GET repos/o/r/pulls/477/files?page=${i + 1}`, [liste.slice(i * 100, i * 100 + 100)]]));
+
+  test('ROT: Release mit 3200 Dateien und gueltiger Release-Ausnahme wird bewertet (gruen), ohne Dateien und Laeufe zu lesen', () => {
+    const ausnahme = { id: 5, user: { login: 'cibakhun' }, body: [`<!-- release-ausnahme sha=${KOPF} -->`, 'Freigabe: Krisz im Chat', 'Nicht nachgewiesen: Alt-Commits vor dem Gate', 'Risiken: siehe Liste'].join('\n'), created_at: '2026-11-28T10:00:00Z' };
+    const r = laeufer([prMit(KOPF, [], { base: { ref: 'main', sha: ZIEL }, head: { sha: KOPF, ref: 'staging' }, changed_files: 3200 })], { routen: {
+      'GET repos/o/r/branches/main': [{ commit: { sha: ZIEL } }],
+      [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: vieleDateien(300) }],
+      ...seitenVon(vieleDateien(3000)),
+      'GET repos/o/r/issues/477/comments': [[ausnahme]],
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(zustand(r).map((x) => x.state), ['success']);
+    assert.match(zustand(r)[0].description, /^RELEASE-AUSNAHME/);
+    const gelesen = r.anfragen.map((x) => x.schluessel);
+    assert.ok(!gelesen.some((x) => /check-runs|\/files$|\/compare\//.test(x)), `Release liest keine Laeufe und Dateien: ${gelesen.join(', ')}`);
+    assert.ok(gelesen.includes(`GET repos/o/r/commits/${KOPF}/pulls`), 'die Release-Pruefung je Commit laeuft');
+  });
+
+  test('Gegenprobe Release: ohne Ausnahme und ohne PR bleibt er rot', () => {
+    const r = laeufer([prMit(KOPF, [], { base: { ref: 'main', sha: ZIEL }, head: { sha: KOPF, ref: 'staging' }, changed_files: 3200 })]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(zustand(r).map((x) => x.state), ['failure']);
+    assert.match(zustand(r)[0].description, /Release: 1 Commits ohne Review-Nachweis/);
+  });
+
+  test('ROT: normaler PR mit 3000+ Dateien: Meldung "bitte aufteilen" statt "Auswertung gescheitert", kritisch, keine PR-Liste', () => {
+    const r = laeufer([prMit(KOPF, ['review-ready', 'ohne-cubic'], { changed_files: 3100 })], { routen: {
+      [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: vieleDateien(300) }],
+      ...seitenVon(vieleDateien(3000)),
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    const z = zustand(r).at(-1);
+    assert.equal(z.state, 'failure');
+    assert.match(z.description, /3000\+ Dateien.*bitte aufteilen/);
+    assert.ok(!r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls/477/files'), 'die PR-Liste waere ohnehin unvollstaendig');
+    assert.ok(r.anfragen.some((x) => x.schluessel === 'DELETE repos/o/r/issues/477/labels/ohne-cubic'), 'als kritisch eingeordnet: ohne-cubic ab');
+  });
+
+  test('ROT: Kontoseiten (MFA, Sicherheit, Uebersicht) und Sicherheits-Tore sind kritisch', () => {
+    for (const f of ['src/scripts/account-mfa.ts', 'src/scripts/account-security.ts', 'src/scripts/account-dashboard.ts', 'scripts/verify-gate.mjs', 'scripts/verify-db-rights.mjs']) {
+      assert.ok(kritischeGruende([{ filename: f }]).length > 0, f);
+    }
+    // Gegenprobe: andere Kontoskripte und Pruefer bleiben normal.
+    for (const f of ['src/scripts/account-tips.ts', 'src/scripts/account-saved.ts', 'scripts/verify-help.mjs', 'scripts/verify-gate-x.mjs']) assert.deepEqual(kritischeGruende([{ filename: f }]), [], f);
+  });
+
+  test('ROT: reagiert CodeRabbit gar nicht, gibt ein nach der Wartezeit neu gesetztes Label genau eine neue Anforderung frei', () => {
+    const tAnf = '2026-11-26T17:30:20Z';
+    const anfC = (erstellt = tAnf) => ({ author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(C)}`, erstellt });
+    // Nur ein Skip von VOR der Anforderung, danach nichts.
+    const still = (x = {}) => lage({ kommentare: [anfC()], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }], ...x });
+    const ms = (t) => Date.parse(t);
+    assert.equal(anforderungNoetig(still()), false, 'ohne neues Label nichts von selbst');
+    assert.equal(anforderungNoetig(still({ bereitGesetzt: ms('2026-11-26T17:50:00Z') })), false, 'Label vor Ablauf der Wartezeit');
+    const neu = still({ bereitGesetzt: ms('2026-11-26T18:11:00Z') });
+    assert.equal(wiederholungErlaubt(neu), true);
+    assert.equal(anforderungNoetig(neu), true, 'Label nach 40 min ohne Lauf: eine neue Anforderung');
+    assert.equal(anforderungNoetig({ ...neu, kommentare: [anfC(), anfC('2026-11-26T18:11:05Z')] }), false, 'danach keine dritte');
+    // Gegenprobe: gab es nach der Anforderung einen Lauf (Skip, laeuft, abgebrochen), hilft das Label nicht.
+    for (const l of [CR_SKIP, CR_LAEUFT, CR_ABBRUCH]) {
+      const mit = still({ bereitGesetzt: ms('2026-11-26T18:11:00Z'), laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, { ...l, started_at: '2026-11-26T17:31:00Z' }] } });
+      assert.equal(anforderungNoetig(mit), false, l.title || l.status);
+    }
+  });
+});

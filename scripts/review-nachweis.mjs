@@ -141,6 +141,12 @@ const cachePrs = new Map();
 const SHA_RE = /^[0-9a-f]{40}$/;
 async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const head = pr.head.sha;
+  /* Release staging -> main: bewertet wird je enthaltenem PR (releaseDaten),
+     nicht nach Dateien oder Laeufen am Release. Beides nicht erheben: ab
+     3000 Dateien scheiterte sonst die Dateibindung und der Release waere nie
+     bewertbar, auch nicht mit Release-Ausnahme; und bis 250 Commits kosteten
+     die Laeufe je Commit Hunderte Anfragen (Opus-Review #477, Runde 9). */
+  const release = pr.base.ref === 'main' && pr.head.ref === 'staging';
   const commitListe = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => ({ sha: c.sha, parents: (c.parents || []).map((p) => p.sha) }));
   // Voll (250): die API liefert nicht alle, bewerte bleibt ohnehin rot.
   const voll = commitListe.length >= 250;
@@ -156,7 +162,7 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const zf = ersteZusammenfassung(kommentareRoh.filter((k) => k.user?.login === CR));
   const zieleZusammenfassung = new Set(zf ? bereicheAusText(zf.body).map((r) => r.b) : []);
   const laeufeJeCommit = {};
-  for (const c of commits) {
+  for (const c of release ? [] : commits) {
     // Beim Nachpollen: der Head immer, ein Ziel einer Zusammenfassung immer,
     // ein anderer Stand nur, solange einer seiner Laeufe noch nicht fertig
     // war (sonst bliebe er im Zwischenspeicher "laeuft", und sein Bereich
@@ -183,13 +189,27 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
      Runde 6). Der Merge nimmt die Zusammenfuehrungsbasis mit der Spitze.
      Geschlossene PRs (nur trocken, zum Nachmessen): `base.sha`, die Basis
      beim Merge; die Spitze enthielte den gemergten PR schon (0 Dateien). */
-  const spitze = pr.state === 'open' ? await zielSpitze(pr.base.ref) : pr.base.sha;
-  const vergleich = await api(`${R}/compare/${spitze}...${head}`);
-  const fest = vergleich.files || [];
-  // Gegen diese Basis gilt die Dateiliste; headNochGleich prueft sie vor jedem Schreiben.
-  basis = { ref: pr.base.ref, sha: spitze, zusammen: vergleich.merge_base_commit?.sha || null };
-  const vollstaendig = fest.length < VERGLEICH_MAX;
-  const dateien = vollstaendig ? fest : await alle(`${R}/pulls/${NUMMER}/files`, 30);
+  /* Ab 3000 Dateien liefert auch die PR-Liste nicht alle (GitHub-Doku):
+     das Urteil ist dann ohnehin "bitte aufteilen" (bewerte), die Bindung
+     scheiterte nur an der Zahl. Die ersten 300 des Vergleichs reichen fuer
+     die Einordnung als kritisch (Opus-Review #477, Runde 9). */
+  const dateienZuViele = !release && pr.changed_files >= 3000;
+  let dateien = [];
+  let fremd = 0;
+  if (release) basis = null;
+  else {
+    const spitze = pr.state === 'open' ? await zielSpitze(pr.base.ref) : pr.base.sha;
+    const vergleich = await api(`${R}/compare/${spitze}...${head}`);
+    const fest = vergleich.files || [];
+    // Gegen diese Basis gilt die Dateiliste; headNochGleich prueft sie vor jedem Schreiben.
+    basis = { ref: pr.base.ref, sha: spitze, zusammen: vergleich.merge_base_commit?.sha || null };
+    const vollstaendig = fest.length < VERGLEICH_MAX;
+    dateien = vollstaendig || dateienZuViele ? fest : await alle(`${R}/pulls/${NUMMER}/files`, 30);
+    /* Auch unter 300: die Zahl muss zur Dateizahl des PRs passen. Ein leerer
+       oder gekuerzter Vergleich saehe sonst nach "nichts Kritisches" aus
+       (Opus-Review #477, Runde 4; gemessen an #402, #477, #481: gleich). */
+    if (!dateienZuViele) fremd = vollstaendig ? (fest.length === pr.changed_files ? 0 : 1) : abweichendeDateien(dateien, fest, head) + (dateien.length === pr.changed_files ? 0 : 1);
+  }
   /* Gehoeren Commits und Dateien zum festgehaltenen Head? Ein Head, der
      waehrend der Erhebung wechselt und zurueckkehrt (A -> B -> A), besteht
      jede spaetere Head-Pruefung, und ein kritischer Stand A koennte mit den
@@ -203,10 +223,6 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
      Push nach). Nach drei Versuchen bricht der Lauf ab, ohne ein Urteil zu
      schreiben; den roten Status "Auswertung gescheitert" setzt der letzte
      Schritt des Workflows. */
-  /* Auch unter 300: die Zahl muss zur Dateizahl des PRs passen. Ein leerer
-     oder gekuerzter Vergleich saehe sonst nach "nichts Kritisches" aus
-     (Opus-Review #477, Runde 4; gemessen an #402, #477, #481: gleich). */
-  const fremd = vollstaendig ? (fest.length === pr.changed_files ? 0 : 1) : abweichendeDateien(dateien, fest, head) + (dateien.length === pr.changed_files ? 0 : 1);
   const headFehlt = !voll && !commits.includes(head);
   const fremdeCommits = voll || headFehlt ? 0 : commitListe.length - commits.length;
   if (fremd || headFehlt || fremdeCommits) {
@@ -226,6 +242,13 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at, geaendert: k.updated_at || k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
   if (bericht && altesLedger(bericht.body)) console.log('Ledger der ersten Fassung im Bericht: nicht gelesen, dessen Bereiche zaehlen nur mit eigenem Beleg.');
+  const prDaten = {
+    number: pr.number, draft: pr.draft, base_ref: pr.base.ref, head_ref: pr.head.ref,
+    head_sha: head, labels: pr.labels.map((l) => l.name),
+  };
+  if (release) {
+    return { d: { pr: prDaten, commits, dateien: [], laeufeJeCommit: {}, bereiche: [], kommentare, freigabeKonten: KONTEN, gleicherStand, bereitGesetzt, release: await releaseDaten(commits) }, bericht };
+  }
   // Jeder Bereich traegt seine Quelle: abgegebene Reviews und das Ledger
   // sind feste Belege, jeder andere Text nur fuer den juengsten Lauf.
   const bereiche = [
@@ -297,16 +320,12 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
     vorfahren[a] = cacheVorfahr.get(a);
   }
   const d = {
-    pr: {
-      number: pr.number, draft: pr.draft, base_ref: pr.base.ref, head_ref: pr.head.ref,
-      head_sha: head, labels: pr.labels.map((l) => l.name),
-    },
-    commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
+    pr: prDaten,
+    commits, dateien, dateienZuViele, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
     bereitGesetzt, fruehereRunden, vorlaeufigeRunden, fremdeZeiten, zwischenKritisch,
     // cubic-Laeufe zaehlen erst ab Eroeffnung des PRs bzw. letztem Wechsel des Zielzweigs.
     kontextAb: Math.max(...[pr.created_at, ...ereignisse.filter((e) => e.event === 'base_ref_changed').map((e) => e.created_at)].map((t) => Date.parse(t || '')).filter(Number.isFinite)),
   };
-  if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
 }
 
@@ -522,7 +541,7 @@ await headNochGleich(d.pr.head_sha);
 // cubic den kritischen PRs vorbehalten (wirkt erst mit cubic.yaml auf main).
 if (!urteil.release) {
   // Dieselbe Einordnung wie das Urteil, mit zwischenKritisch (Opus-Review #477, Runde 7).
-  const kritisch = kritischeGruende(d.dateien, labels()).length > 0 || (d.zwischenKritisch || []).length > 0;
+  const kritisch = kritischeGruende(d.dateien, labels()).length > 0 || (d.zwischenKritisch || []).length > 0 || Boolean(d.dateienZuViele);
   if (kritisch && labels().includes(LABEL_OHNE_CUBIC)) await labelAb(LABEL_OHNE_CUBIC);
   if (!kritisch && !labels().includes(LABEL_OHNE_CUBIC)) await labelDran(LABEL_OHNE_CUBIC);
 }
