@@ -87,6 +87,13 @@ export const KRITISCHE_PFADE = [
   [/^src\/pages\/gate\.astro$/, 'Testpilot-Tor mit Anmeldung'],
   [/^src\/lib\/safe-next\.ts$/, 'Ruecksprungziel nach der Anmeldung'],
   [/^scripts\/verify-supabase-ziel\.mjs$/, 'Sicherheits-Tor (kein geheimer Schluessel im Bau)'],
+  /* Runde 11: Bibliotheken, die Erzeuger und Pruefer der CSP und der
+     Rahmen-Kopfzeilen gemeinsam nutzen (eine Aenderung verschiebt beide,
+     das Tor merkt nichts), und das Integritaets-Tor fuer public/vendor/.
+     Seit Runde 11 prueft ein Test, dass jedes Modul, das ein kritisches
+     Skript importiert, selbst kritisch ist. */
+  [/^scripts\/lib\/(rahmen|csp-inline|hangar-switch)\.mjs$/, 'Gemeinsame Bibliothek von Sicherheits-Tor und Erzeuger (CSP, Rahmen, Tor-Plan)'],
+  [/^scripts\/verify-vendor-three\.mjs$/, 'Sicherheits-Tor (Integritaet von public/vendor)'],
   /* V3 (Krisz 26.11.2026): Aenderungen an Review-Gates und Berechtigungen
      sind immer kritisch. CLAUDE.md legt fest, was der Agent darf (nie
      mergen, main tabu, Ausnahmen nur mit Freigabe); docs/review-workflow.md
@@ -111,6 +118,10 @@ export const KRITISCHE_SIGNALE = [
   [/\bauth\.(admin|signIn|signUp|updateUser|setSession|exchangeCodeForSession|mfa)\b/, 'Anmelde-API'],
   // Nur entfernte oder geaenderte Zeilen: ein neues Tor ist keine Abschwaechung.
   [/^\s*"(gate|gate:data|test:e2e|verify:[\w-]+|audit:[\w-]+)"\s*:/, 'Tor-Kette in package.json geaendert', { nurEntfernt: true }],
+  /* Ein zweiter Schluessel ueberschreibt den ersten (npm nimmt den letzten):
+     eine hinzugefuegte Zeile fuer den Einstieg der Kette ist immer eine
+     Aenderung daran (Opus-Review #477, Runde 11). */
+  [/^\s*"(gate|gate:data|test:e2e)"\s*:/, 'Einstieg der Tor-Kette in package.json hinzugefuegt (ueberschreibt einen vorhandenen)', { nurHinzu: true }],
 ];
 
 /** Hoechstzahl Dateien, die der Vergleich zweier fester Commits liefert
@@ -147,6 +158,7 @@ export function kritischeGruende(dateien, labels = []) {
       const inhalt = zeile.slice(1);
       for (const [re, warum, opt] of KRITISCHE_SIGNALE) {
         if (opt?.nurEntfernt && zeile[0] !== '-') continue;
+        if (opt?.nurHinzu && zeile[0] !== '+') continue;
         if (re.test(inhalt)) dazu(`${warum} in ${f.filename}`);
       }
     }
@@ -378,7 +390,10 @@ export function wiederholungErlaubt(d) {
      Head seit der Anforderung, und das Label wurde erst nach Ablauf der
      Wartezeit neu gesetzt. Sonst bliebe der Stand ohne neuen Commit rot. */
   if (!(Number.isFinite(tLetzter) && tLetzter >= tAnf)) return d.bereitGesetzt >= tAnf + KEINE_REAKTION_MIN * 60_000;
-  if (codeRabbitLauf(letzter).art !== 'ratenlimit') return false;
+  /* Abgebrochen (etwa PR waehrend des Reviews geschlossen und wieder
+     geoeffnet) wie ein Rate-Limit: ein danach neu gesetztes Label gibt eine
+     Wiederholung frei (Opus-Review #477, Runde 11). */
+  if (!['ratenlimit', 'abgebrochen'].includes(codeRabbitLauf(letzter).art)) return false;
   return d.bereitGesetzt > tLetzter;
 }
 

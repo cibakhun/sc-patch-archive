@@ -63,8 +63,9 @@ ist, entscheidet Krisz, nie eine Automatik.
    prüft inkrementell nur die neuen Commits, und der Nachweis setzt die
    Runden zusammen (siehe „Abdeckung“).
 6. **Merge.** Nur wenn der Status **`review-nachweis`** auf dem aktuellen
-   Commit grün ist. Krisz merged per Squash. Der Agent merged nie und nutzt
-   nie den Bypass.
+   Commit grün ist. Krisz merged per Squash nach `staging`; ein Release
+   `staging` → `main` geht per normalem Merge-Commit (Krisz, 28.11.2026).
+   Der Agent merged nie und nutzt nie den Bypass.
 
 **Kombi-Review** (Krisz, 28.11.2026): Jeder PR, auch ein nicht kritischer,
 bekommt am Ende mindestens ein externes Review (CodeRabbit oder cubic),
@@ -259,7 +260,8 @@ wird `FREIGABE_KONTEN` zur echten Identitätsprüfung.
 
 ## Release `staging` → `main`
 
-Nur auf Krisz' Ansage. CodeRabbit prüft keine PRs nach `main`; der
+Nur auf Krisz' Ansage, per **normalem Merge-Commit**, nie Squash oder
+Rebase (Krisz, 28.11.2026; Grund unter „Rulesets“). CodeRabbit prüft keine PRs nach `main`; der
 Nachweis prüft dort stattdessen, dass **jeder Commit** des Releases zu einem
 nach `staging` gemergten PR gehört, dessen letzter Stand einen grünen
 `review-nachweis` trug. Ein Commit ohne PR (direkter Push) oder aus einem
@@ -414,7 +416,7 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
   (rot, nie grün). Ausweg ohne neuen Commit: Label `review-ready` ab und
   frühestens 40 Minuten nach der Anforderung neu setzen. Kam seitdem kein
-  CodeRabbit-Lauf am Stand, gibt das genau eine neue Anforderung frei. Die Marke der Anforderung zählt nur von den
+  CodeRabbit-Lauf am Stand, gibt das genau eine neue Anforderung frei. Ebenso nach einem abgebrochenen Review (etwa PR während des Reviews geschlossen und wieder geöffnet): Label ab und neu. Die Marke der Anforderung zählt nur von den
   Anforderungskonten; eine Marke von jemand anderem unterdrückt keine
   Anforderung und zählt nicht als Runde. Wer den Token des Agentenkontos
   hätte, könnte das weiterhin (siehe oben); auch dann macht eine Marke nie
@@ -507,7 +509,7 @@ Erst nach Krisz' Freigabe auf Basis der Testergebnisse:
   enthält `main` die Commits von `staging` nur als Kopien, die gemeinsame
   Basis bleibt alt, und jeder weitere Release-PR listet alle früheren
   Commits erneut. Der Nachweis liest diese Liste (höchstens 250 Commits) und
-  bliebe so dauerhaft rot. Stand 27.11.2026: `staging` ist 751 Commits vor
+  bliebe so dauerhaft rot. Entschieden von Krisz am 28.11.2026. Stand 28.11.2026: `staging` ist 829 Commits vor
   `main`, die bisherigen Releases kamen als Einzel-Commits. Den ersten
   Release nach dieser Regel entscheidet Krisz (Release-Ausnahme oder
   Verlauf einmal zusammenführen).

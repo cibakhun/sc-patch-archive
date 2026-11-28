@@ -22,9 +22,9 @@ import {
   CR_ZUSAMMENFASSUNG, istZusammenfassung, CR_KOPF, CR_ANTWORT, ersteZusammenfassung, labelAelter,
 } from '../../scripts/lib/review-nachweis.mjs';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, delimiter, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -682,6 +682,7 @@ function laeufer(pulls, { routen = {}, env = {}, args = [] } = {}) {
   });
   const anfragen = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map((z) => JSON.parse(z)) : [];
   const github_env = existsSync(umgebung) ? readFileSync(umgebung, 'utf8') : '';
+  rmSync(dir, { recursive: true, force: true });
   return { ...r, anfragen, github_env, schreibend: anfragen.filter((x) => !x.schluessel.startsWith('GET ')) };
 }
 const zustaende = (r) => r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body.state);
@@ -1144,13 +1145,19 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     // Antwortet auf den PR-Abruf mit FAKE_PR_HEAD (leer: keine Antwort).
     writeFileSync(join(dir, 'curl'), '#!/bin/sh\nfor a in "$@"; do echo "$a"; done >> "$CURL_LOG"\ncase "$*" in *"/pulls/"*) [ -n "$FAKE_PR_HEAD" ] && printf \'{"head":{"sha":"%s"}}\' "$FAKE_PR_HEAD" ;; esac\nexit 0\n', { mode: 0o755 });
     // sh, nicht bash: das Tor laeuft auch im Alpine-Image, dort gibt es kein bash.
-    const r = spawnSync('sh', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}:${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
+    const r = spawnSync('sh', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}${delimiter}${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
     assert.equal(r.status, 0, r.stderr);
-    return readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').filter((z) => z.includes('/statuses/'));
+    const aufrufe = readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').filter((z) => z.includes('/statuses/'));
+    rmSync(dir, { recursive: true, force: true });
+    return aufrufe;
   };
+  /* Der Fehlerschritt ist sh im Linux-Runner. Ohne POSIX-sh (Windows, Tor
+     lokal in PowerShell) laesst er sich hier nicht nachstellen: dann
+     uebersprungen statt rot (Opus-Review #477, Runde 11). */
+  const OHNE_SH = process.platform === 'win32' || Boolean(spawnSync('sh', ['-c', 'true']).error) ? 'kein POSIX-sh: Fehlerschritt laeuft nur im Linux-Runner' : false;
   const fehlerLauf = (env) => { const z = fehlerLaeufe(env); assert.equal(z.length, 1, z.join(' ')); return z[0]; };
 
-  test('ROT: Ereignis-Stand ungleich bewertetem Stand: der Fehlerschritt markiert den bewerteten', () => {
+  test('ROT: Ereignis-Stand ungleich bewertetem Stand: der Fehlerschritt markiert den bewerteten', { skip: OHNE_SH }, () => {
     const r = laeufer([prMit(KOPF)], mitBasis(h('5'), ZIEL, NEUBASIS));
     assert.notEqual(r.status, 0);
     assert.equal(r.github_env, `BEWERTET_HEAD=${KOPF}\n`, 'die Auswertung nennt ihren Stand, auch wenn sie scheitert');
@@ -1162,7 +1169,7 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(fehlerLauf({ BEWERTET_HEAD: `${KOPF}\n${KOPF}`, PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`, 'zwei Zeilen');
   });
 
-  test('ROT: scheitert ein alter Lauf, markiert der Fehlerschritt auch den heutigen Head (CodeRabbit-Review #477, Runde 7)', () => {
+  test('ROT: scheitert ein alter Lauf, markiert der Fehlerschritt auch den heutigen Head (CodeRabbit-Review #477, Runde 7)', { skip: OHNE_SH }, () => {
     const st = (s) => `https://api.github.com/repos/o/r/statuses/${s}`;
     assert.deepEqual(fehlerLaeufe({ PR_HEAD: NEU, FAKE_PR_HEAD: KOPF }), [st(NEU), st(KOPF)]);
     // Gleicher Head: nur einmal. Unsinn aus der Antwort: nicht verwendet.
@@ -1277,8 +1284,9 @@ describe('Review-Nachweis: Runde 9 (Opus-Review #477)', () => {
     assert.equal(wiederholungErlaubt(neu), true);
     assert.equal(anforderungNoetig(neu), true, 'Label nach 40 min ohne Lauf: eine neue Anforderung');
     assert.equal(anforderungNoetig({ ...neu, kommentare: [anfC(), anfC('2026-11-26T18:11:05Z')] }), false, 'danach keine dritte');
-    // Gegenprobe: gab es nach der Anforderung einen Lauf (Skip, laeuft, abgebrochen), hilft das Label nicht.
-    for (const l of [CR_SKIP, CR_LAEUFT, CR_ABBRUCH]) {
+    // Gegenprobe: gab es nach der Anforderung einen Lauf (Skip, laeuft), hilft das Label nicht
+    // (abgebrochen gibt seit Runde 11 eine Wiederholung frei, siehe dort).
+    for (const l of [CR_SKIP, CR_LAEUFT]) {
       const mit = still({ bereitGesetzt: ms('2026-11-26T18:11:00Z'), laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, { ...l, started_at: '2026-11-26T17:31:00Z' }] } });
       assert.equal(anforderungNoetig(mit), false, l.title || l.status);
     }
@@ -1304,5 +1312,60 @@ describe('Review-Nachweis: Runde 10 (Opus-Review #477)', () => {
   test('ROT: Sitzung, Torseite, Ruecksprungziel und Schluessel-Tor sind kritisch', () => {
     for (const f of ['assets/account-lite.js', 'src/pages/gate.astro', 'src/lib/safe-next.ts', 'scripts/verify-supabase-ziel.mjs']) assert.ok(kritischeGruende([{ filename: f }]).length > 0, f);
     for (const f of ['assets/account-tips.js', 'src/pages/gates.astro', 'src/lib/safe-next-x.ts']) assert.deepEqual(kritischeGruende([{ filename: f }]), [], f);
+  });
+});
+
+describe('Review-Nachweis: Runde 11 (Opus-Review #477)', () => {
+  /* Zum dritten Mal fehlten Pfade in der Liste (Runden 9, 10, 11): deshalb
+     ein automatischer Check statt eines weiteren Eintrags. Jedes Modul, das
+     ein kritisches Skript (direkt oder ueber weitere Module) importiert, ist
+     selbst kritisch: sonst verschiebt eine Aenderung daran Erzeuger und
+     Pruefer zugleich, und der PR gilt als normal. */
+  test('ROT: Importe kritischer Skripte sind selbst kritisch (automatisch, gegen das Repo)', () => {
+    const kritisch = (f) => kritischeGruende([{ filename: f }]).length > 0;
+    const skripte = ['scripts', 'scripts/lib'].flatMap((d) => readdirSync(join(WURZEL, d)).filter((n) => /\.m?js$/.test(n)).map((n) => `${d}/${n}`));
+    const fehlt = [], besucht = new Set();
+    const folge = (f) => {
+      if (besucht.has(f)) return;
+      besucht.add(f);
+      for (const m of readFileSync(join(WURZEL, f), 'utf8').matchAll(/(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g)) {
+        const z = normalize(join(dirname(f), m[1])).split('\\').join('/');
+        if (!existsSync(join(WURZEL, z))) continue;
+        if (!kritisch(z)) fehlt.push(`${z} (importiert von ${f})`);
+        folge(z);
+      }
+    };
+    const start = skripte.filter(kritisch);
+    assert.ok(start.length >= 10, `Selbstauskunft: nur ${start.length} kritische Skripte gefunden`);
+    start.forEach(folge);
+    assert.deepEqual(fehlt, [], 'in KRITISCHE_PFADE aufnehmen');
+  });
+
+  test('ROT: CSP-/Rahmen-Bibliotheken und das Vendor-Tor sind kritisch', () => {
+    for (const f of ['scripts/lib/rahmen.mjs', 'scripts/lib/csp-inline.mjs', 'scripts/lib/hangar-switch.mjs', 'scripts/verify-vendor-three.mjs']) assert.ok(kritischeGruende([{ filename: f }]).length > 0, f);
+  });
+
+  test('ROT: ein zweiter Schluessel "gate" in package.json (ueberschreibt den ersten) ist kritisch', () => {
+    assert.ok(kritischeGruende([{ filename: 'package.json', patch: '@@ -11 +11,2 @@\n     "gate": "node scripts/run-gate.mjs",\n+    "gate": "node -e 0",' }]).length);
+    // Gegenprobe: ein neuer Pruefer ist keine Abschwaechung.
+    assert.deepEqual(kritischeGruende([{ filename: 'package.json', patch: '+    "verify:neu": "node scripts/verify-neu.mjs",' }]), []);
+  });
+
+  test('ROT: nach einem abgebrochenen Review gibt ein neu gesetztes Label genau eine Wiederholung frei', () => {
+    const anfC = (erstellt = '2026-11-26T17:30:20Z') => ({ author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(C)}`, erstellt });
+    const abbruch = { ...CR_ABBRUCH, started_at: '2026-11-26T17:31:00Z' };
+    const lageAb = (x = {}) => lage({ kommentare: [anfC()], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [abbruch] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }], ...x });
+    assert.equal(anforderungNoetig(lageAb()), false, 'ohne neues Label nichts');
+    assert.equal(anforderungNoetig(lageAb({ bereitGesetzt: Date.parse('2026-11-26T17:30:50Z') })), false, 'Label vor dem Abbruch');
+    assert.equal(anforderungNoetig(lageAb({ bereitGesetzt: Date.parse('2026-11-26T18:00:00Z') })), true, 'Label nach dem Abbruch');
+    assert.equal(anforderungNoetig(lageAb({ bereitGesetzt: Date.parse('2026-11-26T18:00:00Z'), kommentare: [anfC(), anfC('2026-11-26T18:00:05Z')] })), false, 'keine dritte');
+    // Gegenprobe: ein Skip bleibt ohne Wiederholung.
+    assert.equal(anforderungNoetig(lageAb({ bereitGesetzt: Date.parse('2026-11-26T18:00:00Z'), laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [{ ...CR_SKIP, started_at: '2026-11-26T17:31:00Z' }] } })), false);
+  });
+
+  test('Tests raeumen ihre Arbeitsverzeichnisse auf', () => {
+    const vorher = readdirSync(tmpdir()).filter((n) => n.startsWith('review-nachweis-')).length;
+    laeufer([prMit(KOPF)]);
+    assert.equal(readdirSync(tmpdir()).filter((n) => n.startsWith('review-nachweis-')).length, vorher);
   });
 });
