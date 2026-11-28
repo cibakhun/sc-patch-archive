@@ -420,7 +420,25 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
 - **Fork-PRs** laufen nicht (kein Schreibrecht, kein Status): ohne Krisz
   kein Merge.
 - **Kritisch-Erkennung** ist eine Heuristik; das Label `kritisch` schließt
-  ihre Lücken.
+  ihre Lücken. Neue oder geänderte Abhängigkeiten (`package.json`,
+  Lockfile) machen einen PR nicht von selbst kritisch: die Lieferkette
+  prüft `verify:supply-chain` im Tor; ob Abhängigkeits-PRs zwei Reviews
+  brauchen, ist Krisz' Entscheidung.
+- **cubic und Merge-Commits.** „AI review not needed for merge commit“
+  hält die cubic-Abdeckung. Enthält ein Merge Konfliktlösungen oder eigene
+  Änderungen, ist nicht belegt, dass cubic sie im nächsten Review mitprüft.
+  Bei einem normalen PR, der nur cubic trägt, kann das ungeprüft grün
+  werden. Merges in den PR-Zweig daher vermeiden (Rebase vor dem Review)
+  oder `kritisch` setzen.
+- **Zusammenfassung und Zeitfenster.** Ein Bereich aus der Zusammenfassung
+  zählt nur, wenn der jüngste Lauf am Ziel höchstens 2 Minuten vor der
+  letzten Änderung des Textes fertig wurde. Startet ein `full review`
+  innerhalb von 2 Minuten nach einem fertigen Lauf am selben Stand, bleibt
+  ein Fenster, bis CodeRabbit den neuen Lauf anlegt (gemessen: 2 s).
+- **Auswertung aus dem Zielzweig.** Wird `scripts/lib/review-nachweis.mjs`
+  auf dem Zielzweig umbenannt, bewertet sich jeder PR mit dem eigenen Code;
+  das sagt nur der Bericht (Quelle der Auswertung). Umbenennen also nur
+  zusammen mit dem Workflow.
 - **Basis nach dem Urteil.** Die Bindung an die Zusammenführungsbasis
   prüft der Lauf nur, solange er läuft; ein Push auf den Zielzweig startet
   keinen Lauf. Ein grüner Stand bleibt trotzdem gültig, weil sich die

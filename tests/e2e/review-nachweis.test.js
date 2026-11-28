@@ -93,6 +93,12 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
     assert.deepEqual(bereicheAusText(` Reviewing files that changed between ${BASIS} and ${C}.`), []);
     assert.deepEqual(bereicheAusText(`Sure!\n\n\`\`\`\nReviewing files that changed between ${BASIS} and ${C}.\n\`\`\``), []);
     // Nur die Zusammenfassung zaehlt, keine Chat-Antwort.
+    // Verschachtelte Zaeune (Opus-Review #477, Runde 4): innerer ``` schliesst den aeusseren ```` nicht; <pre> zaehlt als Block.
+    const zeile = `Reviewing files that changed from the base of the PR and between ${BASIS} and ${C}.`;
+    assert.deepEqual(bereicheAusText(['````diff', '```js', 'x', '```', zeile, '````'].join('\n')), []);
+    assert.deepEqual(bereicheAusText(['~~~', '```', zeile, '~~~'].join('\n')), []);
+    assert.deepEqual(bereicheAusText(['<pre>', zeile, '</pre>'].join('\n')), []);
+    assert.deepEqual(bereicheAusText(['````', '```', '````', zeile].join('\n')), [{ a: BASIS, b: C }], 'Gegenprobe: nach dem Block');
     assert.equal(istZusammenfassung(`${CR_ZUSAMMENFASSUNG}\nWalkthrough`), true);
     assert.equal(istZusammenfassung(`Reviewing files that changed between ${BASIS} and ${C}.`), false);
   });
@@ -209,6 +215,14 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
     const u = bewerte(lage({ laeufeJeCommit: { [A]: [CU_VOLL], [B]: [CU_INKR], [C]: [CU_INKR] }, bereiche: [] }));
     assert.equal(u.state, 'success', u.description);
     assert.deepEqual(u.belege, ['cubic']);
+  });
+  // Opus-Review #477, Runde 4: Check-Laeufe haengen am Commit, nicht am PR.
+  test('ROT: cubic-Review aus anderem Kontext (vor Eroeffnung oder Zielwechsel) zaehlt nicht', () => {
+    const vor = { ...CU_VOLL, started_at: '2026-11-28T09:00:00Z' };
+    const nach = { ...CU_VOLL, started_at: '2026-11-28T11:00:00Z' };
+    const mit = (lauf, kontextAb) => bewerte(lage({ laeufeJeCommit: { [C]: [lauf] }, bereiche: [], kontextAb }));
+    assert.notEqual(mit(vor, Date.parse('2026-11-28T10:00:00Z')).state, 'success', 'voller Review vor dem Wechsel auf staging');
+    assert.equal(mit(nach, Date.parse('2026-11-28T10:00:00Z')).state, 'success', 'Gegenprobe: danach');
   });
   test('T7 ROT: kein Label, kein Review am Head', () => {
     const u = bewerte(lage({ pr: { labels: [] }, laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }] }));
@@ -563,7 +577,7 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
   // `full review` die Luecke Basis..A schliessen und bricht ab. Seine
   // Zusammenfassung nennt Basis..B schon zu Beginn.
   const SPAET_ABBRUCH = { ...CR_ABBRUCH, started_at: '2026-11-27T10:00:00Z' };
-  const SPAET_FERTIG = { ...CR_FERTIG, started_at: '2026-11-27T10:00:00Z' };
+  const SPAET_FERTIG = { ...CR_FERTIG, started_at: '2026-11-27T10:00:00Z', completed_at: '2026-11-27T10:12:05Z' };
   const inkr = { a: A, b: B, quelle: 'review' };
   const voll = (stand) => ({ a: BASIS, b: B, quelle: 'zusammenfassung', stand: Date.parse(stand) });
   const luecke = (laeufeB, bereiche) => lage({ commits: [A, B], pr: { head_sha: B }, laeufeJeCommit: { [A]: [CR_AUS_SKIP], [B]: laeufeB }, bereiche });
@@ -578,6 +592,17 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
     assert.equal(codeRabbitAbdeckung({ bereiche: [{ ...voll('x'), stand: NaN }], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [SPAET_FERTIG] } }).abgedeckt, false, 'unlesbare Zeit: im Zweifel nicht');
     // Ein abgegebener Review ist ein fester Beleg: ein spaeterer Abbruch nimmt ihn nicht weg.
     assert.equal(codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: B, quelle: 'review' }], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [CR_FERTIG, SPAET_ABBRUCH] } }).abgedeckt, true);
+  });
+
+  // Opus-Review #477, Runde 4: CodeRabbit schreibt die Zusammenfassung vor dem neuen Lauf um.
+  test('ROT: Zusammenfassung zu Beginn eines full review, der neue Lauf fehlt noch: der fruehere fertige Lauf belegt sie nicht', () => {
+    const frueher = { ...CR_FERTIG, started_at: '2026-11-27T09:00:00Z', completed_at: '2026-11-27T09:08:00Z' };
+    const abd = (laeufe, stand) => codeRabbitAbdeckung({ bereiche: [voll(stand)], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: laeufe } }).abgedeckt;
+    assert.equal(abd([frueher], '2026-11-27T10:00:00Z'), false, 'Text 52 min nach dem Abschluss');
+    assert.equal(abd([{ ...frueher, completed_at: undefined }], '2026-11-27T09:08:00Z'), false, 'ohne Abschlusszeit: im Zweifel nicht');
+    // Gegenprobe: Text Sekunden vor oder nach dem Abschluss (gemessen: 7 s).
+    assert.equal(abd([frueher], '2026-11-27T09:07:53Z'), true);
+    assert.equal(abd([frueher], '2026-11-27T09:09:30Z'), true);
   });
 
   test('Ins Ledger geht nur, was belegt ist; das alte Ledger bleibt', () => {
@@ -690,6 +715,14 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.match(bericht(r), /\*\*kritisch\*\*/, 'der kritische Stand A bleibt kritisch');
     assert.match(bericht(r), /\.github\/workflows\/deploy\.yml/);
     assert.ok(!r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls/477/files'), 'unter 300 Dateien keine PR-Liste');
+  });
+
+  // Opus-Review #477, Runde 4: leerer oder gekuerzter Vergleich unter 300.
+  test('ROT: Vergleich mit weniger Dateien als der PR: kein Urteil', () => {
+    const r = laeufer([prMit(KOPF, [], { changed_files: 3 })], { routen: { [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{}] } });
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /passen nach 3 Versuchen nicht zum Stand/);
+    assert.deepEqual(r.schreibend.filter((x) => x.schluessel.includes('/statuses/')).map((x) => x.body.state).filter((x) => x === 'success'), []);
   });
 
   // Ab 300 Dateien liefert der Vergleich nicht alle; dann gilt die PR-Liste,
@@ -853,6 +886,9 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(labelAelter([], 'review-ready', suiteA), null);
     assert.equal(labelAelter([L('2026-11-28T10:00:05Z')], 'review-ready', [], undefined), null);
     assert.equal(labelAelter([L('2026-11-28T10:00:05Z')], 'review-ready', [], '2026-11-28T10:00:00Z'), false, 'Commit-Datum');
+    // Runde 4: Commit vorher auf anderem Zweig gepusht (Suite 09:00), Label fuer den alten Head 10:00, Push hierher 11:00.
+    assert.equal(labelAelter([L('2026-11-28T10:00:00Z')], 'review-ready', [{ created_at: '2026-11-28T09:00:00Z' }], null, '2026-11-28T11:00:00Z'), true);
+    assert.equal(labelAelter([L('2026-11-28T11:00:05Z')], 'review-ready', [{ created_at: '2026-11-28T09:00:00Z' }], null, '2026-11-28T11:00:00Z'), false, 'Gegenprobe');
   });
 
   // Runde 5: Auch die Freigabe selbst kann waehrend der Token-Pruefung entfallen.
@@ -1025,7 +1061,7 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   const BASIS2 = h('b'), A2 = h('1');
   const ALT_FERTIG = lauf({ status: 'completed', conclusion: 'success', title: 'Finished', summary: 'Result: Success - Review completed', started_at: '2026-11-28T09:00:00Z' });
   const NEU_ABBRUCH = lauf({ status: 'completed', conclusion: 'cancelled', title: 'Review cancelled', summary: 'Result: Cancelled - Review cancelled', started_at: '2026-11-28T10:00:00Z' });
-  const NEU_FERTIG = { ...ALT_FERTIG, started_at: '2026-11-28T10:00:00Z' };
+  const NEU_FERTIG = { ...ALT_FERTIG, started_at: '2026-11-28T10:00:00Z', completed_at: '2026-11-28T10:00:20Z' };
   const zusammenfassung = { id: 7, user: { login: 'coderabbitai[bot]' }, body: `${CR_ZUSAMMENFASSUNG}\nReviewing files that changed between ${BASIS2} and ${A2}.`, created_at: '2026-11-28T10:00:05Z', updated_at: '2026-11-28T10:00:05Z' };
   const zielLauf = (spaeter) => laeufer([prMit(KOPF)], { routen: {
     'GET repos/o/r/pulls/477/commits': [[{ sha: A2, parents: [{ sha: BASIS2 }] }, { sha: KOPF, parents: [{ sha: A2 }] }]],

@@ -107,7 +107,7 @@ async function laeufeFuer(sha) {
   );
   return laeufe
     .filter((l) => ['coderabbitai', 'cubic-dev-ai'].includes(l.app?.slug))
-    .map((l) => ({ app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at }));
+    .map((l) => ({ app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at, completed_at: l.completed_at }));
 }
 
 // Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
@@ -188,7 +188,10 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
      Push nach). Nach drei Versuchen bricht der Lauf ab, ohne ein Urteil zu
      schreiben; den roten Status "Auswertung gescheitert" setzt der letzte
      Schritt des Workflows. */
-  const fremd = vollstaendig ? 0 : abweichendeDateien(dateien, fest, head) + (dateien.length === pr.changed_files ? 0 : 1);
+  /* Auch unter 300: die Zahl muss zur Dateizahl des PRs passen. Ein leerer
+     oder gekuerzter Vergleich saehe sonst nach "nichts Kritisches" aus
+     (Opus-Review #477, Runde 4; gemessen an #402, #477, #481: gleich). */
+  const fremd = vollstaendig ? (fest.length === pr.changed_files ? 0 : 1) : abweichendeDateien(dateien, fest, head) + (dateien.length === pr.changed_files ? 0 : 1);
   const headFehlt = !voll && !commits.includes(head);
   const fremdeCommits = voll || headFehlt ? 0 : commitListe.length - commits.length;
   if (fremd || headFehlt || fremdeCommits) {
@@ -254,6 +257,8 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
     },
     commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
     bereitGesetzt, fruehereRunden, vorlaeufigeRunden,
+    // cubic-Laeufe zaehlen erst ab Eroeffnung des PRs bzw. letztem Wechsel des Zielzweigs.
+    kontextAb: Math.max(...[pr.created_at, ...ereignisse.filter((e) => e.event === 'base_ref_changed').map((e) => e.created_at)].map((t) => Date.parse(t || '')).filter(Number.isFinite)),
   };
   if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
@@ -378,7 +383,7 @@ async function labelAelterAlsHead(head) {
   if (zuletztGesetzt(ereignisse, LABEL_BEREIT) === null) return null;
   const suiten = (await api(`${R}/commits/${head}/check-suites?per_page=100`)).check_suites || [];
   const datum = suiten.some((x) => Number.isFinite(Date.parse(x.created_at || ''))) ? null : (await api(`${R}/commits/${head}`)).commit?.committer?.date;
-  return labelAelter(ereignisse, LABEL_BEREIT, suiten, datum);
+  return labelAelter(ereignisse, LABEL_BEREIT, suiten, datum, AKTION === 'synchronize' ? process.env.PR_AKTUALISIERT : undefined);
 }
 
 // Neuer Stand: das Label gehoerte zum alten.

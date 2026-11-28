@@ -267,11 +267,17 @@ const alleAnforderungen = (kommentare) => vomAnforderer(kommentare).filter((k) =
     Suite vor dem Label fuer B; deshalb zaehlt auch das juengste
     `head_ref_force_pushed` als Anker (Opus-Review #477, Runde 3).
     true/false, null = nicht zu entscheiden. */
-export function labelAelter(ereignisse, label, suiten, commitDatum) {
+export function labelAelter(ereignisse, label, suiten, commitDatum, pushZeit) {
   const gesetzt = zuletztGesetzt(ereignisse, label);
   if (gesetzt === null) return null;
   let anker = Math.min(...(suiten || []).map((x) => Date.parse(x.created_at || '')).filter(Number.isFinite));
   if (!Number.isFinite(anker)) anker = Date.parse(commitDatum || '');
+  /* Beim Push (`synchronize`): `updated_at` des PRs im Ereignis ist die
+     Zeit des Pushs. Wurde der Commit vorher schon auf einem anderen Zweig
+     gepusht, liegt seine erste Check-Suite vor dem Label fuer den alten
+     Head (Opus-Review #477, Runde 4). */
+  const push = Date.parse(pushZeit || '');
+  if (Number.isFinite(push)) anker = Number.isFinite(anker) ? Math.max(anker, push) : push;
   if (!Number.isFinite(anker)) return null;
   const force = (ereignisse || []).filter((e) => e.event === 'head_ref_force_pushed').map((e) => Date.parse(e.created_at || '')).filter(Number.isFinite);
   if (force.length) anker = Math.max(anker, ...force);
@@ -445,10 +451,20 @@ export async function statusMitKontrolle(urteil, d, { schreibe, gleicheStaende }
    Codeblock). */
 export function bereicheAusText(text) {
   const out = [];
-  let block = false;
+  /* Zaun wie CommonMark: schliesst nur derselbe Zeichentyp mit mindestens
+     gleicher Laenge, ein innerer kuerzerer Zaun bleibt Inhalt. Dazu
+     <pre>-Bloecke (Opus-Review #477, Runde 4). */
+  let zaun = null;
+  let pre = false;
   for (const zeile of String(text || '').split(/\r?\n/)) {
-    if (/^\s*(```|~~~)/.test(zeile)) { block = !block; continue; }
-    if (block) continue;
+    const z = /^\s*(`{3,}|~{3,})/.exec(zeile);
+    if (z) {
+      if (!zaun) { zaun = z[1]; continue; }
+      if (z[1][0] === zaun[0] && z[1].length >= zaun.length && /^\s*[`~]+\s*$/.test(zeile)) { zaun = null; continue; }
+    }
+    if (zaun) continue;
+    if (/<pre\b/i.test(zeile)) pre = true;
+    if (pre) { if (/<\/pre>/i.test(zeile)) pre = false; continue; }
     const m = /^Reviewing files that changed\b.*?\bbetween ([0-9a-f]{40}) and ([0-9a-f]{40})\b/.exec(zeile);
     if (m) out.push({ a: m[1], b: m[2] });
   }
@@ -502,8 +518,18 @@ function zielGeprueft(r, laeufe) {
   if (!letzter || codeRabbitLauf(letzter).art !== 'geprueft') return false;
   if (!('stand' in r)) return true;
   const start = Date.parse(letzter.started_at || '');
-  return Number.isFinite(r.stand) && Number.isFinite(start) && start <= r.stand;
+  /* Und er muss zu dieser Aenderung fertig geworden sein: CodeRabbit
+     schreibt die Zusammenfassung schon vor dem neuen Lauf um (gemessen
+     #477, 28.11.2026: Text 13:39:37, Lauf 13:39:39). In dieser Luecke ist
+     ein frueherer fertiger Lauf noch der juengste; er war lange vorher
+     fertig. Am Ende einer Runde liegen Text und Abschluss Sekunden
+     auseinander (Review 12:21:46, Lauf fertig 12:21:53). Fenster:
+     ZUSAMMENFASSUNG_FENSTER_MS (Opus-Review #477, Runde 4). */
+  const fertig = Date.parse(letzter.completed_at || '');
+  return Number.isFinite(r.stand) && Number.isFinite(start) && start <= r.stand
+    && Number.isFinite(fertig) && fertig >= r.stand - ZUSAMMENFASSUNG_FENSTER_MS;
 }
+export const ZUSAMMENFASSUNG_FENSTER_MS = 120_000;
 
 export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit }) {
   const imPr = new Set(commits);
@@ -558,13 +584,19 @@ export function ledgerBereiche(d) {
   return [...out.values()];
 }
 
-/** cubic: voller Review setzt die Abdeckung, inkrementelle halten sie, alles andere reisst sie. */
-export function cubicAbdeckung({ commits, head, laeufeJeCommit }) {
+/** cubic: voller Review setzt die Abdeckung, inkrementelle halten sie, alles andere reisst sie.
+    `kontextAb` (ms): Eroeffnung des PRs oder letzter Wechsel des Zielzweigs.
+    Ein Lauf davor gehoert zu einem anderen Vergleich (Check-Laeufe haengen
+    am Commit, nicht am PR): ein gestapelter PR, der auf `staging`
+    umgestellt wird, oder ein zweiter PR auf denselben Head. Er zaehlt
+    nicht (Opus-Review #477, Runde 4). */
+export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb }) {
   let abgedeckt = false;
   let amHead = { art: 'fehlt' };
   const spur = [];
+  const imKontext = (l) => !Number.isFinite(kontextAb) || Date.parse(l.started_at || '') >= kontextAb;
   for (const c of commits) {
-    const laeufe = (laeufeJeCommit[c] || []).filter(istCubic);
+    const laeufe = (laeufeJeCommit[c] || []).filter(istCubic).filter(imKontext);
     if (!laeufe.length) continue;
     const z = cubicLauf(juengster(laeufe));
     spur.push(`${kurz(c)} ${z.art}${z.inkrementell ? ' (inkrementell)' : ''}`);
@@ -648,7 +680,7 @@ export function bewerte(d) {
   const crBeleg = crHead.art === 'geprueft' && crAbd.abgedeckt;
 
   // cubic
-  const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {} });
+  const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {}, kontextAb: d.kontextAb });
   const cuBeleg = cuAbd.abgedeckt;
 
   const runden = rundenZahl(d);

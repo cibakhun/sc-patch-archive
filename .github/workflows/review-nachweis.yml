@@ -110,6 +110,7 @@ jobs:
           PR_NUMMER: ${{ github.event.pull_request.number }}
           EREIGNIS: ${{ github.event_name }}
           AKTION: ${{ github.event.action }}
+          PR_AKTUALISIERT: ${{ github.event.pull_request.updated_at }}
           LABEL: ${{ github.event.label.name }}
           LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           FREIGABE_KONTEN: cibakhun
