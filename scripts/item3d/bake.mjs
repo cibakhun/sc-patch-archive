@@ -59,9 +59,12 @@ const draco3d = req('draco3d');
 // eigenen Sätzen; Abnutzungs- und Höhenkarte gehören zum Satz.
 // 7: auch ohne Mischkarte (dort nur Schicht 1 geladen); Mip-Ersatzteil
 // trotz Teil ohne zuordenbare Größe.
+// 8: Stufe 0, wo Stufe 1 zu grob ist (Schachfiguren mit 18 Dreiecken);
+// Handschuhe nebeneinander statt in Armhaltung; Knoten einer .cga über die
+// Kette ihrer Elternknoten gestellt.
 // Rückt gemeinsam mit der Tabelle (deren sha steht ebenfalls in der
 // Eingabe-Kennung).
-export const BAKE_VERSION = 7;
+export const BAKE_VERSION = 8;
 export const isWeapon = (item) => /^(WeaponPersonal|WeaponAttachment|Grenade|WeaponMining|Gadget)$/.test(item?.t ?? '');
 export const norm = (p) => { let k = String(p).replace(/\\/g, '/').replace(/^\/+/, '').toLowerCase(); if (!k.startsWith('data/')) k = `data/${k}`; return k; };
 
@@ -197,7 +200,14 @@ const composeXf = (outer, inner) => ({ q: qmul(outer.q, inner.q), t: qrot(outer.
 // Wurzel). Teilnetze in der .cgam tragen den Knoten (sub.node); ihre Ecken
 // stehen im Raum dieses Knotens. Geprüft gegen „starbreaker nmc dump“
 // (nmc-probe.mjs). Liefert null ohne Chunk.
+// Die Matrix bei +80 (im dump „b2w“) ist die Lage gegen den Elternknoten,
+// nicht im Raum der Datei (so schon die Hallentore, scripts/lib/aufzug-dreh.mjs).
+// Die Lage im Modell (m) ist darum die Kette von der Wurzel her; sie stimmt
+// mit der Matrix bei +32 überein (Erz-Kapsel cargo_mining_pod: der Sack hing
+// bis 27.11.2026 quer neben dem Gehäuse, weil sein Elternknoten gedreht ist).
+// kette: die Kette ändert die Lage (der Knoten hat gestellte Vorfahren).
 export const NMC_MATRIX = 80;
+const mal34 = (A, B) => [0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => A[r][0] * B[0][c] + A[r][1] * B[1][c] + A[r][2] * B[2][c] + (c === 3 ? A[r][3] : 0)));
 export function readNmc(buf) {
   if (!buf || buf.length < 16 || buf.toString('latin1', 0, 4) !== '#ivo') return null;
   const n = buf.readUInt32LE(8), tab = buf.readUInt32LE(12);
@@ -211,8 +221,18 @@ export function readNmc(buf) {
     const b = off + 32 + k * 208;
     const mat = (at) => [0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => buf.readFloatLE(b + at + (r * 4 + c) * 4)));
     const par = buf.readUInt16LE(b + 148);
-    nodes.push({ index: k, parent: par === 0xffff ? null : par, a: mat(32), b: mat(80), m: mat(NMC_MATRIX), name: null });
+    nodes.push({ index: k, parent: par === 0xffff ? null : par, a: mat(32), b: mat(80), m: mat(NMC_MATRIX), kette: false, name: null });
   }
+  const fertig = new Set();
+  const welt = (k, tiefe = 0) => {
+    const n = nodes[k];
+    if (fertig.has(k) || n.parent == null || !nodes[n.parent] || tiefe > count) return n.m;
+    const e = welt(n.parent, tiefe + 1);
+    if (!isIdent(e)) { n.m = mal34(e, n.m); n.kette = true; }
+    fertig.add(k);
+    return n.m;
+  };
+  for (let k = 0; k < count; k++) welt(k);
   // Namen: hinter den Knoten, nullgetrennt; der Kopf nennt bei +20 ihre
   // Länge in Bytes. Gesucht wird der erste Anfang, ab dem genau so viele
   // Bezeichner mit dieser Gesamtlänge stehen.
@@ -408,7 +428,9 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     // nur „_01“ wie die Grundausführung) und keine passt, obwohl das Netz
     // Ausführungen mit eigenem Material oder eigener Palette hat: Befund
     // „Ausführung nicht gefunden“ (hält an).
-    const ANSICHT = /^(male|female|heldentity|inventorystoredentity|tabledisplay|hanging|fp|empty)$/;
+    // Zustände sind keine Ausführungen: offene Flasche, aufgerissene Packung
+    // (animating), zerstörtes Ei, Abbaustufen eines Gesteins (asteroid1…).
+    const ANSICHT = /^(male|female|heldentity|inventorystoredentity|tabledisplay|hanging|fp|empty|animating|open|destroyed|asteroid\d+)$/;
     const offen = pick === g && /[a-z]/.test(rec.split('_').pop()) ? subs.filter((s) => (s.Geometry?.Material?.path || s.Geometry?.Palette?.RootRecord?.__ref) && !tag(s).some((t) => ANSICHT.test(t))).map((s) => s.Tags) : [];
     const G = pick?.Geometry;
     // Danach das Material am Eintrag selbst (Rucksack-Editionen: dieselbe
@@ -528,10 +550,31 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     }
     return atts;
   }
-  function lodPath(skin, l) {
+  // Stufe 1 spart bei Rüstung und Waffen die Hälfte der Dreiecke. Kleine
+  // Requisiten haben dort oft nur noch einen Klotz (Schachfigur: 18
+  // Dreiecke statt einer Figur): Behält Stufe 1 weniger als ein Viertel der
+  // Dreiecke von Stufe 0, gilt Stufe 0 (Befund „Stufe 1 zu grob“). Nur für
+  // Stufe 1: eine ausdrücklich verlangte gröbere Stufe (--lod 2) bleibt, wie
+  // sie ist (Review #488).
+  const LOD_MIN_ANTEIL = 0.25;
+  const netzDatei = (p) => (/\.skin$/i.test(p) ? p.replace(/\.skin$/i, '.skinm') : `${p}m`);
+  // null = Netz fehlt oder ist unlesbar; 0 = gemessen leer (Review #488).
+  const dreiecke = (p) => { const b = provider.read(netzDatei(p)); if (!b) return null; try { return readSkinMesh(b).idx.length / 3; } catch { return null; } };
+  function lodPath(skin, l, bau = () => {}) {
     if (!l) return skin;
     const p = skin.replace(/(_lod\d)?\.(skin|cga|cgf)$/i, `_lod${l}.$2`);
-    return provider.has(p) ? p : skin;
+    if (!provider.has(p) || p === skin) return skin;
+    if (l === 1) {
+      const t0 = dreiecke(skin), t1 = dreiecke(p);
+      // Nur wenn beide Zahlen bekannt sind: Eine Stufe 1 ohne lesbares Netz
+      // ist nicht „zu grob“, sie bleibt gewählt, und der Aufrufer meldet
+      // „Bau Netz fehlt“ (Fehler, hält das Item an). Eine gemessen leere
+      // Stufe 1 (0 Dreiecke) ist dagegen zu grob, und Stufe 0 gilt. Ohne
+      // messbare Stufe 0 greift die Regel nie (Review #488). Im Spielstand
+      // vom 27.11.2026 hat jede der 81 877 Stufe-1-Dateien ihr Netz.
+      if (t0 && t1 !== null && t1 < t0 * LOD_MIN_ANTEIL) { bau('Bau Stufe 1 zu grob', t0); return skin; }
+    }
+    return p;
   }
   // UV außerhalb von 0..1 (Zierleisten-Atlas, wiederholt) wird in die Kachel
   // zurückgelegt, wie der Sampler sie wiederholt; vorher fiel es weg, und die
@@ -746,8 +789,8 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
     const benutzt = new Set(); // Bilder, die der Bau nimmt (Zählung: ihr Format)
     const fehlend = []; // Teilnetze ohne Material (Befund nach ihrem Anteil)
     for (const att of atts) {
-      const skinP = lodPath(att.skin, lod);
-      const meshFile = /\.skin$/i.test(skinP) ? skinP.replace(/\.skin$/i, '.skinm') : `${skinP}m`;
+      const skinP = lodPath(att.skin, lod, bau);
+      const meshFile = netzDatei(skinP);
       const mb = provider.read(meshFile);
       const da = { mesh: meshFile, mtl: att.mtl ?? null, own: att.own ?? null, subs: [] };
       diag.atts.push(da);
@@ -786,6 +829,7 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
           const kn = nmc?.[s.node];
           if (!kn) { log(`  ! Knoten ${s.node} fehlt im Knotenbaum: ${att.skin}`); bau('Bau Knoten fehlt', s.numIndices / 3); continue; }
           if (isIdent(kn.m)) continue;
+          if (kn.kette) bau('Bau Knotenkette', s.numIndices / 3);
           for (let i = s.firstIndex; i < s.firstIndex + s.numIndices; i++) knotenAn[m.idx[i]] = s.node;
         }
       }
@@ -1205,6 +1249,19 @@ export async function createBaker({ provider, refs, tex = 1024, lod = 1, wearSca
       const mat = doc.createMaterial(p.name).setBaseColorFactor([...base, glas ? Math.min(0.35, op) : 1]).setRoughnessFactor(glas ? 0.05 : rau).setMetallicFactor(met);
       if (glas) mat.setAlphaMode('BLEND');
       matOf.set(p, mat);
+    }
+    // Handschuhe liegen in Armhaltung gut anderthalb Meter auseinander; im
+    // Bild wären sie zwei Punkte. Jede Seite rückt zur Mitte, bis die beiden
+    // nebeneinanderliegen (je ein Handschuh pro Seite, keine Ecke nahe der Mitte).
+    if (item.t === 'Char_Clothing_Hands') {
+      let innenR = Infinity, innenL = -Infinity;
+      const felder = [...new Set(prims.map((p) => p.P))];
+      for (const P of felder) for (let i = 0; i < P.length; i += 3) { const x = P[i]; if (x > 0) innenR = Math.min(innenR, x); else if (x < 0) innenL = Math.max(innenL, x); }
+      const SPALT = 0.03;
+      if (Number.isFinite(innenR) && Number.isFinite(innenL) && innenR > SPALT && innenL < -SPALT) {
+        for (const P of felder) for (let i = 0; i < P.length; i += 3) P[i] += P[i] > 0 ? SPALT / 2 - innenR : P[i] < 0 ? -SPALT / 2 - innenL : 0;
+        bau('Bau Handschuhe nebeneinander', tris);
+      }
     }
     const accCache = new Map();
     for (const p of prims) {

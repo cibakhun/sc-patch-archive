@@ -6,11 +6,32 @@ Speicher (`base` in `src/data/item-3d.json`), nicht im Repo.
 
 | Datei | Aufgabe |
 |---|---|
+| `liste.mjs` | die Backliste aus dem **ganzen Katalog**: jedes Item bekommt genau ein Schicksal (zu backen oder ohne Record, mit Grund) |
 | `bake.mjs` | ein Item zu einem GLB backen; meldet je Item alle Merkmale seines Spielmaterials |
-| `batch.mjs` | Massenlauf über eine Item-Liste, Arbeiter parallel, Bauprotokoll `<out>/manifest.jsonl`; `--zensus <datei>` zählt nur Merkmale, ohne zu backen |
+| `batch.mjs` | Massenlauf über die Backliste, Arbeiter parallel, Bauprotokoll `<out>/manifest.jsonl`; `--zensus <datei>` zählt nur Merkmale, ohne zu backen |
 | `upload.mjs` | neue Dateien in den Speicher laden (Zugang aus einer lokalen `r2.env`, nie im Repo) |
 | `manifest.mjs` | aus dem Bauprotokoll die Liste der Seite und den Befundbericht schreiben |
 | `../lib/item3d-merkmale.mjs` | **die Tabelle**: was der Bäcker an einem Material kennt |
+
+## Der ganze Katalog, keine Hand-Listen
+
+Bis 27.11.2026 wurde aus zwei Hand-Listen gebacken, eine für Rüstung, eine
+für Waffen. Kleidung, Werkzeuge, Verbrauchsgüter und Sonstiges standen auf
+keiner, und niemand merkte es: eine Lücke ohne Liste wirft keinen Fehler.
+Darum baut `liste.mjs` die Backliste aus `assets/universal-items.json`. Den
+Record nimmt sie aus dem Katalog oder, wo der Katalog keine Spieldaten führt,
+über den Namen aus dem Datenlauf (`assets/items-gamefiles.json`, nur ein
+eindeutiger Treffer zählt). `batch.mjs` nimmt nur Listen dieses Formats an.
+
+Ob ein Item ein Modell hat, entscheidet der Bäcker, nicht die Liste: eine
+neue Art im Spiel wird ohne Zutun gebacken, und hat sie kein Modell
+(Lackierung, Charakter-Farbe, Schiffsregler), steht das mit Grund im
+Bauprotokoll. `manifest.mjs` schreibt in den Befundbericht unter
+`abdeckung` für jedes Katalog-Item, das weder in der Liste noch angehalten
+ist, den Grund (ohne Record, ohne Modell, gescheitert, offen), und unter
+`abdeckung.bereiche` den Bereich jedes Katalog-Items zur Zeit des Laufs. Das
+Tor zählt nach diesen Bereichen und hat dort Klinken; ein späterer
+Datenlauf, der Items umordnet oder streicht, reißt sie nicht.
 
 ## Die Tabelle entscheidet, nicht der Bäcker
 
@@ -72,6 +93,17 @@ Neben den Merkmalen des Materials meldet der Bäcker auch, wie er gebaut hat
   der Record auf einen Namen, zu dem keine passt, hält das Item an
   („Ausführung nicht gefunden“). Vorher zeigten 24 Waffen still die
   Grundausführung (z. B. Parallax „Downburst“ statt schwarz-gold).
+  Zustände wie `inventorystoredentity`, `tabledisplay` oder `open` sind
+  Ansichten, keine Ausführungen, und gelten nicht als Name.
+- **Detailstufe**: gebacken wird Stufe 1, außer sie behält weniger als ein
+  Viertel der Dreiecke von Stufe 0 („Stufe 1 zu grob“; Schachfiguren hatten
+  dort 18 Dreiecke).
+- **Knotenkette**: die Lage eines Teils einer `.cga` ist die Kette seiner
+  Knoten von der Wurzel her; die Matrix des Knotenbaums gilt gegen den
+  Elternknoten. Vorher hing etwa der Sack der Erz-Kapseln quer neben dem
+  Gehäuse (395 Items mit verschachtelten Knoten).
+- **Handschuhe** werden nebeneinander gestellt statt in Armhaltung, sonst
+  sind sie im Bild zwei Punkte.
 
 ## Neu backen, wenn sich das Spiel ändert
 
@@ -89,11 +121,12 @@ oder ungeprüften Quellen)“, genau die vier Items mit dieser Schicht.
 
 ```powershell
 $env:REPO = '<checkout mit node_modules>'
-node scripts\item3d\batch.mjs --p4k <Data.p4k> --list <items.json> --out <out> --zensus zensus.jsonl
+node scripts\item3d\liste.mjs liste.json
+node scripts\item3d\batch.mjs --p4k <Data.p4k> --list liste.json --out <out> --zensus zensus.jsonl
 # Merkmale "unbekannt"? Erst einordnen (Tabelle + Bäcker), dann backen:
-node scripts\item3d\batch.mjs --p4k <Data.p4k> --list <items.json> --out <out>
+node scripts\item3d\batch.mjs --p4k <Data.p4k> --list liste.json --out <out>
 node scripts\item3d\upload.mjs <out> --env <r2.env>
-node scripts\item3d\manifest.mjs <out> src\data\item-3d.json --env <r2.env>
+node scripts\item3d\manifest.mjs <out> src\data\item-3d.json --liste liste.json --env <r2.env>
 npm run verify:item3d-befunde
 ```
 
@@ -125,3 +158,9 @@ gegen die Tabelle dieses Checkouts:
 2. Kein gelistetes Item trägt ein anhaltendes Merkmal.
 3. Kein Merkmal wurde seit dem Lauf umgeordnet.
 4. Jede benannte Ausnahme ist noch in Gebrauch.
+5. Jedes Item des Katalogs hat genau ein Schicksal (Liste, angehalten oder
+   Lücke mit Grund), und kein Katalog-Bereich (gezählt nach den Bereichen
+   des Laufs) fällt unter seine Klinke. Ist der Katalog seit dem Lauf ein
+   anderer (Datenlauf), ist das nur eine WARNUNG: neue Items warten auf den
+   nächsten Lauf. Bei gleichem Katalog müssen die Bereiche im Bericht die
+   heutigen sein.

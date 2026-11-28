@@ -1,7 +1,8 @@
 // Items in 3D, Massenlauf: backt alle Items einer Liste zu Web-Modellen.
 // Läuft auf dem Rechner mit Spielinstallation (Schiene C), nicht im Tor.
 //
-//   node scripts/item3d/batch.mjs --p4k <Data.p4k> --list items-armor.json --out <ordner> [--workers 6]
+//   node scripts/item3d/batch.mjs --p4k <Data.p4k> --list <liste.json> --out <ordner> [--workers 6]
+//                                 (Liste aus scripts/item3d/liste.mjs: der ganze Katalog)
 //   node scripts/item3d/batch.mjs --raw <rohOrdner> --out <ordner>    (Probe ohne Spiel)
 //   node scripts/item3d/batch.mjs --p4k … --list … --out … --zensus <datei.jsonl>
 //                                 (nur Merkmale je Item, nichts backen; ~30 s)
@@ -89,9 +90,10 @@ async function main() {
   const log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(5)}s]`, ...a);
 
   // Eine Zählung schreibt nie ins Bauprotokoll (ein Fehlschlag dort sperrte
-  // ein gebautes Modell). Was sie nicht zählen konnte, auch ein Item ohne
-  // Record, steht in ohneZaehlung und macht sie rot; Testeinträge des Spiels
-  // sind ausdrücklich ausgenommen und werden nur genannt.
+  // ein gebautes Modell). Was sie nicht zählen konnte, auch ein Item der
+  // Liste ohne Record im Spiel oder eins, das --only nennt und die Liste
+  // nicht führt, steht in ohneZaehlung und macht sie rot; Testeinträge des
+  // Spiels sind ausdrücklich ausgenommen und werden nur genannt.
   const ohneZaehlung = [], testeintraege = [];
   const aufloesFehler = (o) => { if (ZENSUS) ohneZaehlung.push(o.id); else fehlerZeile(OUT, o); };
 
@@ -105,7 +107,25 @@ async function main() {
   } else {
     const { openP4k } = await import(libUrl('p4k.mjs'));
     const { openDataCore } = await import(libUrl('datacore.mjs'));
-    const list = JSON.parse(readFileSync(LIST, 'utf8'));
+    // Nur die Liste aus liste.mjs (ganzer Katalog, je Item ein Schicksal).
+    // Hand-Listen ließen ganze Arten aus, ohne dass es jemand merkte
+    // (Kleidung, Werkzeuge, Verbrauchsgüter bis 27.11.2026).
+    const roh = JSON.parse(readFileSync(LIST, 'utf8'));
+    if (!Array.isArray(roh?.liste) || typeof roh?.katalog !== 'string') { console.error(`${LIST} ist keine Liste aus scripts/item3d/liste.mjs (Hand-Listen lassen Arten aus): erst node scripts/item3d/liste.mjs <liste.json>`); process.exit(2); }
+    const list = roh.liste;
+    // Was --only nennt, aber nicht in der Liste steht (ohne Record oder nicht
+    // im Katalog), kann weder gebacken noch gezählt werden: laut sagen, eine
+    // Zählung wird damit rot (Review #488). Ohne --only bleiben die Items
+    // ohne Record still draußen: ihr Schicksal steht schon fest (Lücke im
+    // Befundbericht, scripts/item3d/manifest.mjs).
+    if (ONLY.length) {
+      const inListe = new Set(list.map((e) => e.id));
+      for (const id of ONLY) {
+        if (inListe.has(id)) continue;
+        log(`  ! ${id} steht nicht in der Liste: ${roh.ohneRecord?.[id] ? `ohne Record (${roh.ohneRecord[id]})` : 'nicht im Katalog der Liste'}`);
+        if (ZENSUS) ohneZaehlung.push(id);
+      }
+    }
     const p4k = openP4k(P4K);
     log('p4k', p4k.entryCount, 'Einträge');
     let db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
