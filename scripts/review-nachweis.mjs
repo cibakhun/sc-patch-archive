@@ -41,7 +41,7 @@ import {
   zuletztGesetzt, seitenweise, statusMitKontrolle,
   rundenLesen, beschreibungMitPr, nachweisFuerPr,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
-  altesLedger, fremdeDateien, verlaufZumHead,
+  altesLedger, abweichendeDateien, verlaufZumHead,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -137,18 +137,33 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
     if (!cacheLaeufe.has(c) || c === head || !nurHeadNeu || offen || zieleZusammenfassung.has(c)) cacheLaeufe.set(c, await laeufeFuer(c));
     laeufeJeCommit[c] = cacheLaeufe.get(c);
   }
-  const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
+  /* Dateien fest am Stand: ein Vergleich zweier fester Commits (Basis des
+     PRs ... Head) haengt nicht davon ab, wohin der Head inzwischen zeigt.
+     Die PR-Liste dagegen gilt dem jeweils aktuellen Head; kehrte er waehrend
+     der Erhebung zurueck (A -> B -> A), stammte sie unbemerkt von B, und
+     eine Liste nur aus geloeschten Dateien verriete das nicht einmal ueber
+     contents_url (Review #477, Runde 4). Gemessen an 21 PRs (#460 bis
+     #480): Vergleich und PR-Liste nennen dieselben Dateien mit demselben
+     Status und Blob. Der Vergleich liefert hoechstens 300 Dateien
+     (GitHub-Doku); ab 300 gilt die PR-Liste (bis 3000), gebunden ueber
+     abweichendeDateien und die Dateizahl des PRs. */
+  const fest = (await api(`${R}/compare/${pr.base.sha}...${head}`)).files || [];
+  const vollstaendig = fest.length < 300;
+  const dateien = vollstaendig ? fest : await alle(`${R}/pulls/${NUMMER}/files`, 30);
   /* Gehoeren Commits und Dateien zum festgehaltenen Head? Ein Head, der
      waehrend der Erhebung wechselt und zurueckkehrt (A -> B -> A), besteht
-     jede spaetere Head-Pruefung; die Dateiliste naennte dann B, und ein
-     kritischer Stand A koennte als normal gelten (Review #477, Runde 4).
-     Jede Datei nennt ihren Stand (fremdeDateien). Bei den Commits muss der
-     Head dabei sein, und jeder Commit muss in seinem Verlauf liegen
-     (verlaufZumHead), ausser die Liste ist voll (250, siehe bewerte).
+     jede spaetere Head-Pruefung, und ein kritischer Stand A koennte mit den
+     Daten von B als normal gelten (Review #477, Runde 4). Die Dateien bindet
+     der feste Vergleich, ab 300 Dateien abweichendeDateien und die
+     Dateizahl. Bei den Commits muss der Head dabei sein, und jeder Commit
+     muss in seinem Verlauf liegen (verlaufZumHead), ausser die Liste ist
+     voll (250, siehe bewerte).
      Passt es nicht: ist der Head ein anderer, uebernimmt dessen Lauf; sonst
      kurz warten und alles neu erheben (GitHub rechnet die Liste nach einem
-     Push nach), nach drei Versuchen scheitert der Lauf sichtbar. */
-  const fremd = fremdeDateien(dateien, head).length;
+     Push nach). Nach drei Versuchen bricht der Lauf ab, ohne ein Urteil zu
+     schreiben; den roten Status "Auswertung gescheitert" setzt der letzte
+     Schritt des Workflows. */
+  const fremd = vollstaendig ? 0 : abweichendeDateien(dateien, fest, head) + (dateien.length === pr.changed_files ? 0 : 1);
   const headFehlt = !voll && !commits.includes(head);
   const fremdeCommits = voll || headFehlt ? 0 : commitListe.length - commits.length;
   if (fremd || headFehlt || fremdeCommits) {
@@ -157,11 +172,12 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
       console.log('Neuer Stand oder PR geschlossen waehrend der Erhebung — der Lauf dazu uebernimmt.');
       process.exit(0);
     }
-    const was = `${fremd} Dateien, ${fremdeCommits} Commits aus einem anderen Stand${headFehlt ? ', Head fehlt in der Commit-Liste' : ''}`;
+    const was = `${fremd} Dateiabweichungen, ${fremdeCommits} Commits aus einem anderen Stand${headFehlt ? ', Head fehlt in der Commit-Liste' : ''}`;
     if (versuch >= 3) throw new Error(`Dateien oder Commits passen nach ${versuch} Versuchen nicht zum Stand ${head.slice(0, 7)} (${was})`);
     console.log(`Dateien oder Commits nicht vom Stand ${head.slice(0, 7)} (${was}), erhebe neu (Versuch ${versuch + 1}).`);
     await schlaf(Math.min(5, TAKT_S));
-    return sammle(pr, { nurHeadNeu: false, versuch: versuch + 1 });
+    // Mit der Dateizahl des frischen PR-Abrufs: GitHub rechnet sie nach einem Push nach.
+    return sammle({ ...pr, changed_files: jetzt.changed_files }, { nurHeadNeu: false, versuch: versuch + 1 });
   }
   const gleicherStand = await gleicheStaende(head);
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at, geaendert: k.updated_at || k.created_at }));

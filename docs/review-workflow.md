@@ -287,15 +287,24 @@ unmittelbar vor der Anforderung und vor jedem Schreiben eines Status,
 auch des „Warte“: Kam während der Erhebung ein neuer Stand, schreibt der
 Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
 Ein Head, der wechselt und zurückkehrt (A, B, wieder A), besteht diese
-Nachfrage; deshalb sind auch die Daten an den Stand gebunden: Jede nicht
-gelöschte Datei der Dateiliste nennt den Stand, aus dem GitHub sie las
-(`contents_url`); der Head muss in der Commit-Liste stehen, und jeder
+Nachfrage; deshalb sind auch die Daten an den Stand gebunden. Die Dateien
+kommen aus dem Vergleich zweier fester Commits (`compare/<Basis>...<Head>`),
+der nicht davon abhängt, wohin der Head inzwischen zeigt; die PR-Liste
+gilt dem jeweils aktuellen Head, und eine Liste von B nur aus gelöschten
+Dateien verriete B nicht einmal (gemessen an 21 PRs, #460 bis #480: beide
+nennen dieselben Dateien mit demselben Status und Blob). Der Vergleich
+liefert höchstens 300 Dateien; ab dann gilt die PR-Liste, und jede ihrer
+nicht gelöschten Dateien muss den Head als Quelle nennen (`contents_url`),
+jede Datei des Vergleichs muss gleich in ihr stehen, und ihre Länge muss
+die Dateizahl des PRs treffen. Der Head muss in der Commit-Liste stehen, und jeder
 Commit der Liste muss in seinem Verlauf liegen (eine Liste zu einem
 Nachfolger B = A + X brächte X mit). Die Commits ordnet der Lauf nach
 ihren Eltern, nicht nach der Liste, weil cubics Abdeckung sie der Reihe
 nach liest (gemessen in 81 PRs stimmte die Liste, zugesagt ist es nicht).
 Passt etwas nicht, erhebt der Lauf alles neu, höchstens dreimal, und
-scheitert dann sichtbar, ohne etwas zu schreiben. Beim Nachpollen liest der Lauf den Head,
+bricht dann ab, ohne selbst ein Urteil zu schreiben; der letzte Schritt
+des Workflows setzt dann „Auswertung gescheitert: Stand NICHT bewertet“
+(rot) auf den Stand des Ereignisses. Beim Nachpollen liest der Lauf den Head,
 jeden Stand, dessen Lauf noch nicht fertig war, und jedes Ziel eines
 Bereichs aus einer Zusammenfassung neu: ein dort später begonnener und
 abgebrochener Lauf nimmt dem Bereich den Beleg.
@@ -347,6 +356,13 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   kein Merge.
 - **Kritisch-Erkennung** ist eine Heuristik; das Label `kritisch` schließt
   ihre Lücken.
+- **Mehr als 300 geänderte Dateien.** Dann bindet die PR-Liste nur, was sie
+  selbst verrät: die ersten 300 Dateien des Vergleichs, die Quelle jeder
+  nicht gelöschten Datei und die Dateizahl des PRs. Kehrt der Head genau
+  während der Erhebung zurück (A, B, wieder A) und unterscheidet sich B
+  hinter den ersten 300 Dateien nur durch gelöschte Dateien bei gleicher
+  Dateizahl, fiele das nicht auf. So große PRs sind hier Datenläufe; das
+  Label `kritisch` gilt unabhängig davon.
 
 ## Rulesets (Vorschlag, noch nicht aktiv)
 

@@ -137,6 +137,21 @@ export function fremdeDateien(dateien, head) {
   return (dateien || []).filter((f) => f.status !== 'removed' && /[?&]ref=([0-9a-f]{40})/.exec(f.contents_url || '')?.[1] !== head);
 }
 
+/** Bindung der PR-Dateiliste an den Stand, wenn der feste Vergleich
+    (Basis...Head) nicht alle Dateien liefert: jede Datei der Liste muss vom
+    Head stammen (fremdeDateien), und jede Datei des Vergleichs muss in der
+    Liste gleich stehen (Name, Status, Blob). Eine Liste nur aus geloeschten
+    Dateien verriete einen anderen Stand sonst nicht (Review #477, Runde 4).
+    Ergebnis: Zahl der Abweichungen. */
+export function abweichendeDateien(liste, fest, head) {
+  const je = new Map((liste || []).map((f) => [f.filename, f]));
+  const anders = (fest || []).filter((f) => {
+    const x = je.get(f.filename);
+    return !x || x.status !== f.status || x.sha !== f.sha;
+  });
+  return fremdeDateien(liste, head).length + anders.length;
+}
+
 /** Die Commits des PRs im Verlauf des Heads, Eltern vor Kindern.
     `liste`: [{ sha, parents: [sha] }] wie GitHub sie liefert. Jeder Commit
     eines PRs liegt im Verlauf seines Heads; einer, der es nicht tut, stammt

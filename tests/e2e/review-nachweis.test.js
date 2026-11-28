@@ -15,6 +15,7 @@ import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
   anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, unlesbareRunden, fremdeDateien, verlaufZumHead,
+  abweichendeDateien,
   seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
@@ -549,7 +550,8 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FAKE = pathToFileURL(join(WURZEL, 'tests', 'e2e', 'helpers', 'fake-github.js')).href;
 const KOPF = h('a'), NEU = h('c');
-const prMit = (sha, labels = []) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging' }, head: { sha, ref: 'claude/x' }, labels: labels.map((name) => ({ name })) });
+const ZIEL = h('e'); // Spitze des Zielzweigs, wie sie der PR nennt (base.sha)
+const prMit = (sha, labels = [], x = {}) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging', sha: ZIEL }, head: { sha, ref: 'claude/x' }, labels: labels.map((name) => ({ name })), changed_files: 1, ...x });
 const lauf = (x) => ({ app: { slug: 'coderabbitai' }, name: 'CodeRabbit', output: { title: x.title || '', summary: x.summary || '' }, ...x });
 const laeuft = lauf({ status: 'in_progress', conclusion: null, started_at: '2026-11-28T03:00:00Z' });
 const datei = (sha, filename = 'README.md') => ({ filename, status: 'modified', contents_url: `https://api.github.com/repos/o/r/contents/${filename}?ref=${sha}` });
@@ -560,7 +562,8 @@ function laeufer(pulls, { routen = {}, env = {} } = {}) {
     'GET repos/o/r/pulls/477': pulls,
     'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF }]],
     [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [laeuft] }],
-    'GET repos/o/r/pulls/477/files': [[datei(KOPF)]],
+    // Dateien fest am Stand: Vergleich Basis...Head (die PR-Liste erst ab 300 Dateien).
+    [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: [datei(KOPF)] }],
     ...routen,
   } }));
   const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs')], {
@@ -624,21 +627,78 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(fremdeDateien([{ filename: 'ohne.js', status: 'modified' }], KOPF).length, 1, 'ohne Angabe im Zweifel fremd');
   });
 
-  test('ROT: Dateiliste von einem anderen Stand (A -> B -> A) wird neu erhoben und scheitert sichtbar, ohne zu schreiben', () => {
-    const r = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(KOPF), datei(NEU, 'src/lib/auth.ts')]] } });
+  // CodeRabbits Nachfrage zu Runde 4: A aendert eine kritische Datei, B nimmt
+  // das zurueck und loescht nur eine normale Datei. Die PR-Liste, waehrend B
+  // Head war gelesen, enthaelt dann nur die geloeschte Datei und verraet B
+  // auch ueber contents_url nicht.
+  const KRITISCH = { ...datei(KOPF, '.github/workflows/deploy.yml'), sha: h('7') };
+  const NUR_GELOESCHT = { filename: 'docs/alt.md', status: 'removed', sha: h('8'), contents_url: `https://api.github.com/repos/o/r/contents/docs/alt.md?ref=${ZIEL}` };
+
+  test('ROT: Dateien kommen fest vom Stand; eine PR-Liste von B mit nur geloeschten Dateien macht A nicht normal', () => {
+    const r = laeufer([prMit(KOPF)], { routen: {
+      [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: [KRITISCH] }],
+      'GET repos/o/r/pulls/477/files': [[NUR_GELOESCHT]],
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(bericht(r), /\*\*kritisch\*\*/, 'der kritische Stand A bleibt kritisch');
+    assert.match(bericht(r), /\.github\/workflows\/deploy\.yml/);
+    assert.ok(!r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls/477/files'), 'unter 300 Dateien keine PR-Liste');
+  });
+
+  // Ab 300 Dateien liefert der Vergleich nicht alle; dann gilt die PR-Liste,
+  // gebunden an die ersten 300 des Vergleichs und die Dateizahl des PRs.
+  const viele = (n, sha = KOPF) => Array.from({ length: n }, (_, i) => ({ ...datei(sha, `data/d${String(i).padStart(4, '0')}.json`), sha: h('9') }));
+  // Jede Seite der PR-Liste als eigene Route: bei jedem Erheben dieselbe Liste.
+  const seiten = (liste) => Object.fromEntries(Array.from({ length: Math.floor(liste.length / 100) + 1 }, (_, i) => [`GET repos/o/r/pulls/477/files?page=${i + 1}`, [liste.slice(i * 100, i * 100 + 100)]]));
+  const gross = (prListe, pulls = [prMit(KOPF, [], { changed_files: 320 })]) => laeufer(pulls, { routen: {
+    [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: viele(300) }],
+    ...seiten(prListe),
+  } });
+
+  test('abweichendeDateien: PR-Liste muss zum Vergleich und zum Head passen', () => {
+    const fest = viele(3);
+    assert.equal(abweichendeDateien(viele(5), fest, KOPF), 0);
+    assert.equal(abweichendeDateien([...viele(5).slice(1)], fest, KOPF), 1, 'Datei des Vergleichs fehlt');
+    assert.equal(abweichendeDateien([{ ...viele(1)[0], sha: h('6') }, ...viele(5).slice(1)], fest, KOPF), 1, 'anderer Blob');
+    assert.equal(abweichendeDateien([{ ...viele(1)[0], status: 'removed' }, ...viele(5).slice(1)], fest, KOPF), 1, 'anderer Status');
+    assert.equal(abweichendeDateien([...viele(5), datei(NEU, 'x.js')], fest, KOPF), 1, 'fremder Stand per contents_url');
+  });
+
+  test('ROT: ab 300 Dateien scheitert eine fremde PR-Liste nach drei Versuchen, ohne ein Urteil zu schreiben', () => {
+    const r = gross([...viele(300), ...viele(20, NEU).map((f, i) => ({ ...f, filename: `neu/${i}.json` }))]);
     assert.notEqual(r.status, 0, 'der Lauf scheitert');
     assert.match(r.stdout, /erhebe neu \(Versuch 3\)/);
-    assert.match(r.stderr, /passen nach 3 Versuchen nicht zum Stand aaaaaaa \(1 Dateien, 0 Commits aus einem anderen Stand\)/);
-    assert.deepEqual(r.schreibend, [], 'kein Status aus gemischten Daten');
-    // Ebenso, wenn der Head in der Commit-Liste fehlt ...
+    assert.match(r.stderr, /passen nach 3 Versuchen nicht zum Stand aaaaaaa \(20 Dateiabweichungen, 0 Commits aus einem anderen Stand\)/);
+    assert.deepEqual(r.schreibend, [], 'kein Urteil aus gemischten Daten (den Fehlschlag meldet der Workflow)');
+    // Nur geloeschte Dateien von B: faellt ueber den Vergleich und die Dateizahl auf.
+    const g = gross([NUR_GELOESCHT]);
+    assert.notEqual(g.status, 0);
+    assert.deepEqual(g.schreibend, []);
+    // Hinter den ersten 300 Dateien fehlen zehn Aenderungen: nur die Dateizahl des PRs verraet es.
+    const k = gross([...viele(300), ...viele(10).map((f, i) => ({ ...f, filename: `mehr/${i}.json` }))]);
+    assert.notEqual(k.status, 0);
+    assert.match(k.stderr, /\(1 Dateiabweichungen, 0 Commits/);
+    assert.deepEqual(k.schreibend, []);
+  });
+
+  test('Gegenprobe: ab 300 Dateien laeuft eine passende PR-Liste normal durch', () => {
+    const r = gross([...viele(300), ...viele(20).map((f, i) => ({ ...f, filename: `mehr/${i}.json` }))]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.doesNotMatch(r.stdout, /erhebe neu/);
+    assert.equal(zustaende(r)[0], 'pending');
+    assert.match(r.stdout, /320 Dateien/);
+  });
+
+  test('ROT: Commits von einem anderen Stand scheitern nach drei Versuchen, ohne zu schreiben', () => {
+    // Der Head fehlt in der Commit-Liste ...
     const c = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: NEU }]] } });
     assert.notEqual(c.status, 0);
     assert.match(c.stderr, /Head fehlt in der Commit-Liste/);
     assert.deepEqual(c.schreibend, []);
-    // ... oder die Liste zu einem Nachfolger gehoert (B = A + X): X liegt nicht im Verlauf von A.
+    // ... oder die Liste gehoert zu einem Nachfolger (B = A + X): X liegt nicht im Verlauf von A.
     const x = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF, parents: [] }, { sha: NEU, parents: [{ sha: KOPF }] }]] } });
     assert.notEqual(x.status, 0);
-    assert.match(x.stderr, /0 Dateien, 1 Commits aus einem anderen Stand/);
+    assert.match(x.stderr, /0 Dateiabweichungen, 1 Commits aus einem anderen Stand/);
     assert.deepEqual(x.schreibend, []);
   });
 
@@ -668,12 +728,16 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   });
 
   test('Gegenprobe: passt die Liste beim zweiten Erheben, laeuft er normal weiter', () => {
-    const r = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(NEU)], [datei(KOPF)]] } });
+    const r = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: NEU }], [{ sha: KOPF }]] } });
     assert.equal(r.status, 0, r.stderr);
     assert.match(r.stdout, /erhebe neu \(Versuch 2\)/);
     assert.equal(zustaende(r)[0], 'pending');
+    // Ab 300 Dateien: die Dateizahl kommt beim neuen Erheben aus dem frischen PR-Abruf.
+    const z = gross([...viele(300), ...viele(20).map((f, i) => ({ ...f, filename: `mehr/${i}.json` }))], [prMit(KOPF, [], { changed_files: 300 }), prMit(KOPF, [], { changed_files: 320 })]);
+    assert.equal(z.status, 0, z.stderr);
+    assert.match(z.stdout, /1 Dateiabweichungen, 0 Commits aus einem anderen Stand\), erhebe neu \(Versuch 2\)/);
     // Und ist der Head inzwischen ein anderer, uebernimmt dessen Lauf.
-    const w = laeufer([prMit(KOPF), prMit(NEU)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(NEU)]] } });
+    const w = laeufer([prMit(KOPF), prMit(NEU)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: NEU }]] } });
     assert.equal(w.status, 0, w.stderr);
     assert.match(w.stdout, /Neuer Stand oder PR geschlossen waehrend der Erhebung/);
     assert.deepEqual(w.schreibend, []);
