@@ -815,6 +815,45 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(zustaende(r).at(-1), 'failure', 'ohne Review rot wie sonst');
   });
 
+  // Nachfrage zu Runde 5: auch das Label `ohne-cubic` und der Bericht kommen
+  // aus den erhobenen Daten. Ohne Wartezeit liest der Lauf den PR viermal:
+  // Start, vor dem Label, vor dem Status, vor dem Bericht.
+  const sofort = (zbNeu) => ({ ...mitBasis(NEUBASIS, zbNeu), env: { WARTEN_MIN: '0' } });
+  const verschoben = { base: { ref: 'staging', sha: NEUBASIS } };
+  const cubicLabel = (r) => r.schreibend.filter((x) => x.schluessel.includes('/labels'));
+  const berichte = (r) => r.schreibend.filter((x) => x.schluessel === 'POST repos/o/r/issues/477/comments');
+
+  test('ROT: verschiebt sich die Basis vor dem Label ohne-cubic, aendert der Lauf es nicht', () => {
+    const r = laeufer([prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(h('5')));
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben/);
+    assert.deepEqual(r.schreibend, [], 'kein Label, kein Status, kein Bericht');
+    const z = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'main', sha: ZIEL } })], sofort());
+    assert.equal(z.status, 0, z.stderr);
+    assert.match(z.stdout, /Zielzweig waehrend der Erhebung geaendert/);
+    assert.deepEqual(z.schreibend, []);
+  });
+
+  test('ROT: verschiebt sich die Basis nach dem Status, schreibt der Lauf keinen Bericht', () => {
+    const r = laeufer([prMit(KOPF), prMit(KOPF), prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(h('5')));
+    assert.notEqual(r.status, 0);
+    assert.equal(zustaende(r).length, 1, 'der Status davor stand noch auf festen Daten');
+    assert.deepEqual(berichte(r), [], 'kein Bericht aus der alten Liste');
+  });
+
+  test('Gegenprobe: ohne Basiswechsel setzt der Lauf ohne-cubic, Status und Bericht', () => {
+    const r = laeufer([prMit(KOPF)], sofort(ZB));
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(cubicLabel(r).map((x) => x.body.labels), [['ohne-cubic']]);
+    assert.equal(zustaende(r).at(-1), 'failure');
+    assert.equal(berichte(r).length, 1);
+    // Ruecken nur neue Commits auf den Zielzweig, gilt die Liste weiter.
+    const n = laeufer([prMit(KOPF), prMit(KOPF, [], verschoben)], sofort(ZB));
+    assert.equal(n.status, 0, n.stderr);
+    assert.equal(cubicLabel(n).length, 1);
+    assert.equal(berichte(n).length, 1);
+  });
+
   // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben
   // gibt es dort nur einen alten fertigen Lauf; waehrend des Wartens startet
   // ein neuer Lauf an A, dessen Zusammenfassung Basis..A nennt.

@@ -286,9 +286,10 @@ veraltet). Die Marke selbst zählt nie als Review. Jedes neue
 Ereignis bricht den wartenden Lauf ab und startet neu
 (`cancel-in-progress`). Ändert sich der Head während des Wartens, endet der
 Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst. Dasselbe gilt
-unmittelbar vor der Anforderung und vor jedem Schreiben eines Status,
-auch des „Warte“: Kam während der Erhebung ein neuer Stand, schreibt der
-Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
+unmittelbar vor der Anforderung und vor jedem Schreiben aus den erhobenen
+Daten: jedem Status (auch dem „Warte“), dem Label `ohne-cubic` und dem
+Bericht. Kam während der Erhebung ein neuer Stand, schreibt der Lauf
+nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
 Vor der Anforderung muss außerdem die Freigabe noch stehen (Label
 `review-ready` gesetzt, kein Draft). Die Basis prüft der Lauf genauso:
 Wechselt der Zielzweig, endet er ohne Status (das Ereignis `edited` hat

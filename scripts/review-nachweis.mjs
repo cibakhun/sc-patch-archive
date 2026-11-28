@@ -410,6 +410,11 @@ while (urteil.warten && !TROCKEN && Date.now() < ende) {
 }
 if (urteil.warten) urteil = bewerte({ ...d, keinWarten: true });
 
+// Ab hier schreibt der Lauf aus den erhobenen Daten: Label, Status,
+// Bericht. Vor jedem dieser Schritte Head und Basis pruefen (Review #477,
+// Runde 5); die Statusschreibe prueft selbst (status()).
+await headNochGleich(d.pr.head_sha);
+
 // cubic den kritischen PRs vorbehalten (wirkt erst mit cubic.yaml auf main).
 if (!urteil.release) {
   const kritisch = kritischeGruende(d.dateien, labels()).length > 0;
@@ -418,13 +423,15 @@ if (!urteil.release) {
 }
 
 // Gruen nur, wenn auch danach kein zweiter offener PR denselben Stand traegt.
-await headNochGleich(d.pr.head_sha);
 urteil = await statusMitKontrolle(urteil, d, { schreibe: (u) => status(d.pr.head_sha, u), gleicheStaende });
 
 const text = berichtText(urteil, { bereiche: ledgerBereiche(d), runden: bestaetigteRunden(d), lauf: LAUF || '(lokal)', quelle: QUELLE });
 if (TROCKEN) console.log('\n' + text);
-else if (bericht && bericht.body !== text) await api(`${R}/issues/comments/${bericht.id}`, { method: 'PATCH', body: { body: text } });
-else if (!bericht) await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });
+else if (!bericht || bericht.body !== text) {
+  await headNochGleich(d.pr.head_sha);
+  if (bericht) await api(`${R}/issues/comments/${bericht.id}`, { method: 'PATCH', body: { body: text } });
+  else await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });
+}
 
 // Selbstauskunft (Grundsatz 2): wie viel wurde wirklich angesehen.
 console.log(`\nGeprueft: ${d.commits.length} Commits, ${d.dateien.length} Dateien, ${Object.values(d.laeufeJeCommit).flat().length} Pruefer-Laeufe, ${d.bereiche.length} CodeRabbit-Bereiche, ${d.kommentare.length} Kommentare, ${anfragen} API-Anfragen.`);
