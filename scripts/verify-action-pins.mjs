@@ -13,9 +13,13 @@
 
    GEPRUEFT: jede `uses:`-Zeile aus .github/workflows/ und den Vorlagen
    (dieselben Dateien wie verify:supply-chain). Je Repo werden alle Zweige
-   und Tags OHNE Inhalte geholt (git fetch --filter=tree:0, nur Commits);
-   liegt der Commit danach nicht vor, ist er von keinem Zweig und keinem Tag
-   des Repos aus erreichbar.
+   und Tags OHNE Inhalte geholt (git fetch --filter=tree:0, nur Commits),
+   und der Commit muss in `git rev-list --all` stehen, also von einem Zweig
+   oder Tag aus erreichbar sein. refs/pull/* zaehlt nicht. Nachladen ist
+   abgeschaltet (GIT_NO_LAZY_FETCH): ein Teilklon holte ein fehlendes Objekt
+   sonst still nach, und eine reine "liegt vor"-Abfrage waere dann auch fuer
+   einen Fork-Commit wahr (so im unabhaengigen Review vom 28.11.2026
+   gefunden, bevor die Pruefung je lief).
 
    URTEIL (Grundsatz 3):
      FEHLER   der Commit liegt auf keinem Zweig und keinem Tag des eigenen
@@ -33,13 +37,16 @@
      node scripts/verify-action-pins.mjs
    Laeuft ausserdem in .github/workflows/pr-check.yml (Job action-pins).
 
-   Vorgefuehrt rot (28.11.2026): actions/checkout in pr-check.yml auf einen
-   Commit dieses Repos umgeschrieben (die Form stimmt, verify:supply-chain
-   bleibt gruen):
-     FEHLER: .github/workflows/pr-check.yml:44: actions/checkout@54d81ac4…
+   Vorgefuehrt rot (28.11.2026), jeweils actions/checkout in pr-check.yml
+   umgeschrieben (die Form stimmt, verify:supply-chain bleibt gruen):
+     auf einen Commit dieses Repos und auf 2f547d07…, den Kopf von
+     refs/pull/2588 in actions/checkout (auf keinem Zweig, keinem Tag):
+     FEHLER: .github/workflows/pr-check.yml:44: actions/checkout@2f547d07…
      liegt auf keinem Zweig und keinem Tag von actions/checkout …
-   und die WARNUNG am Kommentar `# v4` der dependency-review-action
-   (Commit traegt v5.0.1), vor dessen Korrektur.
+   Die erste Fassung (Abfrage per cat-file) meldete fuer 2f547d07… nur eine
+   WARNUNG und Exit 0: git hatte den Commit still nachgeladen. Dazu die
+   WARNUNG am Kommentar `# v4` der dependency-review-action (Commit traegt
+   v5.0.1), vor dessen Korrektur.
 
    Exit: 0 gruen (WARNUNGEN erlaubt) · 1 FEHLER · 2 nicht geprueft (kein
    git, ein Repo nicht abrufbar).
@@ -121,7 +128,10 @@ const git = (args, opts = {}) =>
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 120_000,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    // GIT_NO_LAZY_FETCH: der Abruf ohne Inhalte macht das Zeitverzeichnis zu
+    // einem Teilklon, und git holte ein fehlendes Objekt sonst beim ersten
+    // Zugriff still bei github.com nach -- auch einen Commit aus einem Fork.
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_NO_LAZY_FETCH: '1' },
     ...opts,
   });
 
@@ -140,13 +150,16 @@ function holeRepo(repo, basis) {
     tagsJe.get(ziel).push(name);
   }
   const zweige = git(['-C', dir, 'for-each-ref', '--format=%(refname)', 'refs/heads']).split('\n').filter(Boolean).length;
-  const vorhanden = (sha) => {
-    try { git(['-C', dir, 'cat-file', '-e', `${sha}^{commit}`]); return true; } catch { return false; }
-  };
+  // Erreichbar heisst: in der Geschichte eines Zweigs oder Tags. Bewusst kein
+  // "liegt das Objekt vor" (cat-file): das waere auch nach einem Nachladen wahr.
+  const erreichbar = new Set(
+    git(['-C', dir, 'rev-list', '--all'], { maxBuffer: 256 * 1024 * 1024 }).split('\n').filter(Boolean),
+  );
   return {
     zweige,
     tags: tagsJe.size,
-    stand: (sha) => ({ vorhanden: vorhanden(sha), tags: (tagsJe.get(sha) || []).sort() }),
+    commits: erreichbar.size,
+    stand: (sha) => ({ vorhanden: erreichbar.has(sha), tags: (tagsJe.get(sha) || []).sort() }),
   };
 }
 
@@ -173,7 +186,7 @@ function main() {
         continue;
       }
       const eigene = alle.filter((p) => p.repo === repo);
-      console.log(`    ${repo.padEnd(36)} ${String(eigene.length).padStart(2)} Pins   ${r.zweige} Zweige, ${r.tags} getaggte Commits`);
+      console.log(`    ${repo.padEnd(36)} ${String(eigene.length).padStart(2)} Pins   ${r.zweige} Zweige, ${r.tags} getaggte Commits, ${r.commits} Commits erreichbar`);
       for (const p of eigene) {
         const u = urteil(p, r.stand(p.sha), `${p.datei}:${p.zeile}`);
         fehler.push(...u.fehler);

@@ -1566,7 +1566,9 @@ export const CHECKS = [
     // Anlass: Durchsicht des oeffentlichen Repos (27.11.2026). verify:supply-chain
     // prueft nur die Form eines Pins; ein Commit, der nur in einem Fork liegt,
     // hat dieselbe Form. Vorgefuehrt rot (28.11.2026) mit actions/checkout auf
-    // einem Commit dieses Repos (verify:supply-chain dabei gruen) und mit der
+    // einem Commit dieses Repos und auf dem Kopf von refs/pull/2588 dort
+    // (verify:supply-chain dabei gruen; die erste Fassung mit cat-file war
+    // fuer den PR-Commit still gruen, weil git ihn nachlud) und mit der
     // WARNUNG am Kommentar "# v4" eines Commits von v5.0.1 (pr-check.yml).
     id: 'verify:action-pins',
     npm: 'verify:action-pins',
@@ -1575,7 +1577,7 @@ export const CHECKS = [
     checks:
       'jeder per Commit-SHA angeheftete Action-Commit aus .github/workflows/ und den Vorlagen liegt auf einem Zweig oder Tag im Repo der Action selbst (sonst FEHLER: Fork-Commit oder geloeschter Stand); ohne Tag am Commit oder mit einer Version im Kommentar, die zu keinem seiner Tags passt, WARNUNG; Klinken fuer Pins und Repos',
     env:
-      'git als Kindprozess (execFileSync): holt je Action-Repo alle Zweige und Tags ohne Inhalte (git fetch --filter=tree:0 von github.com/<repo>) in ein Zeitverzeichnis -- im Build-Container gibt es weder git noch einen Weg zu github.com, deshalb Schiene B. Den Abruf macht git selbst, das Skript spricht keine Schnittstelle direkt an. Laeuft ausserdem in .github/workflows/pr-check.yml (Job action-pins), wo beides da ist. Ohne git oder bei einem nicht abrufbaren Repo: Exit 2 "nicht geprueft", nie still gruen.',
+      'git als Kindprozess (execFileSync): holt je Action-Repo alle Zweige und Tags ohne Inhalte (git fetch --filter=tree:0 von github.com/<repo>, Nachladen aus mit GIT_NO_LAZY_FETCH) in ein Zeitverzeichnis -- im Build-Container gibt es weder git noch einen Weg zu github.com, deshalb Schiene B. Den Abruf macht git selbst, das Skript spricht keine Schnittstelle direkt an. Laeuft ausserdem in .github/workflows/pr-check.yml (Job action-pins), wo beides da ist. Ohne git oder bei einem nicht abrufbaren Repo: Exit 2 "nicht geprueft", nie still gruen.',
   },
 
   // ---------------------------------------------------------------
