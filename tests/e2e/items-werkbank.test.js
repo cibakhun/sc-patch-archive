@@ -631,8 +631,9 @@ describe('Smart-Suche (Kern wie im Schiffsfinder)', () => {
   test('91. Mehrere Preisgrenzen gelten als „oder“, mit System wie ohne', async () => {
     const s = await seite();
     // Beta Helmet: Lorville (Stanton) 500, Cubby Blast (Pyro) 800.
-    // Ohne System trifft „unter 600 unter 1k“, was eine der Grenzen haelt.
-    await s.tippe('helm unter 600 unter 1k');
+    // Ohne System trifft „unter 400 unter 1k“, was eine der Grenzen haelt
+    // (500 nur unter 1k; mit „und“ oder der kleineren Grenze fiele er weg).
+    await s.tippe('helm unter 400 unter 1k');
     const grenzen = chipTexte(s).filter((t) => /^bis /.test(t));
     assert.strictEqual(grenzen.length, 2, chipTexte(s).join(' | '));
     assert.deepStrictEqual(s.namen(), ['Beta Helmet']);

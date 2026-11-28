@@ -313,6 +313,10 @@ export const CHECKS = [
     // de/items.html entfernt -> 2 FEHLER [6] („Dialog ohne Auswahl“), exit 1;
     // zurueckgespielt, sha256 wie vorher. Gruen: 2 Werkbank-Seiten mit
     // Auswahl (Soll je 2).
+    // Nach Review #490 zaehlt ein auskommentierter Container nicht mehr:
+    // in beiden Seiten <!-- … --> um den Container gesetzt -> die Fassung
+    // davor blieb gruen („2 mit Auswahl“), die neue gibt 2 FEHLER [6], exit 1;
+    // zurueckgespielt, sha256 wie vorher, wieder gruen.
   },
   {
     // Neuzugang (24.11.2026): Items in 3D, die Modelle selbst. Anlass: ein

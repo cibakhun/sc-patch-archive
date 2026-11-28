@@ -251,7 +251,9 @@ if (!vorschau) {
     const cfg = CFG_LISTE.exec(html)?.[1];
     if (cfg !== url) fail(`[6] ${s}: Seiten-Einstellung i3dListe=${cfg ?? '(fehlt)'} passt nicht zum Dialog (${url ?? '(nichts)'})`);
     if (url && cfg === url) werkbankMitDialog++;
-    if (WAHL.test(DIALOG_GANZ.exec(html)?.[0] ?? '')) werkbankMitWahl++;
+    // Ohne HTML-Kommentare: ein auskommentierter Container zaehlt nicht.
+    const sichtbar = html.replace(/<!--[\s\S]*?-->/g, '');
+    if (WAHL.test(DIALOG_GANZ.exec(sichtbar)?.[0] ?? '')) werkbankMitWahl++;
     else fail(`[6] ${s}: Dialog ohne Auswahl (data-i3d-wahl) — andere Farben, Set und Einzelteile faenden keinen Platz`);
   }
   // Sonst traegt keine Seite in dist/ die Liste, auch keine in Unterordnern
