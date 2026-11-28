@@ -103,6 +103,7 @@ jobs:
       # Abgebrochene Laeufe (neues Ereignis) setzen nichts: der neue Lauf urteilt.
       # Markiert wird der Stand, den die Auswertung gelesen hat (BEWERTET_HEAD,
       # von ihr gesetzt); fehlt er (Abbruch davor), der Stand des Ereignisses.
+      # Nur POSIX-sh: das Tor fuehrt diesen Schritt im Alpine-Image ohne bash aus.
       - name: Gescheitert, Stand als nicht bewertet markieren
         if: failure()
         env:
@@ -113,7 +114,8 @@ jobs:
           LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           SHA="${BEWERTET_HEAD:-$PR_HEAD}"
-          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || SHA="$PR_HEAD"
+          case "$SHA" in ''|*[!0-9a-f]*) SHA="$PR_HEAD" ;; esac
+          [ "${#SHA}" -eq 40 ] || SHA="$PR_HEAD"
           curl -sS --fail-with-body --retry 3 -X POST -o /dev/null \
             -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/$REPO/statuses/$SHA" \

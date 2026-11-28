@@ -897,7 +897,8 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   const fehlerLauf = (env) => {
     const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-fehler-'));
     writeFileSync(join(dir, 'curl'), '#!/bin/sh\nfor a in "$@"; do echo "$a"; done > "$CURL_LOG"\n', { mode: 0o755 });
-    const r = spawnSync('bash', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}:${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
+    // sh, nicht bash: das Tor laeuft auch im Alpine-Image, dort gibt es kein bash.
+    const r = spawnSync('sh', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}:${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
     assert.equal(r.status, 0, r.stderr);
     return readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').find((z) => z.includes('/statuses/'));
   };
@@ -910,6 +911,8 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     // Ohne Angabe (Abbruch vor dem ersten Abruf) oder mit Unsinn: der Stand des Ereignisses.
     assert.equal(fehlerLauf({ PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`);
     assert.equal(fehlerLauf({ BEWERTET_HEAD: 'x;y', PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`);
+    assert.equal(fehlerLauf({ BEWERTET_HEAD: KOPF.slice(1), PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`, 'zu kurz');
+    assert.equal(fehlerLauf({ BEWERTET_HEAD: `${KOPF}\n${KOPF}`, PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`, 'zwei Zeilen');
   });
 
   // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben
