@@ -57,6 +57,28 @@ jobs:
         if: env.HEALTHCHECK_URL != ''
         run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/start" > /dev/null || true
 
+      # Die Skripte laufen gleich mit dem Live-Secret. Ein Commit nur per SHA
+      # beweist nichts: GitHub liefert unter QUELLE_REPO auch Commits aus Forks
+      # und weggeschobene Staende aus. Gelaufen wird deshalb nur, wenn
+      # QUELLE_SHA auf main oder staging des Quell-Repos liegt. Ohne Inhalte
+      # (nur Commits und Baeume), es laeuft noch kein Code aus der Quelle.
+      - name: Herkunft von QUELLE_SHA pruefen (liegt auf main oder staging)
+        run: |
+          case "$QUELLE_SHA" in
+            *[!0-9a-f]*|'') echo "::error::QUELLE_SHA ist kein Commit-SHA"; exit 1 ;;
+          esac
+          [ "${#QUELLE_SHA}" -eq 40 ] || { echo "::error::QUELLE_SHA hat nicht 40 Zeichen"; exit 1; }
+          git init -q "$RUNNER_TEMP/herkunft" && cd "$RUNNER_TEMP/herkunft"
+          git fetch -q --filter=blob:none "https://github.com/$QUELLE_REPO" \
+            '+refs/heads/main:refs/remotes/q/main' '+refs/heads/staging:refs/remotes/q/staging'
+          for b in main staging; do
+            if git merge-base --is-ancestor "$QUELLE_SHA" "q/$b" 2>/dev/null; then
+              echo "QUELLE_SHA $QUELLE_SHA liegt auf $b ($(git rev-list --count "q/$b") Commits geprueft)"; exit 0
+            fi
+          done
+          echo "::error::QUELLE_SHA $QUELLE_SHA liegt weder auf main noch auf staging von $QUELLE_REPO -- kein Lauf"
+          exit 1
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: ${{ env.QUELLE_REPO }}
