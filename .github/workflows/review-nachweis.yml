@@ -35,10 +35,6 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: review-nachweis-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   nachweis:
     # Nur PRs nach staging oder main: `pull_request_review` kennt keinen
@@ -54,6 +50,12 @@ jobs:
       github.event.pull_request.state == 'open' &&
       (github.event.pull_request.base.ref == 'staging' || github.event.pull_request.base.ref == 'main')
     runs-on: ubuntu-latest
+    # Auf Job-Ebene: ein uebersprungener Job (etwa ein Review ohne Rechte)
+    # tritt der Gruppe nicht bei und bricht keinen laufenden Lauf ab
+    # (Opus-Review #477, Runde 8).
+    concurrency:
+      group: review-nachweis-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     timeout-minutes: 50
     permissions:
       contents: read # Auswertung aus dem Zielzweig holen

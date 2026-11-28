@@ -697,6 +697,9 @@ export function bewerte(d) {
   const crHead = codeRabbitAmCommit(d.laeufeJeCommit?.[head] || []);
   const crAbd = codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {} });
   const crBeleg = crHead.art === 'geprueft' && crAbd.abgedeckt;
+  /* Scheitert die Abdeckung nur an der Ruhezeit der Zusammenfassung, wird
+     gewartet statt rot geurteilt (Opus-Review #477, Runde 8). */
+  const crRuhe = crHead.art === 'geprueft' && !crAbd.abgedeckt && codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {}, jetzt: Infinity }).abgedeckt;
 
   // cubic
   const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {}, kontextAb: d.kontextAb, headRef: d.pr.head_ref, fremdeZeiten: d.fremdeZeiten || [] });
@@ -725,7 +728,7 @@ export function bewerte(d) {
   // Label gesetzt, aber keine Anforderung moeglich (Token fehlt/abgelaufen):
   // dann wartet nichts, sonst stuende der Status ewig auf "Warte".
   const nichtAngefordert = Boolean(d.anforderungUnmoeglich) && tAnf === null;
-  const crWartet = crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT) && !nichtAngefordert) || crAngefordert;
+  const crWartet = crRuhe || crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT) && !nichtAngefordert) || crAngefordert;
   const cuWartet = cuAbd.amHead.art === 'laeuft';
   const brauchtMehr = kritisch ? belege.length < 2 : belege.length < 1;
   if (brauchtMehr && (crWartet || cuWartet) && !d.keinWarten) {

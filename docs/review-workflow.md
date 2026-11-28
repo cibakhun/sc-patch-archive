@@ -442,7 +442,7 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   zählt nur, wenn der jüngste Lauf am Ziel höchstens 2 Minuten vor der
   letzten Änderung des Textes fertig wurde und der Text seit 3 Minuten
   unverändert ist (CodeRabbit legt den neuen Lauf gemessen 2 s nach dem
-  Text an). Erst dann geht er ins Ledger.
+  Text an). Bis dahin wartet der Lauf; erst dann geht er ins Ledger.
 - **API-Limit.** Erschöpft sich das Limit des `GITHUB_TOKEN` (etwa durch
   viele wartende Läufe), scheitert auch der Fehlerschritt, und ein früheres
   Grün auf demselben Stand kann stehen bleiben. Reviews lösen deshalb nur

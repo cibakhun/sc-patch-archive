@@ -1076,6 +1076,22 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.deepEqual(berichte(r), [], 'kein Bericht aus der alten Liste');
   });
 
+  // Runde 8: Ruhezeit der Zusammenfassung heisst warten, nicht rot.
+  test('ROT: Lauf fertig, Zusammenfassung noch in der Ruhezeit: Urteil wartet', () => {
+    const jetzt = Date.now();
+    const iso = (ms) => new Date(jetzt - ms).toISOString();
+    const fertig = { ...CR_FERTIG, started_at: iso(300_000), completed_at: iso(20_000) };
+    const mit = (vor) => bewerte(lage({ commits: [A, B], pr: { head_sha: B }, laeufeJeCommit: { [B]: [fertig] }, bereiche: [{ a: BASIS, b: B, quelle: 'zusammenfassung', stand: jetzt - vor }] }));
+    const u = mit(25_000);
+    assert.equal(u.state, 'pending', u.description);
+    assert.equal(u.warten, true);
+    assert.equal(mit(200_000).state, 'success', 'Gegenprobe nach der Ruhezeit');
+  });
+  test('Workflow: concurrency auf Job-Ebene, nicht auf Workflow-Ebene (Runde 8)', () => {
+    const yml = readFileSync(join(WURZEL, '.github', 'workflows', 'review-nachweis.yml'), 'utf8');
+    assert.doesNotMatch(yml, /^concurrency:/m);
+    assert.match(yml, /^    concurrency:\n      group: review-nachweis-/m);
+  });
   // Runde 7: ohne-cubic folgt derselben Einordnung wie das Urteil.
   test('ROT: nur am Zwischenstand kritisch: kein ohne-cubic', () => {
     const ZW = h('6');
