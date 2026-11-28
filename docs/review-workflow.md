@@ -26,9 +26,12 @@ ist, entscheidet Krisz, nie eine Automatik.
    gemessen: 40 Minuten keine Reaktion, während ein Befehl von `cibakhun`
    auf #479 sofort lief). Fehlt das Secret, ist der Token abgelaufen oder
    gehört er zu keinem eingetragenen Anforderungskonto
-   (`ANFORDERUNG_KONTEN`: `Verse-Base`, früher `github-actions[bot]`),
-   fordert der Lauf nichts an und nennt das im Status. Marken anderer
-   Konten zählen nicht. Selbst kein
+   (`ANFORDERUNG_KONTEN`: nur `Verse-Base`), fordert der Lauf nichts an
+   und nennt das im Status. Marken anderer Konten zählen nicht, auch nicht
+   die alten von `github-actions[bot]` aus der Zeit vor dem Agentenkonto:
+   sie haben nie einen Review ausgelöst und sperren den Stand deshalb
+   nicht. Nach der Prüfung des Tokens und unmittelbar vor dem Befehl sieht
+   der Lauf noch einmal nach, dass der Head derselbe ist. Selbst kein
    `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
    **Nach einem Rate-Limit** bleibt der Status rot („rate-limitiert“). Dann
    `review-ready` abnehmen und neu setzen, sobald das Limit vorbei ist
@@ -68,14 +71,26 @@ mehr gebracht hat und alle Threads beantwortet und geschlossen sind; das
 prüft der Status nicht (eine Runde ohne Kommentare hinterlässt bei
 CodeRabbit keinen auswertbaren Eintrag), darauf achten Agent und Krisz.
 
+Ohne neuen Befund heißt: ohne Befund, der eine Änderung verlangt. Lehnt
+der Agent alle Befunde einer Runde begründet ab (nachgemessen, jeder
+Kommentar beantwortet, jeder Thread geschlossen), ändert sich der Stand
+nicht, und derselbe Stand wird nicht noch einmal angefordert: eine zweite
+Anforderung desselben Stands gibt es nur nach einem Rate-Limit, sonst
+käme dieselbe Prüfung mit denselben Antworten zurück. Die Runde ist damit
+die letzte. Ein Befund, der als Entscheidung an Krisz geht, bleibt offen,
+bis Krisz entschieden hat; führt die Entscheidung zu einer Änderung, gibt
+es einen neuen Stand und eine neue Runde.
+
 Der Bericht nennt die Zahl der Runden. Gezählt werden die Stände mit
 abgeschlossenem CodeRabbit-Review, auch solche, die ein Force-Push, Rebase
 oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, der
 Bericht-Kommentar hält die geprüften Stände fest, und für jeden
 angeforderten Stand, der nicht mehr im PR liegt, liest der Lauf dessen
 Check-Läufe nach. Ist ein solcher Stand nicht lesbar (API-Fehler, Commit
-weg), zählt er vorsorglich für diesen Lauf, kommt aber nicht ins Ledger:
-der nächste Lauf liest ihn neu.
+weg), zählt er nicht als abgeschlossene Runde: der Bericht nennt ihn
+getrennt („dazu 1 angefordert, Läufe nicht lesbar“), er kommt nicht ins
+Ledger, und der nächste Lauf liest ihn neu. Die Zahl ist nur Bericht; seit
+dem Wegfall des Limits entscheidet sie nichts.
 
 ## Labels
 
@@ -270,8 +285,20 @@ Ereignis bricht den wartenden Lauf ab und startet neu
 Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst. Dasselbe gilt
 unmittelbar vor der Anforderung und vor jedem Schreiben eines Status,
 auch des „Warte“: Kam während der Erhebung ein neuer Stand, schreibt der
-Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt. Beim Nachpollen liest
-der Lauf den Head und jeden Stand neu, dessen Lauf noch nicht fertig war.
+Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
+Ein Head, der wechselt und zurückkehrt (A, B, wieder A), besteht diese
+Nachfrage; deshalb sind auch die Daten an den Stand gebunden: Jede nicht
+gelöschte Datei der Dateiliste nennt den Stand, aus dem GitHub sie las
+(`contents_url`); der Head muss in der Commit-Liste stehen, und jeder
+Commit der Liste muss in seinem Verlauf liegen (eine Liste zu einem
+Nachfolger B = A + X brächte X mit). Die Commits ordnet der Lauf nach
+ihren Eltern, nicht nach der Liste, weil cubics Abdeckung sie der Reihe
+nach liest (gemessen in 81 PRs stimmte die Liste, zugesagt ist es nicht).
+Passt etwas nicht, erhebt der Lauf alles neu, höchstens dreimal, und
+scheitert dann sichtbar, ohne etwas zu schreiben. Beim Nachpollen liest der Lauf den Head,
+jeden Stand, dessen Lauf noch nicht fertig war, und jedes Ziel eines
+Bereichs aus einer Zusammenfassung neu: ein dort später begonnener und
+abgebrochener Lauf nimmt dem Bereich den Beleg.
 
 ## Grenzen (bewusst offen)
 

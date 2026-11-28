@@ -41,7 +41,7 @@ import {
   zuletztGesetzt, seitenweise, statusMitKontrolle,
   rundenLesen, beschreibungMitPr, nachweisFuerPr,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
-  altesLedger,
+  altesLedger, fremdeDateien, verlaufZumHead,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -112,23 +112,57 @@ async function gleicheStaende(head) {
 
 const cacheLaeufe = new Map();
 const cacheVorfahr = new Map();
-async function sammle(pr, { nurHeadNeu = false } = {}) {
+async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const head = pr.head.sha;
-  const commits = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => c.sha);
+  const commitListe = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => ({ sha: c.sha, parents: (c.parents || []).map((p) => p.sha) }));
+  // Voll (250): die API liefert nicht alle, bewerte bleibt ohnehin rot.
+  const voll = commitListe.length >= 250;
+  const commits = voll ? commitListe.map((c) => c.sha) : verlaufZumHead(commitListe, head);
   /* Texte vor den Laeufen: so ist der Lauf-Stand mindestens so neu wie die
      Zusammenfassung, deren Bereich er belegen soll (zielGeprueft). */
   const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
   const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
+  // Ziele der Bereiche aus CodeRabbits Zusammenfassungen: ihr Beleg ist der
+  // juengste Lauf am Ziel, also werden sie bei jedem Nachpollen neu gelesen.
+  // Sonst saehe ein spaeter gestarteter und abgebrochener Lauf am Ziel nur
+  // der naechste Prozess (Review #477, Runde 4).
+  const zieleZusammenfassung = new Set(kommentareRoh.filter((k) => k.user?.login === CR).flatMap((k) => bereicheAusText(k.body)).map((r) => r.b));
   const laeufeJeCommit = {};
   for (const c of commits) {
-    // Beim Nachpollen: der Head immer, ein anderer Stand nur, solange einer
-    // seiner Laeufe noch nicht fertig war (sonst bliebe er im Zwischenspeicher
-    // "laeuft", und sein Bereich fiele aus der Kette; Review #477).
+    // Beim Nachpollen: der Head immer, ein Ziel einer Zusammenfassung immer,
+    // ein anderer Stand nur, solange einer seiner Laeufe noch nicht fertig
+    // war (sonst bliebe er im Zwischenspeicher "laeuft", und sein Bereich
+    // fiele aus der Kette; Review #477).
     const offen = (cacheLaeufe.get(c) || []).some((l) => l.status !== 'completed');
-    if (!cacheLaeufe.has(c) || c === head || !nurHeadNeu || offen) cacheLaeufe.set(c, await laeufeFuer(c));
+    if (!cacheLaeufe.has(c) || c === head || !nurHeadNeu || offen || zieleZusammenfassung.has(c)) cacheLaeufe.set(c, await laeufeFuer(c));
     laeufeJeCommit[c] = cacheLaeufe.get(c);
   }
   const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
+  /* Gehoeren Commits und Dateien zum festgehaltenen Head? Ein Head, der
+     waehrend der Erhebung wechselt und zurueckkehrt (A -> B -> A), besteht
+     jede spaetere Head-Pruefung; die Dateiliste naennte dann B, und ein
+     kritischer Stand A koennte als normal gelten (Review #477, Runde 4).
+     Jede Datei nennt ihren Stand (fremdeDateien). Bei den Commits muss der
+     Head dabei sein, und jeder Commit muss in seinem Verlauf liegen
+     (verlaufZumHead), ausser die Liste ist voll (250, siehe bewerte).
+     Passt es nicht: ist der Head ein anderer, uebernimmt dessen Lauf; sonst
+     kurz warten und alles neu erheben (GitHub rechnet die Liste nach einem
+     Push nach), nach drei Versuchen scheitert der Lauf sichtbar. */
+  const fremd = fremdeDateien(dateien, head).length;
+  const headFehlt = !voll && !commits.includes(head);
+  const fremdeCommits = voll || headFehlt ? 0 : commitListe.length - commits.length;
+  if (fremd || headFehlt || fremdeCommits) {
+    const jetzt = await api(`${R}/pulls/${NUMMER}`);
+    if (jetzt.head.sha !== head || jetzt.state !== 'open') {
+      console.log('Neuer Stand oder PR geschlossen waehrend der Erhebung — der Lauf dazu uebernimmt.');
+      process.exit(0);
+    }
+    const was = `${fremd} Dateien, ${fremdeCommits} Commits aus einem anderen Stand${headFehlt ? ', Head fehlt in der Commit-Liste' : ''}`;
+    if (versuch >= 3) throw new Error(`Dateien oder Commits passen nach ${versuch} Versuchen nicht zum Stand ${head.slice(0, 7)} (${was})`);
+    console.log(`Dateien oder Commits nicht vom Stand ${head.slice(0, 7)} (${was}), erhebe neu (Versuch ${versuch + 1}).`);
+    await schlaf(Math.min(5, TAKT_S));
+    return sammle(pr, { nurHeadNeu: false, versuch: versuch + 1 });
+  }
   const gleicherStand = await gleicheStaende(head);
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at, geaendert: k.updated_at || k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
@@ -301,6 +335,10 @@ if (anforderungNoetig(d)) {
       // nicht, und jeder Lauf forderte erneut an.
       const konto = (await api('user', { token: ANFORDERUNG_TOKEN })).login;
       if (!ANFORDERUNG_KONTEN.includes(konto)) throw new Error(`HTTP 403 Konto ${konto} ist kein Anforderungskonto (ANFORDERUNG_KONTEN)`);
+      // Die Pruefung des Tokens dauert: der Head ist danach noch einmal
+      // zu pruefen, sonst ginge der Befehl an einen neuen, nicht
+      // freigegebenen Stand (Review #477, Runde 4).
+      await headNochGleich(head);
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });

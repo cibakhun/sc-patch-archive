@@ -38,13 +38,15 @@ export const LABEL_NEU = 'nachweis-neu'; // nur: Nachweis neu bewerten (z. B. na
 export const STATUS_KONTEXT = 'review-nachweis';
 export const BERICHT_MARKE = '<!-- review-nachweis:bericht -->';
 export const anforderungsMarke = (sha) => `<!-- review-nachweis:anforderung sha=${sha} -->`;
-/* Wer Anforderungen schreibt: das Agentenkonto (Token
-   REVIEW_ANFORDERUNG_TOKEN) und, aus der Zeit vor dem Konto, der
-   Workflow selbst. Eine Marke von anderen zaehlt nicht: sonst koennte jeder
-   Kommentar eine Freigabe verbrauchen oder die echte Anforderung
-   unterdruecken (Review #477). Der Ablauf prueft vor jeder Anforderung,
-   dass der Token zu einem dieser Konten gehoert. */
-export const ANFORDERUNG_KONTEN = ['Verse-Base', 'github-actions[bot]'];
+/* Wer Anforderungen schreibt: nur das Agentenkonto (Token
+   REVIEW_ANFORDERUNG_TOKEN). Eine Marke von anderen zaehlt nicht: sonst
+   koennte jeder Kommentar die echte Anforderung unterdruecken (Review
+   #477). Auch nicht die alten Marken von `github-actions[bot]` (vor dem
+   Konto): CodeRabbit ignoriert Befehle von Bots, eine solche Marke hat nie
+   einen Review ausgeloest und darf eine neue Anforderung desselben Stands
+   nicht sperren (Review #477, Runde 4). Der Ablauf prueft vor jeder
+   Anforderung, dass der Token zu einem dieser Konten gehoert. */
+export const ANFORDERUNG_KONTEN = ['Verse-Base'];
 
 const SHA = /^[0-9a-f]{40}$/;
 const kurz = (s) => (s || '').slice(0, 7);
@@ -125,6 +127,41 @@ export function kritischeGruende(dateien, labels = []) {
    Einordnung der Check-Laeufe. Gezaehlt wird nur, was in echten
    Antworten (75 PRs, 26.11.2026) als abgeschlossener Review stand.
    --------------------------------------------------------------- */
+
+/** Dateien der Liste, die GitHub nicht aus dem Stand `head` las. Jede nicht
+    geloeschte Datei nennt ihn in `contents_url` (`?ref=<sha>`); eine
+    geloeschte nennt die Seite des Zielzweigs. Wechselte der Head waehrend
+    der Erhebung und kam zurueck (A -> B -> A), stammt die Liste sonst
+    unbemerkt von B (Review #477, Runde 4). */
+export function fremdeDateien(dateien, head) {
+  return (dateien || []).filter((f) => f.status !== 'removed' && /[?&]ref=([0-9a-f]{40})/.exec(f.contents_url || '')?.[1] !== head);
+}
+
+/** Die Commits des PRs im Verlauf des Heads, Eltern vor Kindern.
+    `liste`: [{ sha, parents: [sha] }] wie GitHub sie liefert. Jeder Commit
+    eines PRs liegt im Verlauf seines Heads; einer, der es nicht tut, stammt
+    aus einer Liste zu einem anderen Stand (A -> B -> A: B = A + X, X kaeme
+    hinzu) und faellt hier heraus. Die Reihenfolge folgt den Eltern, nicht
+    der Liste: cubics Abdeckung liest die Laeufe der Reihe nach, und GitHub
+    sagt keine Reihenfolge zu (in 81 PRs, #400 bis #480, gemessen stimmte
+    sie; Review #477, Runde 4). Fehlt der Head, bleibt die Liste, wie sie
+    ist: das faengt die Pruefung im Laeufer. */
+export function verlaufZumHead(liste, head) {
+  const eltern = new Map((liste || []).map((c) => [c.sha, c.parents || []]));
+  if (!eltern.has(head)) return (liste || []).map((c) => c.sha);
+  const out = [];
+  const gesehen = new Set();
+  const stapel = [[head, false]];
+  while (stapel.length) {
+    const [sha, fertig] = stapel.pop();
+    if (fertig) { out.push(sha); continue; }
+    if (gesehen.has(sha)) continue;
+    gesehen.add(sha);
+    stapel.push([sha, true]);
+    for (const p of [...eltern.get(sha)].reverse()) if (eltern.has(p) && !gesehen.has(p)) stapel.push([p, false]);
+  }
+  return out;
+}
 
 /** CodeRabbit: 'geprueft' | 'laeuft' | 'ratenlimit' | 'uebersprungen' | 'abgebrochen' | 'unbekannt' */
 export function codeRabbitLauf(lauf) {
@@ -241,9 +278,16 @@ export function rundenAusAnforderungen(shas, laeufeJe) {
   };
 }
 
-/** Abgeschlossene CodeRabbit-Runden des PRs. */
+/** Abgeschlossene CodeRabbit-Runden des PRs: nur belegte. */
 export function rundenZahl(d) {
-  return gepruefteStaende(d).length;
+  return bestaetigteRunden(d).length;
+}
+
+/** Angeforderte Staende, deren Laeufe nicht lesbar waren: im Bericht
+    getrennt genannt, nie als abgeschlossen gezaehlt (Review #477, Runde 4). */
+export function unlesbareRunden(d) {
+  const belegt = new Set(bestaetigteRunden(d));
+  return gepruefteStaende(d).filter((x) => !belegt.has(x));
 }
 
 /** Darf derselbe Stand noch einmal angefordert werden? Nur nach einem
@@ -520,8 +564,9 @@ export function bewerte(d) {
   const cuBeleg = cuAbd.abgedeckt;
 
   const runden = rundenZahl(d);
+  const unlesbar = unlesbareRunden(d).length;
 
-  bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}`);
+  bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}${unlesbar ? ` (dazu ${unlesbar} angefordert, Laeufe nicht lesbar)` : ''}`);
   if (kritisch) for (const g of gruende.slice(0, 12)) bericht.push(`- kritisch: ${g}`);
   if (gruende.length > 12) bericht.push(`- … und ${gruende.length - 12} weitere Gruende`);
   bericht.push(`CodeRabbit am Head: ${crHead.art}${crHead.titel ? ` (${crHead.titel})` : ''}; Abdeckung: ${crAbd.abgedeckt ? 'lueckenlos' : 'NICHT belegt'}${crAbd.kette.length ? ' — ' + crAbd.kette.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(' → ') : ''}`);

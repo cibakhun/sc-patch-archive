@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
-  anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl,
+  anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, unlesbareRunden, fremdeDateien, verlaufZumHead,
   seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
@@ -251,7 +251,7 @@ describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
   // "excluded by label configuration"; Label um 17:30:11. CodeRabbit prueft
   // das Repo nicht mehr automatisch (weniger als 10 Sterne), also schreibt
   // der Workflow `@coderabbitai review` mit Marke.
-  const anf = (sha, erstellt = '2026-11-26T17:30:20Z') => ({ author: 'github-actions[bot]', body: `@coderabbitai review\n\n${anforderungsMarke(sha)}`, erstellt });
+  const anf = (sha, erstellt = '2026-11-26T17:30:20Z') => ({ author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(sha)}`, erstellt });
   const ohneReview = (x = {}) => lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }], ...x });
   test('anfordern: Label da, kein Draft, keine Marke fuer diesen Stand, kein Review am Head', () => {
     assert.equal(anforderungNoetig(ohneReview()), true);
@@ -371,18 +371,24 @@ describe('Review-Nachweis: Runden und gleicher Stand (Review #477)', () => {
     const d = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt] });
     assert.equal(rundenZahl(d), 3);
   });
-  test('Nicht lesbarer alter Stand: zaehlt vorsorglich, geht aber nicht ins Ledger', () => {
+  test('Nicht lesbarer alter Stand: keine abgeschlossene Runde, im Bericht getrennt genannt, nicht im Ledger', () => {
     const E = h('5');
     const nach = (aus) => lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt], vorlaeufigeRunden: aus.vorlaeufig });
-    // Lauf 1: C nicht lesbar (API-Fehler) -> zaehlt vorsorglich als dritte Runde.
+    // Lauf 1: C nicht lesbar (API-Fehler). Ohne Rundenlimit entscheidet die
+    // Zahl nichts mehr; sie ist nur Bericht und zaehlt deshalb nur Belegtes
+    // (Review #477, Runde 4). Der angeforderte Stand steht getrennt daneben.
     const eins = rundenAusAnforderungen([C], { [C]: null });
     assert.deepEqual(eins, { bestaetigt: [], vorlaeufig: [C] });
-    assert.equal(rundenZahl(nach(eins)), 3);
+    assert.equal(rundenZahl(nach(eins)), 2, 'nicht lesbar ist keine abgeschlossene Runde');
+    assert.deepEqual(unlesbareRunden(nach(eins)), [C]);
+    assert.match(bewerte(nach(eins)).bericht.join('\n'), /CodeRabbit-Runden mit Abschluss: 2 \(dazu 1 angefordert, Laeufe nicht lesbar\)/);
     assert.deepEqual(bestaetigteRunden(nach(eins)).sort(), [A, B].sort(), 'ins Ledger nur Belegtes');
     // Lauf 2 liest C neu: nur ein Skip, also keine Runde.
     const zwei = rundenAusAnforderungen([C], { [C]: [CR_AUS_SKIP] });
     assert.deepEqual(zwei, { bestaetigt: [], vorlaeufig: [] });
-    assert.equal(rundenZahl(nach(zwei)), 2, 'ein einmaliger API-Fehler zaehlt nicht dauerhaft');
+    assert.equal(rundenZahl(nach(zwei)), 2);
+    assert.deepEqual(unlesbareRunden(nach(zwei)), [], 'ein einmaliger API-Fehler bleibt nicht stehen');
+    assert.doesNotMatch(bewerte(nach(zwei)).bericht.join('\n'), /nicht lesbar/);
   });
   test('ROT: derselbe Stand ist Head eines weiteren offenen PRs, auch wenn sonst alles gruen waere', () => {
     assert.equal(bewerte(lage()).state, 'success');
@@ -499,7 +505,10 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
     assert.equal(anforderungAmHead(d.kommentare, C), null);
     assert.equal(anforderungNoetig(d), true);
     assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'Verse-Base')] }), false);
-    assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'github-actions[bot]')] }), false);
+    // Alte Marken des Workflow-Bots haben nie einen Review ausgeloest
+    // (CodeRabbit ignoriert Bots) und sperren den Stand nicht (Runde 4).
+    assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'github-actions[bot]')] }), true);
+    assert.deepEqual(angeforderteStaende([marke(A, 'github-actions[bot]')]), []);
     // ... und zaehlt nicht als angeforderter Stand.
     assert.deepEqual(angeforderteStaende([marke(A, 'irgendwer'), marke(B, 'Verse-Base')]), [B]);
   });
@@ -536,6 +545,33 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
   });
 });
 
+// Der Laeufer selbst, gegen feste GitHub-Antworten (tests/e2e/helpers/fake-github.js).
+const WURZEL = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const FAKE = pathToFileURL(join(WURZEL, 'tests', 'e2e', 'helpers', 'fake-github.js')).href;
+const KOPF = h('a'), NEU = h('c');
+const prMit = (sha, labels = []) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging' }, head: { sha, ref: 'claude/x' }, labels: labels.map((name) => ({ name })) });
+const lauf = (x) => ({ app: { slug: 'coderabbitai' }, name: 'CodeRabbit', output: { title: x.title || '', summary: x.summary || '' }, ...x });
+const laeuft = lauf({ status: 'in_progress', conclusion: null, started_at: '2026-11-28T03:00:00Z' });
+const datei = (sha, filename = 'README.md') => ({ filename, status: 'modified', contents_url: `https://api.github.com/repos/o/r/contents/${filename}?ref=${sha}` });
+function laeufer(pulls, { routen = {}, env = {} } = {}) {
+  const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-'));
+  const szenario = join(dir, 'szenario.json'), log = join(dir, 'anfragen.log');
+  writeFileSync(szenario, JSON.stringify({ routen: {
+    'GET repos/o/r/pulls/477': pulls,
+    'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF }]],
+    [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [laeuft] }],
+    'GET repos/o/r/pulls/477/files': [[datei(KOPF)]],
+    ...routen,
+  } }));
+  const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs')], {
+    encoding: 'utf8', timeout: 30_000,
+    env: { ...process.env, FAKE_GITHUB: szenario, FAKE_GITHUB_LOG: log, REPO: 'o/r', PR_NUMMER: '477', GH_TOKEN: 'test', ANFORDERUNG_TOKEN: '', EREIGNIS: '', AKTION: '', LABEL: '', LAUF_URL: '', WARTEN_MIN: '0.02', TAKT_S: '0.2', ...env },
+  });
+  const anfragen = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map((z) => JSON.parse(z)) : [];
+  return { ...r, anfragen, schreibend: anfragen.filter((x) => !x.schluessel.startsWith('GET ')) };
+}
+const zustaende = (r) => r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body.state);
+
 describe('Review-Nachweis: Nachtraege zu Runde 3 (Review #477)', () => {
   const SPAET_ABBRUCH = { ...CR_ABBRUCH, started_at: '2026-11-27T10:00:00Z' };
   const inkr = { a: A, b: B, quelle: 'review' };
@@ -558,42 +594,134 @@ describe('Review-Nachweis: Nachtraege zu Runde 3 (Review #477)', () => {
     assert.equal(bewerte(luecke([inkr, ...ausBericht(neu)], [CR_FERTIG])).state, 'success', 'ein belegter Bereich aus dem Ledger schliesst die Luecke');
   });
 
-  // Der Laeufer selbst, gegen feste GitHub-Antworten (tests/e2e/helpers/fake-github.js).
-  const WURZEL = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-  const FAKE = pathToFileURL(join(WURZEL, 'tests', 'e2e', 'helpers', 'fake-github.js')).href;
-  const KOPF = h('a'), NEU = h('c');
-  const prMit = (sha) => ({ number: 477, state: 'open', draft: false, base: { ref: 'staging' }, head: { sha, ref: 'claude/x' }, labels: [] });
-  const laeuft = { app: { slug: 'coderabbitai' }, name: 'CodeRabbit', status: 'in_progress', conclusion: null, output: { title: '', summary: '' }, started_at: '2026-11-28T03:00:00Z' };
-  function laeufer(pulls) {
-    const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-'));
-    const szenario = join(dir, 'szenario.json'), log = join(dir, 'anfragen.log');
-    writeFileSync(szenario, JSON.stringify({ routen: {
-      'GET repos/o/r/pulls/477': pulls,
-      'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF }]],
-      [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [laeuft] }],
-      'GET repos/o/r/pulls/477/files': [[{ filename: 'README.md' }]],
-    } }));
-    const r = spawnSync(process.execPath, ['--import', FAKE, join(WURZEL, 'scripts', 'review-nachweis.mjs')], {
-      encoding: 'utf8', timeout: 30_000,
-      env: { ...process.env, FAKE_GITHUB: szenario, FAKE_GITHUB_LOG: log, REPO: 'o/r', PR_NUMMER: '477', GH_TOKEN: 'test', ANFORDERUNG_TOKEN: '', EREIGNIS: '', AKTION: '', LABEL: '', LAUF_URL: '', WARTEN_MIN: '0.02', TAKT_S: '0.2' },
-    });
-    const anfragen = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').map((z) => JSON.parse(z)) : [];
-    return { ...r, anfragen };
-  }
 
-  test('Laeufer: wechselt der Head waehrend der Erhebung, schreibt er keinen Status mehr, auch kein "Warte"', () => {
+  test('Laeufer: wechselt der Head waehrend der Erhebung, schreibt er nichts mehr, auch kein "Warte"', () => {
     const r = laeufer([prMit(KOPF), prMit(NEU)]);
     assert.equal(r.status, 0, r.stderr);
     assert.match(r.stdout, /Neuer Stand oder PR geschlossen waehrend der Erhebung/);
-    assert.deepEqual(r.anfragen.filter((x) => x.schluessel.startsWith('POST ')), [], 'kein Status, kein Label, kein Bericht auf dem alten Stand');
+    // Jede schreibende Anfrage, nicht nur POST: kein Status, kein Label (DELETE), kein Bericht (PATCH).
+    assert.deepEqual(r.schreibend, [], 'auf dem alten Stand wird nichts geschrieben');
   });
 
   test('Gegenprobe Laeufer: bleibt der Head, schreibt er "Warte" und am Ende sein Urteil', () => {
     const r = laeufer([prMit(KOPF)]);
     assert.equal(r.status, 0, r.stderr);
-    const zust = r.anfragen.filter((x) => x.schluessel === `POST repos/o/r/statuses/${KOPF}`).map((x) => x.body.state);
+    const zust = zustaende(r);
     assert.equal(zust[0], 'pending', 'erst Warte');
     assert.equal(zust.at(-1), 'failure', 'nach Ablauf der Wartezeit nicht geprueft');
     assert.ok(r.anfragen.some((x) => x.schluessel === 'POST repos/o/r/issues/477/comments'), 'Bericht geschrieben');
+  });
+});
+
+describe('Review-Nachweis: Runde 4 (Review #477)', () => {
+  const bericht = (r) => r.anfragen.filter((x) => x.schluessel === 'POST repos/o/r/issues/477/comments' && x.body.body.includes('review-nachweis:bericht')).at(-1)?.body.body || '';
+
+  test('fremdeDateien: jede nicht geloeschte Datei muss vom Head stammen', () => {
+    assert.deepEqual(fremdeDateien([datei(KOPF), datei(KOPF, 'b.js')], KOPF), []);
+    assert.deepEqual(fremdeDateien([datei(KOPF), datei(NEU, 'b.js')], KOPF).map((f) => f.filename), ['b.js']);
+    // Eine geloeschte Datei nennt die Seite des Zielzweigs (gemessen an #480).
+    assert.deepEqual(fremdeDateien([{ ...datei(h('9'), 'weg.js'), status: 'removed' }], KOPF), []);
+    assert.equal(fremdeDateien([{ filename: 'ohne.js', status: 'modified' }], KOPF).length, 1, 'ohne Angabe im Zweifel fremd');
+  });
+
+  test('ROT: Dateiliste von einem anderen Stand (A -> B -> A) wird neu erhoben und scheitert sichtbar, ohne zu schreiben', () => {
+    const r = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(KOPF), datei(NEU, 'src/lib/auth.ts')]] } });
+    assert.notEqual(r.status, 0, 'der Lauf scheitert');
+    assert.match(r.stdout, /erhebe neu \(Versuch 3\)/);
+    assert.match(r.stderr, /passen nach 3 Versuchen nicht zum Stand aaaaaaa \(1 Dateien, 0 Commits aus einem anderen Stand\)/);
+    assert.deepEqual(r.schreibend, [], 'kein Status aus gemischten Daten');
+    // Ebenso, wenn der Head in der Commit-Liste fehlt ...
+    const c = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: NEU }]] } });
+    assert.notEqual(c.status, 0);
+    assert.match(c.stderr, /Head fehlt in der Commit-Liste/);
+    assert.deepEqual(c.schreibend, []);
+    // ... oder die Liste zu einem Nachfolger gehoert (B = A + X): X liegt nicht im Verlauf von A.
+    const x = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/commits': [[{ sha: KOPF, parents: [] }, { sha: NEU, parents: [{ sha: KOPF }] }]] } });
+    assert.notEqual(x.status, 0);
+    assert.match(x.stderr, /0 Dateien, 1 Commits aus einem anderen Stand/);
+    assert.deepEqual(x.schreibend, []);
+  });
+
+  test('verlaufZumHead: nur der Verlauf des Heads, Eltern vor Kindern', () => {
+    const P = h('4'), Q = h('5'), M = h('6');
+    const c = (sha, ...parents) => ({ sha, parents });
+    assert.deepEqual(verlaufZumHead([c(A, BASIS), c(B, A), c(C, B)], C), [A, B, C]);
+    assert.deepEqual(verlaufZumHead([c(C, B), c(A, BASIS), c(B, A)], C), [A, B, C], 'Reihenfolge der Liste zaehlt nicht');
+    assert.deepEqual(verlaufZumHead([c(A, BASIS), c(B, A), c(C, B)], B), [A, B], 'Nachfolger faellt heraus');
+    // Zusammenfuehrung im Zweig: beide Seiten vor M, gemeinsamer Vorfahr zuerst.
+    const v = verlaufZumHead([c(P, BASIS), c(A, P), c(Q, P), c(M, A, Q)], M);
+    assert.deepEqual(v.sort(), [P, A, Q, M].sort());
+    const reihe = verlaufZumHead([c(M, A, Q), c(Q, P), c(A, P), c(P, BASIS)], M);
+    assert.ok(reihe.indexOf(P) < reihe.indexOf(A) && reihe.indexOf(P) < reihe.indexOf(Q) && reihe.at(-1) === M, reihe.join());
+    // Fehlt der Head, bleibt die Liste (das faengt der Laeufer).
+    assert.deepEqual(verlaufZumHead([c(A, BASIS)], C), [A]);
+  });
+
+  test('ROT: cubic liest in Verlaufsreihenfolge; eine verdrehte Liste macht einen Abbruch nicht gruen', () => {
+    // Wahrer Verlauf A (voll) -> B (Limit) -> C (inkrementell): nach dem Limit ist nichts belegt.
+    const laeufeJeCommit = { [A]: [CU_VOLL], [B]: [CU_LIMIT], [C]: [CU_INKR] };
+    const liste = [{ sha: B, parents: [A] }, { sha: A, parents: [BASIS] }, { sha: C, parents: [B] }];
+    assert.equal(cubicAbdeckung({ commits: liste.map((x) => x.sha), head: C, laeufeJeCommit }).abgedeckt, true, 'so saehe es mit der Listenreihenfolge aus');
+    assert.equal(cubicAbdeckung({ commits: verlaufZumHead(liste, C), head: C, laeufeJeCommit }).abgedeckt, false);
+    // Gegenprobe: ohne das Limit haelt die Abdeckung.
+    assert.equal(cubicAbdeckung({ commits: verlaufZumHead(liste, C), head: C, laeufeJeCommit: { ...laeufeJeCommit, [B]: [CU_INKR] } }).abgedeckt, true);
+  });
+
+  test('Gegenprobe: passt die Liste beim zweiten Erheben, laeuft er normal weiter', () => {
+    const r = laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(NEU)], [datei(KOPF)]] } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /erhebe neu \(Versuch 2\)/);
+    assert.equal(zustaende(r)[0], 'pending');
+    // Und ist der Head inzwischen ein anderer, uebernimmt dessen Lauf.
+    const w = laeufer([prMit(KOPF), prMit(NEU)], { routen: { 'GET repos/o/r/pulls/477/files': [[datei(NEU)]] } });
+    assert.equal(w.status, 0, w.stderr);
+    assert.match(w.stdout, /Neuer Stand oder PR geschlossen waehrend der Erhebung/);
+    assert.deepEqual(w.schreibend, []);
+  });
+
+  const mitAnforderung = { env: { ANFORDERUNG_TOKEN: 'konto' }, routen: { 'GET user': [{ login: 'Verse-Base' }] } };
+  const anforderungen = (r) => r.anfragen.filter((x) => x.schluessel === 'POST repos/o/r/issues/477/comments' && x.body.body.includes(`review-nachweis:anforderung sha=${KOPF}`));
+
+  test('ROT: wechselt der Head waehrend der Token-Pruefung, geht keine Anforderung hinaus', () => {
+    // Abruf 1: Start, 2: vor der Token-Pruefung, 3: danach.
+    const r = laeufer([prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready']), prMit(NEU, ['review-ready'])], mitAnforderung);
+    assert.equal(r.status, 0, r.stderr);
+    assert.ok(r.anfragen.some((x) => x.schluessel === 'GET user'), 'Token wurde geprueft');
+    assert.deepEqual(anforderungen(r), [], 'kein Befehl an einen neuen Stand');
+    assert.deepEqual(r.schreibend, []);
+  });
+
+  test('Gegenprobe: bleibt der Head, geht genau eine Anforderung hinaus', () => {
+    const r = laeufer([prMit(KOPF, ['review-ready'])], mitAnforderung);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(anforderungen(r).length, 1);
+  });
+
+  // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben
+  // gibt es dort nur einen alten fertigen Lauf; waehrend des Wartens startet
+  // ein neuer Lauf an A, dessen Zusammenfassung Basis..A nennt.
+  const BASIS2 = h('b'), A2 = h('1');
+  const ALT_FERTIG = lauf({ status: 'completed', conclusion: 'success', title: 'Finished', summary: 'Result: Success - Review completed', started_at: '2026-11-28T09:00:00Z' });
+  const NEU_ABBRUCH = lauf({ status: 'completed', conclusion: 'cancelled', title: 'Review cancelled', summary: 'Result: Cancelled - Review cancelled', started_at: '2026-11-28T10:00:00Z' });
+  const NEU_FERTIG = { ...ALT_FERTIG, started_at: '2026-11-28T10:00:00Z' };
+  const zusammenfassung = { id: 7, user: { login: 'coderabbitai[bot]' }, body: `Reviewing files that changed between ${BASIS2} and ${A2}.`, created_at: '2026-11-28T10:00:05Z', updated_at: '2026-11-28T10:00:05Z' };
+  const zielLauf = (spaeter) => laeufer([prMit(KOPF)], { routen: {
+    'GET repos/o/r/pulls/477/commits': [[{ sha: A2, parents: [{ sha: BASIS2 }] }, { sha: KOPF, parents: [{ sha: A2 }] }]],
+    [`GET repos/o/r/commits/${A2}/check-runs`]: [{ check_runs: [ALT_FERTIG] }, { check_runs: [ALT_FERTIG, spaeter] }],
+    'GET repos/o/r/issues/477/comments': [[], [zusammenfassung]],
+    [`GET repos/o/r/compare/${BASIS2}...staging`]: [{ status: 'ahead' }],
+  } });
+
+  test('ROT: Ziel einer Zusammenfassung wird beim Warten neu gelesen; ein abgebrochener Lauf dort belegt den Bereich nicht', () => {
+    const r = zielLauf(NEU_ABBRUCH);
+    assert.equal(r.status, 0, r.stderr);
+    const text = bericht(r);
+    assert.match(text, /review-nachweis:bereiche2/, 'Bericht mit Ledger geschrieben');
+    assert.ok(!text.includes(`"a":"${BASIS2}","b":"${A2}"`), 'Basis..A darf nicht ins Ledger');
+  });
+
+  test('Gegenprobe: ist der neue Lauf am Ziel fertig, geht der Bereich ins Ledger', () => {
+    const text = bericht(zielLauf(NEU_FERTIG));
+    assert.ok(text.includes(`"a":"${BASIS2}","b":"${A2}"`), text);
   });
 });

@@ -89,7 +89,10 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
 - **Runden, bis nichts mehr zu bemängeln ist** (Krisz, 28.11.2026; kein
   Limit mehr): nach jeder Runde fixen, Tor, Label neu setzen, bis eine
   Runde ohne neuen Befund durchgeht. Erst dann ist der PR fertig für den
-  Merge.
+  Merge. Werden alle Befunde einer Runde begründet abgelehnt (Threads
+  beantwortet und geschlossen), ändert sich der Stand nicht und wird nicht
+  neu angefordert: das war die letzte Runde. Eine offene Entscheidung bei
+  Krisz hält den PR offen.
 - Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst
   nachmessen: ein Befund ist eine Behauptung, kein Befehl) oder als
   Entscheidung an Krisz. Auf jeden Kommentar antworten, Thread schließen.
