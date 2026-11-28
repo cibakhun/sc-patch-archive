@@ -85,6 +85,10 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
     const body = 'Reviewing files that changed from the base of the PR and between 288742fa4f65a87aea02054dbae6a3a5b2e7fd6f and 80948e0d208813981f841f77c2b60251e67e17d9.';
     assert.deepEqual(bereicheAusText(body), [{ a: '288742fa4f65a87aea02054dbae6a3a5b2e7fd6f', b: '80948e0d208813981f841f77c2b60251e67e17d9' }]);
   });
+  test('ein zitierter Diff mit "between A and B" ist kein Bereich (Opus-Review #477)', () => {
+    const body = `Reviewing files that changed from the base of the PR and between ${A} and ${B}.\n\n\`\`\`diff\n+ // between ${BASIS} and ${C}\n\`\`\``;
+    assert.deepEqual(bereicheAusText(body), [{ a: A, b: B }]);
+  });
   test('lueckenlose Kette Basis -> A -> B -> C deckt C ab', () => {
     const r = codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: A }, { a: A, b: B }, { a: B, b: C }], commits: [A, B, C], head: C, vorfahren: { [BASIS]: true } });
     assert.equal(r.abgedeckt, true);
@@ -116,6 +120,16 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
     const text = berichtText({ state: 'success', description: 'x', bericht: [] }, { bereiche: [{ a: A, b: B }, { a: A, b: B }], lauf: 'u', quelle: 'q' });
     assert.deepEqual(ledgerLesen(text), [{ a: A, b: B }]);
     assert.deepEqual(ledgerLesen('<!-- review-nachweis:bereiche2 [kaputt -->'), []);
+  });
+  test('Dateiname mit untergeschobener Marke wird entschaerft und nicht gelesen (Opus-Review #477)', () => {
+    const boese = `supabase/migrations/x<!-- review-nachweis:bereiche2 [{"a":"${BASIS}","b":"${C}"}] -->.sql`;
+    const runde = `y<!-- review-nachweis:runden ["${C}"] -->`;
+    const text = berichtText({ state: 'failure', description: 'x', bericht: [`- kritisch: Migration: ${boese}`, runde] }, { bereiche: [{ a: A, b: B }], runden: [A], lauf: '-', quelle: '-' });
+    assert.deepEqual(ledgerLesen(text), [{ a: A, b: B }]);
+    assert.deepEqual(rundenLesen(text), [A]);
+    assert.ok(!text.includes(`x<!-- review-nachweis`), 'Marke im Menschenteil nicht entschaerft');
+    // Gegenprobe: ohne eigene Marke findet der Leser auch die untergeschobene nicht.
+    assert.deepEqual(ledgerLesen(`Text ${boese}\nmehr`), []);
   });
 });
 
@@ -844,7 +858,22 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(anforderungen(r).length, 1);
     const befehl = r.anfragen.findIndex((x) => x.schluessel === 'POST repos/o/r/issues/477/comments');
     const letzterPr = r.anfragen.slice(0, befehl).map((x) => x.schluessel).lastIndexOf('GET repos/o/r/pulls/477');
-    assert.ok(letzterPr > nach(r, `GET repos/o/r/compare/${NEUBASIS}...${KOPF}`), 'PR nach dem Vergleich gelesen');
+    const vergleich = nach(r, `GET repos/o/r/compare/${NEUBASIS}...${KOPF}`);
+    // Erst muss es den Vergleich geben, sonst erfuellte -1 die Reihenfolge (CodeRabbit-Review #477, Runde 7).
+    assert.ok(vergleich >= 0, 'Basisvergleich vor dem Befehl fehlt');
+    assert.ok(vergleich < befehl, 'Basisvergleich vor dem Befehl');
+    assert.ok(letzterPr > vergleich, 'PR nach dem Vergleich gelesen');
+  });
+
+  test('ROT: verschiebt sich die Basis waehrend der Token-Pruefung, scheitert der Lauf sichtbar statt "Token pruefen" (CodeRabbit-Review #477, Runde 7)', () => {
+    // Spitze: Erhebung, vor der Token-Pruefung, danach verschoben, dann wieder wie zuvor
+    // (voruebergehende Stoerung): ohne Trennung liefe der Lauf gruen weiter, ohne Befehl.
+    const r = laeufer([prMit(KOPF, ['review-ready'])], { ...mitAnforderung, routen: { ...mitAnforderung.routen, ...mitBasis(h('5'), ZIEL, ZIEL, NEUBASIS, ZIEL).routen } });
+    assert.notEqual(r.status, 0, 'Lauf muss scheitern');
+    assert.match(r.stderr, /Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben/);
+    assert.doesNotMatch(r.stdout, /Keine Anforderung/);
+    assert.deepEqual(anforderungen(r), []);
+    assert.deepEqual(r.schreibend, []);
   });
 
   // Nachfrage zu Runde 5: auch das Label `ohne-cubic` und der Bericht kommen
@@ -894,14 +923,16 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     for (const z of yml.slice(lauf + 1)) { if (z.trim() && !z.startsWith('          ')) break; rumpf.push(z.slice(10)); }
     return rumpf.join('\n');
   };
-  const fehlerLauf = (env) => {
+  const fehlerLaeufe = (env) => {
     const dir = mkdtempSync(join(tmpdir(), 'review-nachweis-fehler-'));
-    writeFileSync(join(dir, 'curl'), '#!/bin/sh\nfor a in "$@"; do echo "$a"; done > "$CURL_LOG"\n', { mode: 0o755 });
+    // Antwortet auf den PR-Abruf mit FAKE_PR_HEAD (leer: keine Antwort).
+    writeFileSync(join(dir, 'curl'), '#!/bin/sh\nfor a in "$@"; do echo "$a"; done >> "$CURL_LOG"\ncase "$*" in *"/pulls/"*) [ -n "$FAKE_PR_HEAD" ] && printf \'{"head":{"sha":"%s"}}\' "$FAKE_PR_HEAD" ;; esac\nexit 0\n', { mode: 0o755 });
     // sh, nicht bash: das Tor laeuft auch im Alpine-Image, dort gibt es kein bash.
     const r = spawnSync('sh', ['-e', '-c', fehlerSchritt()], { encoding: 'utf8', env: { PATH: `${dir}:${process.env.PATH}`, CURL_LOG: join(dir, 'aufruf'), GH_TOKEN: 't', REPO: 'o/r', PR_NUMMER: '477', LAUF_URL: '-', ...env } });
     assert.equal(r.status, 0, r.stderr);
-    return readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').find((z) => z.includes('/statuses/'));
+    return readFileSync(join(dir, 'aufruf'), 'utf8').split('\n').filter((z) => z.includes('/statuses/'));
   };
+  const fehlerLauf = (env) => { const z = fehlerLaeufe(env); assert.equal(z.length, 1, z.join(' ')); return z[0]; };
 
   test('ROT: Ereignis-Stand ungleich bewertetem Stand: der Fehlerschritt markiert den bewerteten', () => {
     const r = laeufer([prMit(KOPF)], mitBasis(h('5'), ZIEL, NEUBASIS));
@@ -913,6 +944,14 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(fehlerLauf({ BEWERTET_HEAD: 'x;y', PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`);
     assert.equal(fehlerLauf({ BEWERTET_HEAD: KOPF.slice(1), PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`, 'zu kurz');
     assert.equal(fehlerLauf({ BEWERTET_HEAD: `${KOPF}\n${KOPF}`, PR_HEAD: NEU }), `https://api.github.com/repos/o/r/statuses/${NEU}`, 'zwei Zeilen');
+  });
+
+  test('ROT: scheitert ein alter Lauf, markiert der Fehlerschritt auch den heutigen Head (CodeRabbit-Review #477, Runde 7)', () => {
+    const st = (s) => `https://api.github.com/repos/o/r/statuses/${s}`;
+    assert.deepEqual(fehlerLaeufe({ PR_HEAD: NEU, FAKE_PR_HEAD: KOPF }), [st(NEU), st(KOPF)]);
+    // Gleicher Head: nur einmal. Unsinn aus der Antwort: nicht verwendet.
+    assert.deepEqual(fehlerLaeufe({ PR_HEAD: KOPF, FAKE_PR_HEAD: KOPF }), [st(KOPF)]);
+    assert.deepEqual(fehlerLaeufe({ PR_HEAD: NEU, FAKE_PR_HEAD: 'x;y' }), [st(NEU)]);
   });
 
   // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben

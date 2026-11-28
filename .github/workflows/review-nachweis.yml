@@ -8,9 +8,9 @@
 # Welche Auswertung laeuft: die aus dem ZIELZWEIG (Spitze von staging bzw.
 # main, ueber die API geholt), nicht die aus dem PR. Ein PR, der das Gate
 # aendert, wird so noch nach den alten Regeln beurteilt; seine Aenderung
-# wirkt erst nach dem Merge. Nur wenn der Zielzweig die Auswertung noch
-# nicht kennt (HTTP 404: der erste PR, der sie einfuehrt), laeuft die aus
-# dem PR, und der Bericht sagt das. Jeder andere Fehler beim Holen bricht
+# wirkt erst nach dem Merge. Kennt main sie noch nicht, die von staging.
+# Nur wenn auch staging sie nicht kennt (HTTP 404: der erste PR, der sie
+# einfuehrt), laeuft die aus dem PR, und der Bericht sagt das. Jeder andere Fehler beim Holen bricht
 # ab, statt still auf die Fassung des PRs auszuweichen.
 # Kein Checkout: das Repo ist ueber 2 GB gross (fast zwei Minuten je
 # Ereignis), und so liegt kein Code aus dem PR auf dem Runner.
@@ -41,7 +41,12 @@ concurrency:
 
 jobs:
   nachweis:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
+    # Nur PRs nach staging oder main: `pull_request_review` kennt keinen
+    # Zweigfilter (Opus-Review #477).
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.state == 'open' &&
+      (github.event.pull_request.base.ref == 'staging' || github.event.pull_request.base.ref == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
@@ -69,10 +74,16 @@ jobs:
               "https://api.github.com/repos/$REPO/contents/$1?ref=$2"
           }
           code=$(hole scripts/lib/review-nachweis.mjs "$ZIEL")
+          if [ "$code" = 404 ] && [ "$ZIEL" = main ]; then
+            # main kennt das Gate erst nach dem ersten Release: bis dahin die
+            # Fassung von staging, nie die des PRs (Opus-Review #477).
+            ZIEL=staging; code=$(hole scripts/lib/review-nachweis.mjs staging)
+            [ "$code" = 200 ] || { echo "::error::Auswertung weder auf main noch auf staging abrufbar (HTTP $code)"; exit 1; }
+          fi
           if [ "$code" = 200 ]; then
             REF="$ZIEL"; QUELLE="Zielzweig ($ZIEL)"
           elif [ "$code" = 404 ]; then
-            REF="$PR_HEAD"; QUELLE="diesem PR (Erstfall: Zielzweig kennt das Gate noch nicht)"
+            REF="$PR_HEAD"; QUELLE="diesem PR (Erstfall: staging kennt das Gate noch nicht)"
           else
             echo "::error::Auswertung im Zielzweig nicht abrufbar (HTTP $code)"; exit 1
           fi
@@ -113,10 +124,21 @@ jobs:
           PR_NUMMER: ${{ github.event.pull_request.number }}
           LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          gueltig() { case "$1" in ''|*[!0-9a-f]*) return 1 ;; esac; [ "${#1}" -eq 40 ]; }
+          markiere() {
+            curl -sS --fail-with-body --retry 3 -X POST -o /dev/null \
+              -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/$REPO/statuses/$1" \
+              -d "{\"state\":\"failure\",\"context\":\"review-nachweis\",\"description\":\"Auswertung gescheitert: Stand NICHT bewertet (Lauf ansehen) [#$PR_NUMMER]\",\"target_url\":\"$LAUF_URL\"}"
+          }
           SHA="${BEWERTET_HEAD:-$PR_HEAD}"
-          case "$SHA" in ''|*[!0-9a-f]*) SHA="$PR_HEAD" ;; esac
-          [ "${#SHA}" -eq 40 ] || SHA="$PR_HEAD"
-          curl -sS --fail-with-body --retry 3 -X POST -o /dev/null \
-            -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/$REPO/statuses/$SHA" \
-            -d "{\"state\":\"failure\",\"context\":\"review-nachweis\",\"description\":\"Auswertung gescheitert: Stand NICHT bewertet (Lauf ansehen) [#$PR_NUMMER]\",\"target_url\":\"$LAUF_URL\"}"
+          gueltig "$SHA" || SHA="$PR_HEAD"
+          markiere "$SHA"
+          # Auch der heutige Head: ein erneut gestarteter alter Lauf darf ein
+          # Gruen dort nicht stehen lassen, wenn ein spaeteres Ereignis dazu
+          # abgebrochen wurde (CodeRabbit-Review #477, Runde 7). Lesen
+          # scheitert still: dann bleibt es bei der Markierung oben.
+          JETZT=$(curl -sS --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMMER" \
+            | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c}).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).head.sha||""))}catch{}})' || true)
+          if gueltig "$JETZT" && [ "$JETZT" != "$SHA" ]; then markiere "$JETZT"; fi

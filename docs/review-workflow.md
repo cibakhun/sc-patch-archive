@@ -18,6 +18,11 @@ ist, entscheidet Krisz, nie eine Automatik.
    (CodeRabbit: kein automatischer Review, cubic: `check_drafts` ist aus).
 2. **Fertig bauen.** `npm run build && npm run gate`, betroffene Tests, bei
    Bedarf Vorschau-Bau. Danach Krisz' Test.
+   **Opus-Schleife zuerst** (Krisz, 28.11.2026): Vor jeder externen
+   Anforderung prüft ein frischer Opus-Review ohne Vorwissen den ganzen
+   Diff (eigener Durchgang, nur Diff und Checkout, nie der Verlauf des
+   Arbeitsthreads). Befunde beheben, Tor, dann ein neuer frischer
+   Durchgang, bis Opus nichts mehr findet. Erst dann Schritt 3.
 3. **Review anfordern.** „Ready for review“ und Label **`review-ready`**.
    Der Workflow schreibt daraufhin genau einmal je Stand
    `@coderabbitai review`, mit einer Marke, die den Stand nennt, und zwar
@@ -59,6 +64,15 @@ ist, entscheidet Krisz, nie eine Automatik.
 6. **Merge.** Nur wenn der Status **`review-nachweis`** auf dem aktuellen
    Commit grün ist. Krisz merged per Squash. Der Agent merged nie und nutzt
    nie den Bypass.
+
+**Kombi-Review** (Krisz, 28.11.2026): Jeder PR, auch ein nicht kritischer,
+bekommt am Ende mindestens ein externes Review (CodeRabbit oder cubic),
+und zwar erst, wenn die Opus-Schleife sauber ist, nie parallel dazu. Findet
+das externe Review etwas, behebt der Agent es, die Opus-Schleife läuft
+erneut bis sauber, danach wieder extern. Fertig ist der PR erst, wenn
+auch das externe Review ohne Befund durchgeht. Der Opus-Review ist kein
+Beleg im Status `review-nachweis`: dort zählen nur CodeRabbit und cubic,
+kritische PRs brauchen weiter beide.
 
 **Runden: so viele, bis eine ohne neuen Befund durchgeht** (Krisz,
 28.11.2026: „Alles muss so lange geprüft werden, bis es nichts mehr zu
@@ -135,8 +149,11 @@ eingeordnet und getestet sind.
 
 Welche Auswertung läuft: die aus dem **Zielzweig**, nicht die aus dem PR.
 Ein PR, der das Gate ändert, wird noch nach den alten Regeln beurteilt.
-Nur wenn der Zielzweig das Gate noch nicht kennt (der PR, der es
-einführt), läuft die aus dem PR, und der Bericht sagt das.
+Kennt `main` das Gate noch nicht (vor dem ersten Release), läuft die
+Fassung von `staging`. Nur wenn auch `staging` es noch nicht kennt (der PR,
+der es einführt), läuft die aus dem PR, und der Bericht sagt das. Der
+Workflow läuft nur für PRs nach `staging` und `main`, auch bei Reviews
+(`pull_request_review` kennt keinen Zweigfilter).
 
 ## Abdeckung über mehrere Runden
 
@@ -279,7 +296,9 @@ mehr ist. Von Hand: `@cubic-dev-ai review` (voll) oder
 
 Das Ende eines CodeRabbit-Reviews ohne Kommentare löst kein Ereignis aus.
 Ist ein Review angefordert oder läuft einer, wartet der Lauf deshalb bis zu
-40 Minuten (Takt 60 s) und prüft dabei nur den Head erneut. „Angefordert“
+40 Minuten und prüft dabei nur den Head erneut. Der Takt beginnt bei 60 s
+und verdoppelt sich bis 5 Minuten: Jede Runde kostet rund zehn Anfragen,
+und `GITHUB_TOKEN` hat 1000 je Stunde für das ganze Repo. „Angefordert“
 heißt: Es gibt eine Anforderungs-Marke für genau diesen Stand, und
 CodeRabbit hat danach noch keinen Lauf begonnen (ein Skip von davor ist
 veraltet). Die Marke selbst zählt nie als Review. Jedes neue
@@ -342,6 +361,17 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   selben Stand geöffnet, überschreibt sein Lauf zwar den Status am Commit,
   aber nicht das Urteil, das die Release-Prüfung liest: Die liest je PR
   (Marke `[#Nummer]` in der Beschreibung).
+- **Status ist fälschbar für jeden, der pushen darf.** `review-nachweis`
+  ist ein Commit-Status. Jeder Workflow dieses Repos mit `statuses: write`
+  kann ihn setzen, auch einer, der nur auf einem anderen gepushten Zweig
+  liegt, und GitHub unterscheidet das nicht vom echten Lauf (beide kommen
+  von der GitHub-Actions-App). Die Release-Prüfung liest dieselben Status
+  je PR. Gegen Fremde ohne Schreibrecht hält das Gate (Fork-PRs laufen
+  nicht, sie können keinen Status setzen); gegen Konten mit Push-Recht ist
+  es eine Anzeige, kein Schloss. Heute hat nur `cibakhun` Push-Recht.
+  Abhilfe, wenn weitere Konten dazukommen: ein Check-Lauf einer eigenen
+  GitHub-App statt des Status, die das Ruleset als Quelle verlangt
+  (Opus-Review #477).
 - **Gemeinsames Konto.** Agent und Krisz schreiben heute als `cibakhun`.
   Labels, Kommentare und Ausnahmen sind deshalb nicht einer Person
   zuzuordnen. Abhilfe: eigenes Agentenkonto mit eingeschränkten Rechten.

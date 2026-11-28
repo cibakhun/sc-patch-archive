@@ -410,9 +410,15 @@ export async function statusMitKontrolle(urteil, d, { schreibe, gleicheStaende }
 }
 
 /** Bereiche "between A and B" aus einem CodeRabbit-Text. */
+/* Nur aus der Zeile, mit der CodeRabbit seinen Bereich nennt
+   ("Reviewing files that changed ... between A and B"): ein zitierter
+   Diff-Ausschnitt mit demselben Muster ist kein Beleg (Opus-Review #477). */
 export function bereicheAusText(text) {
   const out = [];
-  for (const m of String(text || '').matchAll(/between ([0-9a-f]{40}) and ([0-9a-f]{40})/g)) out.push({ a: m[1], b: m[2] });
+  for (const zeile of String(text || '').split(/\r?\n/)) {
+    const m = /^\s*Reviewing files that changed\b.*?\bbetween ([0-9a-f]{40}) and ([0-9a-f]{40})\b/.exec(zeile);
+    if (m) out.push({ a: m[1], b: m[2] });
+  }
   return out;
 }
 
@@ -680,7 +686,7 @@ function bewerteRelease(d) {
 /** Bereiche aus dem eigenen Bericht-Kommentar (Ledger) lesen. */
 /** Gepruefte Staende aus dem eigenen Bericht (ueberdauern ein Umschreiben). */
 export function rundenLesen(text) {
-  const m = /<!-- review-nachweis:runden (\[[^]*?\]) -->/.exec(String(text || ''));
+  const m = letzteMarke(text, 'review-nachweis:runden');
   if (!m) return [];
   try { return JSON.parse(m[1]).filter((x) => SHA.test(x)); } catch { return []; }
 }
@@ -692,11 +698,26 @@ export function rundenLesen(text) {
 export const LEDGER_MARKE = 'review-nachweis:bereiche2';
 export const altesLedger = (text) => /<!-- review-nachweis:bereiche \[/.test(String(text || ''));
 
+/* Marken stehen in eigenen Zeilen am Ende des Berichts (berichtText).
+   Gelesen wird nur eine ganze Zeile, und von hinten: ein Dateiname oder
+   Titel im Text davor kann so keine Marke unterschieben (Opus-Review
+   #477); berichtText entschaerft solche Texte zusaetzlich. */
+function letzteMarke(text, marke) {
+  const zeilen = String(text || '').split(/\r?\n/);
+  for (let i = zeilen.length - 1; i >= 0; i--) {
+    const m = new RegExp(`^<!-- ${marke} (\\[.*\\]) -->$`).exec(zeilen[i]);
+    if (m) return m;
+  }
+  return null;
+}
+
 export function ledgerLesen(text) {
-  const m = /<!-- review-nachweis:bereiche2 (\[[^]*?\]) -->/.exec(String(text || ''));
+  const m = letzteMarke(text, LEDGER_MARKE);
   if (!m) return [];
   try { return JSON.parse(m[1]).filter((r) => SHA.test(r.a) && SHA.test(r.b)); } catch { return []; }
 }
+
+export const entschaerfe = (t) => String(t).replace(/<!--/g, '&lt;!--').replace(/-->/g, '--&gt;');
 
 /** Den Bericht-Kommentar bauen (Text fuer Menschen, Bereiche fuer den naechsten Lauf). */
 export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {
@@ -707,7 +728,9 @@ export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {
     BERICHT_MARKE,
     `### ${symbol} review-nachweis: ${urteil.description}`,
     '',
-    ...(urteil.bericht || []),
+    // Dateinamen und Titel sind Fremdtext: keine HTML-Kommentare im
+    // Menschenteil, sonst stuende dort eine zweite Marke (Opus-Review #477).
+    ...(urteil.bericht || []).map(entschaerfe),
     '',
     `<sub>Automatischer Bericht, bei jedem Ereignis neu geschrieben. Auswertung aus: ${quelle}. [Lauf](${lauf}). Regeln: docs/review-workflow.md</sub>`,
     `<!-- ${LEDGER_MARKE} ${JSON.stringify(eindeutig)} -->`,

@@ -93,6 +93,13 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   beantwortet und geschlossen), ändert sich der Stand nicht und wird nicht
   neu angefordert: das war die letzte Runde. Eine offene Entscheidung bei
   Krisz hält den PR offen.
+- **Kombi-Review** (Krisz, 28.11.2026): vor jeder externen Anforderung
+  eine Opus-Schleife, je Runde ein frischer Opus-Review ohne Vorwissen
+  (eigener Durchgang, nur Diff), fixen, bis Opus nichts mehr findet. Erst
+  dann `review-ready` für mindestens ein externes Review (CodeRabbit oder
+  cubic), bei jedem PR, auch nicht kritischen. Findet es etwas: fixen,
+  wieder Opus bis sauber, wieder extern. Fertig erst, wenn auch das
+  externe Review ohne Befund durchgeht.
 - Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst
   nachmessen: ein Befund ist eine Behauptung, kein Befehl) oder als
   Entscheidung an Krisz. Auf jeden Kommentar antworten, Thread schließen.

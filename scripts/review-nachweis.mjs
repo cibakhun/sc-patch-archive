@@ -397,11 +397,23 @@ if (anforderungNoetig(d)) {
     d.anforderungUnmoeglich = 'Secret REVIEW_ANFORDERUNG_TOKEN fehlt';
     console.log(`Keine Anforderung moeglich: ${d.anforderungUnmoeglich}.`);
   } else {
+    // Fehler des Tokens und des Befehls werden zur Statusmeldung; Fehler
+    // der Head-/Basispruefung dazwischen nicht: die brechen den Lauf
+    // sichtbar ab (Fehlerschritt), statt als "Token pruefen" eine
+    // Anforderung still auszulassen (CodeRabbit-Review #477, Runde 7).
+    const unmoeglich = (e) => {
+      d.anforderungUnmoeglich = `Anforderung gescheitert (${String(e.message).match(/HTTP \d+/)?.[0] || 'Fehler'}), Token pruefen`;
+      console.log(`Keine Anforderung: ${e.message}`);
+    };
+    let tokenOk = false;
     try {
       // Nur ein eingetragenes Konto: eine Marke von einem anderen zaehlte
       // nicht, und jeder Lauf forderte erneut an.
       const konto = (await api('user', { token: ANFORDERUNG_TOKEN })).login;
       if (!ANFORDERUNG_KONTEN.includes(konto)) throw new Error(`HTTP 403 Konto ${konto} ist kein Anforderungskonto (ANFORDERUNG_KONTEN)`);
+      tokenOk = true;
+    } catch (e) { unmoeglich(e); }
+    if (tokenOk) {
       // Die Pruefung des Tokens dauert: der Head ist danach noch einmal
       // zu pruefen, sonst ginge der Befehl an einen neuen, nicht
       // freigegebenen Stand (Review #477, Runde 4).
@@ -417,21 +429,24 @@ if (anforderungNoetig(d)) {
         console.log(`Freigabe waehrend der Token-Pruefung entfallen (${jetzt.draft ? 'Draft' : `Label ${LABEL_BEREIT} fehlt`}) — keine Anforderung, der Lauf dazu uebernimmt.`);
         process.exit(0);
       }
-      const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
-      console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
-      d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
-    } catch (e) {
-      // Abgelaufener oder entzogener Token: der Lauf setzt trotzdem seinen Status.
-      d.anforderungUnmoeglich = `Anforderung gescheitert (${String(e.message).match(/HTTP \d+/)?.[0] || 'Fehler'}), Token pruefen`;
-      console.log(`Keine Anforderung: ${e.message}`);
+      try {
+        const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
+        console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
+        d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
+      } catch (e) { unmoeglich(e); } // abgelaufener oder entzogener Token: der Lauf setzt trotzdem seinen Status
     }
   }
 }
 
 let urteil = bewerte(d);
+// Takt waechst bis 5 Minuten: jede Runde kostet rund zehn Anfragen, und
+// GITHUB_TOKEN hat 1000 je Stunde fuer das ganze Repo (Opus-Review #477).
+// Ein CodeRabbit-Review dauert meist 5 bis 10 Minuten.
+let takt = TAKT_S;
 while (urteil.warten && !TROCKEN && Date.now() < ende) {
   await status(d.pr.head_sha, urteil);
-  await schlaf(TAKT_S);
+  await schlaf(Math.max(0, Math.min(takt, (ende - Date.now()) / 1000)));
+  takt = Math.min(takt * 2, Math.max(TAKT_S, 300));
   pr = await api(`${R}/pulls/${NUMMER}`);
   if (pr.head.sha !== d.pr.head_sha || pr.state !== 'open') { console.log('Neuer Stand oder PR geschlossen — der Lauf dazu uebernimmt.'); process.exit(0); }
   ({ d, bericht } = await sammle(pr, { nurHeadNeu: true }));
