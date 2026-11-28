@@ -217,7 +217,14 @@ nichts gegen Live.
 ### Skripte aktualisieren
 
 `QUELLE_SHA` im privaten Repo nur anheben, wenn `probe-backup.yml` auf dem
-neuen Commit grün war. Die Action-Versionen der Vorlage prüft
+neuen Commit grün war. Den SHA aus der Commit-Liste von `staging` oder `main`
+nehmen, nie aus einer PR, einem Kommentar oder einer Nachricht: GitHub liefert
+unter dem Namen des Quell-Repos auch Commits aus Forks und weggeschobene
+Stände aus. Der Lauf prüft das selbst (Schritt „Herkunft von QUELLE_SHA
+prüfen") und bricht ab, bevor die Skripte das Live-Secret sehen, wenn der
+Commit weder auf `main` noch auf `staging` liegt. Wer eine ältere Fassung der
+Vorlage im privaten Repo hat, übernimmt diesen Schritt beim nächsten Anheben.
+Die Action-Versionen der Vorlage prüft
 `verify:supply-chain` mit denselben Regeln wie die Workflows hier; hebt
 Dependabot sie in `probe-backup.yml` an, die Vorlage beim nächsten Anheben
 von `QUELLE_SHA` mitziehen.

@@ -82,6 +82,9 @@ skills-lock.json
 .env.*
 **/.env
 **/.env.*
+# Zugangsdateien mit eigenem Namen (etwa r2.env fuer scripts/item3d, siehe
+# dessen README) — gleich welches Verzeichnis
+*.env
 !**/.env.example
 
 # Arbeitsdateien der Supabase-CLI (legt sie im Arbeitsordner an, etwa bei start)

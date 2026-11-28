@@ -12,7 +12,7 @@ branch: feature/crafting-card-size-grade-tone
 ## Domain
 
 Die Crafting-Datenbank auf verse-base.com listet 1594 Blueprints als Karten. Eine
-Discord-Rückmeldung von **[SYN] Froggy** verlangt drei zusätzliche Angaben auf der
+Rückmeldung eines Mitglieds (#feedback) verlangt drei zusätzliche Angaben auf der
 Karte: Größe, Grade (A–D) und Ton (military / industrial / civilian / stealth).
 
 Die vorgeschaltete Erkundung hat die Datenlage vermessen. Ergebnis in

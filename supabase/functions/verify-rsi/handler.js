@@ -14,8 +14,7 @@
 //      und Handle gebunden.
 //   3. action 'verify' { rsi_handle? }: Handle (angefragt oder das des Profils)
 //      und Code kommen aus der Datenbank (public.rsi_challenge_get). Ein Code
-//      im Anfragekoerper zaehlt nur fuer das alte Dashboard, und nur solange
-//      RSI_LEGACY_FLOW=1 gesetzt ist (siehe index.ts).
+//      im Anfragekoerper zaehlt nie: ohne ausgestellten Code gibt es 409.
 //   4. GET https://robertsspaceindustries.com/citizens/<handle>: 8 s Zeitlimit,
 //      hoechstens 2 MB gelesen, die Endadresse nach Weiterleitungen muss auf
 //      demselben Host und derselben Citizen-Seite liegen. Der Code zaehlt nur
@@ -35,7 +34,8 @@
 
 export const HANDLE_RE = /^[A-Za-z0-9_-]{3,60}$/;
 export const CODE_RE = /^VB-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/;
-/** Format des alten, im Browser erzeugten Codes (VERSEBASE-VERIFY- + bis zu 6 Zeichen). */
+/** Format des alten, im Browser erzeugten Codes (VERSEBASE-VERIFY- + bis zu 6 Zeichen).
+ *  Zaehlt nur noch als schon gebundener Code eines verifizierten Kontos (Nachpruefung). */
 export const LEGACY_CODE_RE = /^VERSEBASE-VERIFY-[A-Z0-9]{1,6}$/;
 
 export const ALLOWED_ORIGINS = [
@@ -239,7 +239,7 @@ class UpstreamError extends Error {
 /**
  * createHandler({ env, fetch, log }) -> (Request) => Promise<Response>
  *   env(name)  liefert SUPABASE_URL, SUPABASE_ANON_KEY,
- *              SUPABASE_SERVICE_ROLE_KEY, RSI_LEGACY_FLOW
+ *              SUPABASE_SERVICE_ROLE_KEY
  *   fetch      fuer Supabase und RSI
  *   log        nur serverseitig (Fehlertexte, nie an den Client)
  */
@@ -248,7 +248,6 @@ export function createHandler({ env, fetch: fetchImpl, log = () => {} }) {
     url: (env('SUPABASE_URL') || '').replace(/\/+$/, ''),
     anonKey: env('SUPABASE_ANON_KEY') || '',
     serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') || '',
-    legacy: env('RSI_LEGACY_FLOW') === '1',
   };
 
   async function getUser(authHeader) {
@@ -348,14 +347,7 @@ export function createHandler({ env, fetch: fetchImpl, log = () => {} }) {
         if (s.expired !== true) pending = s.code;
         else if (!bound) return fail(410, 'challenge_expired');
       }
-      if (!pending && !bound) {
-        if (cfg.legacy && typeof body.rsi_code === 'string' && LEGACY_CODE_RE.test(body.rsi_code)) {
-          // Uebergang: altes Dashboard, Code aus dem Browser. Nur mit RSI_LEGACY_FLOW=1.
-          pending = body.rsi_code;
-        } else {
-          return fail(409, 'no_challenge');
-        }
-      }
+      if (!pending && !bound) return fail(409, 'no_challenge');
 
       if (!pending && s.confirmed === true && s.checked_recently === true) {
         return reply(200, { verified: true, persisted: true, rsi_handle: target, cached: true });

@@ -495,7 +495,7 @@ Plans:
 - [x] 08-02 (Welle 2): Ausrollen auf alle 1594 Karten, Ton der 96 Schiffswaffen aus dem Kategorie-Pfad, Seitengewicht vorher/nachher gemessen
 - [x] 08-03 (Welle 3): Filter nach Größe und Grade, Ton über die Freitextsuche, Sichtprüfung in DE und EN
 
-Anlass: Discord-Rückmeldung von [SYN] Froggy. Die Erkundung ergab, dass kein
+Anlass: Rückmeldung eines Mitglieds (#feedback). Die Erkundung ergab, dass kein
 Data.p4k-Lauf nötig war — `game.size`/`grade`/`class` lagen bereits in
 `assets/universal-items.json`.
 

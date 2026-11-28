@@ -49,7 +49,10 @@
     "function public.direct_messages_guard()": { "warum": "Triggerfunktion; EXECUTE wird beim Feuern nicht geprueft" },
     "function public.crew_calls_guard()": { "warum": "Triggerfunktion auf crew_calls; EXECUTE wird beim Feuern nicht geprueft (20261124110000)" },
     "function public.crew_call_members_guard()": { "warum": "Triggerfunktion auf crew_call_members; EXECUTE wird beim Feuern nicht geprueft (20261124110000)" },
+    "function public.crafting_entries_guard()": { "warum": "Triggerfunktion auf crafting_entries (Obergrenze je Konto); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
     "function public.donations_bump_progress()": { "warum": "Triggerfunktion (stripe-webhook, service_role)" },
+    "function public.favorites_guard()": { "warum": "Triggerfunktion auf favorites (Obergrenze je Konto); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
+    "function public.friend_requests_guard()": { "warum": "Triggerfunktion auf friend_requests (Takt und offene Anfragen je Absender); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
     "function public.gate_verdict()": {
       "authenticated": ["EXECUTE"],
       "warum": "nginx/gate.js ruft rpc/gate_verdict mit dem Nutzer-JWT; ohne Sitzung entscheidet gate.js selbst"
@@ -61,6 +64,7 @@
       "authenticated": ["EXECUTE"],
       "warum": "FriendsDock: Nachrichten als gelesen markieren (security definer, nur eigene)"
     },
+    "function public.mining_sig_presets_guard()": { "warum": "Triggerfunktion auf mining_sig_presets (Obergrenze je Konto); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
     "function public.notification_settings_stamp()": { "warum": "Triggerfunktion auf notification_settings (Zeitstempel, refinery_discord_since)" },
     "function public.refinery_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
     "function public.refinery_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
@@ -68,6 +72,7 @@
     "function public.chat_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261124100000" },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
+    "function public.refinery_jobs_guard()": { "warum": "Triggerfunktion auf refinery_jobs (Obergrenze je Konto); EXECUTE wird beim Feuern nicht geprueft (20261128100000)" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
     "function public.rsi_challenge_get(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },
     "function public.rsi_challenge_issue(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },

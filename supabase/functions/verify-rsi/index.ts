@@ -16,8 +16,8 @@
 // verlangt es, verify_jwt = true ist der Standard, siehe supabase/config.toml):
 //   { action: 'challenge', rsi_handle }  -> { rsi_handle, code, confirmed, expires_at }
 //   { action: 'verify', rsi_handle? }    -> { verified, persisted, rsi_handle, revoked?, cached? }
-//   { rsi_handle, rsi_code }             -> altes Dashboard (main bis zum naechsten
-//                                           Release), siehe RSI_LEGACY_FLOW
+//   Ein rsi_code im Anfragekoerper zaehlt nicht (der alte, im Browser erzeugte
+//   Code ist seit dem Release des neuen Dashboards abgeschaltet).
 //
 // Datenbank: Migration 20261030120000_rsi_challenge.sql (private.rsi_challenges,
 // private.rsi_attempts, public.rsi_rate_ok/rsi_challenge_issue/rsi_challenge_get/
@@ -29,11 +29,8 @@
 //     verify_jwt = true (wie live v5; die Function steht bewusst nicht in
 //     supabase/config.toml).
 //   * Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY stellt
-//     Supabase selbst. RSI_LEGACY_FLOW=1 setzen, solange main noch das alte
-//     Dashboard ausliefert (Code aus dem Browser); entfernen, sobald main das
-//     neue Dashboard hat. Ohne den Schalter bekommt das alte Dashboard bei einer
-//     ERSTpruefung 409 und zeigt "Server nicht erreichbar"; Nachpruefungen
-//     schon verifizierter Konten laufen in beiden Faellen.
+//     Supabase selbst. Weitere braucht die Function nicht; ein noch gesetztes
+//     RSI_LEGACY_FLOW wird nicht mehr gelesen und kann geloescht werden.
 
 import { createHandler } from './handler.js';
 

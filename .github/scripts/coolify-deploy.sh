@@ -32,6 +32,11 @@
 # Log ansieht. Siehe deploy-staging.yml, 14.08.2026. Jeder Aufruf hat eine
 # Zeitgrenze — am 29.10.2026 hing der Bot-Deploy gut sieben Minuten im
 # Webhook-Aufruf, bevor er scheiterte (Lauf 40897563706).
+#
+# curl laeuft ohne -S: seine eigene Fehlermeldung ("Could not resolve host:
+# …", "Failed to connect to … port 443") nennt den Host. Die Maskierung der
+# Secrets greift nur fuer den ganzen Webhook-Wert, nicht fuer den Host darin,
+# und das Protokoll ist oeffentlich. Ausgegeben wird nur curls Exit-Code.
 set -euo pipefail
 
 LABEL="${LABEL:-app}"
@@ -47,6 +52,10 @@ CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
 CLEAN_HOOK=$(printf '%s' "$HOOK" | tr -d '[:space:]')
 echo "Token: ${#TOKEN} Zeichen roh, ${#CLEAN_TOKEN} nach dem Trimmen (Wert wird nicht ausgegeben)."
 BODY=$(mktemp)
+# curl_abbruch <exit>: was curl nicht geschafft hat, ohne Host und Adresse
+curl_abbruch() {
+  echo "curl brach ab (Exit $1; 6 = Name nicht aufloesbar, 7 = keine Verbindung, 28 = Zeitgrenze, 35/60 = TLS). Die Meldung von curl wird nicht ausgegeben, sie nennt den Host."
+}
 
 if [ -n "${PIN_TAG:-}" ]; then
   case "$PIN_TAG" in
@@ -58,9 +67,11 @@ if [ -n "${PIN_TAG:-}" ]; then
     echo "::error::Aus dem Webhook laesst sich keine Anwendung (uuid) ablesen — PIN_TAG braucht die Form …/api/v1/deploy?uuid=…"
     exit 1
   fi
-  CODE=$(curl -sS --max-time 30 -o "$BODY" -w '%{http_code}' -X PATCH "$BASE/api/v1/applications/$UUID" \
+  RC=0
+  CODE=$(curl -s --max-time 30 -o "$BODY" -w '%{http_code}' -X PATCH "$BASE/api/v1/applications/$UUID" \
     -H "Authorization: Bearer $CLEAN_TOKEN" -H 'Content-Type: application/json' \
-    -d "{\"docker_registry_image_tag\":\"$PIN_TAG\"}") || CODE=000
+    -d "{\"docker_registry_image_tag\":\"$PIN_TAG\"}") || RC=$?
+  if [ "$RC" -ne 0 ]; then CODE=000; curl_abbruch "$RC"; fi
   echo "Image-Tag auf $PIN_TAG: HTTP $CODE"
   if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
     echo "Antwort: $(head -c 400 "$BODY")"
@@ -74,7 +85,9 @@ fi
 # "This endpoint has changed to a POST request." und deployt nichts.
 # --data '' statt -X POST: so schickt curl "Content-Length: 0"; ohne die
 # Angabe antworten manche Vorschaltrechner auf einen POST mit 411.
-CODE=$(curl -sS --max-time 60 --data '' -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || CODE=000
+RC=0
+CODE=$(curl -s --max-time 60 --data '' -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN") || RC=$?
+if [ "$RC" -ne 0 ]; then CODE=000; curl_abbruch "$RC"; fi
 echo "HTTP $CODE"
 # Den Antwortrumpf nur bei einem Fehler zeigen: bei Erfolg nennt er die
 # Kennungen der Anwendungen, und das Protokoll ist in einem oeffentlichen Repo
