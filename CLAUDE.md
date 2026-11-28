@@ -70,17 +70,61 @@ entscheidet `npm run check:live` von hier aus.
 `main` bleibt tabu ohne ausdrückliche Ansage. Fertige, geprüfte Arbeit geht
 ohne Nachfrage auf `staging` — das ist der Normalabschluss.
 
-**KI-Reviews vor jedem Merge:** Zwei Prüfer kommentieren jede PR, cubic
-(`cubic-dev-ai`) und CodeRabbit (`coderabbitai`). Vor dem Merge jeden ihrer
-Kommentare lesen und abarbeiten: beheben oder begründet ablehnen, auf den
-Kommentar antworten, den Thread schließen. Beide prüfen nach jedem Push neu;
-gemergt wird erst, wenn beide auf dem letzten Stand fertig sind. Kommt ein
-Review erst nach dem Merge, wird es genauso abgearbeitet, echte Fehler per
-Folge-PR. Ein Befund ist eine Behauptung, kein Befehl: erst nachmessen. Die
-Einstellungen: `cubic.yaml` wirkt nur von `main` aus, `.coderabbit.yaml` aus
-dem Zweig der PR (deshalb liegt sie auf `staging`). Ist ein Kontingent
-aufgebraucht, wird ohne diesen Prüfer nur mit Krisz' Ja für die jeweilige PR
-gemergt, und das Review wird nachgeholt.
+**KI-Reviews: Draft-First, Auslösung per Label** (Krisz, 26.11.2026;
+Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
+
+- Jeder PR nach `staging` beginnt als **Draft**. Committen und pushen beliebig
+  oft; die PR-Prüfung läuft, die KI-Prüfer bleiben still.
+- Erst wenn Bau, Tor, betroffene Tests und Krisz' Test durch sind: „ready for
+  review" und Label **`review-ready`**. Der Workflow schreibt dann genau
+  einmal je Stand `@coderabbitai review` mit dem Token des Agentenkontos
+  (CodeRabbit prüft das Repo nicht mehr automatisch: weniger als 10 Sterne;
+  Befehle von Bots ignoriert es). Selbst kein `@coderabbitai
+  review` schreiben (doppelte Anforderung); `@coderabbitai full review` nur,
+  wenn der Nachweis eine Lücke in der Abdeckung meldet.
+- Jeder Push nimmt `review-ready` wieder ab (der Workflow), ein neuer Stand
+  wird also nie ungefragt geprüft. Nach den Fixes und erneutem Tor: Label
+  wieder setzen. Nach einem Rate-Limit: Label ab und nach der Wartezeit neu
+  setzen, das gibt genau eine neue Anforderung desselben Stands frei.
+  Ebenso nach einem abgebrochenen Review, und wenn CodeRabbit nicht
+  reagiert: frühestens 40 Minuten nach der Anforderung Label ab und neu.
+- **Runden, bis nichts mehr zu bemängeln ist** (Krisz, 28.11.2026; kein
+  Limit mehr): nach jeder Runde fixen, Tor, Label neu setzen, bis eine
+  Runde ohne neuen Befund durchgeht. Erst dann ist der PR fertig für den
+  Merge. Werden alle Befunde einer Runde begründet abgelehnt (Threads
+  beantwortet und geschlossen), ändert sich der Stand nicht und wird nicht
+  neu angefordert: das war die letzte Runde. Eine offene Entscheidung bei
+  Krisz hält den PR offen.
+- **Kombi-Review** (Krisz, 28.11.2026): vor jeder externen Anforderung
+  eine Opus-Schleife, je Runde ein frischer Opus-Review ohne Vorwissen
+  (eigener Durchgang, nur Diff, Effort xhigh; Krisz 28.11.), fixen, bis Opus nichts mehr findet. Erst
+  dann `review-ready` für mindestens ein externes Review (CodeRabbit oder
+  cubic), bei jedem PR, auch nicht kritischen. Findet es etwas: fixen,
+  wieder Opus bis sauber, wieder extern. Fertig erst, wenn auch das
+  externe Review ohne Befund durchgeht.
+- Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst
+  nachmessen: ein Befund ist eine Behauptung, kein Befehl) oder als
+  Entscheidung an Krisz. Auf jeden Kommentar antworten, Thread schließen.
+- Gemergt wird nur, wenn der Status **`review-nachweis`** auf dem aktuellen
+  Commit grün ist. Der grüne CodeRabbit-Haken allein zählt nicht (er wird
+  auch bei Skip und Rate-Limit grün). Rot heißt nicht geprüft: warten, Grund
+  im Bericht-Kommentar des PRs lesen, nie umgehen. Merge nach `staging` macht
+  Krisz, per Squash; nie selbst mergen, nie den Bypass nutzen.
+- **Kritisch** (Pfadliste in `scripts/lib/review-nachweis.mjs`, jeder PR ab
+  300 Dateien, dazu jede sicherheitsrelevante Änderung: dann Label
+  `kritisch` setzen) braucht zwei KI-Reviews (CodeRabbit und cubic). Fehlt
+  der zweite, gibt es nur eine
+  **dokumentierte Ausnahme mit Krisz' ausdrücklicher Freigabe** aus Chat oder
+  AgencyOS, vorher gezielte Zusatztests. Der Ausnahme-Kommentar steht in
+  `docs/review-workflow.md`; nie auf eigene Initiative, nie automatisch.
+  Danach Label `nachweis-neu` setzen, damit der Nachweis neu bewertet.
+  Eine Bestätigung auf GitHub zählt nicht als Krisz' Freigabe, solange der
+  Agent mit seinem Konto schreibt.
+- Releases `staging` → `main` nur auf Krisz' Ansage; der Nachweis dort prüft,
+  dass jeder enthaltene PR seinen Review-Nachweis trug.
+- Kommt ein Review erst nach dem Merge, wird er genauso abgearbeitet, echte
+  Fehler per Folge-PR. Einstellungen: `cubic.yaml` wirkt nur von `main` aus,
+  `.coderabbit.yaml` aus dem Zweig der PR (deshalb liegt sie auf `staging`).
 
 ## Prüfungen bauen
 

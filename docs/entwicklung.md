@@ -186,7 +186,10 @@ trägt bewusst nicht „umami“: Werbeblocker-Listen sperren `/umami/script.js`
 Push → GitHub Actions baut das Docker-Image → `ghcr.io` → Coolify zieht das
 fertige Image. **Auf dem Server wird nicht gebaut** (er hat zu wenig Speicher).
 Pull Requests gegen `staging` oder `main` durchlaufen vorher
-[`pr-check.yml`](../.github/workflows/pr-check.yml).
+[`pr-check.yml`](../.github/workflows/pr-check.yml). KI-Reviews laufen erst
+auf Anforderung (Label `review-ready`), und gemergt wird nur mit grünem
+Status `review-nachweis`: Ablauf und Regeln in
+[`review-workflow.md`](review-workflow.md).
 
 Das Qualitätstor sitzt im [`Dockerfile`](../Dockerfile), nicht im Workflow:
 nach `npm run build` läuft dort `npm run gate`. Fällt eine Strecke durch,

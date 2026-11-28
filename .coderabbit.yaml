@@ -11,21 +11,35 @@
 # branches other than the default branch“, gesehen an #339).
 #
 # Vor jedem Merge werden alle Review-Kommentare abgearbeitet, auch die von
-# CodeRabbit (CLAUDE.md, Abschnitt Liefern).
+# CodeRabbit (CLAUDE.md, Abschnitt Liefern). Ob der aktuelle Stand wirklich
+# geprueft ist, entscheidet der Status `review-nachweis`, nicht der
+# CodeRabbit-Haken: der wird laut Schema auch bei Skip und Rate-Limit gruen.
 language: de-DE
 
 reviews:
   profile: chill
   auto_review:
-    enabled: true
+    # Draft-First (Krisz, 26.11.2026, docs/review-workflow.md): kein
+    # automatischer Review, weder bei jedem Push noch per Label. Seit dem
+    # 25./26.11.2026 prueft CodeRabbit Repos mit weniger als 10 Sternen
+    # ohnehin nicht mehr automatisch (Meldung an #477); ein Label-Ausloeser
+    # ist ein automatischer Review und lief deshalb ins Leere. Angefordert
+    # wird mit `@coderabbitai review`, und zwar genau einmal je Stand: der
+    # Workflow review-nachweis.yml schreibt den Befehl, sobald das Label
+    # `review-ready` auf einem fertigen Stand liegt. Ein `labels`-Eintrag
+    # hier wuerde bei 10 Sternen eine zweite Anforderung ausloesen.
+    enabled: false
     drafts: false
     # Jede PR geht nach staging; main ist ohnehin dabei (Standard-Zweig).
     base_branches:
       - "staging"
-    # Nach jedem Push neu prüfen, damit auch der letzte Stand vor dem Merge
-    # gesehen wird. Ohne die zweite Zeile pausiert CodeRabbit nach fünf
-    # geprüften Commits (Vorgabe 5), und der letzte Stand bliebe ungeprüft
-    # (Hinweis von CodeRabbit selbst an #339).
+    # Eine erneute Runde (`@coderabbitai review` auf einem neuen Stand)
+    # prueft inkrementell nur den neuen Teil; ob alle Runden zusammen den
+    # Stand abdecken, prueft review-nachweis anhand der Bereiche "between A
+    # and B". Die beiden Zeilen wirken nur bei automatischen Reviews und
+    # bleiben fuer den Fall stehen, dass sie wieder eingeschaltet werden:
+    # ohne die zweite pausiert CodeRabbit nach fünf geprüften Commits
+    # (Vorgabe 5), und der letzte Stand bliebe ungeprüft (#339).
     auto_incremental_review: true
     auto_pause_after_reviewed_commits: 0
   # Wie cubic.yaml: Von Skripten geschriebene Daten nicht prüfen; geprüft

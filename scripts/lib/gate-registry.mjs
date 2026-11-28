@@ -1715,6 +1715,24 @@ export const CHECKS = [
       'Pruefer ohne Torkette: er braucht einen frischen Dump und eine wiederhergestellte Probe, die es nur im Backup-Lauf gibt (scripts/backup/lauf.sh — taeglich im privaten Backup-Repo gegen Live, bei jeder Aenderung an Skripten oder Migrationen in .github/workflows/probe-backup.yml gegen eine erfundene Quelle). ' +
       'Dort urteilt er per Exit-Code, und ohne Gruen entsteht kein Archiv. Ohne Argumente Exit 2 "nicht geprueft". Liest nur Dateien.',
   },
+  {
+    // Anlass (Krisz, 26.11.2026): ein gruener Haken eines KI-Pruefers galt als
+    // "geprueft", auch nach Rate-Limit oder Skip (#473), und cubic stand den
+    // ganzen November am Limit. Vorgefuehrt rot in tests/e2e/review-nachweis.test.js
+    // (Draft, kein Label, Rate-Limit, Skip, Abbruch, fremder Text, Luecke in
+    // der Kette, Force-Push, kritisch ohne Zweitpruefung, falsche Ausnahme,
+    // Release mit unbelegtem Commit) und trocken an 35 echten PRs (#440-#474).
+    id: 'review-nachweis',
+    script: 'scripts/review-nachweis.mjs',
+    rail: null,
+    checks:
+      'fordert CodeRabbit mit Label review-ready genau einmal je Stand an und setzt den Status review-nachweis auf den Head-Commit eines PRs: gruen nur, wenn ein abgeschlossener KI-Review (CodeRabbit "Review completed" oder cubic "AI review completed") genau diesen Stand lueckenlos abdeckt, bei kritischen Pfaden zwei oder einer plus Krisz\' dokumentierte Ausnahme, bei Releases staging -> main jeder enthaltene PR mit Nachweis (Regeln: docs/review-workflow.md, Urteil: scripts/lib/review-nachweis.mjs)',
+    why:
+      'Kein Tor im Auslieferungsweg, sondern ein Merge-Gate auf GitHub: laeuft nur in .github/workflows/review-nachweis.yml, braucht die GitHub-API und das Workflow-Token. ' +
+      'Seine Logik ist rein (scripts/lib/review-nachweis.mjs) und laeuft als Teil von test:e2e auf Schiene A mit echten Antworten als Testdaten.',
+    env:
+      'Netz: fetch() gegen https://api.github.com (PR, Commits, Dateien, Check-Laeufe, Reviews, Kommentare, Vergleich; schreibend nur Status, Labels, der eigene Bericht-Kommentar und die Anforderung `@coderabbitai review` mit dem Token des Agentenkontos, mit --trocken gar nicht). Sonst beruehrt es nichts ausserhalb des Prozesses.',
+  },
 ];
 
 /** Die Strecken einer Schiene, in Laufreihenfolge. */

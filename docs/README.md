@@ -4,6 +4,7 @@
 |---|---|
 | [`entwicklung.md`](entwicklung.md) | Bauen, prüfen und ausliefern: der Einstieg für alle, die am Code arbeiten |
 | [`maschinelle-validierung.md`](maschinelle-validierung.md) | Das Prüfkonzept hinter `npm run gate`: Schienen, Grundsätze, Bausteine |
+| [`review-workflow.md`](review-workflow.md) | KI-Reviews: Draft-First, Auslösung per Label, Review-Nachweis vor dem Merge, Ausnahmen |
 | [`betrieb/datenbank-backup.md`](betrieb/datenbank-backup.md) | Sicherung und Wiederherstellung der Live-Datenbank |
 | [`astro-7-migration.md`](astro-7-migration.md) | Plan für den Umstieg von Astro 5 auf Astro 7 (noch nicht umgesetzt) |
 

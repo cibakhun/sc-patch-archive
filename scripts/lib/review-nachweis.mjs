@@ -1,0 +1,900 @@
+/* ============================================================
+   review-nachweis.mjs — das Urteil hinter dem Status `review-nachweis`.
+
+   WARUM ES DEN GIBT (Krisz, 26.11.2026): Ein gruener Haken eines
+   KI-Pruefers ist kein Beleg, dass der aktuelle Stand geprueft wurde.
+   CodeRabbits eigene Schema-Beschreibung sagt, sein Status wird auch dann
+   gruen, wenn ein Review uebersprungen oder rate-limitiert wurde. An #473
+   lief der letzte Push zuerst in "Review rate limited"; am Haken war das
+   nicht zu sehen. cubic stand im ganzen November ab dem Monatslimit auf
+   "neutral" und zaehlte trotzdem als "durchgelaufen".
+
+   Dieses Modul faellt das Urteil aus Daten, die der Aufrufer
+   (scripts/review-nachweis.mjs) bei GitHub abholt. Es selbst hat kein
+   Netz, kein git, keinen Kindprozess: so laesst es sich mit echten
+   Antworten als Testdaten pruefen (tests/e2e/review-nachweis.test.js).
+
+   GRUNDREGELN (docs/review-workflow.md):
+     - Gruen nur mit positivem Beleg fuer GENAU den Head-Commit. Alles,
+       was nicht ausdruecklich als abgeschlossener Review erkannt wird
+       (Rate-Limit, Skip, Abbruch, unbekannter Text), zaehlt als NICHT
+       geprueft. Im Zweifel rot (fail closed).
+     - Abdeckung: Die inkrementellen Runden muessen zusammen den ganzen
+       Stand abdecken. CodeRabbit nennt je Review den Bereich "between A
+       and B"; die Bereiche muessen eine luecklose Kette von einem
+       Vorfahren ausserhalb des PRs bis zum Head bilden.
+     - Normaler PR: ein abgedeckter Review (CodeRabbit ODER cubic).
+     - Kritischer PR: zwei (CodeRabbit UND cubic), oder einer plus eine
+       dokumentierte Ausnahme mit Krisz' ausdruecklicher Freigabe. Nie
+       automatisch.
+     - Release (staging -> main): jeder enthaltene Commit gehoert zu einem
+       nach staging gemergten PR, dessen letzter Stand den Nachweis trug.
+   ============================================================ */
+
+export const LABEL_BEREIT = 'review-ready';
+export const LABEL_KRITISCH = 'kritisch';
+export const LABEL_OHNE_CUBIC = 'ohne-cubic';
+export const LABEL_NEU = 'nachweis-neu'; // nur: Nachweis neu bewerten (z. B. nach einer Ausnahme)
+export const STATUS_KONTEXT = 'review-nachweis';
+export const BERICHT_MARKE = '<!-- review-nachweis:bericht -->';
+export const anforderungsMarke = (sha) => `<!-- review-nachweis:anforderung sha=${sha} -->`;
+/* Wer Anforderungen schreibt: nur das Agentenkonto (Token
+   REVIEW_ANFORDERUNG_TOKEN). Eine Marke von anderen zaehlt nicht: sonst
+   koennte jeder Kommentar die echte Anforderung unterdruecken (Review
+   #477). Auch nicht die alten Marken von `github-actions[bot]` (vor dem
+   Konto): CodeRabbit ignoriert Befehle von Bots, eine solche Marke hat nie
+   einen Review ausgeloest und darf eine neue Anforderung desselben Stands
+   nicht sperren (Review #477, Runde 4). Der Ablauf prueft vor jeder
+   Anforderung, dass der Token zu einem dieser Konten gehoert. */
+export const ANFORDERUNG_KONTEN = ['Verse-Base'];
+
+const SHA = /^[0-9a-f]{40}$/;
+const kurz = (s) => (s || '').slice(0, 7);
+
+/* ---------------------------------------------------------------
+   Kritische Pfade (Krisz, 26.11.2026, V3): Migrationen und RLS, Edge
+   Functions (Stripe, Konto), Anmeldung und MFA, Server und Container,
+   dazu IMMER alles, was Review-Gates, Rechte oder Sicherheits-
+   konfiguration traegt. Jeder Eintrag nennt seinen Anlass.
+   --------------------------------------------------------------- */
+export const KRITISCHE_PFADE = [
+  [/^supabase\/migrations\//, 'Datenbank-Migration (Schema, RLS, Rechte)'],
+  [/^supabase\/functions\//, 'Edge Function (Zahlung, Konto, Registrierung)'],
+  [/^supabase\/(config\.toml|rights\.)/, 'Supabase-Konfiguration oder Rechte-Soll'],
+  [/^src\/components\/account\/(Auth|Mfa)/, 'Anmeldung, Passwort oder MFA'],
+  [/^src\/pages\/(de\/)?account\/(login|register|reset|update-password)\./, 'Anmelde- oder Passwortseite'],
+  [/^src\/lib\/(auth-|mfa|supabase\.ts$|account-cleanup|account-export)/, 'Anmelde-, Sitzungs- oder Kontologik'],
+  [/^nginx\//, 'Server-Konfiguration (CSP, Kopfzeilen, Tor)'],
+  [/(^|\/)Dockerfile$/, 'Container und Auslieferungs-Tor'],
+  [/^\.dockerignore$/, 'Bau-Kontext (bestimmt, was das Tor sieht)'],
+  [/^\.github\//, 'Workflows, Rechte, Dependabot (Review-Gate und CI)'],
+  [/^(\.coderabbit\.yaml|cubic\.yaml)$/, 'Konfiguration der KI-Pruefer (Review-Gate)'],
+  [/^scripts\/(lib\/)?review-nachweis\.mjs$/, 'Review-Gate selbst'],
+  [/^scripts\/lib\/supabase-ziel\.mjs$/, 'Datenbank-Ziel je Bau (Live oder Vorschau)'],
+  /* Welche Pruefer im Tor laufen: ein `rail: 'A'` -> `null` in der Registry
+     nimmt einen Pruefer still aus dem Auslieferungs-Tor (Review #477). */
+  [/^scripts\/(lib\/gate-registry|run-gate|verify-wiring)\.mjs$/, 'Tor-Kette (welche Pruefer im Tor laufen)'],
+  [/^scripts\/(verify-supply-chain|audit-csp|_write-csp-hashes)\.mjs$/, 'Sicherheits-Tor (Lieferkette, CSP)'],
+  /* Opus-Review #477, Runde 9: Ausnahmeliste des Testpilot-Tors und das
+     Soll der wirksamen Datenbankrechte sind Sicherheits-Tore; die
+     Kontoseiten fuer MFA, Sicherheit und Uebersicht tragen Konto und MFA (V3). */
+  [/^scripts\/(verify-gate|verify-db-rights)\.mjs$/, 'Sicherheits-Tor (Testpilot-Ausnahmen, Datenbankrechte)'],
+  [/^src\/scripts\/account-(mfa|security|dashboard)\.ts$/, 'Konto, Sicherheit oder MFA (Browser-Logik)'],
+  /* Runde 10: Sitzung und Tor-Pass im Browser, Testpilot-Torseite mit
+     eigener Anmeldung, Ruecksprungziel nach dem Login, und das Tor gegen
+     geheime Schluessel im Bau. */
+  [/^assets\/account-lite\.js$/, 'Sitzung und Tor-Pass im Browser'],
+  [/^src\/pages\/gate\.astro$/, 'Testpilot-Tor mit Anmeldung'],
+  [/^src\/lib\/safe-next\.ts$/, 'Ruecksprungziel nach der Anmeldung'],
+  [/^scripts\/verify-supabase-ziel\.mjs$/, 'Sicherheits-Tor (kein geheimer Schluessel im Bau)'],
+  /* Runde 11: Bibliotheken, die Erzeuger und Pruefer der CSP und der
+     Rahmen-Kopfzeilen gemeinsam nutzen (eine Aenderung verschiebt beide,
+     das Tor merkt nichts), und das Integritaets-Tor fuer public/vendor/.
+     Seit Runde 11 prueft ein Test, dass jedes Modul, das ein kritisches
+     Skript importiert, selbst kritisch ist. */
+  [/^scripts\/lib\/(rahmen|csp-inline|hangar-switch)\.mjs$/, 'Gemeinsame Bibliothek von Sicherheits-Tor und Erzeuger (CSP, Rahmen, Tor-Plan)'],
+  [/^scripts\/verify-vendor-three\.mjs$/, 'Sicherheits-Tor (Integritaet von public/vendor)'],
+  /* V3 (Krisz 26.11.2026): Aenderungen an Review-Gates und Berechtigungen
+     sind immer kritisch. CLAUDE.md legt fest, was der Agent darf (nie
+     mergen, main tabu, Ausnahmen nur mit Freigabe); docs/review-workflow.md
+     haelt die Regeln und Vorlagen des Gates. */
+  [/^CLAUDE\.md$/, 'Arbeitsregeln und Rechte des Agenten'],
+  [/^docs\/review-workflow\.md$/, 'Regeln des Review-Gates'],
+];
+
+/* Inhaltliche Signale fuer sicherheitsrelevante Aenderungen ausserhalb der
+   Pfade (V3: "zusaetzlich sicherheitsrelevante Aenderungen ausserhalb
+   dieser Pfade"). Gesucht wird nur in geaenderten Zeilen (+/-) des Diffs.
+   Das ist eine Heuristik, kein Beweis: was sie nicht faengt, markiert der
+   Agent mit dem Label `kritisch` (CLAUDE.md). Lieber ein Fehlalarm zu viel
+   als eine stille Luecke; jede Zeile nennt ihren Grund. */
+export const KRITISCHE_SIGNALE = [
+  [/\bservice_role\b|SERVICE_ROLE|SUPABASE_SECRET/i, 'Geheimschluessel oder Service-Rolle'],
+  [/\bsecurity\s+definer\b/i, 'SECURITY DEFINER'],
+  [/\b(create|alter|drop)\s+policy\b|\b(enable|disable)\s+row\s+level\s+security\b/i, 'RLS-Policy'],
+  [/^\s*(grant|revoke)\s+\w/i, 'GRANT/REVOKE'],
+  [/Content-Security-Policy|Strict-Transport-Security|X-Frame-Options/i, 'Sicherheits-Kopfzeile'],
+  [/\bstripe\b/i, 'Zahlungslogik (Stripe)'],
+  [/\bauth\.(admin|signIn|signUp|updateUser|setSession|exchangeCodeForSession|mfa)\b/, 'Anmelde-API'],
+  // Nur entfernte oder geaenderte Zeilen: ein neues Tor ist keine Abschwaechung.
+  [/^\s*"(gate|gate:data|test:e2e|verify:[\w-]+|audit:[\w-]+)"\s*:/, 'Tor-Kette in package.json geaendert', { nurEntfernt: true }],
+  /* Ein zweiter Schluessel ueberschreibt den ersten (npm nimmt den letzten):
+     eine hinzugefuegte Zeile fuer den Einstieg der Kette ist immer eine
+     Aenderung daran (Opus-Review #477, Runde 11). */
+  [/^\s*"(gate|gate:data|test:e2e)"\s*:/, 'Einstieg der Tor-Kette in package.json hinzugefuegt (ueberschreibt einen vorhandenen)', { nurHinzu: true }],
+];
+
+/** Hoechstzahl Dateien, die der Vergleich zweier fester Commits liefert
+    (GitHub-Doku). Bis darunter stammt die Dateiliste fest vom Stand. */
+export const VERGLEICH_MAX = 300;
+
+/** Liste der Gruende, warum ein PR kritisch ist (leer = normal). */
+export function kritischeGruende(dateien, labels = []) {
+  const gruende = [];
+  const dazu = (g) => { if (!gruende.includes(g)) gruende.push(g); };
+  if (labels.includes(LABEL_KRITISCH)) dazu(`Label "${LABEL_KRITISCH}"`);
+  /* Ab 300 Dateien kommt die Liste aus der PR-Liste, die dem jeweils
+     aktuellen Head gilt. Geloeschte Dateien darin lassen sich nicht an den
+     Stand binden: Kehrte der Head waehrend der Erhebung zurueck, koennte
+     eine kritische Aenderung fehlen. Im Zweifel kritisch (Review #477,
+     Nachfrage zu Runde 4). */
+  if ((dateien || []).length >= VERGLEICH_MAX) dazu(`${VERGLEICH_MAX} oder mehr Dateien: Dateiliste nicht fest an den Stand gebunden`);
+  for (const f of dateien) {
+    for (const name of [f.filename, f.previous_filename].filter(Boolean)) {
+      for (const [re, warum] of KRITISCHE_PFADE) if (re.test(name)) dazu(`${warum}: ${name}`);
+    }
+    if (typeof f.patch !== 'string') {
+      /* GitHub laesst `patch` bei grossen Diffs weg; dann sieht die Suche
+         nach Signalen nichts. Im Zweifel kritisch (Opus-Review #477,
+         Runde 3). Ausgenommen JSON ausser package.json: Daten und
+         Lockfiles tragen keines der Signale (gemessen: 3 von 20 PRs
+         #470 bis #491 hatten nur grosse JSON-Daten ohne patch). */
+      const daten = /\.json$/i.test(f.filename || '') && !/(^|\/)package\.json$/.test(f.filename || '');
+      if (Number(f.changes) > 0 && !daten) dazu(`Diff ohne Inhalt (zu gross, Signale nicht pruefbar): ${f.filename}`);
+      continue;
+    }
+    for (const zeile of f.patch.split('\n')) {
+      if (!/^[+-]/.test(zeile) || /^(\+\+\+|---)/.test(zeile)) continue;
+      const inhalt = zeile.slice(1);
+      for (const [re, warum, opt] of KRITISCHE_SIGNALE) {
+        if (opt?.nurEntfernt && zeile[0] !== '-') continue;
+        if (opt?.nurHinzu && zeile[0] !== '+') continue;
+        if (re.test(inhalt)) dazu(`${warum} in ${f.filename}`);
+      }
+    }
+  }
+  return gruende;
+}
+
+/* ---------------------------------------------------------------
+   Einordnung der Check-Laeufe. Gezaehlt wird nur, was in echten
+   Antworten (75 PRs, 26.11.2026) als abgeschlossener Review stand.
+   --------------------------------------------------------------- */
+
+/** Dateien der Liste, die GitHub nicht aus dem Stand `head` las. Jede nicht
+    geloeschte Datei nennt ihn in `contents_url` (`?ref=<sha>`); eine
+    geloeschte nennt die Seite des Zielzweigs. Wechselte der Head waehrend
+    der Erhebung und kam zurueck (A -> B -> A), stammt die Liste sonst
+    unbemerkt von B (Review #477, Runde 4). */
+export function fremdeDateien(dateien, head) {
+  return (dateien || []).filter((f) => f.status !== 'removed' && /[?&]ref=([0-9a-f]{40})/.exec(f.contents_url || '')?.[1] !== head);
+}
+
+/** Bindung der PR-Dateiliste an den Stand, wenn der feste Vergleich
+    (Basis...Head) nicht alle Dateien liefert: jede Datei der Liste muss vom
+    Head stammen (fremdeDateien), und jede Datei des Vergleichs muss in der
+    Liste gleich stehen (Name, Status, Blob). Eine Liste nur aus geloeschten
+    Dateien verriete einen anderen Stand sonst nicht (Review #477, Runde 4).
+    Ergebnis: Zahl der Abweichungen. */
+export function abweichendeDateien(liste, fest, head) {
+  const je = new Map((liste || []).map((f) => [f.filename, f]));
+  const anders = (fest || []).filter((f) => {
+    const x = je.get(f.filename);
+    return !x || x.status !== f.status || x.sha !== f.sha;
+  });
+  return fremdeDateien(liste, head).length + anders.length;
+}
+
+/** Die Commits des PRs im Verlauf des Heads, Eltern vor Kindern.
+    `liste`: [{ sha, parents: [sha] }] wie GitHub sie liefert. Jeder Commit
+    eines PRs liegt im Verlauf seines Heads; einer, der es nicht tut, stammt
+    aus einer Liste zu einem anderen Stand (A -> B -> A: B = A + X, X kaeme
+    hinzu) und faellt hier heraus. Die Reihenfolge folgt den Eltern, nicht
+    der Liste: cubics Abdeckung liest die Laeufe der Reihe nach, und GitHub
+    sagt keine Reihenfolge zu (in 81 PRs, #400 bis #480, gemessen stimmte
+    sie; Review #477, Runde 4). Fehlt der Head, bleibt die Liste, wie sie
+    ist: das faengt die Pruefung im Laeufer. */
+export function verlaufZumHead(liste, head) {
+  const eltern = new Map((liste || []).map((c) => [c.sha, c.parents || []]));
+  if (!eltern.has(head)) return (liste || []).map((c) => c.sha);
+  const out = [];
+  const gesehen = new Set();
+  const stapel = [[head, false]];
+  while (stapel.length) {
+    const [sha, fertig] = stapel.pop();
+    if (fertig) { out.push(sha); continue; }
+    if (gesehen.has(sha)) continue;
+    gesehen.add(sha);
+    stapel.push([sha, true]);
+    for (const p of [...eltern.get(sha)].reverse()) if (eltern.has(p) && !gesehen.has(p)) stapel.push([p, false]);
+  }
+  return out;
+}
+
+/** CodeRabbit: 'geprueft' | 'laeuft' | 'ratenlimit' | 'uebersprungen' | 'abgebrochen' | 'unbekannt' */
+export function codeRabbitLauf(lauf) {
+  if (!lauf) return { art: 'fehlt' };
+  const titel = lauf.title || '';
+  const erste = (lauf.summary || '').split('\n')[0];
+  if (lauf.status !== 'completed') return { art: 'laeuft', titel };
+  if (lauf.conclusion === 'success' && titel === 'Finished' && /^Result: Success - Review completed\b/.test(erste)) return { art: 'geprueft', titel };
+  if (/rate limit/i.test(titel + ' ' + erste)) return { art: 'ratenlimit', titel };
+  if (lauf.conclusion === 'skipped' || /skipped/i.test(titel)) return { art: 'uebersprungen', titel };
+  if (lauf.conclusion === 'cancelled') return { art: 'abgebrochen', titel };
+  return { art: 'unbekannt', titel: titel || erste || `${lauf.status}/${lauf.conclusion}` };
+}
+
+/** cubic: 'geprueft' (voll|inkrementell) | 'merge' | 'laeuft' | 'limit' | 'nicht-geprueft' */
+export function cubicLauf(lauf) {
+  if (!lauf) return { art: 'fehlt' };
+  const titel = lauf.title || '';
+  const summary = lauf.summary || '';
+  if (lauf.status !== 'completed') return { art: 'laeuft', titel };
+  if (lauf.conclusion === 'success' && titel === 'AI review completed') {
+    return { art: 'geprueft', inkrementell: /\(changes from recent commits\)/.test(summary), titel };
+  }
+  if (lauf.conclusion === 'success' && titel === 'AI review not needed for merge commit') return { art: 'merge', titel };
+  if (/limit/i.test(titel)) return { art: 'limit', titel };
+  return { art: 'nicht-geprueft', titel: titel || `${lauf.status}/${lauf.conclusion}` };
+}
+
+const istCodeRabbit = (l) => l.app === 'coderabbitai' && l.name === 'CodeRabbit';
+const istCubic = (l) => l.app === 'cubic-dev-ai';
+const juengster = (laeufe) => [...laeufe].sort((a, b) => String(b.started_at || '').localeCompare(String(a.started_at || '')))[0];
+
+/** Zustand des CodeRabbit-Reviews fuer einen Commit: irgendein abgeschlossener Lauf zaehlt; sonst der juengste. */
+export function codeRabbitAmCommit(laeufe = []) {
+  const cr = laeufe.filter(istCodeRabbit);
+  if (cr.some((l) => codeRabbitLauf(l).art === 'geprueft')) {
+    const j = codeRabbitLauf(juengster(cr));
+    return j.art === 'laeuft' ? { art: 'geprueft', nochEinLauf: true } : { art: 'geprueft' };
+  }
+  return codeRabbitLauf(juengster(cr));
+}
+
+/* ---------------------------------------------------------------
+   Anforderung. CodeRabbit prueft dieses Repo nicht mehr automatisch
+   (weniger als 10 Sterne, seit 25./26.11.2026); ein Review kommt nur auf
+   `@coderabbitai review`. Den Befehl schreibt der Workflow, genau einmal je
+   Stand, mit einer Marke, die den Stand nennt. Die Marke verlaengert nur
+   das Warten, sie zaehlt nie als Review.
+   --------------------------------------------------------------- */
+const vomAnforderer = (kommentare) => (kommentare || []).filter((k) => ANFORDERUNG_KONTEN.includes(k.author));
+const anforderungen = (kommentare, head) => {
+  const re = new RegExp(`<!--\\s*review-nachweis:anforderung\\s+sha=${head}\\s*-->`);
+  return vomAnforderer(kommentare).filter((k) => re.test(k.body || ''));
+};
+
+/** Zeitpunkt (ms) der juengsten Anforderung fuer genau diesen Stand, sonst null. */
+export function anforderungAmHead(kommentare, head) {
+  const t = anforderungen(kommentare, head).map((k) => Date.parse(k.erstellt || '')).filter(Number.isFinite);
+  return t.length ? Math.max(...t) : null;
+}
+
+/** Alle Anforderungen, gleich fuer welchen Stand. */
+const alleAnforderungen = (kommentare) => vomAnforderer(kommentare).filter((k) => /<!--\s*review-nachweis:anforderung\s+sha=[0-9a-f]{40}\s*-->/.test(k.body || ''));
+
+/** Gehoert das zuletzt gesetzte Label zu einem aelteren Stand als dem Head?
+    Anker ist die frueheste Check-Suite des Heads (GitHub-Uhr, entsteht beim
+    ersten Push des Commits), sonst das Commit-Datum. Kehrt der Head per
+    Force-Push auf einen frueheren Commit zurueck (A -> B -> A), liegt diese
+    Suite vor dem Label fuer B; deshalb zaehlt auch das juengste
+    `head_ref_force_pushed` als Anker (Opus-Review #477, Runde 3).
+    true/false, null = nicht zu entscheiden. */
+export function labelAelter(ereignisse, label, suiten, commitDatum, pushZeit) {
+  const gesetzt = zuletztGesetzt(ereignisse, label);
+  if (gesetzt === null) return null;
+  let anker = Math.min(...(suiten || []).map((x) => Date.parse(x.created_at || '')).filter(Number.isFinite));
+  if (!Number.isFinite(anker)) anker = Date.parse(commitDatum || '');
+  /* Beim Push (`synchronize`): `updated_at` des PRs im Ereignis ist die
+     Zeit des Pushs. Wurde der Commit vorher schon auf einem anderen Zweig
+     gepusht, liegt seine erste Check-Suite vor dem Label fuer den alten
+     Head (Opus-Review #477, Runde 4). */
+  const push = Date.parse(pushZeit || '');
+  if (Number.isFinite(push)) anker = Number.isFinite(anker) ? Math.max(anker, push) : push;
+  if (!Number.isFinite(anker)) return null;
+  const force = (ereignisse || []).filter((e) => e.event === 'head_ref_force_pushed').map((e) => Date.parse(e.created_at || '')).filter(Number.isFinite);
+  if (force.length) anker = Math.max(anker, ...force);
+  return gesetzt < anker;
+}
+
+/** Juengstes Setzen eines Labels (ms) aus den Issue-Ereignissen, sonst null. */
+export function zuletztGesetzt(ereignisse, label) {
+  const t = (ereignisse || []).filter((e) => e.event === 'labeled' && e.label?.name === label).map((e) => Date.parse(e.created_at || '')).filter(Number.isFinite);
+  return t.length ? Math.max(...t) : null;
+}
+
+const fertigGeprueft = (laeufe) => (laeufe || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft');
+
+/** Staende mit abgeschlossenem CodeRabbit-Review, je PR: aus den Laeufen der
+    heutigen Commits und aus dem, was ein Umschreiben ueberdauert
+    (`d.fruehereRunden`: Bereichsziele aus CodeRabbits Reviews und das
+    Ledger im Bericht). Sonst senkte ein Force-Push, Rebase oder Squash die
+    Zahl (Review #477). Die Zahl steht im Bericht; ein Rundenlimit gibt es
+    seit dem 28.11.2026 nicht mehr (Krisz: pruefen, bis nichts mehr zu
+    bemaengeln ist). */
+export function gepruefteStaende(d) {
+  return [...new Set([...bestaetigteRunden(d), ...(d.vorlaeufigeRunden || []).filter((x) => SHA.test(x))])];
+}
+
+/** Nur belegte Runden (ohne die vorsorglich gezaehlten, nicht lesbaren
+    Staende): nur sie gehen ins Ledger. Ein einmal nicht lesbarer Stand
+    wird so beim naechsten Lauf neu gelesen und nicht dauerhaft gezaehlt
+    (Review #477). */
+export function bestaetigteRunden(d) {
+  const jetzt = (d.commits || []).filter((c) => fertigGeprueft(d.laeufeJeCommit?.[c]));
+  return [...new Set([...jetzt, ...(d.fruehereRunden || []).filter((x) => SHA.test(x))])];
+}
+
+/** Alle Staende, fuer die je eine Anforderung geschrieben wurde (aus den
+    Marken; die Kommentare ueberdauern jedes Umschreiben). */
+export function angeforderteStaende(kommentare) {
+  const re = /<!--\s*review-nachweis:anforderung\s+sha=([0-9a-f]{40})\s*-->/g;
+  const out = new Set();
+  for (const k of alleAnforderungen(kommentare)) for (const m of String(k.body).matchAll(re)) out.add(m[1]);
+  return [...out];
+}
+
+/** Runden aus angeforderten Staenden, die nicht mehr im PR liegen:
+    `laeufeJe[sha]` sind deren Check-Laeufe, `null` heisst nicht lesbar.
+    Belegt ist ein fertiger Review; nicht lesbar zaehlt vorsorglich mit
+    (`vorlaeufig`), aber nur fuer diesen Lauf: so geht eine Runde nicht
+    verloren, wenn ein Force-Push den Lauf abbrach, bevor er sie im Bericht
+    festhielt, und ein einmaliger API-Fehler sperrt nicht dauerhaft
+    (Review #477). */
+export function rundenAusAnforderungen(shas, laeufeJe) {
+  const lesbar = (sha) => Array.isArray(laeufeJe[sha]);
+  return {
+    bestaetigt: (shas || []).filter((sha) => lesbar(sha) && fertigGeprueft(laeufeJe[sha])),
+    vorlaeufig: (shas || []).filter((sha) => !lesbar(sha)),
+  };
+}
+
+/** Abgeschlossene CodeRabbit-Runden des PRs: nur belegte. */
+export function rundenZahl(d) {
+  return bestaetigteRunden(d).length;
+}
+
+/** Angeforderte Staende, deren Laeufe nicht lesbar waren: im Bericht
+    getrennt genannt, nie als abgeschlossen gezaehlt (Review #477, Runde 4). */
+export function unlesbareRunden(d) {
+  const belegt = new Set(bestaetigteRunden(d));
+  return gepruefteStaende(d).filter((x) => !belegt.has(x));
+}
+
+/** Darf derselbe Stand noch einmal angefordert werden? Nur nach einem
+    Rate-Limit oder ohne Reaktion: Hat CodeRabbit auf die juengste
+    Anforderung mit "rate limited" geantwortet und wurde `review-ready`
+    danach neu gesetzt (`d.bereitGesetzt`, ms), oder kam seit ihr gar kein
+    Lauf und wurde das Label fruehestens KEINE_REAKTION_MIN Minuten nach ihr
+    neu gesetzt, gibt das genau eine neue Anforderung frei. Ein
+    Mensch oder der Agent setzt das Label, sobald das Limit vorbei ist;
+    von selbst wiederholt der Workflow nichts. */
+export function wiederholungErlaubt(d) {
+  const head = d.pr.head_sha;
+  const tAnf = anforderungAmHead(d.kommentare, head);
+  if (tAnf === null || !Number.isFinite(d.bereitGesetzt)) return false;
+  const letzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
+  const tLetzter = Date.parse(letzter?.started_at || '');
+  /* Keine Reaktion (Opus-Review #477, Runde 9): kein CodeRabbit-Lauf am
+     Head seit der Anforderung, und das Label wurde erst nach Ablauf der
+     Wartezeit neu gesetzt. Sonst bliebe der Stand ohne neuen Commit rot. */
+  if (!(Number.isFinite(tLetzter) && tLetzter >= tAnf)) return d.bereitGesetzt >= tAnf + KEINE_REAKTION_MIN * 60_000;
+  /* Abgebrochen (etwa PR waehrend des Reviews geschlossen und wieder
+     geoeffnet) wie ein Rate-Limit: ein danach neu gesetztes Label gibt eine
+     Wiederholung frei (Opus-Review #477, Runde 11). */
+  if (!['ratenlimit', 'abgebrochen'].includes(codeRabbitLauf(letzter).art)) return false;
+  return d.bereitGesetzt > tLetzter;
+}
+
+/** Minuten ohne CodeRabbit-Lauf nach einer Anforderung, ab denen ein neu
+    gesetztes Label sie wiederholen darf (Wartezeit des Workflows). */
+export const KEINE_REAKTION_MIN = 40;
+
+/** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im
+    Draft, nie doppelt (ausser nach einem Rate-Limit mit neu gesetztem
+    Label). Eine Endlosschleife gibt es so nicht: jeder neue Stand braucht
+    ein neu gesetztes Label, jeder Push nimmt es ab. */
+export function anforderungNoetig(d) {
+  const { pr } = d;
+  if (pr.draft || (pr.base_ref === 'main' && pr.head_ref === 'staging')) return false;
+  if (!(pr.labels || []).includes(LABEL_BEREIT)) return false;
+  if (codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art === 'geprueft') return false;
+  return !(anforderungen(d.kommentare, pr.head_sha).length && !wiederholungErlaubt(d));
+}
+
+/* ---------------------------------------------------------------
+   Status je PR. Der Status haengt am Commit; ein spaeterer PR vom selben
+   Stand (etwa nach einem anderen Zielzweig) koennte ihn ueberschreiben, und
+   die Release-Pruefung naehme dessen Urteil fuer den gemergten PR (Review
+   #477). Darum nennt jede Beschreibung den PR, und die Release-Pruefung
+   liest das juengste Urteil, das genau diesen PR nennt.
+   --------------------------------------------------------------- */
+export const prMarke = (nummer) => ` [#${nummer}]`;
+
+/** Beschreibung mit PR-Marke, zusammen hoechstens 140 Zeichen. */
+export function beschreibungMitPr(beschreibung, nummer) {
+  const marke = prMarke(nummer);
+  return `${String(beschreibung).slice(0, 140 - marke.length)}${marke}`;
+}
+
+/** Juengstes Urteil (`state`) des Nachweises fuer genau diesen PR aus der
+    Status-Liste eines Commits, sonst null. */
+export function nachweisFuerPr(statuses, nummer) {
+  const marke = prMarke(nummer);
+  const eigene = (statuses || [])
+    .filter((x) => x.context === STATUS_KONTEXT && String(x.description || '').endsWith(marke))
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  return eigene[0]?.state || null;
+}
+
+/* ---------------------------------------------------------------
+   Hilfen fuer den Aufrufer, ohne eigenes Netz: Er reicht die Abrufe als
+   Funktionen herein, so sind Reihenfolge und Grenzen pruefbar.
+   --------------------------------------------------------------- */
+
+/** Liest eine seitenweise Liste ganz. `holen(seite)` liefert die Eintraege
+    einer Seite. Ist auch die Seite nach `max` noch gefuellt, wirft es: eine
+    abgeschnittene Liste wuerde still etwas uebersehen (einen Lauf, einen
+    PR mit demselben Stand, eine Anforderung; Review #477). */
+export async function seitenweise(holen, { max, was = 'Liste', proSeite = 100 }) {
+  const out = [];
+  for (let seite = 1; seite <= max + 1; seite++) {
+    const teil = (await holen(seite)) || [];
+    if (seite > max) {
+      if (teil.length) throw new Error(`${was}: mehr als ${max * proSeite} Eintraege, Liste unvollstaendig`);
+      break;
+    }
+    out.push(...teil);
+    if (teil.length < proSeite) break;
+  }
+  return out;
+}
+
+/** Schreibt das Urteil als Status; vor und nach einem gruenen sieht es noch
+    einmal nach anderen offenen PRs mit demselben Head. Ein zweiter PR kann
+    nach dem Sammeln geoeffnet worden sein, und sein Lauf haette "rot" schon
+    vor unserem "gruen" geschrieben. Mit der Kontrolle danach steht in
+    jeder Reihenfolge zuletzt rot (Review #477). Gibt das zuletzt
+    geschriebene Urteil zurueck. */
+export async function statusMitKontrolle(urteil, d, { schreibe, gleicheStaende }) {
+  const pruefe = async (u) => {
+    if (u.state !== 'success') return u;
+    const andere = await gleicheStaende(d.pr.head_sha);
+    return andere.length ? bewerte({ ...d, gleicherStand: andere }) : u;
+  };
+  let u = await pruefe(urteil);
+  await schreibe(u);
+  const danach = await pruefe(u);
+  if (danach !== u) { u = danach; await schreibe(u); }
+  return u;
+}
+
+/** Bereiche "between A and B" aus einem CodeRabbit-Text. */
+/* Nur aus der Zeile, mit der CodeRabbit seinen Bereich nennt
+   ("Reviewing files that changed ... between A and B"): ein zitierter
+   Diff-Ausschnitt mit demselben Muster ist kein Beleg (Opus-Review #477).
+   Die Zeile beginnt ohne Einrueckung und steht in keinem Codeblock
+   (Opus-Review #477, Runde 2: Kontextzeile eines Diffs, Chat-Antwort im
+   Codeblock). */
+export function bereicheAusText(text) {
+  const out = [];
+  /* Zaun wie CommonMark: schliesst nur derselbe Zeichentyp mit mindestens
+     gleicher Laenge, ein innerer kuerzerer Zaun bleibt Inhalt. Dazu
+     <pre>-Bloecke (Opus-Review #477, Runde 4). */
+  let zaun = null;
+  let pre = false;
+  for (const zeile of String(text || '').split(/\r?\n/)) {
+    const z = /^\s*(`{3,}|~{3,})/.exec(zeile);
+    if (z) {
+      if (!zaun) { zaun = z[1]; continue; }
+      if (z[1][0] === zaun[0] && z[1].length >= zaun.length && /^\s*[`~]+\s*$/.test(zeile)) { zaun = null; continue; }
+    }
+    if (zaun) continue;
+    if (/<pre\b/i.test(zeile)) pre = true;
+    if (pre) { if (/<\/pre>/i.test(zeile)) pre = false; continue; }
+    const m = /^Reviewing files that changed\b.*?\bbetween ([0-9a-f]{40}) and ([0-9a-f]{40})\b/.exec(zeile);
+    if (m) out.push({ a: m[1], b: m[2] });
+  }
+  return out;
+}
+
+/* Nur CodeRabbits Zusammenfassung traegt Bereiche, keine Chat-Antwort:
+   die koennte jeder per Erwaehnung mit einer passenden Zeile bestellen
+   (Opus-Review #477, Runde 2). Marke wie in den echten Kommentaren. */
+export const CR_ZUSAMMENFASSUNG = '<!-- This is an auto-generated comment: summarize by coderabbit.ai -->';
+/* Ein Teilstring reicht nicht: eine bestellte Chat-Antwort kann die Marke
+   im Text wiederholen (Opus-Review #477, Runde 3). Die echte
+   Zusammenfassung BEGINNT mit der Marke (hoechstens nach CodeRabbits
+   Kopfmarke), eine Chat-Antwort beginnt mit der Antwort-Marke
+   (gemessen an allen CodeRabbit-Kommentaren von #477, 28.11.2026). */
+export const CR_KOPF = '<!-- coderabbit-ai-generated:v1 -->';
+export const CR_ANTWORT = '<!-- This is an auto-generated reply by CodeRabbit -->';
+export function istZusammenfassung(body) {
+  const t = String(body || '').replace(/^\uFEFF/, '').trimStart();
+  const rest = t.startsWith(CR_KOPF) ? t.slice(CR_KOPF.length).trimStart() : t;
+  return rest.startsWith(CR_ZUSAMMENFASSUNG) && !t.includes(CR_ANTWORT);
+}
+/** Die eine Zusammenfassung des PRs: CodeRabbit legt sie einmal an und
+    schreibt sie danach nur um. Zaehlt also nur der frueheste passende
+    Kommentar (kleinste id); jeder spaetere mit Marke ist keine. */
+export function ersteZusammenfassung(kommentare) {
+  const passend = (kommentare || []).filter((k) => istZusammenfassung(k.body));
+  return passend.length ? passend.reduce((x, y) => (Number(y.id) < Number(x.id) ? y : x)) : null;
+}
+
+/* ---------------------------------------------------------------
+   Abdeckung. CodeRabbit: Kette aus Bereichen. Quelle eines Bereichs ist
+   ein Commit des PRs oder ein Commit des Zielzweigs (die Basis, gegen
+   die der erste Review lief: CodeRabbit prueft dabei den ganzen PR-Diff
+   ab der Merge-Basis). Ziel muss ein Commit des heutigen PR-Stands sein. Ein umgeschriebener Verlauf (Force-Push)
+   reisst die Kette: dann hilft nur `@coderabbitai full review`.
+   --------------------------------------------------------------- */
+/* Gehoert der Bereich zu einem fertigen Review am Ziel? Ein abgegebener
+   CodeRabbit-Review (`quelle: 'review'`) und das eigene Ledger
+   (`'ledger'`, dort steht nur, was schon einmal so belegt war) sind feste
+   Belege: ein fertiger Lauf am Ziel genuegt, ein spaeterer Abbruch
+   desselben Stands nimmt ihn nicht weg. Jeder andere Text, vor allem die
+   Zusammenfassung, die CodeRabbit bei jedem Lauf ueberschreibt, spricht
+   fuer den juengsten Lauf am Ziel: der muss fertig sein und darf nicht
+   nach der letzten Aenderung des Textes (`stand`, ms) begonnen haben.
+   Sonst koennte ein abgebrochener `full review` mit einem frueheren
+   fertigen Lauf eine Luecke schliessen (Review #477). */
+function zielGeprueft(r, laeufe, jetzt) {
+  if (r.quelle === 'review' || r.quelle === 'ledger') return fertigGeprueft(laeufe);
+  const letzter = juengster((laeufe || []).filter(istCodeRabbit));
+  if (!letzter || codeRabbitLauf(letzter).art !== 'geprueft') return false;
+  if (!('stand' in r)) return true;
+  const start = Date.parse(letzter.started_at || '');
+  /* Und er muss zu dieser Aenderung fertig geworden sein: CodeRabbit
+     schreibt die Zusammenfassung schon vor dem neuen Lauf um (gemessen
+     #477, 28.11.2026: Text 13:39:37, Lauf 13:39:39). In dieser Luecke ist
+     ein frueherer fertiger Lauf noch der juengste; er war lange vorher
+     fertig. Am Ende einer Runde liegen Text und Abschluss Sekunden
+     auseinander (Review 12:21:46, Lauf fertig 12:21:53). Fenster:
+     ZUSAMMENFASSUNG_FENSTER_MS (Opus-Review #477, Runde 4). */
+  const fertig = Date.parse(letzter.completed_at || '');
+  /* Und der Text muss seit ZUSAMMENFASSUNG_RUHE_MS unveraendert sein: sonst
+     koennte der neue Lauf noch fehlen (gemessen 2 s nach dem Text). Ohne
+     diese Ruhezeit kaeme ein Bereich im Fenster als belegt ins Ledger und
+     bliebe fester Beleg, auch wenn der neue Lauf abbricht (Opus-Review
+     #477, Runde 7). Der Lauf pollt ohnehin bis zu 40 Minuten. */
+  return Number.isFinite(r.stand) && Number.isFinite(start) && start <= r.stand
+    && Number.isFinite(fertig) && fertig >= r.stand - ZUSAMMENFASSUNG_FENSTER_MS
+    && jetzt - r.stand >= ZUSAMMENFASSUNG_RUHE_MS;
+}
+export const ZUSAMMENFASSUNG_FENSTER_MS = 120_000;
+export const ZUSAMMENFASSUNG_RUHE_MS = 180_000;
+
+export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit, jetzt = Date.now() }) {
+  const imPr = new Set(commits);
+  const gueltig = [];
+  const verworfen = [];
+  for (const r of bereiche) {
+    if (!SHA.test(r.a) || !SHA.test(r.b)) continue;
+    /* Ziel im heutigen Verlauf und dort ein fertiger Review, der zu diesem
+       Bereich gehoert (zielGeprueft). Den Bereich nennt CodeRabbit schon zu
+       Beginn einer Runde; bricht sie ab, wird er kein Glied der Kette.
+       (Ohne `laeufeJeCommit` nur die Verlaufspruefung, fuer Einzeltests.) */
+    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || zielGeprueft(r, laeufeJeCommit[r.b], jetzt));
+    const quelleOk = imPr.has(r.a) || vorfahren[r.a] === true; // vorfahren: liegt auf dem Zielzweig
+    (zielOk && quelleOk ? gueltig : verworfen).push(r);
+  }
+  const starts = new Set(gueltig.filter((r) => !imPr.has(r.a)).map((r) => r.a));
+  const erreicht = new Set(starts);
+  let neu = true;
+  while (neu) {
+    neu = false;
+    for (const r of gueltig) if (erreicht.has(r.a) && !erreicht.has(r.b)) { erreicht.add(r.b); neu = true; }
+  }
+  const kette = [];
+  if (erreicht.has(head)) {
+    // Eine Kette zur Anzeige: rueckwaerts vom Head.
+    let ziel = head;
+    const gesehen = new Set();
+    while (ziel && !starts.has(ziel) && !gesehen.has(ziel)) {
+      gesehen.add(ziel);
+      const r = gueltig.find((x) => x.b === ziel && erreicht.has(x.a));
+      if (!r) break;
+      kette.unshift(r);
+      ziel = r.a;
+    }
+  }
+  return { abgedeckt: erreicht.has(head), kette, verworfen, gueltig: gueltig.length, gueltigeBereiche: gueltig };
+}
+
+/** Was ins Ledger geht: das bisherige Ledger (nur Fassung 2, siehe
+    ledgerLesen) und jeder Bereich, der jetzt belegt ist. Ein unbelegter Bereich (Lauf laeuft noch oder brach ab)
+    wird nicht festgehalten, sonst wuerde er spaeter als fester Beleg
+    gelesen (Review #477). */
+export function ledgerBereiche(d) {
+  const { gueltigeBereiche } = codeRabbitAbdeckung({
+    bereiche: d.bereiche || [], commits: d.commits || [], head: d.pr.head_sha,
+    vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {},
+  });
+  const out = new Map();
+  for (const r of [...(d.bereiche || []).filter((x) => x.quelle === 'ledger'), ...gueltigeBereiche]) {
+    if (SHA.test(r.a) && SHA.test(r.b)) out.set(`${r.a}..${r.b}`, { a: r.a, b: r.b });
+  }
+  return [...out.values()];
+}
+
+/** cubic: voller Review setzt die Abdeckung, inkrementelle halten sie, alles andere reisst sie.
+    `kontextAb` (ms): Eroeffnung des PRs oder letzter Wechsel des Zielzweigs.
+    Ein Lauf davor gehoert zu einem anderen Vergleich (Check-Laeufe haengen
+    am Commit, nicht am PR): ein gestapelter PR, der auf `staging`
+    umgestellt wird, oder ein zweiter PR auf denselben Head. Er zaehlt
+    nicht (Opus-Review #477, Runde 4). */
+export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb, headRef, fremdeZeiten = [] }) {
+  let abgedeckt = false;
+  let amHead = { art: 'fehlt' };
+  const spur = [];
+  /* Dazu (Runde 5): der Lauf stammt aus einer Suite dieses Zweigs (`zweig`,
+     vom Skript immer gesetzt) und nicht aus der Lebenszeit eines anderen
+     PRs vom selben Zweig (`fremdeZeiten`, [ab, bis] in ms). */
+  const imKontext = (l) => {
+    const t = Date.parse(l.started_at || '');
+    if (Number.isFinite(kontextAb) && !(t >= kontextAb)) return false;
+    if ('zweig' in l && headRef && l.zweig !== headRef) return false;
+    return ![...fremdeZeiten, ...(l.fremdeZeiten || [])].some(([ab, bis]) => !(t < ab || t > bis));
+  };
+  for (const c of commits) {
+    const alleCubic = (laeufeJeCommit[c] || []).filter(istCubic);
+    const laeufe = alleCubic.filter(imKontext);
+    if (!laeufe.length) {
+      /* Ausserhalb des Kontexts zaehlt ein Lauf nicht als Beleg, aber ein
+         Limit, ein offener oder ein nicht gepruefter Lauf dort bleibt eine
+         Luecke: sonst hoebe der Ausschluss den Zweifel auf (Opus-Review
+         #477, Runde 10). */
+      const z = alleCubic.length ? cubicLauf(juengster(alleCubic)) : null;
+      if (z && z.art !== 'geprueft' && z.art !== 'merge') {
+        spur.push(`${kurz(c)} ${z.art} (nicht zuzuordnen)`);
+        abgedeckt = false;
+      }
+      continue;
+    }
+    const z = cubicLauf(juengster(laeufe));
+    spur.push(`${kurz(c)} ${z.art}${z.inkrementell ? ' (inkrementell)' : ''}`);
+    if (z.art === 'geprueft' && !z.inkrementell) abgedeckt = true;
+    else if (z.art === 'geprueft' || z.art === 'merge') { /* haelt */ }
+    /* Offen vor dem Head: nicht belegt, ob cubic ab dem letzten fertigen
+       Review rechnet, also im Zweifel gerissen (Opus-Review #477, Runde 6).
+       Am Head entscheidet amHead. */
+    else if (z.art === 'laeuft' && c === head) { /* offen am Head */ }
+    else abgedeckt = false;
+    if (c === head) amHead = z;
+  }
+  return { abgedeckt: abgedeckt && amHead.art === 'geprueft', amHead, spur };
+}
+
+/* ---------------------------------------------------------------
+   Ausnahmen: nur mit Krisz' ausdruecklicher Freigabe, je Commit, mit
+   Begruendung. Erkannt wird ein Kommentar eines freigabeberechtigten
+   Kontos mit Marke und allen Pflichtzeilen. Solange der Agent mit
+   Krisz' Konto schreibt, ist das eine DOKUMENTATION seiner Freigabe aus
+   Chat oder AgencyOS, kein technischer Identitaetsnachweis
+   (docs/review-workflow.md, "Grenzen").
+   --------------------------------------------------------------- */
+const PFLICHT = {
+  'review-ausnahme': ['Freigabe', 'Zusätzliche Tests', 'Risiken', 'Fehlende Zweitprüfung'],
+  'release-ausnahme': ['Freigabe', 'Nicht nachgewiesen', 'Risiken'],
+};
+
+export function ausnahme({ art, kommentare, head, konten }) {
+  const marke = new RegExp(`<!--\\s*${art}\\s+sha=${head}\\s*-->`);
+  const fehlend = [];
+  for (const k of kommentare) {
+    if (!konten.includes(k.author) || !marke.test(k.body || '')) continue;
+    const zeilen = (k.body || '').split('\n');
+    const leer = PFLICHT[art].filter((feld) => !zeilen.some((z) => {
+      const m = new RegExp(`^\\s*(?:[-*]\\s*)?(?:\\*\\*)?${feld}:(?:\\*\\*)?\\s*(.+)$`).exec(z);
+      // Unausgefuellte Vorlage (<...>) gilt nicht (Opus-Review #477, Runde 7).
+      return m && m[1].trim().length >= 3 && !/<[^>]*>/.test(m[1]);
+    }));
+    if (!leer.length) return { gilt: true, von: k.author, url: k.url };
+    fehlend.push(...leer);
+  }
+  return { gilt: false, fehlend: [...new Set(fehlend)] };
+}
+
+/* ---------------------------------------------------------------
+   Das Urteil.
+   --------------------------------------------------------------- */
+const s = (state, description, extra = {}) => ({ state, description: description.slice(0, 140), ...extra });
+
+export function bewerte(d) {
+  const { pr } = d;
+  const head = pr.head_sha;
+  const labels = pr.labels || [];
+  const bericht = [];
+
+  if (pr.draft) return s('pending', 'Draft: KI-Review erst nach "ready for review" und Label review-ready', { bericht: ['Draft-PR: kein Review vorgesehen.'] });
+
+  /* Der Status haengt am Commit, nicht am PR: Ist derselbe Stand Head
+     mehrerer offener PRs, ueberschreiben sie sich gegenseitig, und das
+     Ergebnis hinge von der Laufreihenfolge ab (Review #477). */
+  if ((d.gleicherStand || []).length) {
+    const liste = d.gleicherStand.map((n) => `#${n}`).join(', ');
+    return s('failure', `Derselbe Stand ist auch Head von ${liste}: Nachweis nicht eindeutig`, { bericht: [`Stand \`${kurz(head)}\` ist zugleich Head von ${liste}. Der Status gilt je Commit; erst wenn nur ein offener PR diesen Stand traegt, wird bewertet.`] });
+  }
+
+  if (pr.base_ref === 'main' && pr.head_ref === 'staging') return bewerteRelease(d);
+
+  if ((d.commits || []).length >= 250) {
+    return s('failure', 'PR hat 250+ Commits: Abdeckung nicht pruefbar, bitte aufteilen', { bericht: ['Mehr als 250 Commits: die API liefert nicht alle, der Nachweis bleibt aus.'] });
+  }
+
+  // GitHub liefert hoechstens 3000 Dateien je PR: darueber sieht die
+  // Kritisch-Erkennung nicht alles.
+  if ((d.dateien || []).length >= 3000 || d.dateienZuViele) {
+    return s('failure', 'PR hat 3000+ Dateien: Kritisch-Erkennung unvollstaendig, bitte aufteilen', { bericht: ['3000 oder mehr Dateien: die API liefert nicht alle, der Nachweis bleibt aus.'] });
+  }
+
+  const gruende = [...kritischeGruende(d.dateien || [], labels), ...(d.zwischenKritisch || [])];
+  const kritisch = gruende.length > 0;
+
+  // CodeRabbit
+  const crHead = codeRabbitAmCommit(d.laeufeJeCommit?.[head] || []);
+  const crAbd = codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {} });
+  const crBeleg = crHead.art === 'geprueft' && crAbd.abgedeckt;
+  /* Scheitert die Abdeckung nur an der Ruhezeit der Zusammenfassung, wird
+     gewartet statt rot geurteilt (Opus-Review #477, Runde 8). */
+  const crRuhe = crHead.art === 'geprueft' && !crAbd.abgedeckt && codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {}, jetzt: Infinity }).abgedeckt;
+
+  // cubic
+  const cuAbd = cubicAbdeckung({ commits: d.commits || [], head, laeufeJeCommit: d.laeufeJeCommit || {}, kontextAb: d.kontextAb, headRef: d.pr.head_ref, fremdeZeiten: d.fremdeZeiten || [] });
+  const cuBeleg = cuAbd.abgedeckt;
+
+  const runden = rundenZahl(d);
+  const unlesbar = unlesbareRunden(d).length;
+
+  bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}${unlesbar ? ` (dazu ${unlesbar} angefordert, Laeufe nicht lesbar)` : ''}`);
+  if (kritisch) for (const g of gruende.slice(0, 12)) bericht.push(`- kritisch: ${g}`);
+  if (gruende.length > 12) bericht.push(`- … und ${gruende.length - 12} weitere Gruende`);
+  bericht.push(`CodeRabbit am Head: ${crHead.art}${crHead.titel ? ` (${crHead.titel})` : ''}; Abdeckung: ${crAbd.abgedeckt ? 'lueckenlos' : 'NICHT belegt'}${crAbd.kette.length ? ' — ' + crAbd.kette.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(' → ') : ''}`);
+  if (crAbd.verworfen.length) bericht.push(`- verworfene Bereiche (Ziel nicht im heutigen Verlauf oder ohne fertigen Review, oder Quelle nicht auf dem Zielzweig): ${crAbd.verworfen.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(', ')}`);
+  bericht.push(`cubic am Head: ${cuAbd.amHead.art}${cuAbd.amHead.titel ? ` (${cuAbd.amHead.titel})` : ''}; Abdeckung: ${cuBeleg ? 'lueckenlos' : 'NICHT belegt'}${cuAbd.spur.length ? ' — ' + cuAbd.spur.join(', ') : ''}`);
+
+  const belege = [crBeleg && 'CodeRabbit', cuBeleg && 'cubic'].filter(Boolean);
+  const extra = { bericht, kritisch, gruende, runden, belege };
+
+  // Warten, solange ein Pruefer am Head noch laeuft oder angefordert ist.
+  // Angefordert, aber noch kein Lauf nach der Anforderung (ein Skip von
+  // davor, etwa "excluded by label configuration", ist dann veraltet).
+  const tAnf = anforderungAmHead(d.kommentare, head);
+  const crLetzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
+  const crAngefordert = tAnf !== null && crHead.art !== 'geprueft' && crHead.art !== 'laeuft'
+    && !(crLetzter && Date.parse(crLetzter.started_at || '') >= tAnf);
+  // Label gesetzt, aber keine Anforderung moeglich (Token fehlt/abgelaufen):
+  // dann wartet nichts, sonst stuende der Status ewig auf "Warte".
+  const nichtAngefordert = Boolean(d.anforderungUnmoeglich) && tAnf === null;
+  const crWartet = crRuhe || crHead.art === 'laeuft' || crHead.nochEinLauf || (crHead.art === 'fehlt' && labels.includes(LABEL_BEREIT) && !nichtAngefordert) || crAngefordert;
+  const cuWartet = cuAbd.amHead.art === 'laeuft';
+  const brauchtMehr = kritisch ? belege.length < 2 : belege.length < 1;
+  if (brauchtMehr && (crWartet || cuWartet) && !d.keinWarten) {
+    return s('pending', `Warte auf ${[crWartet && 'CodeRabbit', cuWartet && 'cubic'].filter(Boolean).join(' und ')} fuer ${kurz(head)}`, { ...extra, warten: true });
+  }
+
+  if (!kritisch && belege.length >= 1) return s('success', `Geprueft (${belege.join(' + ')}) fuer ${kurz(head)}, lueckenlos`, extra);
+  if (kritisch && belege.length >= 2) return s('success', `Kritisch, zweifach geprueft (CodeRabbit + cubic) fuer ${kurz(head)}`, extra);
+
+  if (kritisch && belege.length === 1) {
+    const a = ausnahme({ art: 'review-ausnahme', kommentare: d.kommentare || [], head, konten: d.freigabeKonten || [] });
+    if (a.gilt) {
+      bericht.push(`**AUSNAHME:** nur ein KI-Review (${belege[0]}), Zweitpruefung fehlt. Freigabe dokumentiert von ${a.von}: ${a.url || ''}`);
+      return s('success', `AUSNAHME: kritisch, nur ${belege[0]}; Freigabe Krisz dokumentiert fuer ${kurz(head)}`, { ...extra, ausnahme: true });
+    }
+    if (a.fehlend?.length) bericht.push(`Ausnahme-Kommentar unvollstaendig, es fehlt: ${a.fehlend.join(', ')}`);
+    return s('failure', `Kritisch: zweite Pruefung fehlt (cubic oder dokumentierte Freigabe von Krisz) fuer ${kurz(head)}`, extra);
+  }
+
+  // Kein Beleg. Grund so genau wie moeglich nennen.
+  let grund;
+  /* Ohne Label und ohne Anforderung ist der eigentliche Grund die fehlende
+     Anforderung, auch wenn CodeRabbit das als Skip meldet (live auf #477,
+     26.11.2026: "excluded by label configuration", nach dem Umbau
+     "automatic reviews are disabled"). */
+  if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
+  else if (nichtAngefordert && labels.includes(LABEL_BEREIT)) grund = `Label gesetzt, aber nicht angefordert: ${d.anforderungUnmoeglich}`;
+  else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: NICHT geprueft, nach dem Limit Label neu setzen';
+  else if (crHead.art === 'uebersprungen') grund = `CodeRabbit hat uebersprungen (${crHead.titel}): NICHT geprueft`;
+  else if (crHead.art === 'abgebrochen') grund = 'CodeRabbit-Review abgebrochen: NICHT geprueft';
+  else if (crHead.art === 'unbekannt') grund = `CodeRabbit meldet Unbekanntes (${crHead.titel}): NICHT gezaehlt`;
+  else if (crHead.art === 'geprueft') grund = 'Abdeckung lueckenhaft: Runden decken den Stand nicht ab, full review noetig';
+  else if (crHead.art === 'laeuft') grund = 'CodeRabbit laeuft noch, Wartezeit abgelaufen: noch NICHT geprueft';
+  else if (!labels.includes(LABEL_BEREIT)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  else grund = 'CodeRabbit hat nicht reagiert';
+  if (cuAbd.amHead.art === 'limit') grund += '; cubic am Limit';
+  return s('failure', `${grund} (${kurz(head)})`, extra);
+}
+
+function bewerteRelease(d) {
+  const head = d.pr.head_sha;
+  const rel = d.release || {};
+  const bericht = [`Release staging → main, Stand \`${kurz(head)}\`.`];
+  const offen = [];
+  const prs = new Set();
+  if (rel.zuGross) offen.push('mehr als 250 Commits, nicht vollstaendig abrufbar');
+  for (const c of rel.commits || []) {
+    const ok = (c.prs || []).filter((p) => p.merged && p.base_ref === 'staging' && p.nachweis === 'success');
+    if (ok.length) ok.forEach((p) => prs.add(p.number));
+    else offen.push(`${kurz(c.sha)}${c.prs?.length ? ` (PR ${c.prs.map((p) => `#${p.number}: ${p.nachweis || 'kein Nachweis'}`).join(', ')})` : ' (kein PR)'}`);
+  }
+  bericht.push(`${(rel.commits || []).length} Commits, ${prs.size} PRs mit Nachweis, ${offen.length} ohne.`);
+  for (const o of offen.slice(0, 20)) bericht.push(`- ohne Nachweis: ${o}`);
+  if (offen.length > 20) bericht.push(`- … und ${offen.length - 20} weitere`);
+  if (!offen.length && (rel.commits || []).length) return s('success', `Release: alle ${prs.size} PRs mit Review-Nachweis (${kurz(head)})`, { bericht, release: true });
+  const a = ausnahme({ art: 'release-ausnahme', kommentare: d.kommentare || [], head, konten: d.freigabeKonten || [] });
+  if (a.gilt) {
+    bericht.push(`**RELEASE-AUSNAHME** dokumentiert von ${a.von}: ${a.url || ''}`);
+    return s('success', `RELEASE-AUSNAHME: ${offen.length} ohne Nachweis, Freigabe Krisz dokumentiert (${kurz(head)})`, { bericht, release: true, ausnahme: true });
+  }
+  if (a.fehlend?.length) bericht.push(`Release-Ausnahme unvollstaendig, es fehlt: ${a.fehlend.join(', ')}`);
+  return s('failure', `Release: ${offen.length} Commits ohne Review-Nachweis (${kurz(head)})`, { bericht, release: true });
+}
+
+/** Bereiche aus dem eigenen Bericht-Kommentar (Ledger) lesen. */
+/** Gepruefte Staende aus dem eigenen Bericht (ueberdauern ein Umschreiben). */
+export function rundenLesen(text) {
+  const m = letzteMarke(text, 'review-nachweis:runden');
+  if (!m) return [];
+  try { return JSON.parse(m[1]).filter((x) => SHA.test(x)); } catch { return []; }
+}
+
+/* Nur die Fassung 2 (`bereiche2`): sie haelt ausschliesslich belegte
+   Bereiche fest (ledgerBereiche). Die erste Fassung schrieb jeden gesehenen
+   Bereich, auch den eines spaeter abgebrochenen Laufs; sie wird nicht mehr
+   gelesen, ihre Bereiche zaehlen nur mit eigenem Beleg (Review #477). */
+export const LEDGER_MARKE = 'review-nachweis:bereiche2';
+export const altesLedger = (text) => /<!-- review-nachweis:bereiche \[/.test(String(text || ''));
+
+/* Marken stehen in eigenen Zeilen am Ende des Berichts (berichtText).
+   Gelesen wird nur eine ganze Zeile, und von hinten: ein Dateiname oder
+   Titel im Text davor kann so keine Marke unterschieben (Opus-Review
+   #477); berichtText entschaerft solche Texte zusaetzlich. */
+function letzteMarke(text, marke) {
+  const zeilen = String(text || '').split(/\r?\n/);
+  for (let i = zeilen.length - 1; i >= 0; i--) {
+    const m = new RegExp(`^<!-- ${marke} (\\[.*\\]) -->$`).exec(zeilen[i]);
+    if (m) return m;
+  }
+  return null;
+}
+
+export function ledgerLesen(text) {
+  const m = letzteMarke(text, LEDGER_MARKE);
+  if (!m) return [];
+  try { return JSON.parse(m[1]).filter((r) => SHA.test(r.a) && SHA.test(r.b)); } catch { return []; }
+}
+
+export const entschaerfe = (t) => String(t).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** Den Bericht-Kommentar bauen (Text fuer Menschen, Bereiche fuer den naechsten Lauf). */
+export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {
+  const symbol = urteil.state === 'success' ? '✅' : urteil.state === 'pending' ? '⏳' : '❌';
+  const eindeutig = [];
+  for (const r of bereiche) if (!eindeutig.some((x) => x.a === r.a && x.b === r.b)) eindeutig.push({ a: r.a, b: r.b });
+  return [
+    BERICHT_MARKE,
+    `### ${symbol} review-nachweis: ${urteil.description}`,
+    '',
+    // Dateinamen und Titel sind Fremdtext: keine HTML-Kommentare im
+    // Menschenteil, sonst stuende dort eine zweite Marke (Opus-Review #477).
+    ...(urteil.bericht || []).map(entschaerfe),
+    '',
+    `<sub>Automatischer Bericht, bei jedem Ereignis neu geschrieben. Auswertung aus: ${quelle}. [Lauf](${lauf}). Regeln: docs/review-workflow.md</sub>`,
+    `<!-- ${LEDGER_MARKE} ${JSON.stringify(eindeutig)} -->`,
+    `<!-- review-nachweis:runden ${JSON.stringify([...new Set(runden)])} -->`,
+  ].join('\n');
+}

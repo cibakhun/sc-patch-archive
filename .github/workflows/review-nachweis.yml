@@ -1,0 +1,164 @@
+# Review-Nachweis: setzt den Status `review-nachweis` auf den Head-Commit
+# jedes PRs nach staging oder main. Gruen nur, wenn ein abgeschlossener
+# KI-Review GENAU diesen Stand lueckenlos abdeckt (kritische PRs: zwei, oder
+# einer plus Krisz' dokumentierte Ausnahme; Releases: jeder enthaltene PR mit
+# Nachweis). Regeln und Ablauf: docs/review-workflow.md. Das Urteil faellt
+# scripts/lib/review-nachweis.mjs, getestet in tests/e2e/review-nachweis.test.js.
+#
+# Welche Auswertung laeuft: die aus dem ZIELZWEIG (Spitze von staging bzw.
+# main, ueber die API geholt), nicht die aus dem PR. Ein PR, der das Gate
+# aendert, wird so noch nach den alten Regeln beurteilt; seine Aenderung
+# wirkt erst nach dem Merge. Kennt main sie noch nicht, die von staging.
+# Nur wenn auch staging sie nicht kennt (HTTP 404: der erste PR, der sie
+# einfuehrt), laeuft die aus dem PR, und der Bericht sagt das. Jeder andere Fehler beim Holen bricht
+# ab, statt still auf die Fassung des PRs auszuweichen.
+# Kein Checkout: das Repo ist ueber 2 GB gross (fast zwei Minuten je
+# Ereignis), und so liegt kein Code aus dem PR auf dem Runner.
+# Grenze: diese Datei selbst kommt bei `pull_request` aus dem PR. Deshalb
+# zaehlt jede Aenderung unter .github/ als kritisch (zwei Pruefungen oder
+# Krisz' Freigabe). Ausgefuehrt wird kein Code aus dem PR ausser im
+# genannten Erstfall; Fork-PRs laufen gar nicht (kein Schreibrecht, kein
+# Status, also kein Merge ohne Krisz).
+#
+# Warten: Das Ende eines CodeRabbit-Reviews ohne Kommentare loest kein
+# Ereignis aus. Ist ein Review angefordert, wartet der Lauf deshalb bis zu
+# 40 Minuten darauf (oeffentliches Repo: Actions-Minuten kosten nichts).
+# Jedes neue Ereignis bricht den wartenden Lauf ab und startet neu.
+name: Review-Nachweis
+
+on:
+  pull_request:
+    branches: [staging, main]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled, edited]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions: {}
+
+jobs:
+  nachweis:
+    # Nur PRs nach staging oder main: `pull_request_review` kennt keinen
+    # Zweigfilter (Opus-Review #477).
+    # Reviews nur von Bots oder Konten mit Rechten: sonst kann jeder per
+    # Kommentar-Review Laeufe ausloesen und das API-Limit leeren
+    # (Opus-Review #477, Runde 7).
+    if: >-
+      (github.event_name != 'pull_request_review' ||
+        github.event.review.user.type == 'Bot' ||
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.state == 'open' &&
+      (github.event.pull_request.base.ref == 'staging' || github.event.pull_request.base.ref == 'main')
+    runs-on: ubuntu-latest
+    # Auf Job-Ebene: ein uebersprungener Job (etwa ein Review ohne Rechte)
+    # tritt der Gruppe nicht bei und bricht keinen laufenden Lauf ab
+    # (Opus-Review #477, Runde 8).
+    concurrency:
+      group: review-nachweis-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    timeout-minutes: 50
+    permissions:
+      contents: read # Auswertung aus dem Zielzweig holen
+      checks: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Auswertung aus dem Zielzweig holen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ZIEL: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          hole() {
+            mkdir -p "$(dirname "$RUNNER_TEMP/gate/$1")"
+            curl -sS --retry 3 -o "$RUNNER_TEMP/gate/$1" -w '%{http_code}' \
+              -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github.raw+json' \
+              "https://api.github.com/repos/$REPO/contents/$1?ref=$2"
+          }
+          code=$(hole scripts/lib/review-nachweis.mjs "$ZIEL")
+          if [ "$code" = 404 ] && [ "$ZIEL" = main ]; then
+            # main kennt das Gate erst nach dem ersten Release: bis dahin die
+            # Fassung von staging, nie die des PRs (Opus-Review #477).
+            ZIEL=staging; code=$(hole scripts/lib/review-nachweis.mjs staging)
+            [ "$code" = 200 ] || { echo "::error::Auswertung weder auf main noch auf staging abrufbar (HTTP $code)"; exit 1; }
+          fi
+          if [ "$code" = 200 ]; then
+            REF="$ZIEL"; QUELLE="Zielzweig ($ZIEL)"
+          elif [ "$code" = 404 ]; then
+            REF="$PR_HEAD"; QUELLE="diesem PR (Erstfall: staging kennt das Gate noch nicht)"
+          else
+            echo "::error::Auswertung im Zielzweig nicht abrufbar (HTTP $code)"; exit 1
+          fi
+          # Beide Dateien aus EINEM Stand: den Zweignamen einmal in einen Commit
+          # aufloesen, sonst koennte ein Push dazwischen sie mischen
+          # (Opus-Review #477, Runde 2).
+          if [ "$REF" != "$PR_HEAD" ]; then
+            REF=$(curl -sS --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/$REPO/branches/$REF" \
+              | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c}).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).commit.sha||""))}catch{}})')
+            case "$REF" in ''|*[!0-9a-f]*) echo "::error::Stand des Zielzweigs nicht lesbar"; exit 1 ;; esac
+            [ "${#REF}" -eq 40 ] || { echo "::error::Stand des Zielzweigs nicht lesbar"; exit 1; }
+            QUELLE="$QUELLE, Stand ${REF:0:7}"
+          fi
+          for f in scripts/lib/review-nachweis.mjs scripts/review-nachweis.mjs; do
+            code=$(hole "$f" "$REF")
+            [ "$code" = 200 ] || { echo "::error::$f nicht abrufbar (HTTP $code)"; exit 1; }
+          done
+          echo "QUELLE=$QUELLE" >> "$GITHUB_ENV"
+      - name: Nachweis bewerten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMMER: ${{ github.event.pull_request.number }}
+          EREIGNIS: ${{ github.event_name }}
+          AKTION: ${{ github.event.action }}
+          PR_AKTUALISIERT: ${{ github.event.pull_request.updated_at }}
+          LABEL: ${{ github.event.label.name }}
+          LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FREIGABE_KONTEN: cibakhun
+          # Token des Agentenkontos (nur public_repo, kein Mitarbeiter im
+          # Repo): schreibt `@coderabbitai review`. CodeRabbit ignoriert
+          # Befehle von github-actions[bot] (live auf #477, 26.11.2026).
+          # Fehlt es, fordert der Lauf nichts an und sagt das im Status.
+          ANFORDERUNG_TOKEN: ${{ secrets.REVIEW_ANFORDERUNG_TOKEN }}
+        run: node "$RUNNER_TEMP/gate/scripts/review-nachweis.mjs"
+      # Ein Lauf ohne Urteil darf keinen frueheren Erfolg auf demselben Stand
+      # stehen lassen (Review #477), etwa wenn ein nachtraegliches Label
+      # `kritisch` einen gruenen PR verschaerft und der Lauf dann scheitert.
+      # Abgebrochene Laeufe (neues Ereignis) setzen nichts: der neue Lauf urteilt.
+      # Markiert wird der Stand, den die Auswertung gelesen hat (BEWERTET_HEAD,
+      # von ihr gesetzt); fehlt er (Abbruch davor), der Stand des Ereignisses.
+      # Nur POSIX-sh: das Tor fuehrt diesen Schritt im Alpine-Image ohne bash aus.
+      - name: Gescheitert, Stand als nicht bewertet markieren
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_NUMMER: ${{ github.event.pull_request.number }}
+          LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gueltig() { case "$1" in ''|*[!0-9a-f]*) return 1 ;; esac; [ "${#1}" -eq 40 ]; }
+          markiere() {
+            curl -sS --fail-with-body --retry 3 -X POST -o /dev/null \
+              -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/$REPO/statuses/$1" \
+              -d "{\"state\":\"failure\",\"context\":\"review-nachweis\",\"description\":\"Auswertung gescheitert: Stand NICHT bewertet (Lauf ansehen) [#$PR_NUMMER]\",\"target_url\":\"$LAUF_URL\"}"
+          }
+          SHA="${BEWERTET_HEAD:-$PR_HEAD}"
+          gueltig "$SHA" || SHA="$PR_HEAD"
+          markiere "$SHA"
+          # Auch der heutige Head: ein erneut gestarteter alter Lauf darf ein
+          # Gruen dort nicht stehen lassen, wenn ein spaeteres Ereignis dazu
+          # abgebrochen wurde (CodeRabbit-Review #477, Runde 7). Lesen
+          # scheitert still: dann bleibt es bei der Markierung oben.
+          JETZT=$(curl -sS --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMMER" \
+            | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c}).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).head.sha||""))}catch{}})' || true)
+          if gueltig "$JETZT" && [ "$JETZT" != "$SHA" ]; then markiere "$JETZT"; fi
