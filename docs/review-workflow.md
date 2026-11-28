@@ -57,22 +57,25 @@ ist, entscheidet Krisz, nie eine Automatik.
    Commit grün ist. Krisz merged per Squash. Der Agent merged nie und nutzt
    nie den Bypass.
 
-Höchstens **drei Runden** je PR. Gezählt werden die Stände mit
+**Runden: so viele, bis eine ohne neuen Befund durchgeht** (Krisz,
+28.11.2026: „Alles muss so lange geprüft werden, bis es nichts mehr zu
+bemängeln gibt“; ersetzt das frühere Limit von drei Runden). Jede Runde
+braucht einen fertigen Stand mit grünem Tor und ein neu gesetztes
+`review-ready`; der Workflow fordert je Stand genau einmal an und nimmt das
+Label bei jedem Push ab, eine Schleife ohne Zutun gibt es also nicht. Fertig
+ist ein PR für den Merge erst, wenn die letzte Runde keinen neuen Befund
+mehr gebracht hat und alle Threads beantwortet und geschlossen sind; das
+prüft der Status nicht (eine Runde ohne Kommentare hinterlässt bei
+CodeRabbit keinen auswertbaren Eintrag), darauf achten Agent und Krisz.
+
+Der Bericht nennt die Zahl der Runden. Gezählt werden die Stände mit
 abgeschlossenem CodeRabbit-Review, auch solche, die ein Force-Push, Rebase
 oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, der
 Bericht-Kommentar hält die geprüften Stände fest, und für jeden
 angeforderten Stand, der nicht mehr im PR liegt, liest der Lauf dessen
 Check-Läufe nach. Ist ein solcher Stand nicht lesbar (API-Fehler, Commit
 weg), zählt er vorsorglich für diesen Lauf, kommt aber nicht ins Ledger:
-der nächste Lauf liest ihn neu. Danach fordert der Workflow keinen
-weiteren Review an, bei keinem Ereignis, nimmt `review-ready` wieder ab und
-nennt die Rundenbremse im Status. Krisz entscheidet: Label
-`review-runde-frei` gibt **genau eine** weitere Runde frei, nur auf seine
-Ansage. Verbraucht ist sie mit der ersten Anforderung nach dem Setzen. Das
-liest jeder Lauf aus dem Verlauf (Zeit des Setzens gegen die
-Anforderungen), nicht aus dem Lauf, der anforderte: Bricht der ab oder
-scheitert das Abnehmen des Labels, bremst der nächste Lauf trotzdem und
-nimmt das Label nach. Jede weitere Runde braucht eine neue Freigabe.
+der nächste Lauf liest ihn neu.
 
 ## Labels
 
@@ -80,7 +83,6 @@ nimmt das Label nach. Jede weitere Runde braucht eine neue Freigabe.
 |---|---|---|
 | `review-ready` | Agent oder Krisz, wenn der Stand fertig ist | der Workflow fordert einmal je Stand einen CodeRabbit-Review an; er nimmt das Label bei jedem neuen Push ab |
 | `kritisch` | Agent bei sicherheitsrelevanten Änderungen, die die Pfadliste nicht erkennt | macht den PR kritisch (zwei Reviews) |
-| `review-runde-frei` | nur Krisz | erlaubt genau eine Runde über die dritte hinaus; verbraucht mit der nächsten Anforderung, der Workflow nimmt es dann ab |
 | `ohne-cubic` | der Workflow, auf normalen PRs | hält cubic für kritische PRs frei, sobald `cubic.yaml` auf `main` das Label beachtet (siehe „cubic“) |
 | `nachweis-neu` | Agent oder Krisz | nur ein Anstoß: bewertet den Nachweis neu (etwa nach einem Ausnahme-Kommentar); der Workflow nimmt es sofort ab |
 
@@ -104,7 +106,6 @@ Grund nennt.
 | Rate-Limit, übersprungen („files exceed the limit“, „Incremental review skipped“), abgebrochen, unbekannte Meldung | ❌ failure, „NICHT geprüft“ |
 | Runden decken den Stand nicht lückenlos ab | ❌ failure, „full review nötig“ |
 | Label fehlt, kein Review angefordert | ❌ failure |
-| Drei Runden erreicht, keine Freigabe von Krisz | ❌ failure, „Rundenbremse“ |
 | Derselbe Stand ist Head eines weiteren offenen PRs | ❌ failure, „nicht eindeutig“ (der Status hängt am Commit, nicht am PR) |
 | Der Lauf selbst scheitert (API-Fehler, Abbruch im Skript, eine Liste länger als gelesen) | ❌ failure, „Auswertung gescheitert“; ein früherer Erfolg auf demselben Stand bleibt nicht stehen |
 | 250 oder mehr Commits, 3000 oder mehr Dateien | ❌ failure (die API liefert nicht alle) |
@@ -306,9 +307,9 @@ der Lauf den Head und jeden Stand neu, dessen Lauf noch nicht fertig war.
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
   (rot, nie grün). Die Marke der Anforderung zählt nur von den
   Anforderungskonten; eine Marke von jemand anderem unterdrückt keine
-  Anforderung, verbraucht keine Freigabe und zählt nicht als Runde. Wer den
-  Token des Agentenkontos hätte, könnte das weiterhin (siehe oben); auch
-  dann macht eine Marke nie grün und gibt nie eine Runde frei.
+  Anforderung und zählt nicht als Runde. Wer den Token des Agentenkontos
+  hätte, könnte das weiterhin (siehe oben); auch dann macht eine Marke nie
+  grün.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.

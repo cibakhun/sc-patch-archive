@@ -11,10 +11,6 @@
      - Neuer Push auf einen PR mit `review-ready`: Label ab. Ein Label
        steht so nie fuer einen aelteren Stand, und jeder Stand wird genau
        einmal angefordert.
-     - `review-ready` nach drei abgeschlossenen Runden: Label ab, Krisz
-       entscheidet (Label `review-runde-frei` gibt genau eine weitere frei;
-       verbraucht ist es mit der ersten Anforderung nach dem Setzen, das
-       liest jeder Lauf aus dem Verlauf und nimmt es dann ab).
      - `review-ready` auf einem fertigen, noch nicht angeforderten Stand:
        einmal `@coderabbitai review` schreiben (mit Marke je Stand).
        CodeRabbit prueft das Repo nicht mehr automatisch. Nach einem
@@ -40,9 +36,9 @@
    ============================================================ */
 import {
   bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende,
-  LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
-  anforderungNoetig, anforderungsMarke, rundenBremse, rundenZahl,
-  freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
+  LABEL_BEREIT, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
+  anforderungNoetig, anforderungsMarke,
+  zuletztGesetzt, seitenweise, statusMitKontrolle,
   rundenLesen, beschreibungMitPr, nachweisFuerPr,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
   altesLedger,
@@ -182,7 +178,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
       head_sha: head, labels: pr.labels.map((l) => l.name),
     },
     commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
-    freigabeGesetzt, bereitGesetzt, fruehereRunden, vorlaeufigeRunden,
+    bereitGesetzt, fruehereRunden, vorlaeufigeRunden,
   };
   if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
@@ -211,16 +207,6 @@ async function labelAb(name) {
   if (TROCKEN) { console.log(`(trocken) Label ab: ${name}`); return; }
   await api(`${R}/issues/${NUMMER}/labels/${encodeURIComponent(name)}`, { method: 'DELETE' });
   console.log(`Label entfernt: ${name}`);
-}
-// Fuer Labels, deren Wirkung aus dem Verlauf folgt: Scheitert das Abnehmen,
-// holt es der naechste Lauf nach, der Lauf selbst geht weiter.
-async function labelAbWeich(name) {
-  try {
-    await labelAb(name);
-    pr.labels = pr.labels.filter((l) => l.name !== name);
-  } catch (e) {
-    console.log(`Label ${name} nicht abgenommen (holt der naechste Lauf nach): ${e.message}`);
-  }
 }
 async function labelDran(name) {
   if (TROCKEN) { console.log(`(trocken) Label dran: ${name}`); return; }
@@ -270,7 +256,6 @@ if (labels().includes(LABEL_NEU)) {
 
 // Label-Verlauf des PRs (aufsteigend, ganz oder Abbruch).
 const ereignisse = await alle(`${R}/issues/${NUMMER}/events`, 10);
-const freigabeGesetzt = zuletztGesetzt(ereignisse, LABEL_RUNDE_FREI);
 const bereitGesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
 
 /* Wurde `review-ready` vor dem Push des heutigen Heads gesetzt? Dann gehoert
@@ -297,26 +282,6 @@ if (labels().includes(LABEL_BEREIT) && (AKTION === 'synchronize' || await labelA
 const ende = Date.now() + WARTEN_MIN * 60_000;
 let { d, bericht } = await sammle(pr);
 
-/* `review-runde-frei` gilt fuer genau eine Anforderung. Verbraucht ist es,
-   sobald nach dem Setzen eine geschrieben wurde; das folgt aus dem Verlauf
-   (rundenBremse liest es so), das Abnehmen hier ist nur Aufraeumen und
-   holt nach, was ein abgebrochener Lauf nicht mehr schaffte (Review #477). */
-if (freigabeVerbraucht(d)) {
-  console.log(`Freigabe ${LABEL_RUNDE_FREI} ist verbraucht (Anforderung nach dem Setzen).`);
-  await labelAbWeich(LABEL_RUNDE_FREI);
-  d.pr.labels = labels();
-}
-
-/* Rundenbremse: bei jedem Ereignis vor jeder Anforderung, nicht nur beim
-   Setzen des Labels (ein Ersatzlauf nach `edited` pruefte sie sonst nicht;
-   Review #477). Die Bewertung nennt sie dann als Grund. */
-if (anforderungNoetig(d, { bremse: false }) && rundenBremse(d)) {
-  console.log(`Rundenbremse: ${rundenZahl(d)} abgeschlossene Runden — ${LABEL_BEREIT} wieder ab, Entscheidung bei Krisz.`);
-  await labelAb(LABEL_BEREIT);
-  pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
-  d.pr.labels = labels();
-}
-
 // Genau eine Anforderung je Stand: CodeRabbit prueft das Repo nicht mehr
 // automatisch (weniger als 10 Sterne), ein Review kommt nur auf Befehl, und
 // nur von einem echten Konto (Secret REVIEW_ANFORDERUNG_TOKEN, Agentenkonto).
@@ -339,12 +304,6 @@ if (anforderungNoetig(d)) {
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
-      // Eine Freigabe `review-runde-frei` ist mit dieser Anforderung
-      // verbraucht (gilt auch ohne das Abnehmen, siehe freigabeVerbraucht).
-      if (labels().includes(LABEL_RUNDE_FREI)) {
-        await labelAbWeich(LABEL_RUNDE_FREI);
-        d.pr.labels = labels();
-      }
     } catch (e) {
       // Abgelaufener oder entzogener Token: der Lauf setzt trotzdem seinen Status.
       d.anforderungUnmoeglich = `Anforderung gescheitert (${String(e.message).match(/HTTP \d+/)?.[0] || 'Fehler'}), Token pruefen`;

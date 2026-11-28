@@ -14,8 +14,8 @@ import assert from 'node:assert/strict';
 import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
-  anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
-  freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
+  anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl,
+  seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
 } from '../../scripts/lib/review-nachweis.mjs';
@@ -321,7 +321,7 @@ describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
   });
 });
 
-describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () => {
+describe('Review-Nachweis: Runden und gleicher Stand (Review #477)', () => {
   const D = h('4');
   // Drei Staende mit fertigem Review, der vierte (D) neu und noch ohne.
   const vierte = (x = {}) => lage({
@@ -329,55 +329,28 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_FERTIG], [D]: [CR_AUS_SKIP] },
     bereiche: [{ a: BASIS, b: A }, { a: A, b: B }, { a: B, b: C }], ...x, pr: { head_sha: D, ...(x.pr || {}) },
   });
-  test('drei Runden: keine vierte Anforderung, bei jedem Ereignis, nicht nur beim Label', () => {
+  // Krisz, 28.11.2026: pruefen, bis nichts mehr zu bemaengeln ist. Ein
+  // Rundenlimit gibt es nicht mehr; vor einer Endlosschleife schuetzt, dass
+  // jeder Stand ein neu gesetztes Label braucht und genau einmal angefordert wird.
+  test('kein Rundenlimit: nach drei Runden wird der neue Stand angefordert, aber nur mit Label und nur einmal', () => {
     assert.equal(rundenZahl(vierte()), 3);
-    assert.equal(rundenBremse(vierte()), true);
-    assert.equal(anforderungNoetig(vierte()), false, 'ohne Freigabe keine vierte Runde');
-    assert.equal(anforderungNoetig(vierte(), { bremse: false }), true, 'ohne Bremse waere sie faellig');
+    assert.equal(anforderungNoetig(vierte()), true, 'vierte Runde');
+    assert.equal(anforderungNoetig(vierte({ pr: { labels: [] } })), false, 'ohne Label nichts');
+    const anfD = { author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(D)}`, erstellt: '2026-11-28T09:00:30Z' };
+    assert.equal(anforderungNoetig(vierte({ kommentare: [anfD] })), false, 'derselbe Stand nie doppelt');
+    const ohne = bewerte(vierte({ pr: { labels: [] }, keinWarten: true }));
+    assert.equal(ohne.state, 'failure');
+    assert.match(ohne.description, /^Kein Review fuer diesen Stand angefordert/);
+    assert.match(ohne.bericht.join('\n'), /CodeRabbit-Runden mit Abschluss: 3\b/);
   });
-  // Krisz setzt die Freigabe nach der dritten Runde.
-  const GESETZT = '2026-11-28T09:00:00Z';
-  const ev = [
-    { event: 'labeled', label: { name: 'review-ready' }, created_at: '2026-11-28T08:00:00Z' },
-    { event: 'labeled', label: { name: 'review-runde-frei' }, created_at: GESETZT },
-  ];
-  const anfD = { author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(D)}`, erstellt: '2026-11-28T09:00:30Z' };
-  const frei = (x = {}) => vierte({ freigabeGesetzt: zuletztGesetzt(ev, 'review-runde-frei'), ...x, pr: { labels: ['review-ready', 'review-runde-frei'], ...(x.pr || {}) } });
-  test('review-runde-frei gibt genau die naechste Anforderung frei', () => {
-    assert.equal(zuletztGesetzt(ev, 'review-runde-frei'), Date.parse(GESETZT));
-    assert.equal(freigabeVerbraucht(frei()), false);
-    assert.equal(rundenBremse(frei()), false);
-    assert.equal(anforderungNoetig(frei()), true);
-    // Eine Anforderung von vor dem Setzen verbraucht sie nicht.
-    const alt = { ...anfD, body: `@coderabbitai review\n\n${anforderungsMarke(C)}`, erstellt: '2026-11-28T07:00:00Z' };
-    assert.equal(freigabeVerbraucht(frei({ kommentare: [alt] })), false);
-  });
-  test('verbraucht mit der Anforderung, auch wenn der Lauf danach abbrach und das Label blieb', () => {
-    // Lage danach: Label noch da (Abnehmen nie passiert oder gescheitert),
-    // Anforderung fuer D steht, ein neuer Stand E ist gepusht.
-    const E = h('5');
-    const danach = frei({
-      kommentare: [anfD],
-      commits: [A, B, C, D, E],
-      laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_FERTIG], [D]: [CR_FERTIG], [E]: [] },
-      pr: { head_sha: E },
-    });
-    assert.equal(freigabeVerbraucht(danach), true);
-    assert.equal(rundenBremse(danach), true);
-    assert.equal(anforderungNoetig(danach), false, 'keine fuenfte Runde ohne neue Freigabe');
-    const u = bewerte({ ...danach, keinWarten: true });
-    assert.equal(u.state, 'failure');
-    assert.match(u.description, /^Rundenbremse: 4 Runden erreicht/);
-  });
-  test('Runden ueberdauern ein Umschreiben: nach Force-Push keine vierte ohne Freigabe', () => {
+  test('Runden ueberdauern ein Umschreiben: die Zahl im Bericht faellt nach Force-Push nicht', () => {
     // Drei Runden auf A, B, C; dann Squash auf einen neuen Stand E. Die
     // geprueften Commits sind nicht mehr im PR, ihre Reviews schon.
     const E = h('5');
     const neu = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E } });
-    assert.equal(rundenZahl(neu), 0, 'ohne Gedaechtnis waere die Bremse weg');
+    assert.equal(rundenZahl(neu), 0, 'ohne Gedaechtnis faellt die Zahl');
     const mit = { ...neu, fruehereRunden: [A, B, C] };
     assert.equal(rundenZahl(mit), 3);
-    assert.equal(anforderungNoetig(mit), false);
     assert.deepEqual(gepruefteStaende({ ...mit, commits: [C, E], laeufeJeCommit: { [C]: [CR_FERTIG] } }).sort(), [A, B, C].sort(), 'doppelt zaehlt einmal');
     // Das Ledger im Bericht traegt sie zum naechsten Lauf.
     const text = berichtText({ state: 'failure', description: 'x', bericht: [] }, { bereiche: [], runden: [A, B, C, 'kaputt'], lauf: '-', quelle: '-' });
@@ -397,34 +370,19 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     assert.deepEqual(aus, { bestaetigt: [C], vorlaeufig: [] });
     const d = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt] });
     assert.equal(rundenZahl(d), 3);
-    assert.equal(anforderungNoetig(d), false, 'keine vierte Anforderung');
   });
   test('Nicht lesbarer alter Stand: zaehlt vorsorglich, geht aber nicht ins Ledger', () => {
     const E = h('5');
     const nach = (aus) => lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt], vorlaeufigeRunden: aus.vorlaeufig });
-    // Lauf 1: C nicht lesbar (API-Fehler) -> im Zweifel dritte Runde, keine Anforderung.
+    // Lauf 1: C nicht lesbar (API-Fehler) -> zaehlt vorsorglich als dritte Runde.
     const eins = rundenAusAnforderungen([C], { [C]: null });
     assert.deepEqual(eins, { bestaetigt: [], vorlaeufig: [C] });
     assert.equal(rundenZahl(nach(eins)), 3);
-    assert.equal(anforderungNoetig(nach(eins)), false);
     assert.deepEqual(bestaetigteRunden(nach(eins)).sort(), [A, B].sort(), 'ins Ledger nur Belegtes');
-    // Lauf 2 liest C neu: nur ein Skip, also keine Runde, die Bremse ist frei.
+    // Lauf 2 liest C neu: nur ein Skip, also keine Runde.
     const zwei = rundenAusAnforderungen([C], { [C]: [CR_AUS_SKIP] });
     assert.deepEqual(zwei, { bestaetigt: [], vorlaeufig: [] });
-    assert.equal(rundenZahl(nach(zwei)), 2);
-    assert.equal(anforderungNoetig(nach(zwei)), true, 'ein einmaliger API-Fehler sperrt nicht dauerhaft');
-  });
-  test('Freigabe ohne bekannten Setzzeitpunkt bremst (im Zweifel verbraucht)', () => {
-    const ohneZeit = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });
-    assert.equal(freigabeVerbraucht(ohneZeit), true);
-    assert.equal(anforderungNoetig(ohneZeit), false);
-  });
-  test('ROT mit Grund: Rundenbremse, auch nachdem das Label abgenommen ist', () => {
-    for (const labels of [['review-ready'], []]) {
-      const u = bewerte(vierte({ pr: { labels }, keinWarten: true }));
-      assert.equal(u.state, 'failure');
-      assert.match(u.description, /^Rundenbremse: 3 Runden erreicht/, labels.join() || 'ohne Label');
-    }
+    assert.equal(rundenZahl(nach(zwei)), 2, 'ein einmaliger API-Fehler zaehlt nicht dauerhaft');
   });
   test('ROT: derselbe Stand ist Head eines weiteren offenen PRs, auch wenn sonst alles gruen waere', () => {
     assert.equal(bewerte(lage()).state, 'success');
@@ -542,10 +500,6 @@ describe('Review-Nachweis: Runde 3 (Review #477)', () => {
     assert.equal(anforderungNoetig(d), true);
     assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'Verse-Base')] }), false);
     assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'github-actions[bot]')] }), false);
-    // ... verbraucht keine Freigabe ...
-    const frei = { ...d, pr: pr({ labels: ['review-ready', 'review-runde-frei'] }), freigabeGesetzt: Date.parse('2026-11-28T08:00:00Z'), kommentare: [marke(A, 'irgendwer')] };
-    assert.equal(freigabeVerbraucht(frei), false);
-    assert.equal(freigabeVerbraucht({ ...frei, kommentare: [marke(A, 'Verse-Base')] }), true);
     // ... und zaehlt nicht als angeforderter Stand.
     assert.deepEqual(angeforderteStaende([marke(A, 'irgendwer'), marke(B, 'Verse-Base')]), [B]);
   });

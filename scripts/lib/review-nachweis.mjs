@@ -33,10 +33,8 @@
 
 export const LABEL_BEREIT = 'review-ready';
 export const LABEL_KRITISCH = 'kritisch';
-export const LABEL_RUNDE_FREI = 'review-runde-frei';
 export const LABEL_OHNE_CUBIC = 'ohne-cubic';
 export const LABEL_NEU = 'nachweis-neu'; // nur: Nachweis neu bewerten (z. B. nach einer Ausnahme)
-export const MAX_RUNDEN = 3;
 export const STATUS_KONTEXT = 'review-nachweis';
 export const BERICHT_MARKE = '<!-- review-nachweis:bericht -->';
 export const anforderungsMarke = (sha) => `<!-- review-nachweis:anforderung sha=${sha} -->`;
@@ -197,27 +195,15 @@ export function zuletztGesetzt(ereignisse, label) {
   return t.length ? Math.max(...t) : null;
 }
 
-/** Ist die Freigabe `review-runde-frei` schon verbraucht? Ja, sobald nach
-    ihrem juengsten Setzen (`d.freigabeGesetzt`, ms) irgendeine Anforderung
-    geschrieben wurde. Das folgt aus dem Verlauf, nicht aus dem Lauf, der
-    anforderte: bricht der nach dem Kommentar ab oder scheitert das Abnehmen
-    des Labels, bleibt die Freigabe trotzdem verbraucht (Review #477).
-    Unbekannter Setzzeitpunkt oder unlesbare Zeit: verbraucht (im Zweifel
-    bremsen). */
-export function freigabeVerbraucht(d) {
-  if (!(d.pr.labels || []).includes(LABEL_RUNDE_FREI)) return false;
-  const t = d.freigabeGesetzt;
-  if (!Number.isFinite(t)) return true;
-  return alleAnforderungen(d.kommentare).some((k) => !(Date.parse(k.erstellt || '') < t));
-}
-
 const fertigGeprueft = (laeufe) => (laeufe || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft');
 
 /** Staende mit abgeschlossenem CodeRabbit-Review, je PR: aus den Laeufen der
     heutigen Commits und aus dem, was ein Umschreiben ueberdauert
     (`d.fruehereRunden`: Bereichsziele aus CodeRabbits Reviews und das
     Ledger im Bericht). Sonst senkte ein Force-Push, Rebase oder Squash die
-    Zahl unter das Limit (Review #477). */
+    Zahl (Review #477). Die Zahl steht im Bericht; ein Rundenlimit gibt es
+    seit dem 28.11.2026 nicht mehr (Krisz: pruefen, bis nichts mehr zu
+    bemaengeln ist). */
 export function gepruefteStaende(d) {
   return [...new Set([...bestaetigteRunden(d), ...(d.vorlaeufigeRunden || []).filter((x) => SHA.test(x))])];
 }
@@ -260,13 +246,6 @@ export function rundenZahl(d) {
   return gepruefteStaende(d).length;
 }
 
-/** Laege eine weitere Anforderung ueber dem Rundenlimit, ohne gueltige
-    (noch nicht verbrauchte) Freigabe von Krisz? */
-export function rundenBremse(d) {
-  const frei = (d.pr.labels || []).includes(LABEL_RUNDE_FREI) && !freigabeVerbraucht(d);
-  return rundenZahl(d) >= MAX_RUNDEN && !frei;
-}
-
 /** Darf derselbe Stand noch einmal angefordert werden? Nur nach einem
     Rate-Limit: Hat CodeRabbit auf die juengste Anforderung mit "rate
     limited" geantwortet und wurde `review-ready` danach neu gesetzt
@@ -284,14 +263,14 @@ export function wiederholungErlaubt(d) {
 
 /** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im
     Draft, nie doppelt (ausser nach einem Rate-Limit mit neu gesetztem
-    Label), nie ueber dem Rundenlimit ohne `review-runde-frei`. */
-export function anforderungNoetig(d, { bremse = true } = {}) {
+    Label). Eine Endlosschleife gibt es so nicht: jeder neue Stand braucht
+    ein neu gesetztes Label, jeder Push nimmt es ab. */
+export function anforderungNoetig(d) {
   const { pr } = d;
   if (pr.draft || (pr.base_ref === 'main' && pr.head_ref === 'staging')) return false;
   if (!(pr.labels || []).includes(LABEL_BEREIT)) return false;
   if (codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art === 'geprueft') return false;
-  if (anforderungen(d.kommentare, pr.head_sha).length && !wiederholungErlaubt(d)) return false;
-  return !(bremse && rundenBremse(d));
+  return !(anforderungen(d.kommentare, pr.head_sha).length && !wiederholungErlaubt(d));
 }
 
 /* ---------------------------------------------------------------
@@ -542,7 +521,7 @@ export function bewerte(d) {
 
   const runden = rundenZahl(d);
 
-  bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}/${MAX_RUNDEN}`);
+  bericht.push(`Stand: \`${kurz(head)}\` · ${kritisch ? '**kritisch**' : 'normal'} · CodeRabbit-Runden mit Abschluss: ${runden}`);
   if (kritisch) for (const g of gruende.slice(0, 12)) bericht.push(`- kritisch: ${g}`);
   if (gruende.length > 12) bericht.push(`- … und ${gruende.length - 12} weitere Gruende`);
   bericht.push(`CodeRabbit am Head: ${crHead.art}${crHead.titel ? ` (${crHead.titel})` : ''}; Abdeckung: ${crAbd.abgedeckt ? 'lueckenlos' : 'NICHT belegt'}${crAbd.kette.length ? ' — ' + crAbd.kette.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(' → ') : ''}`);
@@ -588,8 +567,7 @@ export function bewerte(d) {
      Anforderung, auch wenn CodeRabbit das als Skip meldet (live auf #477,
      26.11.2026: "excluded by label configuration", nach dem Umbau
      "automatic reviews are disabled"). */
-  if (tAnf === null && crHead.art !== 'geprueft' && rundenBremse(d)) grund = `Rundenbremse: ${runden} Runden erreicht, weitere nur mit Label ${LABEL_RUNDE_FREI} (Entscheidung Krisz)`;
-  else if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
+  if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
   else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
   else if (nichtAngefordert && labels.includes(LABEL_BEREIT)) grund = `Label gesetzt, aber nicht angefordert: ${d.anforderungUnmoeglich}`;
   else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: NICHT geprueft, nach dem Limit Label neu setzen';

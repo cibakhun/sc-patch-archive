@@ -86,8 +86,10 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   wird also nie ungefragt geprüft. Nach den Fixes und erneutem Tor: Label
   wieder setzen. Nach einem Rate-Limit: Label ab und nach der Wartezeit neu
   setzen, das gibt genau eine neue Anforderung desselben Stands frei.
-- Höchstens **drei Runden** je PR. Danach entscheidet Krisz
-  (Label `review-runde-frei` gibt eine Runde frei, nur auf seine Ansage).
+- **Runden, bis nichts mehr zu bemängeln ist** (Krisz, 28.11.2026; kein
+  Limit mehr): nach jeder Runde fixen, Tor, Label neu setzen, bis eine
+  Runde ohne neuen Befund durchgeht. Erst dann ist der PR fertig für den
+  Merge.
 - Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst
   nachmessen: ein Befund ist eine Behauptung, kein Befehl) oder als
   Entscheidung an Krisz. Auf jeden Kommentar antworten, Thread schließen.
