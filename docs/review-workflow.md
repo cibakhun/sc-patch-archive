@@ -56,8 +56,10 @@ ist, entscheidet Krisz, nie eine Automatik.
 
 Höchstens **drei Runden** je PR. Gezählt werden die Stände mit
 abgeschlossenem CodeRabbit-Review, auch solche, die ein Force-Push, Rebase
-oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, und
-der Bericht-Kommentar hält die geprüften Stände fest. Danach fordert der Workflow keinen
+oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, der
+Bericht-Kommentar hält die geprüften Stände fest, und für jeden
+angeforderten Stand, der nicht mehr im PR liegt, liest der Lauf dessen
+Check-Läufe nach (nicht lesbar zählt als Runde). Danach fordert der Workflow keinen
 weiteren Review an, bei keinem Ereignis, nimmt `review-ready` wieder ab und
 nennt die Rundenbremse im Status. Krisz entscheidet: Label
 `review-runde-frei` gibt **genau eine** weitere Runde frei, nur auf seine
@@ -257,7 +259,12 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
 - **Status je Commit.** Offene PRs mit demselben Head erkennt der Nachweis
   und bleibt rot. Vor und nach einem grünen Status sieht der Lauf noch
   einmal nach; öffnet währenddessen ein zweiter PR vom selben Stand, steht
-  in jeder Reihenfolge zuletzt rot. Wird nach dem Merge ein neuer PR vom
+  in jeder Reihenfolge zuletzt rot. Ein Zeitfenster bleibt: Öffnet ein PR
+  auf einen Stand, den ein anderer offener PR schon grün trägt, zeigt sein
+  Commit dieses fremde Urteil, bis sein eigener erster Lauf schreibt (bei
+  vollen GitHub-Runnern einige Minuten). Die Beschreibung nennt dann die
+  fremde Nummer (`[#…]`). Ein PR nach einem Zweig ohne diesen Workflow
+  schreibt gar keinen Status und überschreibt deshalb auch keinen. Wird nach dem Merge ein neuer PR vom
   selben Stand geöffnet, überschreibt sein Lauf zwar den Status am Commit,
   aber nicht das Urteil, das die Release-Prüfung liest: Die liest je PR
   (Marke `[#Nummer]` in der Beschreibung).
@@ -281,9 +288,9 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
   (rot, nie grün). Die Marke der Anforderung kann jeder schreiben, der den
   PR kommentieren darf; eine gefälschte Marke unterdrückt höchstens die
-  echte Anforderung (der Status bleibt rot) oder verbraucht eine Freigabe
-  `review-runde-frei` vorzeitig. Sie macht nie grün und gibt nie eine Runde
-  frei.
+  echte Anforderung (der Status bleibt rot), verbraucht eine Freigabe
+  `review-runde-frei` vorzeitig oder zählt als Runde. Sie macht nie grün
+  und gibt nie eine Runde frei.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.

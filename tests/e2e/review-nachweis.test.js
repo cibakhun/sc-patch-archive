@@ -17,6 +17,7 @@ import {
   anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
+  angeforderteStaende, rundenAusAnforderungen,
 } from '../../scripts/lib/review-nachweis.mjs';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -376,6 +377,24 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     // Das Ledger im Bericht traegt sie zum naechsten Lauf.
     const text = berichtText({ state: 'failure', description: 'x', bericht: [] }, { bereiche: [], runden: [A, B, C, 'kaputt'], lauf: '-', quelle: '-' });
     assert.deepEqual(rundenLesen(text).sort(), [A, B, C].sort());
+  });
+  test('Runde ohne Review-Eintrag, Lauf vor dem Ledger abgebrochen: die Marke findet sie wieder', () => {
+    // Dritte Runde auf C endet ohne Kommentare (kein Review-Eintrag), ein
+    // Force-Push bricht den Lauf ab, bevor er das Ledger schreibt. Ledger und
+    // Reviews kennen nur A und B; die Anforderung fuer C steht noch da.
+    const E = h('5'), F = h('6');
+    const marke = (sha) => ({ author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(sha)}`, erstellt: '2026-11-28T09:00:00Z' });
+    const kommentare = [marke(A), marke(B), marke(C), marke(F), { author: 'x', body: 'kein Befehl' }];
+    assert.deepEqual(angeforderteStaende(kommentare), [A, B, C, F]);
+    // C: fertiger Review (gefunden ueber die Marke); F: nur Rate-Limit (keine
+    // Runde); A, B stehen schon im Ledger.
+    const aus = rundenAusAnforderungen([C, F], { [C]: [CR_FERTIG], [F]: [CR_LIMIT] });
+    assert.deepEqual(aus, [C]);
+    const d = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus] });
+    assert.equal(rundenZahl(d), 3);
+    assert.equal(anforderungNoetig(d), false, 'keine vierte Anforderung');
+    // Nicht lesbar (Commit weg, API-Fehler): zaehlt im Zweifel als Runde.
+    assert.deepEqual(rundenAusAnforderungen([C], { [C]: null }), [C]);
   });
   test('Freigabe ohne bekannten Setzzeitpunkt bremst (im Zweifel verbraucht)', () => {
     const ohneZeit = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });

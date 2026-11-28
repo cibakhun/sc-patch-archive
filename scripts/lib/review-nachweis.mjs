@@ -215,6 +215,24 @@ export function gepruefteStaende(d) {
   return [...new Set([...jetzt, ...(d.fruehereRunden || []).filter((x) => SHA.test(x))])];
 }
 
+/** Alle Staende, fuer die je eine Anforderung geschrieben wurde (aus den
+    Marken; die Kommentare ueberdauern jedes Umschreiben). */
+export function angeforderteStaende(kommentare) {
+  const re = /<!--\s*review-nachweis:anforderung\s+sha=([0-9a-f]{40})\s*-->/g;
+  const out = new Set();
+  for (const k of alleAnforderungen(kommentare)) for (const m of String(k.body).matchAll(re)) out.add(m[1]);
+  return [...out];
+}
+
+/** Runden aus angeforderten Staenden, die nicht mehr im PR liegen:
+    `laeufeJe[sha]` sind deren Check-Laeufe, `null` heisst nicht lesbar.
+    Gezaehlt wird ein fertiger Review, und im Zweifel (nicht lesbar) auch:
+    so geht eine Runde nicht verloren, wenn ein Force-Push den Lauf abbrach,
+    bevor er sie im Bericht festhielt (Review #477). */
+export function rundenAusAnforderungen(shas, laeufeJe) {
+  return (shas || []).filter((sha) => laeufeJe[sha] === null || fertigGeprueft(laeufeJe[sha]));
+}
+
 /** Abgeschlossene CodeRabbit-Runden des PRs. */
 export function rundenZahl(d) {
   return gepruefteStaende(d).length;

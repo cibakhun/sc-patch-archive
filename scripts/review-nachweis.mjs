@@ -44,6 +44,7 @@ import {
   anforderungNoetig, anforderungsMarke, rundenBremse, rundenZahl,
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr,
+  angeforderteStaende, rundenAusAnforderungen,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -133,13 +134,25 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
     ...kommentare.filter((k) => k.author === CR).flatMap((k) => bereicheAusText(k.body)),
     ...(bericht ? ledgerLesen(bericht.body) : []),
   ];
+  const imPr = new Set(commits);
   // Runden, die ein Umschreiben ueberdauern: CodeRabbits Reviews bleiben am
-  // PR, ihr Bereich endet am geprueften Stand; dazu das eigene Ledger.
+  // PR, ihr Bereich endet am geprueften Stand; dazu das eigene Ledger und
+  // die Laeufe jedes angeforderten Stands, der nicht mehr im PR liegt
+  // (deckt eine Runde ohne Review-Eintrag, deren Lauf abbrach, bevor er
+  // das Ledger schrieb). Nicht lesbar zaehlt als Runde.
+  const alteAnf = angeforderteStaende(kommentare).filter((sha) => !imPr.has(sha));
+  const laeufeAlt = {};
+  for (const sha of alteAnf) {
+    if (!cacheLaeufe.has(sha)) {
+      try { cacheLaeufe.set(sha, await laeufeFuer(sha)); } catch (e) { console.log(`Laeufe von ${sha.slice(0, 7)} nicht lesbar, zaehlt als Runde: ${e.message}`); cacheLaeufe.set(sha, null); }
+    }
+    laeufeAlt[sha] = cacheLaeufe.get(sha);
+  }
   const fruehereRunden = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)).map((r) => r.b),
     ...(bericht ? rundenLesen(bericht.body) : []),
+    ...rundenAusAnforderungen(alteAnf, laeufeAlt),
   ];
-  const imPr = new Set(commits);
   const vorfahren = {};
   for (const a of new Set(bereiche.map((r) => r.a).filter((a) => !imPr.has(a)))) {
     if (!cacheVorfahr.has(a)) {
