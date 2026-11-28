@@ -97,7 +97,7 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   Krisz hält den PR offen.
 - **Kombi-Review** (Krisz, 28.11.2026): vor jeder externen Anforderung
   eine Opus-Schleife, je Runde ein frischer Opus-Review ohne Vorwissen
-  (eigener Durchgang, nur Diff), fixen, bis Opus nichts mehr findet. Erst
+  (eigener Durchgang, nur Diff, Effort xhigh; Krisz 28.11.), fixen, bis Opus nichts mehr findet. Erst
   dann `review-ready` für mindestens ein externes Review (CodeRabbit oder
   cubic), bei jedem PR, auch nicht kritischen. Findet es etwas: fixen,
   wieder Opus bis sauber, wieder extern. Fertig erst, wenn auch das

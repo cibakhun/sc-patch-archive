@@ -1284,3 +1284,25 @@ describe('Review-Nachweis: Runde 9 (Opus-Review #477)', () => {
     }
   });
 });
+
+describe('Review-Nachweis: Runde 10 (Opus-Review #477)', () => {
+  const VOLL = { ...CU_VOLL, started_at: '2026-11-28T10:00:00Z', zweig: 'claude/x' };
+  const INKR = { ...CU_INKR, started_at: '2026-11-28T12:00:00Z', zweig: 'claude/x' };
+  const LIMIT = { ...CU_LIMIT, started_at: '2026-11-28T11:00:00Z', zweig: 'claude/x' };
+  const abd = (b) => cubicAbdeckung({ commits: [A, B, C], head: C, headRef: 'claude/x', laeufeJeCommit: { [A]: [VOLL], [B]: b, [C]: [INKR] } }).abgedeckt;
+
+  test('ROT: ein Limit an einem Zwischenstand reisst die cubic-Abdeckung, auch wenn der Lauf nicht zuzuordnen ist', () => {
+    assert.equal(abd([LIMIT]), false, 'sichtbar');
+    assert.equal(abd([{ ...LIMIT, fremdeZeiten: [[Date.parse('2026-11-28T10:30:00Z'), Date.parse('2026-11-28T11:30:00Z')]] }]), false, 'in der Lebenszeit eines anderen PRs');
+    assert.equal(abd([{ ...LIMIT, zweig: 'anderer' }]), false, 'Suite eines anderen Zweigs');
+    // Gegenprobe: ein nicht zuzuordnender fertiger oder Merge-Lauf haelt die Kette, kein Lauf auch.
+    assert.equal(abd([{ ...CU_INKR, started_at: '2026-11-28T11:00:00Z', zweig: 'anderer' }]), true);
+    assert.equal(abd([{ ...CU_MERGE, started_at: '2026-11-28T11:00:00Z', zweig: 'anderer' }]), true);
+    assert.equal(abd([]), true);
+  });
+
+  test('ROT: Sitzung, Torseite, Ruecksprungziel und Schluessel-Tor sind kritisch', () => {
+    for (const f of ['assets/account-lite.js', 'src/pages/gate.astro', 'src/lib/safe-next.ts', 'scripts/verify-supabase-ziel.mjs']) assert.ok(kritischeGruende([{ filename: f }]).length > 0, f);
+    for (const f of ['assets/account-tips.js', 'src/pages/gates.astro', 'src/lib/safe-next-x.ts']) assert.deepEqual(kritischeGruende([{ filename: f }]), [], f);
+  });
+});

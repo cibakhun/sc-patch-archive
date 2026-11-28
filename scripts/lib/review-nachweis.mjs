@@ -80,6 +80,13 @@ export const KRITISCHE_PFADE = [
      Kontoseiten fuer MFA, Sicherheit und Uebersicht tragen Konto und MFA (V3). */
   [/^scripts\/(verify-gate|verify-db-rights)\.mjs$/, 'Sicherheits-Tor (Testpilot-Ausnahmen, Datenbankrechte)'],
   [/^src\/scripts\/account-(mfa|security|dashboard)\.ts$/, 'Konto, Sicherheit oder MFA (Browser-Logik)'],
+  /* Runde 10: Sitzung und Tor-Pass im Browser, Testpilot-Torseite mit
+     eigener Anmeldung, Ruecksprungziel nach dem Login, und das Tor gegen
+     geheime Schluessel im Bau. */
+  [/^assets\/account-lite\.js$/, 'Sitzung und Tor-Pass im Browser'],
+  [/^src\/pages\/gate\.astro$/, 'Testpilot-Tor mit Anmeldung'],
+  [/^src\/lib\/safe-next\.ts$/, 'Ruecksprungziel nach der Anmeldung'],
+  [/^scripts\/verify-supabase-ziel\.mjs$/, 'Sicherheits-Tor (kein geheimer Schluessel im Bau)'],
   /* V3 (Krisz 26.11.2026): Aenderungen an Review-Gates und Berechtigungen
      sind immer kritisch. CLAUDE.md legt fest, was der Agent darf (nie
      mergen, main tabu, Ausnahmen nur mit Freigabe); docs/review-workflow.md
@@ -627,8 +634,20 @@ export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb, headR
     return ![...fremdeZeiten, ...(l.fremdeZeiten || [])].some(([ab, bis]) => !(t < ab || t > bis));
   };
   for (const c of commits) {
-    const laeufe = (laeufeJeCommit[c] || []).filter(istCubic).filter(imKontext);
-    if (!laeufe.length) continue;
+    const alleCubic = (laeufeJeCommit[c] || []).filter(istCubic);
+    const laeufe = alleCubic.filter(imKontext);
+    if (!laeufe.length) {
+      /* Ausserhalb des Kontexts zaehlt ein Lauf nicht als Beleg, aber ein
+         Limit, ein offener oder ein nicht gepruefter Lauf dort bleibt eine
+         Luecke: sonst hoebe der Ausschluss den Zweifel auf (Opus-Review
+         #477, Runde 10). */
+      const z = alleCubic.length ? cubicLauf(juengster(alleCubic)) : null;
+      if (z && z.art !== 'geprueft' && z.art !== 'merge') {
+        spur.push(`${kurz(c)} ${z.art} (nicht zuzuordnen)`);
+        abgedeckt = false;
+      }
+      continue;
+    }
     const z = cubicLauf(juengster(laeufe));
     spur.push(`${kurz(c)} ${z.art}${z.inkrementell ? ' (inkrementell)' : ''}`);
     if (z.art === 'geprueft' && !z.inkrementell) abgedeckt = true;

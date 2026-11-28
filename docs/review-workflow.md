@@ -21,7 +21,7 @@ ist, entscheidet Krisz, nie eine Automatik.
    **Opus-Schleife zuerst** (Krisz, 28.11.2026): Vor jeder externen
    Anforderung prüft ein frischer Opus-Review ohne Vorwissen den ganzen
    Diff (eigener Durchgang, nur Diff und Checkout, nie der Verlauf des
-   Arbeitsthreads). Befunde beheben, Tor, dann ein neuer frischer
+   Arbeitsthreads; immer mit Effort xhigh, Krisz 28.11.2026). Befunde beheben, Tor, dann ein neuer frischer
    Durchgang, bis Opus nichts mehr findet. Erst dann Schritt 3.
 3. **Review anfordern.** „Ready for review“ und Label **`review-ready`**.
    Der Workflow schreibt daraufhin genau einmal je Stand
