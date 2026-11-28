@@ -610,7 +610,10 @@ export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb, headR
     spur.push(`${kurz(c)} ${z.art}${z.inkrementell ? ' (inkrementell)' : ''}`);
     if (z.art === 'geprueft' && !z.inkrementell) abgedeckt = true;
     else if (z.art === 'geprueft' || z.art === 'merge') { /* haelt */ }
-    else if (z.art === 'laeuft') { /* offen: zaehlt am Ende nur, wenn es der Head ist */ }
+    /* Offen vor dem Head: nicht belegt, ob cubic ab dem letzten fertigen
+       Review rechnet, also im Zweifel gerissen (Opus-Review #477, Runde 6).
+       Am Head entscheidet amHead. */
+    else if (z.art === 'laeuft' && c === head) { /* offen am Head */ }
     else abgedeckt = false;
     if (c === head) amHead = z;
   }

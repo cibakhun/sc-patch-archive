@@ -122,7 +122,9 @@ async function laeufeFuer(sha) {
 
 // Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
 async function gleicheStaende(head) {
-  return (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== NUMMER).map((p) => p.number);
+  // Nur PRs aus diesem Repo: ein Fork-PR schreibt keinen Status (Workflow-Filter)
+  // und darf den Stand nicht blockieren (Opus-Review #477, Runde 6).
+  return (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== NUMMER && p.head.repo?.full_name === REPO).map((p) => p.number);
 }
 
 // Spitze eines Zweigs, als fester Commit fuer den Vergleich.
@@ -135,6 +137,7 @@ async function zielSpitze(ref) {
 const cacheLaeufe = new Map();
 const cacheVorfahr = new Map();
 const cacheConfig = new Map();
+const SHA_RE = /^[0-9a-f]{40}$/;
 async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const head = pr.head.sha;
   const commitListe = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => ({ sha: c.sha, parents: (c.parents || []).map((p) => p.sha) }));
@@ -247,7 +250,9 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   };
   const configBasis = await crConfig(basis.zusammen || basis.sha);
   const zwischenKritisch = [];
-  for (const b of [...new Set(reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)).map((r) => r.b))].filter((b) => imPr.has(b) && b !== head)) {
+  // Ziele aller Bereiche: Reviews, Zusammenfassung und Ledger (eine Runde
+  // ohne Kommentare hat keinen Review; Opus-Review #477, Runde 6).
+  for (const b of [...new Set(bereiche.map((r) => r.b))].filter((b) => SHA_RE.test(b) && imPr.has(b) && b !== head)) {
     if ((await crConfig(b)) !== configBasis) zwischenKritisch.push(`CodeRabbit-Konfiguration an geprueftem Zwischenstand ${b.slice(0, 7)} geaendert`);
   }
   // Runden, die ein Umschreiben ueberdauern: CodeRabbits Reviews bleiben am

@@ -238,6 +238,11 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
     assert.notEqual(u.state, 'success');
     assert.ok(u.bericht.some((z) => /CodeRabbit-Konfiguration an geprueftem Zwischenstand/.test(z)), u.bericht.join('\n'));
   });
+  // Runde 6: offener cubic-Lauf vor dem Head reisst die Abdeckung.
+  test('ROT: cubic laeuft an einem Commit vor dem Head: nicht lueckenlos', () => {
+    const offen = { ...CU_VOLL, status: 'in_progress', conclusion: null, title: '', summary: '' };
+    assert.notEqual(bewerte(lage({ laeufeJeCommit: { [A]: [CU_VOLL], [B]: [offen], [C]: [CU_INKR] }, bereiche: [] })).state, 'success');
+  });
   test('T7 ROT: kein Label, kein Review am Head', () => {
     const u = bewerte(lage({ pr: { labels: [] }, laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }] }));
     assert.equal(u.state, 'failure');
@@ -745,6 +750,25 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.match(bericht(r), /CodeRabbit-Konfiguration an geprueftem Zwischenstand 6666666 geaendert/);
     assert.ok(r.anfragen.some((x) => x.schluessel === 'GET repos/o/r/pulls'), 'andere PRs vom Zweig gelesen');
     assert.ok(r.anfragen.some((x) => x.schluessel === `GET repos/o/r/commits/${ZW}/check-suites`), 'Suite-Zweig gelesen');
+  });
+
+  // Runde 6: auch eine Runde ohne Review (Bereich nur in der Zusammenfassung) zaehlt fuer die Konfiguration.
+  test('ROT: Laeufer: Konfiguration an Zwischenstand aus der Zusammenfassung abweichend -> kritisch', () => {
+    const ZW = h('6');
+    const zf = { id: 3, user: { login: 'coderabbitai[bot]' }, body: `${CR_KOPF}\n\n${CR_ZUSAMMENFASSUNG}\nReviewing files that changed from the base of the PR and between ${ZIEL} and ${ZW}.`, created_at: '2026-11-28T10:00:00Z', updated_at: '2026-11-28T10:00:00Z' };
+    const r = laeufer([prMit(KOPF)], { routen: {
+      'GET repos/o/r/pulls/477/commits': [[{ sha: ZW, parents: [{ sha: ZIEL }] }, { sha: KOPF, parents: [{ sha: ZW }] }]],
+      'GET repos/o/r/issues/477/comments': [[zf]],
+      'GET repos/o/r/contents/.coderabbit.yaml': [{ sha: h('1') }, { sha: h('2') }],
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(bericht(r), /CodeRabbit-Konfiguration an geprueftem Zwischenstand 6666666 geaendert/);
+  });
+  // Runde 6: ein Fork-PR mit demselben Commit blockiert nicht.
+  test('ROT/Gegenprobe: gleicher Stand: Fork-PR zaehlt nicht, PR aus dem Repo schon', () => {
+    const mit = (repo) => laeufer([prMit(KOPF)], { routen: { 'GET repos/o/r/pulls': [[{ number: 999, head: { sha: KOPF, ref: 'x', repo: { full_name: repo } }, created_at: '2026-11-01T00:00:00Z', closed_at: null }]] } });
+    assert.doesNotMatch(bericht(mit('fremd/r')), /#999/, 'Fork-PR blockiert');
+    assert.match(bericht(mit('o/r')), /#999/, 'Gegenprobe');
   });
 
   // Opus-Review #477, Runde 4: leerer oder gekuerzter Vergleich unter 300.
