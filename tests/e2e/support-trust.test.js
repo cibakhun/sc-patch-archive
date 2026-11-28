@@ -141,8 +141,14 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     assert.ok(sent, 'refinery_discord_sent nicht gefunden');
     assert.doesNotMatch(sent[1], /\b(insert|delete)\b/i, 'refinery_discord_sent schreibt mehr als UPDATE');
     assert.match(sent[1], /update public\.refinery_jobs\s+set discord_notified_at = now\(\)\s+where/, 'refinery_discord_sent setzt mehr als discord_notified_at');
-    const due = sql.match(/create or replace function public\.refinery_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
-    assert.ok(due && /^\s*select\b/i.test(due[1]) && !/\b(insert|update|delete)\b/i.test(due[1]), 'refinery_discord_due liest nicht nur');
+    // Die JUENGSTE Fassung zaehlt (20261128100000 hat refinery_discord_due
+    // neu angelegt): die gilt nach dem Einspielen, nicht die erste.
+    const dueQuellen = fs.readdirSync('supabase/migrations').filter((f) => f.endsWith('.sql')).sort()
+      .map((f) => fs.readFileSync(`supabase/migrations/${f}`, 'utf8'))
+      .filter((t) => /create or replace function public\.refinery_discord_due\b/.test(t));
+    assert.ok(dueQuellen.length >= 2, 'refinery_discord_due: weniger Fassungen als erwartet');
+    const due = dueQuellen.at(-1).match(/create or replace function public\.refinery_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(due && /^\s*(select|with)\b/i.test(due[1]) && !/\b(insert|update|delete)\b/i.test(due[1]), 'refinery_discord_due liest nicht nur');
     const chat = fs.readFileSync('supabase/migrations/20261124100000_chat_discord_hinweis.sql', 'utf8');
     const cDue = chat.match(/create or replace function public\.chat_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
     assert.ok(cDue && /^\s*(select|with)\b/i.test(cDue[1]) && !/\b(insert|update|delete)\b/i.test(cDue[1]), 'chat_discord_due liest nicht nur');
