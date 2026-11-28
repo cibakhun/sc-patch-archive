@@ -39,7 +39,7 @@ import {
   LABEL_BEREIT, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
   anforderungNoetig, anforderungsMarke,
   zuletztGesetzt, seitenweise, statusMitKontrolle,
-  rundenLesen, beschreibungMitPr, nachweisFuerPr,
+  rundenLesen, beschreibungMitPr, nachweisFuerPr, istZusammenfassung,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
   altesLedger, abweichendeDateien, verlaufZumHead,
 } from './lib/review-nachweis.mjs';
@@ -70,8 +70,12 @@ if (!TOKEN) { console.error('GH_TOKEN fehlt'); process.exit(2); }
 let anfragen = 0;
 async function api(pfad, { method = 'GET', body, token = TOKEN } = {}) {
   anfragen++;
+  // Zeitlimit je Anfrage: eine haengende Anfrage liesse den Job sonst ins
+  // Limit von 50 Minuten laufen, und ein abgebrochener Job fuehrt den
+  // Fehlerschritt nicht aus (Opus-Review #477, Runde 2).
   const res = await fetch(`https://api.github.com/${pfad}`, {
     method,
+    signal: AbortSignal.timeout(60_000),
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
@@ -134,7 +138,7 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   // juengste Lauf am Ziel, also werden sie bei jedem Nachpollen neu gelesen.
   // Sonst saehe ein spaeter gestarteter und abgebrochener Lauf am Ziel nur
   // der naechste Prozess (Review #477, Runde 4).
-  const zieleZusammenfassung = new Set(kommentareRoh.filter((k) => k.user?.login === CR).flatMap((k) => bereicheAusText(k.body)).map((r) => r.b));
+  const zieleZusammenfassung = new Set(kommentareRoh.filter((k) => k.user?.login === CR && istZusammenfassung(k.body)).flatMap((k) => bereicheAusText(k.body)).map((r) => r.b));
   const laeufeJeCommit = {};
   for (const c of commits) {
     // Beim Nachpollen: der Head immer, ein Ziel einer Zusammenfassung immer,
@@ -207,7 +211,7 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   // sind feste Belege, jeder andere Text nur fuer den juengsten Lauf.
   const bereiche = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body).map((x) => ({ ...x, quelle: 'review' }))),
-    ...kommentare.filter((k) => k.author === CR).flatMap((k) => bereicheAusText(k.body).map((x) => ({ ...x, quelle: 'zusammenfassung', stand: Date.parse(k.geaendert || '') }))),
+    ...kommentare.filter((k) => k.author === CR && istZusammenfassung(k.body)).flatMap((k) => bereicheAusText(k.body).map((x) => ({ ...x, quelle: 'zusammenfassung', stand: Date.parse(k.geaendert || '') }))),
     ...(bericht ? ledgerLesen(bericht.body).map((x) => ({ ...x, quelle: 'ledger' })) : []),
   ];
   const imPr = new Set(commits);
@@ -364,18 +368,24 @@ const bereitGesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
    (GitHub-Uhr, entsteht beim Push), sonst das Commit-Datum. Faengt den
    Fall, dass der Lauf zum Push abgebrochen wurde, bevor er das Label abnahm
    (cubic schreibt die PR-Beschreibung ~30 s nach jedem Push neu, das
-   `edited` bricht den laufenden Lauf ab). */
+   `edited` bricht den laufenden Lauf ab).
+   Rueckgabe null: nicht zu entscheiden (kein Ereignis, keine Ankerzeit).
+   Auch beim Push entscheidet die Zeit, nicht das Ereignis allein: ein
+   Label, das Sekunden nach dem Push gesetzt wurde, gehoert zum neuen
+   Stand (Opus-Review #477, Runde 2). */
 async function labelAelterAlsHead(head) {
   const gesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
-  if (gesetzt === null) return false;
+  if (gesetzt === null) return null;
   const suiten = (await api(`${R}/commits/${head}/check-suites?per_page=100`)).check_suites || [];
   let anker = Math.min(...suiten.map((x) => Date.parse(x.created_at)).filter(Number.isFinite));
   if (!Number.isFinite(anker)) anker = Date.parse((await api(`${R}/commits/${head}`)).commit?.committer?.date || '');
-  return Number.isFinite(anker) && gesetzt < anker;
+  return Number.isFinite(anker) ? gesetzt < anker : null;
 }
 
 // Neuer Stand: das Label gehoerte zum alten.
-if (labels().includes(LABEL_BEREIT) && (AKTION === 'synchronize' || await labelAelterAlsHead(pr.head.sha))) {
+// Nicht zu entscheiden: beim Push im Zweifel ab (das Label wird neu gesetzt).
+const bereitAlt = labels().includes(LABEL_BEREIT) ? await labelAelterAlsHead(pr.head.sha) : false;
+if (bereitAlt === true || (bereitAlt === null && AKTION === 'synchronize')) {
   await labelAb(LABEL_BEREIT);
   pr.labels = pr.labels.filter((l) => l.name !== LABEL_BEREIT);
 }

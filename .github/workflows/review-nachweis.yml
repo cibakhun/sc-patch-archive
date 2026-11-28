@@ -87,6 +87,17 @@ jobs:
           else
             echo "::error::Auswertung im Zielzweig nicht abrufbar (HTTP $code)"; exit 1
           fi
+          # Beide Dateien aus EINEM Stand: den Zweignamen einmal in einen Commit
+          # aufloesen, sonst koennte ein Push dazwischen sie mischen
+          # (Opus-Review #477, Runde 2).
+          if [ "$REF" != "$PR_HEAD" ]; then
+            REF=$(curl -sS --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/$REPO/branches/$REF" \
+              | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c}).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).commit.sha||""))}catch{}})')
+            case "$REF" in ''|*[!0-9a-f]*) echo "::error::Stand des Zielzweigs nicht lesbar"; exit 1 ;; esac
+            [ "${#REF}" -eq 40 ] || { echo "::error::Stand des Zielzweigs nicht lesbar"; exit 1; }
+            QUELLE="$QUELLE, Stand ${REF:0:7}"
+          fi
           for f in scripts/lib/review-nachweis.mjs scripts/review-nachweis.mjs; do
             code=$(hole "$f" "$REF")
             [ "$code" = 200 ] || { echo "::error::$f nicht abrufbar (HTTP $code)"; exit 1; }

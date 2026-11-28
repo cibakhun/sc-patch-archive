@@ -412,15 +412,27 @@ export async function statusMitKontrolle(urteil, d, { schreibe, gleicheStaende }
 /** Bereiche "between A and B" aus einem CodeRabbit-Text. */
 /* Nur aus der Zeile, mit der CodeRabbit seinen Bereich nennt
    ("Reviewing files that changed ... between A and B"): ein zitierter
-   Diff-Ausschnitt mit demselben Muster ist kein Beleg (Opus-Review #477). */
+   Diff-Ausschnitt mit demselben Muster ist kein Beleg (Opus-Review #477).
+   Die Zeile beginnt ohne Einrueckung und steht in keinem Codeblock
+   (Opus-Review #477, Runde 2: Kontextzeile eines Diffs, Chat-Antwort im
+   Codeblock). */
 export function bereicheAusText(text) {
   const out = [];
+  let block = false;
   for (const zeile of String(text || '').split(/\r?\n/)) {
-    const m = /^\s*Reviewing files that changed\b.*?\bbetween ([0-9a-f]{40}) and ([0-9a-f]{40})\b/.exec(zeile);
+    if (/^\s*(```|~~~)/.test(zeile)) { block = !block; continue; }
+    if (block) continue;
+    const m = /^Reviewing files that changed\b.*?\bbetween ([0-9a-f]{40}) and ([0-9a-f]{40})\b/.exec(zeile);
     if (m) out.push({ a: m[1], b: m[2] });
   }
   return out;
 }
+
+/* Nur CodeRabbits Zusammenfassung traegt Bereiche, keine Chat-Antwort:
+   die koennte jeder per Erwaehnung mit einer passenden Zeile bestellen
+   (Opus-Review #477, Runde 2). Marke wie in den echten Kommentaren. */
+export const CR_ZUSAMMENFASSUNG = '<!-- This is an auto-generated comment: summarize by coderabbit.ai -->';
+export const istZusammenfassung = (body) => String(body || '').includes(CR_ZUSAMMENFASSUNG);
 
 /* ---------------------------------------------------------------
    Abdeckung. CodeRabbit: Kette aus Bereichen. Quelle eines Bereichs ist
@@ -717,7 +729,7 @@ export function ledgerLesen(text) {
   try { return JSON.parse(m[1]).filter((r) => SHA.test(r.a) && SHA.test(r.b)); } catch { return []; }
 }
 
-export const entschaerfe = (t) => String(t).replace(/<!--/g, '&lt;!--').replace(/-->/g, '--&gt;');
+export const entschaerfe = (t) => String(t).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** Den Bericht-Kommentar bauen (Text fuer Menschen, Bereiche fuer den naechsten Lauf). */
 export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {

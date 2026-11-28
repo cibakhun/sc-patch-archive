@@ -153,7 +153,11 @@ Kennt `main` das Gate noch nicht (vor dem ersten Release), läuft die
 Fassung von `staging`. Nur wenn auch `staging` es noch nicht kennt (der PR,
 der es einführt), läuft die aus dem PR, und der Bericht sagt das. Der
 Workflow läuft nur für PRs nach `staging` und `main`, auch bei Reviews
-(`pull_request_review` kennt keinen Zweigfilter).
+(`pull_request_review` kennt keinen Zweigfilter). Beide Dateien der Auswertung
+kommen aus einem festen Commit des Zielzweigs, nicht aus zwei Abrufen des
+Zweignamens. Bereiche liest der Nachweis nur aus CodeRabbits Reviews und
+seiner Zusammenfassung, nie aus einer Chat-Antwort (die könnte jeder per
+Erwähnung mit einer passenden Zeile bestellen) und nie aus Codeblöcken.
 
 ## Abdeckung über mehrere Runden
 
@@ -395,6 +399,13 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   Anforderung und zählt nicht als Runde. Wer den Token des Agentenkontos
   hätte, könnte das weiterhin (siehe oben); auch dann macht eine Marke nie
   grün.
+- **Fehlerschritt ohne Netz.** Scheitert ein Lauf, markiert der letzte
+  Schritt den bewerteten Stand und den heutigen Head als „nicht bewertet“.
+  Kann er den heutigen Head nicht lesen (API-Fehler), bleibt es beim
+  bewerteten Stand. Ein grüner Status auf einem neueren Head bleibt dann
+  nur stehen, wenn zugleich ein alter Lauf von Hand neu gestartet wurde,
+  ein späteres Ereignis zum neueren Head abgebrochen wurde und die API
+  ausfällt. Abhilfe dann: Label `nachweis-neu` setzen.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.

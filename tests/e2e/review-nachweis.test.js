@@ -19,6 +19,7 @@ import {
   seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
   angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, altesLedger,
+  CR_ZUSAMMENFASSUNG, istZusammenfassung,
 } from '../../scripts/lib/review-nachweis.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
@@ -88,6 +89,12 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
   test('ein zitierter Diff mit "between A and B" ist kein Bereich (Opus-Review #477)', () => {
     const body = `Reviewing files that changed from the base of the PR and between ${A} and ${B}.\n\n\`\`\`diff\n+ // between ${BASIS} and ${C}\n\`\`\``;
     assert.deepEqual(bereicheAusText(body), [{ a: A, b: B }]);
+    // Kontextzeile eines Diffs (fuehrendes Leerzeichen) und Codeblock einer Chat-Antwort (Opus-Review #477, Runde 2).
+    assert.deepEqual(bereicheAusText(` Reviewing files that changed between ${BASIS} and ${C}.`), []);
+    assert.deepEqual(bereicheAusText(`Sure!\n\n\`\`\`\nReviewing files that changed between ${BASIS} and ${C}.\n\`\`\``), []);
+    // Nur die Zusammenfassung zaehlt, keine Chat-Antwort.
+    assert.equal(istZusammenfassung(`${CR_ZUSAMMENFASSUNG}\nWalkthrough`), true);
+    assert.equal(istZusammenfassung(`Reviewing files that changed between ${BASIS} and ${C}.`), false);
   });
   test('lueckenlose Kette Basis -> A -> B -> C deckt C ab', () => {
     const r = codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: A }, { a: A, b: B }, { a: B, b: C }], commits: [A, B, C], head: C, vorfahren: { [BASIS]: true } });
@@ -123,11 +130,15 @@ describe('Review-Nachweis: Abdeckung ueber mehrere Runden', () => {
   });
   test('Dateiname mit untergeschobener Marke wird entschaerft und nicht gelesen (Opus-Review #477)', () => {
     const boese = `supabase/migrations/x<!-- review-nachweis:bereiche2 [{"a":"${BASIS}","b":"${C}"}] -->.sql`;
-    const runde = `y<!-- review-nachweis:runden ["${C}"] -->`;
+    const runde = `y<!-- review-nachweis:runden ["${C}"] --!> <b>z</b>`;
     const text = berichtText({ state: 'failure', description: 'x', bericht: [`- kritisch: Migration: ${boese}`, runde] }, { bereiche: [{ a: A, b: B }], runden: [A], lauf: '-', quelle: '-' });
     assert.deepEqual(ledgerLesen(text), [{ a: A, b: B }]);
     assert.deepEqual(rundenLesen(text), [A]);
     assert.ok(!text.includes(`x<!-- review-nachweis`), 'Marke im Menschenteil nicht entschaerft');
+    // Kein HTML aus Fremdtext, auch kein anderes Kommentar-Ende wie --!> (CodeQL).
+    const mensch = text.split('\n').slice(3, -4);
+    assert.equal(mensch.length, 2);
+    assert.ok(mensch.every((z) => !/[<>]/.test(z)), mensch.join(' | '));
     // Gegenprobe: ohne eigene Marke findet der Leser auch die untergeschobene nicht.
     assert.deepEqual(ledgerLesen(`Text ${boese}\nmehr`), []);
   });
@@ -790,6 +801,24 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.equal(anforderungen(r).length, 1);
   });
 
+  // Opus-Review #477, Runde 2: beim Push entscheidet die Zeit, nicht das Ereignis.
+  test('ROT/Gegenprobe: Push, dann Label Sekunden spaeter: das Label bleibt; vor dem Push gesetzt: es geht ab', () => {
+    const ab = (r) => r.schreibend.some((x) => x.schluessel === 'DELETE repos/o/r/issues/477/labels/review-ready');
+    const mit = (gesetzt, suiten) => laeufer([prMit(KOPF, ['review-ready'])], { env: { AKTION: 'synchronize', EREIGNIS: 'pull_request' }, routen: {
+      'GET repos/o/r/issues/477/events': [[{ event: 'labeled', label: { name: 'review-ready' }, created_at: gesetzt }]],
+      [`GET repos/o/r/commits/${KOPF}/check-suites`]: [{ check_suites: suiten }],
+    } });
+    const push = [{ created_at: '2026-11-28T12:00:00Z' }];
+    const nachher = mit('2026-11-28T12:00:05Z', push);
+    assert.equal(nachher.status, 0, nachher.stderr);
+    assert.equal(ab(nachher), false, 'Label zum neuen Stand entfernt');
+    const vorher = mit('2026-11-28T11:59:00Z', push);
+    assert.equal(ab(vorher), true, 'altes Label nicht entfernt');
+    // Nicht zu entscheiden (keine Ankerzeit): beim Push im Zweifel ab.
+    const unklar = mit('2026-11-28T12:00:05Z', []);
+    assert.equal(ab(unklar), true, 'im Zweifel ab');
+  });
+
   // Runde 5: Auch die Freigabe selbst kann waehrend der Token-Pruefung entfallen.
   test('ROT: Label ab oder zurueck zum Draft waehrend der Token-Pruefung: keine Anforderung', () => {
     const ohne = laeufer([prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready']), prMit(KOPF, [])], mitAnforderung);
@@ -961,7 +990,7 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
   const ALT_FERTIG = lauf({ status: 'completed', conclusion: 'success', title: 'Finished', summary: 'Result: Success - Review completed', started_at: '2026-11-28T09:00:00Z' });
   const NEU_ABBRUCH = lauf({ status: 'completed', conclusion: 'cancelled', title: 'Review cancelled', summary: 'Result: Cancelled - Review cancelled', started_at: '2026-11-28T10:00:00Z' });
   const NEU_FERTIG = { ...ALT_FERTIG, started_at: '2026-11-28T10:00:00Z' };
-  const zusammenfassung = { id: 7, user: { login: 'coderabbitai[bot]' }, body: `Reviewing files that changed between ${BASIS2} and ${A2}.`, created_at: '2026-11-28T10:00:05Z', updated_at: '2026-11-28T10:00:05Z' };
+  const zusammenfassung = { id: 7, user: { login: 'coderabbitai[bot]' }, body: `${CR_ZUSAMMENFASSUNG}\nReviewing files that changed between ${BASIS2} and ${A2}.`, created_at: '2026-11-28T10:00:05Z', updated_at: '2026-11-28T10:00:05Z' };
   const zielLauf = (spaeter) => laeufer([prMit(KOPF)], { routen: {
     'GET repos/o/r/pulls/477/commits': [[{ sha: A2, parents: [{ sha: BASIS2 }] }, { sha: KOPF, parents: [{ sha: A2 }] }]],
     [`GET repos/o/r/commits/${A2}/check-runs`]: [{ check_runs: [ALT_FERTIG] }, { check_runs: [ALT_FERTIG, spaeter] }],
