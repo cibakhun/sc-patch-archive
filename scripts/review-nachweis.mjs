@@ -43,8 +43,8 @@ import {
   LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
   anforderungNoetig, anforderungsMarke, rundenBremse, rundenZahl,
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
-  gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr,
-  angeforderteStaende, rundenAusAnforderungen,
+  rundenLesen, beschreibungMitPr, nachweisFuerPr,
+  angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche, ANFORDERUNG_KONTEN,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -118,21 +118,29 @@ const cacheVorfahr = new Map();
 async function sammle(pr, { nurHeadNeu = false } = {}) {
   const head = pr.head.sha;
   const commits = (await alle(`${R}/pulls/${NUMMER}/commits`, 3)).map((c) => c.sha);
+  /* Texte vor den Laeufen: so ist der Lauf-Stand mindestens so neu wie die
+     Zusammenfassung, deren Bereich er belegen soll (zielGeprueft). */
+  const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
+  const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
   const laeufeJeCommit = {};
   for (const c of commits) {
-    if (!cacheLaeufe.has(c) || c === head || !nurHeadNeu) cacheLaeufe.set(c, await laeufeFuer(c));
+    // Beim Nachpollen: der Head immer, ein anderer Stand nur, solange einer
+    // seiner Laeufe noch nicht fertig war (sonst bliebe er im Zwischenspeicher
+    // "laeuft", und sein Bereich fiele aus der Kette; Review #477).
+    const offen = (cacheLaeufe.get(c) || []).some((l) => l.status !== 'completed');
+    if (!cacheLaeufe.has(c) || c === head || !nurHeadNeu || offen) cacheLaeufe.set(c, await laeufeFuer(c));
     laeufeJeCommit[c] = cacheLaeufe.get(c);
   }
   const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
-  const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
-  const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
   const gleicherStand = await gleicheStaende(head);
-  const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at }));
+  const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at, geaendert: k.updated_at || k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
+  // Jeder Bereich traegt seine Quelle: abgegebene Reviews und das Ledger
+  // sind feste Belege, jeder andere Text nur fuer den juengsten Lauf.
   const bereiche = [
-    ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)),
-    ...kommentare.filter((k) => k.author === CR).flatMap((k) => bereicheAusText(k.body)),
-    ...(bericht ? ledgerLesen(bericht.body) : []),
+    ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body).map((x) => ({ ...x, quelle: 'review' }))),
+    ...kommentare.filter((k) => k.author === CR).flatMap((k) => bereicheAusText(k.body).map((x) => ({ ...x, quelle: 'zusammenfassung', stand: Date.parse(k.geaendert || '') }))),
+    ...(bericht ? ledgerLesen(bericht.body).map((x) => ({ ...x, quelle: 'ledger' })) : []),
   ];
   const imPr = new Set(commits);
   // Runden, die ein Umschreiben ueberdauern: CodeRabbits Reviews bleiben am
@@ -148,11 +156,14 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
     }
     laeufeAlt[sha] = cacheLaeufe.get(sha);
   }
+  const ausAnf = rundenAusAnforderungen(alteAnf, laeufeAlt);
   const fruehereRunden = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)).map((r) => r.b),
     ...(bericht ? rundenLesen(bericht.body) : []),
-    ...rundenAusAnforderungen(alteAnf, laeufeAlt),
+    ...ausAnf.bestaetigt,
   ];
+  // Nicht lesbar: zaehlt fuer diese Entscheidung, nicht fuers Ledger.
+  const vorlaeufigeRunden = ausAnf.vorlaeufig;
   const vorfahren = {};
   for (const a of new Set(bereiche.map((r) => r.a).filter((a) => !imPr.has(a)))) {
     if (!cacheVorfahr.has(a)) {
@@ -169,7 +180,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
       head_sha: head, labels: pr.labels.map((l) => l.name),
     },
     commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
-    freigabeGesetzt, bereitGesetzt, fruehereRunden,
+    freigabeGesetzt, bereitGesetzt, fruehereRunden, vorlaeufigeRunden,
   };
   if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
@@ -180,7 +191,7 @@ async function releaseDaten(commits) {
   const out = [];
   for (const sha of commits) {
     const prs = [];
-    for (const p of await api(`${R}/commits/${sha}/pulls`)) {
+    for (const p of await alle(`${R}/commits/${sha}/pulls`, 3)) {
       if (!nachweisJePr.has(p.number)) {
         // Das juengste Urteil, das genau diesen PR nennt: ein spaeterer PR
         // vom selben Stand ueberschreibt es nicht (Review #477).
@@ -224,6 +235,19 @@ async function status(sha, u) {
   console.log(`Status ${STATUS_KONTEXT} fuer ${sha.slice(0, 7)}: ${u.state} — ${beschreibung}`);
   if (TROCKEN) return;
   await api(`${R}/statuses/${sha}`, { method: 'POST', body: { state: u.state, description: beschreibung, context: STATUS_KONTEXT, target_url: LAUF || undefined } });
+}
+
+/* Gehoeren die gesammelten Daten noch zum Head? Waehrend der Erhebung
+   gepushte Commits mischen sonst Dateien eines neuen Stands in das Urteil
+   ueber den alten. Dann schreibt dieser Lauf nichts mehr; der Lauf zum
+   neuen Stand uebernimmt (Review #477). Trocken wird nichts geschrieben. */
+async function headNochGleich(sha) {
+  if (TROCKEN) return;
+  const jetzt = await api(`${R}/pulls/${NUMMER}`);
+  if (jetzt.head.sha !== sha || jetzt.state !== 'open') {
+    console.log('Neuer Stand oder PR geschlossen waehrend der Erhebung — der Lauf dazu uebernimmt.');
+    process.exit(0);
+  }
 }
 
 // ---------------------------------------------------------------- Ablauf
@@ -292,15 +316,20 @@ if (anforderungNoetig(d, { bremse: false }) && rundenBremse(d)) {
 // nur von einem echten Konto (Secret REVIEW_ANFORDERUNG_TOKEN, Agentenkonto).
 if (anforderungNoetig(d)) {
   const head = d.pr.head_sha;
+  await headNochGleich(head);
   const text = `@coderabbitai review\n\n${anforderungsMarke(head)}\n<sub>Angefordert vom Review-Nachweis: Label \`${LABEL_BEREIT}\` auf Stand \`${head.slice(0, 7)}\`. Eine Anforderung je Stand (docs/review-workflow.md).</sub>`;
   if (TROCKEN) {
     console.log('(trocken) Anforderung an CodeRabbit');
-    d.kommentare.push({ id: 0, author: '(trocken)', body: text, url: '(trocken)', erstellt: new Date().toISOString() });
+    d.kommentare.push({ id: 0, author: ANFORDERUNG_KONTEN[0], body: text, url: '(trocken)', erstellt: new Date().toISOString() });
   } else if (!ANFORDERUNG_TOKEN) {
     d.anforderungUnmoeglich = 'Secret REVIEW_ANFORDERUNG_TOKEN fehlt';
     console.log(`Keine Anforderung moeglich: ${d.anforderungUnmoeglich}.`);
   } else {
     try {
+      // Nur ein eingetragenes Konto: eine Marke von einem anderen zaehlte
+      // nicht, und jeder Lauf forderte erneut an.
+      const konto = (await api('user', { token: ANFORDERUNG_TOKEN })).login;
+      if (!ANFORDERUNG_KONTEN.includes(konto)) throw new Error(`HTTP 403 Konto ${konto} ist kein Anforderungskonto (ANFORDERUNG_KONTEN)`);
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
@@ -337,9 +366,10 @@ if (!urteil.release) {
 }
 
 // Gruen nur, wenn auch danach kein zweiter offener PR denselben Stand traegt.
+await headNochGleich(d.pr.head_sha);
 urteil = await statusMitKontrolle(urteil, d, { schreibe: (u) => status(d.pr.head_sha, u), gleicheStaende });
 
-const text = berichtText(urteil, { bereiche: d.bereiche, runden: gepruefteStaende(d), lauf: LAUF || '(lokal)', quelle: QUELLE });
+const text = berichtText(urteil, { bereiche: ledgerBereiche(d), runden: bestaetigteRunden(d), lauf: LAUF || '(lokal)', quelle: QUELLE });
 if (TROCKEN) console.log('\n' + text);
 else if (bericht && bericht.body !== text) await api(`${R}/issues/comments/${bericht.id}`, { method: 'PATCH', body: { body: text } });
 else if (!bericht) await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });

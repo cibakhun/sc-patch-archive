@@ -17,7 +17,7 @@ import {
   anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
   freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
   gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
-  angeforderteStaende, rundenAusAnforderungen,
+  angeforderteStaende, rundenAusAnforderungen, bestaetigteRunden, ledgerBereiche,
 } from '../../scripts/lib/review-nachweis.mjs';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -389,12 +389,25 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     // C: fertiger Review (gefunden ueber die Marke); F: nur Rate-Limit (keine
     // Runde); A, B stehen schon im Ledger.
     const aus = rundenAusAnforderungen([C, F], { [C]: [CR_FERTIG], [F]: [CR_LIMIT] });
-    assert.deepEqual(aus, [C]);
-    const d = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus] });
+    assert.deepEqual(aus, { bestaetigt: [C], vorlaeufig: [] });
+    const d = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt] });
     assert.equal(rundenZahl(d), 3);
     assert.equal(anforderungNoetig(d), false, 'keine vierte Anforderung');
-    // Nicht lesbar (Commit weg, API-Fehler): zaehlt im Zweifel als Runde.
-    assert.deepEqual(rundenAusAnforderungen([C], { [C]: null }), [C]);
+  });
+  test('Nicht lesbarer alter Stand: zaehlt vorsorglich, geht aber nicht ins Ledger', () => {
+    const E = h('5');
+    const nach = (aus) => lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E }, fruehereRunden: [A, B, ...aus.bestaetigt], vorlaeufigeRunden: aus.vorlaeufig });
+    // Lauf 1: C nicht lesbar (API-Fehler) -> im Zweifel dritte Runde, keine Anforderung.
+    const eins = rundenAusAnforderungen([C], { [C]: null });
+    assert.deepEqual(eins, { bestaetigt: [], vorlaeufig: [C] });
+    assert.equal(rundenZahl(nach(eins)), 3);
+    assert.equal(anforderungNoetig(nach(eins)), false);
+    assert.deepEqual(bestaetigteRunden(nach(eins)).sort(), [A, B].sort(), 'ins Ledger nur Belegtes');
+    // Lauf 2 liest C neu: nur ein Skip, also keine Runde, die Bremse ist frei.
+    const zwei = rundenAusAnforderungen([C], { [C]: [CR_AUS_SKIP] });
+    assert.deepEqual(zwei, { bestaetigt: [], vorlaeufig: [] });
+    assert.equal(rundenZahl(nach(zwei)), 2);
+    assert.equal(anforderungNoetig(nach(zwei)), true, 'ein einmaliger API-Fehler sperrt nicht dauerhaft');
   });
   test('Freigabe ohne bekannten Setzzeitpunkt bremst (im Zweifel verbraucht)', () => {
     const ohneZeit = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });
@@ -512,5 +525,54 @@ describe('Review-Nachweis: Release staging -> main', () => {
     const u = bewerte(rel([{ sha: A, prs: [] }], [k]));
     assert.equal(u.state, 'success');
     assert.match(u.description, /^RELEASE-AUSNAHME/);
+  });
+});
+
+describe('Review-Nachweis: Runde 3 (Review #477)', () => {
+  const marke = (sha, author) => ({ author, body: `@coderabbitai review\n\n${anforderungsMarke(sha)}`, erstellt: '2026-11-28T09:00:00Z' });
+  test('Anforderungsmarken zaehlen nur vom Anforderungskonto', () => {
+    const d = lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_AUS_SKIP] }, bereiche: [{ a: BASIS, b: A }, { a: A, b: B }], kommentare: [marke(C, 'irgendwer')] });
+    // Eine fremde Marke fuer den Head unterdrueckt die echte Anforderung nicht ...
+    assert.equal(anforderungAmHead(d.kommentare, C), null);
+    assert.equal(anforderungNoetig(d), true);
+    assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'Verse-Base')] }), false);
+    assert.equal(anforderungNoetig({ ...d, kommentare: [marke(C, 'github-actions[bot]')] }), false);
+    // ... verbraucht keine Freigabe ...
+    const frei = { ...d, pr: pr({ labels: ['review-ready', 'review-runde-frei'] }), freigabeGesetzt: Date.parse('2026-11-28T08:00:00Z'), kommentare: [marke(A, 'irgendwer')] };
+    assert.equal(freigabeVerbraucht(frei), false);
+    assert.equal(freigabeVerbraucht({ ...frei, kommentare: [marke(A, 'Verse-Base')] }), true);
+    // ... und zaehlt nicht als angeforderter Stand.
+    assert.deepEqual(angeforderteStaende([marke(A, 'irgendwer'), marke(B, 'Verse-Base')]), [B]);
+  });
+
+  // B hatte einen fertigen inkrementellen Review (A..B); danach soll ein
+  // `full review` die Luecke Basis..A schliessen und bricht ab. Seine
+  // Zusammenfassung nennt Basis..B schon zu Beginn.
+  const SPAET_ABBRUCH = { ...CR_ABBRUCH, started_at: '2026-11-27T10:00:00Z' };
+  const SPAET_FERTIG = { ...CR_FERTIG, started_at: '2026-11-27T10:00:00Z' };
+  const inkr = { a: A, b: B, quelle: 'review' };
+  const voll = (stand) => ({ a: BASIS, b: B, quelle: 'zusammenfassung', stand: Date.parse(stand) });
+  const luecke = (laeufeB, bereiche) => lage({ commits: [A, B], pr: { head_sha: B }, laeufeJeCommit: { [A]: [CR_AUS_SKIP], [B]: laeufeB }, bereiche });
+
+  test('Bereich aus der Zusammenfassung gehoert zum juengsten Lauf: ein abgebrochener full review schliesst keine Luecke', () => {
+    const u = bewerte(luecke([CR_FERTIG, SPAET_ABBRUCH], [inkr, voll('2026-11-27T10:00:05Z')]));
+    assert.notEqual(u.state, 'success', 'Abbruch nach frueherem fertigem Lauf darf nicht gruen machen');
+    // Ist der full review fertig, schliesst er die Luecke.
+    assert.equal(bewerte(luecke([CR_FERTIG, SPAET_FERTIG], [inkr, voll('2026-11-27T10:12:00Z')])).state, 'success');
+    // Text aelter als der juengste Lauf: er spricht nicht fuer diesen Lauf.
+    assert.equal(codeRabbitAbdeckung({ bereiche: [voll('2026-11-27T09:59:00Z')], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [CR_FERTIG, SPAET_FERTIG] } }).abgedeckt, false);
+    assert.equal(codeRabbitAbdeckung({ bereiche: [{ ...voll('x'), stand: NaN }], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [SPAET_FERTIG] } }).abgedeckt, false, 'unlesbare Zeit: im Zweifel nicht');
+    // Ein abgegebener Review ist ein fester Beleg: ein spaeterer Abbruch nimmt ihn nicht weg.
+    assert.equal(codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: B, quelle: 'review' }], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [CR_FERTIG, SPAET_ABBRUCH] } }).abgedeckt, true);
+  });
+
+  test('Ins Ledger geht nur, was belegt ist; das alte Ledger bleibt', () => {
+    const k = (r) => `${r.a}..${r.b}`;
+    const abbruch = luecke([CR_FERTIG, SPAET_ABBRUCH], [inkr, voll('2026-11-27T10:00:05Z'), { a: BASIS, b: A, quelle: 'ledger' }]);
+    assert.deepEqual(ledgerBereiche(abbruch).map(k).sort(), [k({ a: BASIS, b: A }), k(inkr)].sort(), 'der abgebrochene Bereich wird nicht festgehalten');
+    const fertig = luecke([CR_FERTIG, SPAET_FERTIG], [inkr, voll('2026-11-27T10:12:00Z')]);
+    assert.ok(ledgerBereiche(fertig).some((r) => r.a === BASIS && r.b === B), 'der fertige full review wird festgehalten');
+    const text = berichtText({ state: 'success', description: 'x', bericht: [] }, { bereiche: ledgerBereiche(fertig), lauf: '-', quelle: '-' });
+    assert.deepEqual(ledgerLesen(text).map(k).sort(), ledgerBereiche(fertig).map(k).sort());
   });
 });

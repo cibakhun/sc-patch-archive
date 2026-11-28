@@ -40,6 +40,13 @@ export const MAX_RUNDEN = 3;
 export const STATUS_KONTEXT = 'review-nachweis';
 export const BERICHT_MARKE = '<!-- review-nachweis:bericht -->';
 export const anforderungsMarke = (sha) => `<!-- review-nachweis:anforderung sha=${sha} -->`;
+/* Wer Anforderungen schreibt: das Agentenkonto (Token
+   REVIEW_ANFORDERUNG_TOKEN) und, aus der Zeit vor dem Konto, der
+   Workflow selbst. Eine Marke von anderen zaehlt nicht: sonst koennte jeder
+   Kommentar eine Freigabe verbrauchen oder die echte Anforderung
+   unterdruecken (Review #477). Der Ablauf prueft vor jeder Anforderung,
+   dass der Token zu einem dieser Konten gehoert. */
+export const ANFORDERUNG_KONTEN = ['Verse-Base', 'github-actions[bot]'];
 
 const SHA = /^[0-9a-f]{40}$/;
 const kurz = (s) => (s || '').slice(0, 7);
@@ -169,9 +176,10 @@ export function codeRabbitAmCommit(laeufe = []) {
    Stand, mit einer Marke, die den Stand nennt. Die Marke verlaengert nur
    das Warten, sie zaehlt nie als Review.
    --------------------------------------------------------------- */
+const vomAnforderer = (kommentare) => (kommentare || []).filter((k) => ANFORDERUNG_KONTEN.includes(k.author));
 const anforderungen = (kommentare, head) => {
   const re = new RegExp(`<!--\\s*review-nachweis:anforderung\\s+sha=${head}\\s*-->`);
-  return (kommentare || []).filter((k) => re.test(k.body || ''));
+  return vomAnforderer(kommentare).filter((k) => re.test(k.body || ''));
 };
 
 /** Zeitpunkt (ms) der juengsten Anforderung fuer genau diesen Stand, sonst null. */
@@ -181,7 +189,7 @@ export function anforderungAmHead(kommentare, head) {
 }
 
 /** Alle Anforderungen, gleich fuer welchen Stand. */
-const alleAnforderungen = (kommentare) => (kommentare || []).filter((k) => /<!--\s*review-nachweis:anforderung\s+sha=[0-9a-f]{40}\s*-->/.test(k.body || ''));
+const alleAnforderungen = (kommentare) => vomAnforderer(kommentare).filter((k) => /<!--\s*review-nachweis:anforderung\s+sha=[0-9a-f]{40}\s*-->/.test(k.body || ''));
 
 /** Juengstes Setzen eines Labels (ms) aus den Issue-Ereignissen, sonst null. */
 export function zuletztGesetzt(ereignisse, label) {
@@ -211,6 +219,14 @@ const fertigGeprueft = (laeufe) => (laeufe || []).filter(istCodeRabbit).some((l)
     Ledger im Bericht). Sonst senkte ein Force-Push, Rebase oder Squash die
     Zahl unter das Limit (Review #477). */
 export function gepruefteStaende(d) {
+  return [...new Set([...bestaetigteRunden(d), ...(d.vorlaeufigeRunden || []).filter((x) => SHA.test(x))])];
+}
+
+/** Nur belegte Runden (ohne die vorsorglich gezaehlten, nicht lesbaren
+    Staende): nur sie gehen ins Ledger. Ein einmal nicht lesbarer Stand
+    wird so beim naechsten Lauf neu gelesen und nicht dauerhaft gezaehlt
+    (Review #477). */
+export function bestaetigteRunden(d) {
   const jetzt = (d.commits || []).filter((c) => fertigGeprueft(d.laeufeJeCommit?.[c]));
   return [...new Set([...jetzt, ...(d.fruehereRunden || []).filter((x) => SHA.test(x))])];
 }
@@ -226,11 +242,17 @@ export function angeforderteStaende(kommentare) {
 
 /** Runden aus angeforderten Staenden, die nicht mehr im PR liegen:
     `laeufeJe[sha]` sind deren Check-Laeufe, `null` heisst nicht lesbar.
-    Gezaehlt wird ein fertiger Review, und im Zweifel (nicht lesbar) auch:
-    so geht eine Runde nicht verloren, wenn ein Force-Push den Lauf abbrach,
-    bevor er sie im Bericht festhielt (Review #477). */
+    Belegt ist ein fertiger Review; nicht lesbar zaehlt vorsorglich mit
+    (`vorlaeufig`), aber nur fuer diesen Lauf: so geht eine Runde nicht
+    verloren, wenn ein Force-Push den Lauf abbrach, bevor er sie im Bericht
+    festhielt, und ein einmaliger API-Fehler sperrt nicht dauerhaft
+    (Review #477). */
 export function rundenAusAnforderungen(shas, laeufeJe) {
-  return (shas || []).filter((sha) => laeufeJe[sha] === null || fertigGeprueft(laeufeJe[sha]));
+  const lesbar = (sha) => Array.isArray(laeufeJe[sha]);
+  return {
+    bestaetigt: (shas || []).filter((sha) => lesbar(sha) && fertigGeprueft(laeufeJe[sha])),
+    vorlaeufig: (shas || []).filter((sha) => !lesbar(sha)),
+  };
 }
 
 /** Abgeschlossene CodeRabbit-Runden des PRs. */
@@ -353,17 +375,36 @@ export function bereicheAusText(text) {
    ab der Merge-Basis). Ziel muss ein Commit des heutigen PR-Stands sein. Ein umgeschriebener Verlauf (Force-Push)
    reisst die Kette: dann hilft nur `@coderabbitai full review`.
    --------------------------------------------------------------- */
+/* Gehoert der Bereich zu einem fertigen Review am Ziel? Ein abgegebener
+   CodeRabbit-Review (`quelle: 'review'`) und das eigene Ledger
+   (`'ledger'`, dort steht nur, was schon einmal so belegt war) sind feste
+   Belege: ein fertiger Lauf am Ziel genuegt, ein spaeterer Abbruch
+   desselben Stands nimmt ihn nicht weg. Jeder andere Text, vor allem die
+   Zusammenfassung, die CodeRabbit bei jedem Lauf ueberschreibt, spricht
+   fuer den juengsten Lauf am Ziel: der muss fertig sein und darf nicht
+   nach der letzten Aenderung des Textes (`stand`, ms) begonnen haben.
+   Sonst koennte ein abgebrochener `full review` mit einem frueheren
+   fertigen Lauf eine Luecke schliessen (Review #477). */
+function zielGeprueft(r, laeufe) {
+  if (r.quelle === 'review' || r.quelle === 'ledger') return fertigGeprueft(laeufe);
+  const letzter = juengster((laeufe || []).filter(istCodeRabbit));
+  if (!letzter || codeRabbitLauf(letzter).art !== 'geprueft') return false;
+  if (!('stand' in r)) return true;
+  const start = Date.parse(letzter.started_at || '');
+  return Number.isFinite(r.stand) && Number.isFinite(start) && start <= r.stand;
+}
+
 export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit }) {
   const imPr = new Set(commits);
   const gueltig = [];
   const verworfen = [];
   for (const r of bereiche) {
     if (!SHA.test(r.a) || !SHA.test(r.b)) continue;
-    /* Ziel im heutigen Verlauf und dort ein fertiger Review. Den Bereich
-       nennt CodeRabbit schon zu Beginn einer Runde; bricht sie ab, darf er
-       aus Zusammenfassung oder Ledger kein Glied der Kette werden.
+    /* Ziel im heutigen Verlauf und dort ein fertiger Review, der zu diesem
+       Bereich gehoert (zielGeprueft). Den Bereich nennt CodeRabbit schon zu
+       Beginn einer Runde; bricht sie ab, wird er kein Glied der Kette.
        (Ohne `laeufeJeCommit` nur die Verlaufspruefung, fuer Einzeltests.) */
-    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || fertigGeprueft(laeufeJeCommit[r.b]));
+    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || zielGeprueft(r, laeufeJeCommit[r.b]));
     const quelleOk = imPr.has(r.a) || vorfahren[r.a] === true; // vorfahren: liegt auf dem Zielzweig
     (zielOk && quelleOk ? gueltig : verworfen).push(r);
   }
@@ -387,7 +428,23 @@ export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufe
       ziel = r.a;
     }
   }
-  return { abgedeckt: erreicht.has(head), kette, verworfen, gueltig: gueltig.length };
+  return { abgedeckt: erreicht.has(head), kette, verworfen, gueltig: gueltig.length, gueltigeBereiche: gueltig };
+}
+
+/** Was ins Ledger geht: das alte Ledger und jeder Bereich, der jetzt
+    belegt ist. Ein unbelegter Bereich (Lauf laeuft noch oder brach ab)
+    wird nicht festgehalten, sonst wuerde er spaeter als fester Beleg
+    gelesen (Review #477). */
+export function ledgerBereiche(d) {
+  const { gueltigeBereiche } = codeRabbitAbdeckung({
+    bereiche: d.bereiche || [], commits: d.commits || [], head: d.pr.head_sha,
+    vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {},
+  });
+  const out = new Map();
+  for (const r of [...(d.bereiche || []).filter((x) => x.quelle === 'ledger'), ...gueltigeBereiche]) {
+    if (SHA.test(r.a) && SHA.test(r.b)) out.set(`${r.a}..${r.b}`, { a: r.a, b: r.b });
+  }
+  return [...out.values()];
 }
 
 /** cubic: voller Review setzt die Abdeckung, inkrementelle halten sie, alles andere reisst sie. */

@@ -24,8 +24,11 @@ ist, entscheidet Krisz, nie eine Automatik.
    mit dem Token des Agentenkontos (Secret `REVIEW_ANFORDERUNG_TOKEN`):
    Befehle von `github-actions[bot]` ignoriert CodeRabbit (live auf #477
    gemessen: 40 Minuten keine Reaktion, während ein Befehl von `cibakhun`
-   auf #479 sofort lief). Fehlt das Secret oder ist der Token abgelaufen,
-   fordert der Lauf nichts an und nennt das im Status. Selbst kein
+   auf #479 sofort lief). Fehlt das Secret, ist der Token abgelaufen oder
+   gehört er zu keinem eingetragenen Anforderungskonto
+   (`ANFORDERUNG_KONTEN`: `Verse-Base`, früher `github-actions[bot]`),
+   fordert der Lauf nichts an und nennt das im Status. Marken anderer
+   Konten zählen nicht. Selbst kein
    `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
    **Nach einem Rate-Limit** bleibt der Status rot („rate-limitiert“). Dann
    `review-ready` abnehmen und neu setzen, sobald das Limit vorbei ist
@@ -59,7 +62,9 @@ abgeschlossenem CodeRabbit-Review, auch solche, die ein Force-Push, Rebase
 oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, der
 Bericht-Kommentar hält die geprüften Stände fest, und für jeden
 angeforderten Stand, der nicht mehr im PR liegt, liest der Lauf dessen
-Check-Läufe nach (nicht lesbar zählt als Runde). Danach fordert der Workflow keinen
+Check-Läufe nach. Ist ein solcher Stand nicht lesbar (API-Fehler, Commit
+weg), zählt er vorsorglich für diesen Lauf, kommt aber nicht ins Ledger:
+der nächste Lauf liest ihn neu. Danach fordert der Workflow keinen
 weiteren Review an, bei keinem Ereignis, nimmt `review-ready` wieder ab und
 nennt die Rundenbremse im Status. Krisz entscheidet: Label
 `review-runde-frei` gibt **genau eine** weitere Runde frei, nur auf seine
@@ -128,12 +133,18 @@ Der Nachweis ist deshalb erst grün, wenn die Runden zusammen **jede
   eine lückenlose Kette: Sie beginnt auf einem Commit des Zielzweigs (der
   Basis des PRs), jeder Bereich endet auf einem Commit des PRs, und die
   Kette endet am Head. Fehlt ein Glied, ist der Status rot. Ein Glied zählt
-  nur, wenn am Ziel des Bereichs ein abgeschlossener Review steht:
+  nur, wenn es zu einem abgeschlossenen Review am Ziel des Bereichs gehört:
   CodeRabbit nennt den Bereich schon zu Beginn einer Runde, und eine
-  abgebrochene Runde darf kein Glied werden.
+  abgebrochene Runde darf kein Glied werden. Ein abgegebener
+  CodeRabbit-Review und das Ledger sind feste Belege (ein fertiger Lauf am
+  Ziel genügt). Ein Bereich aus der Zusammenfassung spricht nur für den
+  **jüngsten** Lauf am Ziel: der muss fertig sein und darf nicht nach der
+  letzten Änderung der Zusammenfassung begonnen haben. Sonst schlösse ein
+  abgebrochener `full review` mit einem früheren fertigen Lauf eine Lücke.
 - CodeRabbit überschreibt seine Zusammenfassung bei jeder Runde. Damit eine
   Runde ohne Kommentare ihren Bereich nicht verliert, hält der
-  Bericht-Kommentar jeden gesehenen Bereich fest (verborgenes Ledger).
+  Bericht-Kommentar jeden belegten Bereich fest (verborgenes Ledger); ein
+  unbelegter (Runde läuft noch oder brach ab) kommt nicht hinein.
 - **cubic**: Ein voller Review setzt die Abdeckung, inkrementelle Reviews
   und Merge-Commits („not needed for merge commit“) setzen sie fort, alles
   andere (Limit, Rewrite, nicht gestartet) bricht sie. Der Head selbst
@@ -252,7 +263,11 @@ CodeRabbit hat danach noch keinen Lauf begonnen (ein Skip von davor ist
 veraltet). Die Marke selbst zählt nie als Review. Jedes neue
 Ereignis bricht den wartenden Lauf ab und startet neu
 (`cancel-in-progress`). Ändert sich der Head während des Wartens, endet der
-Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
+Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst. Dasselbe gilt
+unmittelbar vor der Anforderung und vor dem Schreiben des Status: Kam
+während der Erhebung ein neuer Stand, schreibt der Lauf nichts, damit kein
+Urteil aus gemischten Daten am alten Stand hängt. Beim Nachpollen liest
+der Lauf den Head und jeden Stand neu, dessen Lauf noch nicht fertig war.
 
 ## Grenzen (bewusst offen)
 
@@ -286,11 +301,11 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
   Agentenkonto steht nie in `FREIGABE_KONTEN`.
 - **Reaktion von CodeRabbit.** Reagiert CodeRabbit nicht auf die
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
-  (rot, nie grün). Die Marke der Anforderung kann jeder schreiben, der den
-  PR kommentieren darf; eine gefälschte Marke unterdrückt höchstens die
-  echte Anforderung (der Status bleibt rot), verbraucht eine Freigabe
-  `review-runde-frei` vorzeitig oder zählt als Runde. Sie macht nie grün
-  und gibt nie eine Runde frei.
+  (rot, nie grün). Die Marke der Anforderung zählt nur von den
+  Anforderungskonten; eine Marke von jemand anderem unterdrückt keine
+  Anforderung, verbraucht keine Freigabe und zählt nicht als Runde. Wer den
+  Token des Agentenkontos hätte, könnte das weiterhin (siehe oben); auch
+  dann macht eine Marke nie grün und gibt nie eine Runde frei.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.
