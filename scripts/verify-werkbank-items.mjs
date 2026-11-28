@@ -24,7 +24,9 @@
    [9] Preisspanne: dieselbe.
    [10] Kaufen nach System: jede Bezugszeile (gepaart ueber ihren Ort)
         traegt dasselbe System; vertauschte Systeme zweier Zeilen fallen
-        auf, auch wenn die Menge der Systeme gleich bleibt.
+        auf, auch wenn die Menge der Systeme gleich bleibt. Steht ein Ort
+        auf einem Blatt zweimal mit verschiedenen Systemen, traegt der
+        Paarschluessel nicht mehr: eigener FEHLER.
    [13] Technische Daten: dieselben Zeilen, Bezeichnung und Wert, in
         derselben Reihenfolge, die Varianten eingeschlossen.
    Je Item des Katalogs und je Set, beide Sprachen:
@@ -261,7 +263,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   await p.settle(500);
   if (!n.wege()) fehler.push(`${lang}: /items-wege.json ist nicht geladen — wegeUrl in window.__WZI, Datei in dist/ und Laenge gegen den Katalog pruefen`);
   n.leere();
-  const z = (zahl[lang] = { items: 0, blaetter: 0, wege: 0, missionen: 0, serie: 0, aehnlich: 0, zwilling: 0, setPreis: 0, werkzeuge: 0, fahrzeug: 0, spanne: 0, systemZeilen: 0, werte: 0, werteZeilen: 0, sets: 0 });
+  const z = (zahl[lang] = { items: 0, blaetter: 0, wege: 0, missionen: 0, serie: 0, aehnlich: 0, zwilling: 0, setPreis: 0, werkzeuge: 0, fahrzeug: 0, spanne: 0, systemZeilen: 0, werte: 0, werteZeilen: 0, doppelOrt: 0, sets: 0 });
   const blattOrdner = join(DIST, lang === 'de' ? 'de/items' : 'items');
   const melde = (it, was) => fehler.push(`${lang}: ${it.id} — ${was}`);
   for (const it of n.items()) {
@@ -297,6 +299,23 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
     if (b.spanne !== w.spanne) melde(it, `[9] Preisspanne: Blatt „${b.spanne}“, Werkbank „${w.spanne}“`);
     z.systemZeilen += b.systeme ? b.systeme.split('|').filter((s) => !s.endsWith('=ohne')).length : 0;
     if (b.systeme !== w.systeme) melde(it, `[10] Systeme der Bezugszeilen: Blatt [${b.systeme}], Werkbank [${w.systeme}]`);
+    // Der Paarschluessel ist der Ortsname. Steht derselbe Ort auf einem Blatt
+    // zweimal mit verschiedenen Systemen, faellt ein Tausch dieser beiden
+    // Zeilen nicht auf (CodeRabbit zu PR #487; am 27.11.2026 auf keinem
+    // Blatt). Dann reisst das Tor, statt still ungenau zu vergleichen: der
+    // Schluessel braucht ein weiteres Merkmal der Zeile.
+    const proOrt = new Map();
+    for (const paar of b.systeme ? b.systeme.split('|') : []) {
+      const k = paar.lastIndexOf('=');
+      const ort = paar.slice(0, k);
+      if (!proOrt.has(ort)) proOrt.set(ort, []);
+      proOrt.get(ort).push(paar.slice(k + 1));
+    }
+    for (const [ort, sys] of proOrt) {
+      if (sys.length < 2) continue;
+      z.doppelOrt++;
+      if (new Set(sys).size > 1) melde(it, `[10] Paarschluessel nicht eindeutig: „${ort}“ steht ${sys.length}-mal unter den Bezugszeilen des Blatts, mit ${[...new Set(sys)].join(' und ')} — ein Tausch dieser Zeilen fiele nicht auf; der Schluessel braucht ein weiteres Merkmal`);
+    }
     if (b.werte) { z.werte++; z.werteZeilen += b.werte.split('|').length; }
     if (b.werte !== w.werte) melde(it, `[13] Technische Daten: Blatt [${b.werte}], Werkbank [${w.werte}]`);
   }
@@ -313,7 +332,7 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
 /* ---------- Selbstauskunft ---------- */
 console.log(`verify:werkbank-items — Bau ${DIST}, Skript ${JS === join(DIST, 'assets', 'items-werkbank.js') ? 'ausgeliefert' : JS} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
 for (const [lang, z] of Object.entries(zahl)) {
-  console.log(`${lang}: ${de(z.items)} Items, ${de(z.blaetter)} mit Datenblatt verglichen · Wege ${de(z.wege)} · Missionen ${de(z.missionen)} · ab Werk ${de(z.serie)} · aehnlich ${de(z.aehnlich)} · gleichnamig ${de(z.zwilling)} · Set-Preis ${de(z.setPreis)} · Werkzeuge ${de(z.werkzeuge)} · Fahrzeug ${de(z.fahrzeug)} · Spanne ${de(z.spanne)} · Systemzeilen ${de(z.systemZeilen)} · Werte ${de(z.werte)} (${de(z.werteZeilen)} Zeilen) · ${z.sets} Sets`);
+  console.log(`${lang}: ${de(z.items)} Items, ${de(z.blaetter)} mit Datenblatt verglichen · Wege ${de(z.wege)} · Missionen ${de(z.missionen)} · ab Werk ${de(z.serie)} · aehnlich ${de(z.aehnlich)} · gleichnamig ${de(z.zwilling)} · Set-Preis ${de(z.setPreis)} · Werkzeuge ${de(z.werkzeuge)} · Fahrzeug ${de(z.fahrzeug)} · Spanne ${de(z.spanne)} · Systemzeilen ${de(z.systemZeilen)} (Orte doppelt ${de(z.doppelOrt)}) · Werte ${de(z.werte)} (${de(z.werteZeilen)} Zeilen) · ${z.sets} Sets`);
   for (const [k, min] of Object.entries(KLINKE)) {
     if ((z[k] ?? 0) < min) fehler.push(`${lang}: nur ${de(z[k] ?? 0)} bei „${k}“ (Klinke ${de(min)}) — vergleicht das Tor noch, oder fehlt der Werkbank ein Abschnitt?`);
   }

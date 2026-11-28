@@ -12,11 +12,18 @@
 // Die Flotte gehoert assets/fleet.js (window.VBFleet); hier wird sie gelesen
 // und gezeichnet.
 //
-// Eine Datei mit Absicht: ein statischer Import eines Geschwistermoduls
-// truege kein ?v= und koennte einen Tag lang eine alte Fassung ausfuehren
-// (nginx cached JS einen Tag). Der Viewer wird ueber seine versionierte URL
-// aus #hg-stage geladen. Beim Import passiert nichts; die Seite ruft
-// boot(document), die Tests importieren die reinen Funktionen.
+// Eine Datei mit Absicht, bis auf den Suchkern: ein statischer Import eines
+// Geschwistermoduls traegt kein ?v= und koennte einen Tag lang eine alte
+// Fassung ausfuehren (nginx cached JS einen Tag). Der einzige, den es gibt,
+// ./smart-suche.js (geteilt mit der Items-Werkbank), steht deshalb in der
+// Import-Map der Hangarseite mit seiner versionierten URL (HangarApp.astro);
+// verify:smart-suche [1] haelt beides zusammen. Der Viewer wird ueber seine
+// versionierte URL aus #hg-stage geladen. Beim Import passiert nichts; die
+// Seite ruft boot(document), die Tests importieren die reinen Funktionen.
+
+import { fold, editDistance, erkenne, preisMuster, menge, wortWert, ohneBegriff } from './smart-suche.js';
+
+export { fold, editDistance };
 
 /**
  * Der ganze Zustand der Seite. Ein Besitzer: der Speicher in boot(). Jeder
@@ -414,48 +421,6 @@ export function pickRandom(ids, current, rnd = Math.random) {
 // legt es als JSON in #hgx-vocab; hier steht nur, wie gelesen und gesucht wird.
 
 /**
- * Klein, ohne Akzente, ß als ss, Apostrophe weg; dieselbe Faltung wie fold()
- * in src/lib/hangar/finder.ts, mit der data-q gebaut ist (verify-hangar [19]).
- *   fold('  Großer  JÄGER ') === 'grosser jager'
- * @param {string} s
- */
-export function fold(s) {
-  return String(s ?? '').toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/['’`´]/g, '').replace(/\s+/g, ' ').trim();
-}
-
-/**
- * Tippfehler-Abstand (Levenshtein mit Vertauschung benachbarter Zeichen). Er
- * bricht ab, sobald er max sicher uebersteigt, und liefert dann max + 1.
- *   editDistance('prospektor', 'prospector') === 1
- * @param {string} a @param {string} b @param {number} [max]
- */
-export function editDistance(a, b, max = 2) {
-  if (Math.abs(a.length - b.length) > max) return max + 1;
-  let prev2 = null;
-  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
-  for (let i = 1; i <= a.length; i++) {
-    const cur = [i];
-    let low = i;
-    for (let j = 1; j <= b.length; j++) {
-      let v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-      if (prev2 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, prev2[j - 2] + 1);
-      cur[j] = v;
-      if (v < low) low = v;
-    }
-    if (low > max) return max + 1;
-    prev2 = prev;
-    prev = cur;
-  }
-  return Math.min(prev[b.length], max + 1);
-}
-
-/** Wie viele Tippfehler ein Wort dieser Laenge haben darf. */
-const slack = (n) => (n >= 8 ? 2 : n >= 4 ? 1 : 0);
-
-const amount = (n, unit) => Number(String(n).replace(',', '.')) * (/^(k|tsd)/.test(unit ?? '') ? 1e3 : /^(m|mio|mil)/.test(unit ?? '') ? 1e6 : 1);
-
-/**
  * Liest die Suche. Was das Vokabular kennt (Zweck, Unterrolle, Groesse, Crew,
  * Hersteller) und Zahlen mit Einheit („100 scu“, „unter 2 mio“) werden
  * Treffer einer Art (hits); der Rest bleibt als Woerter fuer Name, Hersteller
@@ -470,29 +435,17 @@ const amount = (n, unit) => Number(String(n).replace(',', '.')) * (/^(k|tsd)/.te
  * @returns {{ hits: { kind: string, key: string|number, t: string }[], words: string[] }}
  */
 export function parseQuery(q, vocab) {
-  let s = ` ${fold(q)} `;
-  const hits = [];
-  s = s.replace(/(?:\s(?:ab|uber|ueber|mind|mindestens|min|over|from|at least)\s*|\s|>=?)\s*(\d+(?:[.,]\d+)?)\s*(k|tsd)?\s*\+?\s*scu(?=\s)/g, (m, n, u) => {
-    hits.push({ kind: 'cargo', key: amount(n, u), t: m.trim() });
-    return ' ';
-  });
-  s = s.replace(/\s(?:unter|bis|max|maximal|under|below|<=?)\s*(\d+(?:[.,]\d+)?)\s*(k|tsd|m|mio|millionen|million|mil)?\s*(?:auec)?(?=\s)/g, (m, n, u) => {
-    // „unter 3“ ohne Einheit meint Millionen: kein Schiff kostet unter 1000 aUEC.
-    hits.push({ kind: 'price', key: amount(n, u ?? (Number(n) < 1000 ? 'm' : '')), t: m.trim() });
-    return ' ';
-  });
-  const phrases = [];
-  for (const kind of ['grp', 'pur', 'size', 'crew', 'maker']) for (const e of vocab[kind] ?? []) for (const w of e.w) phrases.push({ kind, key: e.k, w: fold(w) });
-  phrases.sort((a, b) => b.w.length - a.w.length);
-  for (const p of phrases) {
-    const at = p.w ? s.indexOf(` ${p.w} `) : -1;
-    if (at < 0) continue;
-    if (!hits.some((h) => h.kind === p.kind && h.key === p.key)) hits.push({ kind: p.kind, key: p.key, t: p.w });
-    s = `${s.slice(0, at)} ${s.slice(at + p.w.length + 1)}`;
-  }
-  const words = s.split(' ').filter(Boolean).map((w) => fold(vocab.nick?.[w] ?? w));
-  return { hits, words };
+  return erkenne(q, vocab, ['grp', 'pur', 'size', 'crew', 'maker'], [FRACHT, PREIS]);
 }
+
+/** „100 scu“, „ab 32 scu“, „>500scu“: Laderaum mindestens so gross. */
+const FRACHT = {
+  kind: 'cargo',
+  re: /(?:\s(?:ab|uber|ueber|mind|mindestens|min|over|from|at least)\s*|\s|>=?)\s*(\d+(?:[.,]\d+)?)\s*(k|tsd)?\s*\+?\s*scu(?=\s)/g,
+  key: (n, u) => menge(n, u),
+};
+// „unter 3“ ohne Einheit meint Millionen: kein Schiff kostet unter 1000 aUEC.
+const PREIS = preisMuster((n) => (Number(n) < 1000 ? 'm' : ''));
 
 /**
  * Ein Schiff, wie die Suche es liest: Name und Hersteller als gefaltete
@@ -533,18 +486,7 @@ export function findShip(a, stat) {
  * @param {string} w @param {{ name: string[], makerW: string[], tags: string[], full: string }} ship @param {boolean} [typos]
  */
 export function wordScore(w, ship, typos = true) {
-  let best = 0;
-  const k = slack(w.length);
-  for (const [list, whole, start, typo] of [[ship.name, 100, 80, 35], [ship.makerW, 60, 45, 20], [ship.tags, 40, 30, 15]]) {
-    for (const x of list) {
-      if (x === w) best = Math.max(best, whole);
-      else if (x.startsWith(w)) best = Math.max(best, start);
-      else if (w.length >= 3 && x.includes(w)) best = Math.max(best, start - 20);
-      else if (typos && k && Math.min(editDistance(w, x, k), editDistance(w, x.slice(0, w.length), k)) <= k) best = Math.max(best, typo);
-    }
-  }
-  if (!best && w.length >= 3 && ship.full.includes(w)) best = 40;
-  return best;
+  return wortWert(w, [[ship.name, 100, 80, 35], [ship.makerW, 60, 45, 20], [ship.tags, 40, 30, 15]], ship.full, typos);
 }
 
 /**
@@ -1596,18 +1538,8 @@ export function boot(doc) {
   const facetValue = (f) => (f === 'size' ? state.size : state[f]);
   const facetOn = (f) => (f === 'size' ? state.size.length > 0 : !!state[f]);
 
-  /**
-   * Nimmt einen erkannten Begriff aus der Suche, im Wortlaut des Besuchers:
-   * gesucht wird die Wortfolge, deren Faltung der Begriff ist.
-   */
-  function dropFromQuery(t) {
-    const raw = state.q.split(/\s+/).filter(Boolean);
-    const want = t.split(' ').length;
-    for (let i = 0; i + want <= raw.length; i++) {
-      if (fold(raw.slice(i, i + want).join(' ')) === t) return [...raw.slice(0, i), ...raw.slice(i + want)].join(' ');
-    }
-    return fold(state.q).replace(t, ' ').replace(/\s+/g, ' ').trim();
-  }
+  /** Nimmt einen erkannten Begriff aus der Suche, im Wortlaut des Besuchers. */
+  const dropFromQuery = (t) => ohneBegriff(state.q, t);
 
   // Chips, Unterrollen, Pillen und Titel der Liste aus dem Zustand.
   function paintFind() {
@@ -1616,7 +1548,7 @@ export function boot(doc) {
     const chips = [];
     for (const h of p.hits) {
       const name = hitLabel(h);
-      chips.push(el('li', {}, name, el('button', { type: 'button', class: 'hgx-x', 'data-drop': 'q', 'data-t': h.t, 'aria-label': fillMessage({ other: m.remove }, { name }, loc) }, '×')));
+      chips.push(el('li', {}, name, el('button', { type: 'button', class: 'hgx-x', 'data-drop': 'q', 'data-t': (h.alle ?? [h.t]).join('\n'), 'aria-label': fillMessage({ other: m.remove }, { name }, loc) }, '×')));
     }
     $('hgx-active-list').replaceChildren(...chips);
     const facets = pills.some((b) => facetOn(b.dataset.facet));

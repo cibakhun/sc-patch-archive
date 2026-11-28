@@ -218,8 +218,13 @@ export const TEXT_ATTRS = ['alt', 'title', 'aria-label', 'aria-description', 'ar
 /**
  * Oeffnet `seite` (Pfad relativ zu dist/) und fuehrt ihre Skripte aus.
  * Rueckgabe: Seitenobjekt mit document, settle(), fire(), ernte(), fehler …
+ * `importe: true` laesst auch klassische Skripte import() rufen und laedt das
+ * Modul wie ein Browser (braucht esbuild). Ohne bleibt es wie zuvor: der
+ * Aufruf scheitert, die Seite nimmt ihren Rueckfall. Schalter statt Vorgabe,
+ * weil sonst jedes nachgeladene Modul jeder Seite mitliefe (die Holo-Buehne
+ * der Schiffsblaetter mit three.js scheitert hier an import.meta.url).
  */
-export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache, umbau = null, antworten = null, skripte = null }) {
+export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = new Map(), sprache, umbau = null, antworten = null, skripte = null, importe = false }) {
   const html = lies(join(dist, seite));
   const { window: lw, document } = parseHTML(html);
   ergaenze(lw);
@@ -420,9 +425,9 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
       if (z.origin !== url.origin || aus) { ausgelassen.push(z.origin === url.origin ? z.pathname : z.href); continue; }
       const pfad = join(dist, decodeURIComponent(z.pathname));
       if (!existsSync(pfad)) { fehler.push(`Skript ${z.pathname} fehlt in dist/`); continue; }
-      (modul || s.hasAttribute('defer') ? spaeter : sofort).push({ name: z.pathname, pfad, modul, el: s });
+      (modul || s.hasAttribute('defer') ? spaeter : sofort).push({ name: z.pathname, pfad, modul, el: s, basis: z.href });
     } else {
-      (modul ? spaeter : sofort).push({ name: `${seite}#inline-${alle.indexOf(s)}`, code: s.textContent, modul, el: s });
+      (modul ? spaeter : sofort).push({ name: `${seite}#inline-${alle.indexOf(s)}`, code: s.textContent, modul, el: s, basis: url.href });
     }
   }
   // Module wie im Browser aufloesen: "/assets/x.js?v=hash" ist ein Pfad in
@@ -446,8 +451,10 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   // import(ausdruck) mit einem erst zur Laufzeit bekannten Ziel
   // (hangar-loadout.js: await import(root.dataset.lib)) kann esbuild nicht
   // mitbuendeln, und ein vm-Skript kann es nicht ausfuehren — der Pruefstand
-  // laedt es selbst nach (__pruefstandImport, unten).
+  // laedt es selbst nach (__pruefstandImportAus, unten). Ein relatives Ziel
+  // gilt wie im Browser ab dem Skript, das importiert, nicht ab der Seite.
   const LAUFZEIT_IMPORT = /(?<![\w$.])import\(/g;
+  const mitBasis = (c, basis) => c.replace(LAUFZEIT_IMPORT, `__pruefstandImportAus(${JSON.stringify(basis)})(`);
   const codeVon = async (e) => {
     if (!e.modul) return e.code ?? lies(e.pfad);
     const key = e.pfad || e.code;
@@ -461,7 +468,7 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
         const esm = (await baue(e, 'esm')).replace(/\nexport\s*\{[^}]*\};?\s*$/, '\n');
         c = `(async () => {\n${esm}\n})().catch((f) => __pruefstandAbbruch(f, ${JSON.stringify(`Skript ${e.name}`)}));`;
       }
-      buendel.set(key, c.replace(LAUFZEIT_IMPORT, '__pruefstandImport('));
+      buendel.set(key, c);
     }
     return buendel.get(key);
   };
@@ -470,20 +477,21 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   // Nachladen buendelt im esbuild-Dienst (echte Wartezeit, keine Seitenzeit):
   // settle() wartet darauf, bevor es die Uhr weiterdreht.
   const offen = new Set();
-  ctx.__pruefstandImport = (spec) => {
-    const pr = ladeModul(spec);
+  ctx.__pruefstandImportAus = (basis) => (spec) => {
+    const pr = ladeModul(spec, basis);
     offen.add(pr);
     pr.finally(() => offen.delete(pr)).catch(() => {});
     return pr;
   };
-  const ladeModul = async (spec) => {
-    const z = new URL(String(spec), url);
+  const ladeModul = async (spec, basis) => {
+    const z = new URL(String(spec), basis);
     const pfad = join(dist, decodeURIComponent(z.pathname));
     if (z.origin !== url.origin || !existsSync(pfad)) throw new TypeError(`Failed to fetch dynamically imported module: ${z.href}`);
+    if (!esbuild) throw new Error(`Pruefstand: import(${z.pathname}) braucht esbuild, oeffneSeite({ esbuild })`);
     if (!module.has(pfad)) {
       const key = 'import|' + pfad;
-      if (!buendel.has(key)) buendel.set(key, (await baue({ pfad }, 'iife', { globalName: '__pruefstandModul' })).replace(LAUFZEIT_IMPORT, '__pruefstandImport('));
-      const c = buendel.get(key);
+      if (!buendel.has(key)) buendel.set(key, await baue({ pfad }, 'iife', { globalName: '__pruefstandModul' }));
+      const c = mitBasis(buendel.get(key), z.href);
       quellen.push(c);
       let m;
       imKontext(() => { vm.runInContext(c, ctx, { filename: z.pathname }); m = ctx.__pruefstandModul; }, `Skript ${z.pathname}`);
@@ -502,7 +510,12 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   const fuehreAus = async (e) => {
     if (skripte && !skripte({ name: e.name, code: e.code ?? null, modul: e.modul })) return;
     const roh = await codeVon(e);
-    const c = umbau ? umbau(e.name, roh) : roh;
+    const u = umbau ? umbau(e.name, roh) : roh;
+    // Mit `importe` darf auch ein klassisches Skript import() rufen (die
+    // Items-Werkbank laedt so den Suchkern, assets/smart-suche.js); vm kann
+    // es dort ebenso wenig. Nach umbau, damit auch eine eingesetzte Fassung
+    // es darf.
+    const c = e.modul || importe ? mitBasis(u, e.basis) : u;
     quellen.push(c);
     aktuellesSkript = e.modul ? null : e.el;
     imKontext(() => vm.runInContext(c, ctx, { filename: e.name }), `Skript ${e.name}`);

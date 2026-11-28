@@ -14,6 +14,8 @@
 //     Text in ihnen schon,
 //   - Module wie die Hangar-Seiten: Import mit ?v=hash, top-level await,
 //     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar),
+//   - import() aus klassischen Skripten nur mit `importe` (Items-Werkbank),
+//     sonst nimmt die Seite ihren Rueckfall,
 //   - Date laeuft mit der Pruefstand-Uhr, das Zeitbudget beendet erkunde(),
 //   - IntersectionObserver meldet „sichtbar“, je Element hoechstens 4 Mal.
 import { test } from 'node:test';
@@ -125,6 +127,46 @@ test('Module: ?v=hash, top-level await, import() zur Laufzeit, dialog', async ()
   for (const t of ['Teil da', '2 Layouts']) assert.ok(gesehen.has(t), `${t} fehlt: ${[...gesehen].join(' | ')}`);
   await erkunde(p, { beiErnte: nimm });
   assert.ok(gesehen.has('zu false'), [...gesehen].join(' | '));
+  assert.deepEqual(p.fehler, []);
+  p.schliesse();
+});
+
+test('import() aus klassischem Skript: nur mit importe, sonst Rueckfall der Seite', async () => {
+  // Die Items-Werkbank (klassisch) laedt ihren Suchkern mit import(). Ohne
+  // den Schalter bleibt es wie vor der Smart-Suche: der Aufruf scheitert,
+  // die Seite nimmt ihren Rueckfall, kein Befund. So laufen nachgeladene
+  // Module anderer Seiten (Holo-Buehne mit three.js) nicht ungefragt mit.
+  fs.writeFileSync(path.join(dist, 'assets', 'kern.js'), "export const wort = (n) => n + ' Woerter';\n");
+  fs.writeFileSync(path.join(dist, 'klassisch.html'), seite('<div id="k"></div>', `<script>
+    import('/assets/kern.js?v=9a8b').then(function (m) { document.getElementById('k').textContent = m.wort(3); },
+      function () { document.getElementById('k').textContent = 'Rueckfall'; });
+  </script>`));
+  const ohne = await oeffneSeite({ ...opts, seite: 'klassisch.html' });
+  await ohne.settle(1000);
+  assert.equal(ohne.document.getElementById('k').textContent, 'Rueckfall');
+  assert.deepEqual(ohne.fehler, []);
+  ohne.schliesse();
+  const mit = await oeffneSeite({ ...opts, seite: 'klassisch.html', importe: true });
+  await mit.settle(1000);
+  assert.equal(mit.document.getElementById('k').textContent, '3 Woerter');
+  assert.deepEqual(mit.fehler, []);
+  mit.schliesse();
+});
+
+test('import() mit relativem Ziel gilt ab dem Skript, nicht ab der Seite', async () => {
+  // Wie im Browser: /de/rel.html laedt /assets/rel.js, dessen import('./kern.js')
+  // meint /assets/kern.js, nicht /de/kern.js. Ein Inline-Skript zaehlt ab der Seite.
+  fs.mkdirSync(path.join(dist, 'de'), { recursive: true });
+  fs.writeFileSync(path.join(dist, 'assets', 'kern.js'), "export const wort = (n) => n + ' Woerter';\n");
+  fs.writeFileSync(path.join(dist, 'de', 'kern.js'), "export const wort = () => 'aus de';\n");
+  fs.writeFileSync(path.join(dist, 'assets', 'rel.js'), `import('./kern.js').then(function (m) { document.getElementById('k').textContent = m.wort(2); },
+    function (f) { document.getElementById('k').textContent = 'Rueckfall ' + f.message; });\n`);
+  fs.writeFileSync(path.join(dist, 'de', 'rel.html'), seite('<div id="k"></div><div id="i"></div>', `<script src="/assets/rel.js"></script>
+  <script>import('./kern.js').then(function (m) { document.getElementById('i').textContent = m.wort(1); });</script>`));
+  const p = await oeffneSeite({ ...opts, seite: 'de/rel.html', importe: true });
+  await p.settle(1000);
+  assert.equal(p.document.getElementById('k').textContent, '2 Woerter');
+  assert.equal(p.document.getElementById('i').textContent, 'aus de', 'inline: ab der Seite /de/');
   assert.deepEqual(p.fehler, []);
   p.schliesse();
 });
