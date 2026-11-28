@@ -26,10 +26,12 @@
 --   3. direct_messages_guard: zaehlt nach einer Sperre je Absender und
 --      begrenzt zusaetzlich auf 1000 Nachrichten je Tag. Neuer Index
 --      (sender_id, created_at) fuer beide Zaehlungen.
---   4. touch_hangar_layout: zaehlt nach einer Sperre je Konto; hoechstens
---      200 nicht geloeschte Layouts (Grabsteine zaehlen weiter nur gegen die
---      bisherige Gesamtgrenze 1000). Ein Upsert auf ein vorhandenes Layout und
---      das Wiederherstellen eines Grabsteins pruefen nur die 200.
+--   4. touch_hangar_layout: zaehlt nach einer Sperre je Konto gegen die
+--      bestehende Gesamtgrenze 1000; ein Upsert auf ein vorhandenes Layout
+--      zaehlt nicht neu. Bewusst keine engere Grenze fuer nicht geloeschte
+--      Layouts: die Seite kuerzt ihre Liste bei 200 ohne Grabstein
+--      (assets/hangar-layouts.js), eine Grenze von 200 hier hielte dann jeden
+--      Abgleich des Kontos an.
 --   5. refinery_discord_due: hoechstens drei Auftraege je Konto und Lauf, erst
 --      danach die gemeinsame Grenze. Ein Konto mit vielen faelligen Auftraegen
 --      haelt die Meldungen der anderen nicht mehr auf.
@@ -223,7 +225,7 @@ end;
 $$;
 revoke all on function public.direct_messages_guard() from public, anon, authenticated;
 
--- 4. Hangar-Layouts: Sperre, Grenze fuer nicht geloeschte -------------------------
+-- 4. Hangar-Layouts: Sperre vor der Zaehlung --------------------------------------
 -- Laeuft weiter mit den Rechten des Aufrufenden: die RLS zeigt ihm genau seine
 -- eigenen Zeilen, und mehr zaehlt der Trigger nicht.
 
@@ -237,20 +239,13 @@ begin
     return null;
   end if;
   new.updated_at := now();
-  if tg_op = 'INSERT' or (old.deleted and not new.deleted) then
+  if tg_op = 'INSERT' then
     perform pg_advisory_xact_lock(hashtextextended('hangar_layouts:' || new.user_id::text, 0));
     -- Upsert auf ein vorhandenes Layout: ON CONFLICT macht daraus ein UPDATE,
-    -- dessen eigener Trigger-Aufruf prueft dann, ob ein Grabstein zurueckkehrt.
-    if tg_op = 'INSERT' and exists (select 1 from public.hangar_layouts h
-                                     where h.user_id = new.user_id and h.id = new.id) then
-      return new;
-    end if;
-    if tg_op = 'INSERT' and (select count(*) from public.hangar_layouts h
-                              where h.user_id = new.user_id) >= 1000 then
-      raise exception 'hangar_layouts: zu viele Layouts' using errcode = 'check_violation';
-    end if;
-    if not new.deleted and (select count(*) from public.hangar_layouts h
-                             where h.user_id = new.user_id and not h.deleted) >= 200 then
+    -- die Zeile zaehlt dann nicht neu.
+    if not exists (select 1 from public.hangar_layouts h
+                    where h.user_id = new.user_id and h.id = new.id)
+       and (select count(*) from public.hangar_layouts h where h.user_id = new.user_id) >= 1000 then
       raise exception 'hangar_layouts: zu viele Layouts' using errcode = 'check_violation';
     end if;
   end if;
