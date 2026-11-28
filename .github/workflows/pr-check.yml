@@ -53,6 +53,30 @@ jobs:
           provenance: false
           tags: verse-base-rank-bot:pr-${{ github.event.pull_request.number }}
 
+  # Herkunft der angehefteten Actions: jeder Commit-SHA liegt auf einem Zweig
+  # oder Tag im Repo der Action selbst, nicht nur in einem Fork
+  # (scripts/verify-action-pins.mjs, Schiene B: braucht git und Netz). Nicht
+  # abrufbar (Exit 2) ist eine Warnung, kein roter PR.
+  action-pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Herkunft der Action-Pins
+        run: |
+          set +e
+          node scripts/verify-action-pins.mjs
+          code=$?
+          if [ "$code" = 2 ]; then
+            echo "::warning::Herkunft der Action-Pins nicht geprueft (git oder Netz), siehe Protokoll"
+            exit 0
+          fi
+          exit "$code"
+
   # Neue oder angehobene Abhaengigkeiten mit bekannter Luecke ab "high"
   # halten den PR auf.
   dependencies:
@@ -91,6 +115,6 @@ jobs:
             exit 1
           fi
       - if: steps.graph.outputs.on == 'true'
-        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v4
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
         with:
           fail-on-severity: high

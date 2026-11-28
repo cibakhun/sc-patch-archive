@@ -17,7 +17,9 @@
    immer richtig — es gibt keinen Fremdquellen-Verzug):
      1  Lockfiles: jedes Paket kommt von registry.npmjs.org und traegt
         einen sha512-Integritaets-Hash (npm ci prueft ihn beim Laden).
-     2  Workflows: jede fremde Action per Commit-SHA angeheftet; jede
+     2  Workflows: jede fremde Action per Commit-SHA angeheftet (nur die
+        Form; ob der Commit aus dem Repo der Action stammt, prueft
+        verify:action-pins auf Schiene B); jede
         Datei mit ausdruecklichem `permissions:`; kein
         `pull_request_target`; jeder Checkout ohne hinterlegtes Token
         (`persist-credentials: false`); kein Fremdtext aus dem Ereignis
@@ -39,6 +41,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WORKFLOW_VORLAGEN } from './lib/workflow-vorlagen.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rel = (p) => p.replace(ROOT + '/', '').replace(ROOT + '\\', '');
@@ -79,10 +82,8 @@ const KLINKE = {
 const CHECKOUT_MIT_TOKEN = {};
 
 // Workflows, die in einem ANDEREN Repo laufen, deren Vorlage aber hier liegt
-// und hier geprueft wird (dieselben Regeln wie fuer .github/workflows/).
-// Anlass: das Live-Backup laeuft im privaten Backup-Repo, damit Secret, Logs
-// und Archive nicht oeffentlich sind (docs/betrieb/datenbank-backup.md).
-const VORLAGEN = ['scripts/backup/vorlage-backup-repo.yml'];
+// (Anlass und Liste: scripts/lib/workflow-vorlagen.mjs).
+const VORLAGEN = WORKFLOW_VORLAGEN;
 
 const fail = [];
 const need = (ok, msg) => { if (!ok) fail.push(msg); return ok; };
