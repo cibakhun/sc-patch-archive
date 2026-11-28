@@ -43,7 +43,13 @@ jobs:
   nachweis:
     # Nur PRs nach staging oder main: `pull_request_review` kennt keinen
     # Zweigfilter (Opus-Review #477).
+    # Reviews nur von Bots oder Konten mit Rechten: sonst kann jeder per
+    # Kommentar-Review Laeufe ausloesen und das API-Limit leeren
+    # (Opus-Review #477, Runde 7).
     if: >-
+      (github.event_name != 'pull_request_review' ||
+        github.event.review.user.type == 'Bot' ||
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)) &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.state == 'open' &&
       (github.event.pull_request.base.ref == 'staging' || github.event.pull_request.base.ref == 'main')

@@ -512,7 +512,7 @@ export function ersteZusammenfassung(kommentare) {
    nach der letzten Aenderung des Textes (`stand`, ms) begonnen haben.
    Sonst koennte ein abgebrochener `full review` mit einem frueheren
    fertigen Lauf eine Luecke schliessen (Review #477). */
-function zielGeprueft(r, laeufe) {
+function zielGeprueft(r, laeufe, jetzt) {
   if (r.quelle === 'review' || r.quelle === 'ledger') return fertigGeprueft(laeufe);
   const letzter = juengster((laeufe || []).filter(istCodeRabbit));
   if (!letzter || codeRabbitLauf(letzter).art !== 'geprueft') return false;
@@ -526,12 +526,19 @@ function zielGeprueft(r, laeufe) {
      auseinander (Review 12:21:46, Lauf fertig 12:21:53). Fenster:
      ZUSAMMENFASSUNG_FENSTER_MS (Opus-Review #477, Runde 4). */
   const fertig = Date.parse(letzter.completed_at || '');
+  /* Und der Text muss seit ZUSAMMENFASSUNG_RUHE_MS unveraendert sein: sonst
+     koennte der neue Lauf noch fehlen (gemessen 2 s nach dem Text). Ohne
+     diese Ruhezeit kaeme ein Bereich im Fenster als belegt ins Ledger und
+     bliebe fester Beleg, auch wenn der neue Lauf abbricht (Opus-Review
+     #477, Runde 7). Der Lauf pollt ohnehin bis zu 40 Minuten. */
   return Number.isFinite(r.stand) && Number.isFinite(start) && start <= r.stand
-    && Number.isFinite(fertig) && fertig >= r.stand - ZUSAMMENFASSUNG_FENSTER_MS;
+    && Number.isFinite(fertig) && fertig >= r.stand - ZUSAMMENFASSUNG_FENSTER_MS
+    && jetzt - r.stand >= ZUSAMMENFASSUNG_RUHE_MS;
 }
 export const ZUSAMMENFASSUNG_FENSTER_MS = 120_000;
+export const ZUSAMMENFASSUNG_RUHE_MS = 180_000;
 
-export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit }) {
+export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit, jetzt = Date.now() }) {
   const imPr = new Set(commits);
   const gueltig = [];
   const verworfen = [];
@@ -541,7 +548,7 @@ export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufe
        Bereich gehoert (zielGeprueft). Den Bereich nennt CodeRabbit schon zu
        Beginn einer Runde; bricht sie ab, wird er kein Glied der Kette.
        (Ohne `laeufeJeCommit` nur die Verlaufspruefung, fuer Einzeltests.) */
-    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || zielGeprueft(r, laeufeJeCommit[r.b]));
+    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || zielGeprueft(r, laeufeJeCommit[r.b], jetzt));
     const quelleOk = imPr.has(r.a) || vorfahren[r.a] === true; // vorfahren: liegt auf dem Zielzweig
     (zielOk && quelleOk ? gueltig : verworfen).push(r);
   }
@@ -601,7 +608,7 @@ export function cubicAbdeckung({ commits, head, laeufeJeCommit, kontextAb, headR
     const t = Date.parse(l.started_at || '');
     if (Number.isFinite(kontextAb) && !(t >= kontextAb)) return false;
     if ('zweig' in l && headRef && l.zweig !== headRef) return false;
-    return !fremdeZeiten.some(([ab, bis]) => !(t < ab || t > bis));
+    return ![...fremdeZeiten, ...(l.fremdeZeiten || [])].some(([ab, bis]) => !(t < ab || t > bis));
   };
   for (const c of commits) {
     const laeufe = (laeufeJeCommit[c] || []).filter(istCubic).filter(imKontext);
@@ -641,7 +648,8 @@ export function ausnahme({ art, kommentare, head, konten }) {
     const zeilen = (k.body || '').split('\n');
     const leer = PFLICHT[art].filter((feld) => !zeilen.some((z) => {
       const m = new RegExp(`^\\s*(?:[-*]\\s*)?(?:\\*\\*)?${feld}:(?:\\*\\*)?\\s*(.+)$`).exec(z);
-      return m && m[1].trim().length >= 3;
+      // Unausgefuellte Vorlage (<...>) gilt nicht (Opus-Review #477, Runde 7).
+      return m && m[1].trim().length >= 3 && !/<[^>]*>/.test(m[1]);
     }));
     if (!leer.length) return { gilt: true, von: k.author, url: k.url };
     fehlend.push(...leer);

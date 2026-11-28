@@ -323,6 +323,26 @@ describe('Review-Nachweis: Urteil (T1 bis T9)', () => {
   test('Ausnahme-Parser verlangt jedes Pflichtfeld', () => {
     assert.deepEqual(ausnahme({ art: 'review-ausnahme', kommentare: [AUSN(C, false)], head: C, konten: ['cibakhun'] }).fehlend, ['Zusätzliche Tests']);
   });
+  // Opus-Review #477, Runde 7: unausgefuellte Vorlage.
+  test('ROT: Ausnahme mit Platzhaltern der Vorlage gilt nicht', () => {
+    const body = `<!-- review-ausnahme sha=${C} -->\nFreigabe: <Chat/AgencyOS>, <Datum>\nZusätzliche Tests: <welche>\nRisiken: <welche>\nFehlende Zweitprüfung: <welche>`;
+    const r = ausnahme({ art: 'review-ausnahme', kommentare: [{ author: 'cibakhun', body }], head: C, konten: ['cibakhun'] });
+    assert.equal(r.gilt, false);
+    assert.equal(ausnahme({ art: 'review-ausnahme', kommentare: [{ author: 'cibakhun', body: body.replace(/<(?!!--)[^>]*>/g, 'ausgefuellt') }], head: C, konten: ['cibakhun'] }).gilt, true, 'Gegenprobe');
+  });
+  // Runde 7: cubic-Lauf in der Lebenszeit eines anderen PRs, der den Commit enthaelt (auch von anderem Zweig).
+  test('ROT: cubic-Lauf mit fremder PR-Lebenszeit am Commit zaehlt nicht', () => {
+    const l = { ...CU_VOLL, started_at: '2026-11-28T11:00:00Z', zweig: 'claude/x' };
+    assert.notEqual(bewerte(lage({ laeufeJeCommit: { [C]: [{ ...l, fremdeZeiten: [[Date.parse('2026-11-28T10:00:00Z'), Date.parse('2026-11-28T12:00:00Z')]] }] }, bereiche: [] })).state, 'success');
+    assert.equal(bewerte(lage({ laeufeJeCommit: { [C]: [{ ...l, fremdeZeiten: [[Date.parse('2026-11-28T08:00:00Z'), Date.parse('2026-11-28T09:00:00Z')]] }] }, bereiche: [] })).state, 'success', 'Gegenprobe');
+  });
+  // Runde 7: Zusammenfassung erst nach Ruhezeit (neuer Lauf koennte noch fehlen).
+  test('ROT: frisch geaenderte Zusammenfassung belegt noch nichts', () => {
+    const fertig = { ...CR_FERTIG, started_at: '2026-11-28T09:00:00Z', completed_at: '2026-11-28T09:08:00Z' };
+    const abd = (jetzt) => codeRabbitAbdeckung({ bereiche: [{ a: BASIS, b: B, quelle: 'zusammenfassung', stand: Date.parse('2026-11-28T09:08:30Z') }], commits: [A, B], head: B, vorfahren: { [BASIS]: true }, laeufeJeCommit: { [B]: [fertig] }, jetzt: Date.parse(jetzt) }).abgedeckt;
+    assert.equal(abd('2026-11-28T09:09:00Z'), false, '30 s nach dem Text');
+    assert.equal(abd('2026-11-28T09:12:00Z'), true, 'Gegenprobe nach der Ruhezeit');
+  });
 });
 
 describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
@@ -1056,6 +1076,31 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.deepEqual(berichte(r), [], 'kein Bericht aus der alten Liste');
   });
 
+  // Runde 7: ohne-cubic folgt derselben Einordnung wie das Urteil.
+  test('ROT: nur am Zwischenstand kritisch: kein ohne-cubic', () => {
+    const ZW = h('6');
+    const r = laeufer([prMit(KOPF)], { ...sofort(ZB), routen: { ...sofort(ZB).routen,
+      'GET repos/o/r/pulls/477/commits': [[{ sha: ZW, parents: [{ sha: ZIEL }] }, { sha: KOPF, parents: [{ sha: ZW }] }]],
+      'GET repos/o/r/pulls/477/reviews': [[{ user: { login: 'coderabbitai[bot]' }, body: `Reviewing files that changed from the base of the PR and between ${ZIEL} and ${ZW}.` }]],
+      'GET repos/o/r/contents/.coderabbit.yaml': [{ sha: h('1') }, { sha: h('2') }],
+    } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(bericht(r), /CodeRabbit-Konfiguration an geprueftem Zwischenstand/);
+    assert.deepEqual(cubicLabel(r).filter((x) => x.schluessel.startsWith('POST')), [], 'ohne-cubic gesetzt');
+  });
+  test('ROT: Laeufer: cubic-Lauf in der Lebenszeit eines anderen PRs mit diesem Commit zaehlt nicht (Runde 7)', () => {
+    const mit = (prs) => laeufer([prMit(KOPF, ['review-ready'])], { routen: {
+      [`GET repos/o/r/commits/${KOPF}/check-runs`]: [{ check_runs: [{ app: { slug: 'cubic-dev-ai' }, name: 'cubic', status: 'completed', conclusion: 'success', output: { title: 'AI review completed', summary: CU_VOLL.summary }, started_at: '2026-11-28T11:00:00Z', check_suite: { id: 5 } }] }],
+      [`GET repos/o/r/commits/${KOPF}/check-suites`]: [{ check_suites: [{ id: 5, head_branch: 'claude/x' }] }],
+      [`GET repos/o/r/commits/${KOPF}/pulls`]: [prs],
+    } });
+    assert.match(bericht(mit([{ number: 500, created_at: '2026-11-28T10:00:00Z', closed_at: '2026-11-28T12:00:00Z' }])), /cubic am Head: [^\n]*Abdeckung: NICHT belegt/);
+    assert.match(bericht(mit([])), /cubic am Head: geprueft[^\n]*Abdeckung: lueckenlos/, 'Gegenprobe');
+  });
+  test('Workflow: Reviews nur von Bots oder Konten mit Rechten loesen einen Lauf aus (Runde 7)', () => {
+    const yml = readFileSync(join(WURZEL, '.github', 'workflows', 'review-nachweis.yml'), 'utf8');
+    assert.match(yml, /github\.event_name != 'pull_request_review' \|\|\s+github\.event\.review\.user\.type == 'Bot' \|\|\s+contains\(fromJSON\('\["OWNER","MEMBER","COLLABORATOR"\]'\), github\.event\.review\.author_association\)/);
+  });
   test('Gegenprobe: ohne Basiswechsel setzt der Lauf ohne-cubic, Status und Bericht', () => {
     const r = laeufer([prMit(KOPF)], sofort(ZB));
     assert.equal(r.status, 0, r.stderr);

@@ -162,7 +162,8 @@ Erwähnung mit einer passenden Zeile bestellen) und nie aus Codeblöcken.
 Zusammenfassung ist nur der früheste CodeRabbit-Kommentar, der mit ihrer
 Marke beginnt und keine Antwort-Marke trägt. cubic-Läufe zählen nur ab Eröffnung des PRs
 bzw. dem letzten Wechsel des Zielzweigs, nur aus einer Check-Suite dieses
-Zweigs und nicht aus der Lebenszeit eines anderen PRs vom selben Zweig.
+Zweigs und nicht aus der Lebenszeit eines anderen PRs, der den Commit
+enthält (gleich von welchem Zweig).
 Weicht `.coderabbit.yaml` an einem von CodeRabbit geprüften Zwischenstand
 von der Basis ab, ist der PR kritisch.
 
@@ -439,9 +440,21 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   oder `kritisch` setzen.
 - **Zusammenfassung und Zeitfenster.** Ein Bereich aus der Zusammenfassung
   zählt nur, wenn der jüngste Lauf am Ziel höchstens 2 Minuten vor der
-  letzten Änderung des Textes fertig wurde. Startet ein `full review`
-  innerhalb von 2 Minuten nach einem fertigen Lauf am selben Stand, bleibt
-  ein Fenster, bis CodeRabbit den neuen Lauf anlegt (gemessen: 2 s).
+  letzten Änderung des Textes fertig wurde und der Text seit 3 Minuten
+  unverändert ist (CodeRabbit legt den neuen Lauf gemessen 2 s nach dem
+  Text an). Erst dann geht er ins Ledger.
+- **API-Limit.** Erschöpft sich das Limit des `GITHUB_TOKEN` (etwa durch
+  viele wartende Läufe), scheitert auch der Fehlerschritt, und ein früheres
+  Grün auf demselben Stand kann stehen bleiben. Reviews lösen deshalb nur
+  von Bots und Konten mit Rechten einen Lauf aus. Vor dem Merge den
+  Bericht auf den Stand prüfen.
+- **Fast-Forward auf einen anderswo gepushten Commit.** Wird der
+  `synchronize`-Lauf abgebrochen, bevor er das Label abnimmt, kann der
+  nächste Lauf das alte `review-ready` für neu halten und einmal zu früh
+  anfordern (kostet ein Review, macht nichts grün).
+- **Basis nach Merge von staging.** Ändert staging `.coderabbit.yaml` und
+  wird danach in den PR gemergt, weichen früher geprüfte Zwischenstände
+  von der neuen Basis ab, und der PR gilt als kritisch (im Zweifel rot).
 - **Auswertung aus dem Zielzweig.** Wird `scripts/lib/review-nachweis.mjs`
   auf dem Zielzweig umbenannt, bewertet sich jeder PR mit dem eigenen Code;
   das sagt nur der Bericht (Quelle der Auswertung). Umbenennen also nur

@@ -137,6 +137,7 @@ async function zielSpitze(ref) {
 const cacheLaeufe = new Map();
 const cacheVorfahr = new Map();
 const cacheConfig = new Map();
+const cachePrs = new Map();
 const SHA_RE = /^[0-9a-f]{40}$/;
 async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
   const head = pr.head.sha;
@@ -233,6 +234,15 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
     ...(bericht ? ledgerLesen(bericht.body).map((x) => ({ ...x, quelle: 'ledger' })) : []),
   ];
   const imPr = new Set(commits);
+  /* Jeder andere PR, der einen Commit mit cubic-Lauf enthaelt (auch von
+     einem anderen Zweig, auch geschlossen): Laeufe in seiner Lebenszeit
+     zaehlen nicht (Opus-Review #477, Runde 7). */
+  for (const c of commits) {
+    if (!(laeufeJeCommit[c] || []).some((l) => l.app === 'cubic-dev-ai')) continue;
+    if (!cachePrs.has(c)) cachePrs.set(c, (await alle(`${R}/commits/${c}/pulls`, 3)).filter((p) => p.number !== NUMMER).map((p) => [Date.parse(p.created_at || ''), p.closed_at ? Date.parse(p.closed_at) : Infinity]));
+    const zeiten = cachePrs.get(c);
+    if (zeiten.length) laeufeJeCommit[c] = laeufeJeCommit[c].map((l) => (l.app === 'cubic-dev-ai' ? { ...l, fremdeZeiten: zeiten } : l));
+  }
   /* Andere PRs vom selben Zweig (offen oder geschlossen): ihre cubic-Laeufe
      haengen an denselben Commits. Ein Lauf in ihrer Lebenszeit ist nicht
      zuzuordnen und zaehlt nicht (Opus-Review #477, Runde 5). */
@@ -511,7 +521,8 @@ await headNochGleich(d.pr.head_sha);
 
 // cubic den kritischen PRs vorbehalten (wirkt erst mit cubic.yaml auf main).
 if (!urteil.release) {
-  const kritisch = kritischeGruende(d.dateien, labels()).length > 0;
+  // Dieselbe Einordnung wie das Urteil, mit zwischenKritisch (Opus-Review #477, Runde 7).
+  const kritisch = kritischeGruende(d.dateien, labels()).length > 0 || (d.zwischenKritisch || []).length > 0;
   if (kritisch && labels().includes(LABEL_OHNE_CUBIC)) await labelAb(LABEL_OHNE_CUBIC);
   if (!kritisch && !labels().includes(LABEL_OHNE_CUBIC)) await labelDran(LABEL_OHNE_CUBIC);
 }
