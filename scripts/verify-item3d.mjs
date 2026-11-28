@@ -25,7 +25,9 @@
            Seiten traegt genau einen Dialog ohne festes Modell, der auf die
            Modell-Liste zeigt (data-i3d-liste, ebenso die Seiten-Einstellung
            i3dListe), und sonst keine Seite; dist/hangar-item3d.json ist genau die Liste
-           mit der Ablage dieses Baus, und ihre Kennung ?v= passt zum Inhalt
+           mit der Ablage dieses Baus, und ihre Kennung ?v= passt zum Inhalt;
+           der Dialog der Werkbank traegt die Auswahl (data-i3d-wahl: andere
+           Farben, Set getragen, Einzelteile; Krisz 27.11.2026)
      Im Live-Bau gehoert auch die Modell-Liste nicht in dist/ ([1]).
 
    Selbstauskunft: wie viele Seiten gelesen und wie viele mit Dialog
@@ -229,6 +231,23 @@ if (!vorschau) {
     }
   }
   const LISTE_ATTR = /\sdata-i3d-liste="([^"]*)"/;
+  // Die Auswahl muss im Dialog stehen, und ein auskommentierter Container
+  // zaehlt nicht. Ein Durchgang findet Kommentare, Anfang und Ende des
+  // Dialogs und den Container zugleich; Treffer, die mit "<!--" beginnen,
+  // werden uebersprungen (nichts wird aus dem HTML entfernt, wie in
+  // verify:sprachweiche).
+  const WAHL_LESEN = /<!--[\s\S]*?(?:-->|$)|<dialog\b[^>]*\bdata-i3d\b[^>]*>|<\/dialog>|<[a-z]+\b[^>]*\sdata-i3d-wahl[\s>=]/g;
+  const dialogMitWahl = (html) => {
+    let imDialog = false;
+    for (const [t] of html.matchAll(WAHL_LESEN)) {
+      if (t.startsWith('<!--')) continue;
+      if (t.startsWith('</dialog')) { if (imDialog) return false; continue; }
+      if (t.startsWith('<dialog')) { imDialog = true; continue; }
+      if (imDialog) return true;
+    }
+    return false;
+  };
+  let werkbankMitWahl = 0;
   const CFG_LISTE = /"i3dListe":"([^"]*)"/;
   let werkbankMitDialog = 0;
   for (const s of WERKBANK_SEITEN) {
@@ -245,6 +264,8 @@ if (!vorschau) {
     const cfg = CFG_LISTE.exec(html)?.[1];
     if (cfg !== url) fail(`[6] ${s}: Seiten-Einstellung i3dListe=${cfg ?? '(fehlt)'} passt nicht zum Dialog (${url ?? '(nichts)'})`);
     if (url && cfg === url) werkbankMitDialog++;
+    if (dialogMitWahl(html)) werkbankMitWahl++;
+    else fail(`[6] ${s}: Dialog ohne Auswahl (data-i3d-wahl) — andere Farben, Set und Einzelteile faenden keinen Platz`);
   }
   // Sonst traegt keine Seite in dist/ die Liste, auch keine in Unterordnern
   // (Item-, Blueprint-Seiten und alle uebrigen).
@@ -260,7 +281,7 @@ if (!vorschau) {
   for (const s of fremd.slice(0, 5)) fail(`[6] ${s}: Dialog mit Modell-Liste ausserhalb der Werkbank`);
   if (fremd.length > 5) fail(`[6] … und ${fremd.length - 5} weitere Seiten mit Modell-Liste`);
   if (durchsucht < MIN_SEITEN) fail(`[6] nur ${durchsucht} andere Seiten durchsucht, Klinke ${MIN_SEITEN} — dist/ unvollstaendig?`);
-  console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste (Soll ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}; ${durchsucht} andere Seiten durchsucht, ${fremd.length} davon mit Liste`);
+  console.log(`  [6] ${WERKBANK_SEITEN.length} Werkbank-Seiten gelesen: ${werkbankMitDialog} mit 3D-Dialog und Modell-Liste, ${werkbankMitWahl} mit Auswahl (Soll je ${WERKBANK_SEITEN.length}), Liste ${listeKennung ? `?v=${listeKennung}` : 'fehlt'}; ${durchsucht} andere Seiten durchsucht, ${fremd.length} davon mit Liste`);
 
   if (eintraege.length < MIN_MODELLE) fail(`Liste: ${eintraege.length} Modelle, Klinke ${MIN_MODELLE}`);
 }

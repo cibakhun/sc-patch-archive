@@ -1,7 +1,9 @@
 // Items in 3D: Betrachter für ein einzelnes Item (Rüstungsteil) im Dialog
 // der Item- und Blueprint-Seite (src/components/Item3d.astro) und der
 // Items-Werkbank, die im selben Dialog nacheinander verschiedene Items
-// zeigt (data-i3d-model wechselt). Wird erst
+// zeigt (data-i3d-model wechselt), dazu mehrere Teile auf einmal: andere
+// Farben nebeneinander oder ein ganzes Set getragen (data-i3d-modelle und
+// data-i3d-art, siehe auftrag()). Wird erst
 // beim Klick auf „In 3D ansehen“ geladen und nur im Vorschau-Bau
 // ausgeliefert: der Name beginnt mit hangar-, darum räumt
 // scripts/_hangar-switch.mjs die Datei aus dem Live-Bau, und
@@ -31,20 +33,81 @@ const istLang = (box) => {
   const s = box.getSize(new THREE.Vector3());
   return s.z > 1.6 * Math.max(s.x, s.y);
 };
+// Mehrere Teile nebeneinander eher von vorn, damit keins das nächste
+// verdeckt (wie im Prototyp).
+const YAW_REIHE = THREE.MathUtils.degToRad(12);
+// Abstand zwischen Teilen nebeneinander: ein Fünftel des breitesten.
+const LUECKE = 0.2;
+
+/**
+ * Was der Dialog zeigen soll: data-i3d-modelle (Adressen, durch Leerzeichen
+ * getrennt) mit data-i3d-art „nebeneinander“ (andere Farben) oder sonst
+ * „getragen“ (ein Set: jedes Teil sitzt, wo es am Körper sitzt); ohne
+ * data-i3d-modelle das eine Modell aus data-i3d-model. Der Schlüssel sagt,
+ * ob schon dasselbe geladen ist.
+ * @param {DOMStringMap} ds
+ */
+export function auftrag(ds) {
+  const urls = String(ds.i3dModelle || ds.i3dModel || '').split(/\s+/).filter(Boolean);
+  const art = urls.length < 2 ? 'einzeln' : ds.i3dArt === 'nebeneinander' ? 'nebeneinander' : 'getragen';
+  return { urls, art, schluessel: `${art} ${urls.join(' ')}` };
+}
+
+/**
+ * Stellt die geladenen Teile in eine Gruppe und rückt deren Mitte in den
+ * Ursprung. Getragen und einzeln bleibt jedes Teil, wo es im Modell steht
+ * (Rüstung sitzt so am Körper); nebeneinander reihen sie sich nach rechts,
+ * lange Teile (Waffen) untereinander, damit man sie von der Seite sieht.
+ * @param {THREE.Object3D[]} szenen
+ * @param {'einzeln'|'getragen'|'nebeneinander'} art
+ */
+export function anordnen(szenen, art) {
+  const boxen = szenen.map((s) => {
+    s.position.set(0, 0, 0);
+    s.updateMatrixWorld(true);
+    return new THREE.Box3().setFromObject(s);
+  });
+  const lang = boxen.length > 0 && boxen.every(istLang);
+  if (art === 'nebeneinander') {
+    const achse = lang ? 'y' : 'x';
+    const luecke = LUECKE * Math.max(...boxen.map((b) => b.max[achse] - b.min[achse]));
+    let lauf = 0;
+    szenen.forEach((s, i) => {
+      const b = boxen[i];
+      if (lang) {
+        s.position.y = lauf - b.max.y;
+        lauf -= b.max.y - b.min.y + luecke;
+      } else {
+        s.position.x = lauf - b.min.x;
+        lauf += b.max.x - b.min.x + luecke;
+      }
+    });
+  }
+  const gruppe = new THREE.Group();
+  for (const s of szenen) gruppe.add(s);
+  gruppe.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(gruppe);
+  const mitte = box.getCenter(new THREE.Vector3());
+  gruppe.position.sub(mitte);
+  box.translate(mitte.negate());
+  return { gruppe, box, lang, reihe: art === 'nebeneinander' };
+}
 
 const offen = new WeakMap(); // Dialog -> Betrachter
 
 /** Öffnet (oder zeigt wieder) den Betrachter in diesem Dialog. */
 export function zeige(dialog) {
   let b = offen.get(dialog);
+  const a = auftrag(dialog.dataset);
   if (!b) {
-    b = baue(dialog);
+    b = baue(dialog, a);
     offen.set(dialog, b);
-  } else if (b.kaputt || b.modell !== dialog.dataset.i3dModel) {
+  } else if (b.kaputt || b.modell !== a.schluessel) {
     // Nach einem Ladefehler (Netz weg, Ablage kurz nicht erreichbar) oder
-    // für ein anderes Item (Werkbank) das Modell neu laden; Zeichenfläche,
-    // Licht und Steuerung bleiben. Ein geladenes Modell bleibt sonst stehen.
-    b.lade(dialog.dataset.i3dModel);
+    // für ein anderes Item oder andere Teile (Werkbank) neu laden;
+    // Zeichenfläche, Licht und Steuerung bleiben. Was geladen ist, bleibt
+    // sonst stehen.
+    b.lade(a);
   }
   b?.weiter();
 }
@@ -73,7 +136,7 @@ function raeume(obj) {
   for (const b of bilder) b.close();
 }
 
-function baue(dialog) {
+function baue(dialog, start) {
   const d = dialog.dataset;
   const buehne = dialog.querySelector('[data-i3d-stage]');
   const status = dialog.querySelector('[data-i3d-status]');
@@ -178,9 +241,9 @@ function baue(dialog) {
   const ansichtZurueck = () => {
     if (!huelle) return;
     groesse();
-    const yaw = istLang(huelle) ? YAW_LANG : YAW;
+    const yaw = huelle.lang ? YAW_LANG : huelle.reihe ? YAW_REIHE : YAW;
     const richtung = new THREE.Vector3(Math.sin(yaw) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(yaw) * Math.cos(PITCH));
-    const r = abstand(huelle, richtung);
+    const r = abstand(huelle.box, richtung);
     controls.target.set(0, 0, 0);
     cam.position.copy(richtung).multiplyScalar(r);
     cam.near = r / 100;
@@ -198,10 +261,12 @@ function baue(dialog) {
   // wechselte, während es noch lud) verwerfen ihr Ergebnis still.
   let nr = 0;
 
-  // Laden: ein Entpacker-Arbeiter genügt für ein Teil; danach wird er beendet.
-  const lade = (url) => {
+  // Laden: ein Entpacker-Arbeiter je Teil, höchstens zwei; danach werden sie
+  // beendet. Mehrere Teile erscheinen erst zusammen, und scheitert eins,
+  // scheitert die Ansicht (ein halbes Set wäre irreführend).
+  const lade = (a) => {
     const meins = ++nr;
-    modell = url;
+    modell = a.schluessel;
     kaputt = false;
     for (const alt of [...halter.children]) {
       halter.remove(alt);
@@ -211,42 +276,50 @@ function baue(dialog) {
     zurueck.hidden = true;
     delete dialog.dataset.i3dBereit;
     dirty = true;
-    const draco = new DRACOLoader().setDecoderPath(DRACO_PFAD).setWorkerLimit(1);
-    const loader = new GLTFLoader().setDRACOLoader(draco);
     const aktuell = () => meins === nr;
+    const fehler = () => {
+      kaputt = true;
+      melde(d.fail);
+      dialog.dataset.i3dBereit = 'fehler';
+    };
+    if (!a.urls.length) { fehler(); return; }
+    const draco = new DRACOLoader().setDecoderPath(DRACO_PFAD).setWorkerLimit(Math.min(2, a.urls.length));
+    const loader = new GLTFLoader().setDRACOLoader(draco);
     melde(d.loading);
-    loader.load(
+    // Fortschritt erst, wenn jedes Teil seine Größe genannt hat.
+    const stand = a.urls.map(() => null);
+    const fortschritt = () => {
+      if (!aktuell() || stand.some((x) => !x)) return;
+      let geladen = 0;
+      let gesamt = 0;
+      for (const [l, t] of stand) { geladen += l; gesamt += t; }
+      melde(`${d.loading} ${Math.min(99, Math.round((geladen / gesamt) * 100))} %`);
+    };
+    const teil = (url, i) => new Promise((ok, nein) => loader.load(
       url,
-      (gltf) => {
-        draco.dispose();
-        const s = gltf.scene;
-        if (!aktuell()) { raeume(s); return; }
-        s.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
-        s.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(s);
-        const mitte = box.getCenter(new THREE.Vector3());
-        s.position.sub(mitte);
-        box.translate(mitte.negate());
-        halter.add(s);
-        huelle = box;
-        zurueck.hidden = false;
-        melde(null);
-        ansichtZurueck();
-        dialog.dataset.i3dBereit = '1';
-      },
-      (e) => {
-        if (aktuell() && e.total) melde(`${d.loading} ${Math.min(99, Math.round((e.loaded / e.total) * 100))} %`);
-      },
-      () => {
-        draco.dispose();
-        if (!aktuell()) return;
-        kaputt = true;
-        melde(d.fail);
-        dialog.dataset.i3dBereit = 'fehler';
-      },
-    );
+      (gltf) => ok(gltf.scene),
+      (e) => { if (e.total) { stand[i] = [e.loaded, e.total]; fortschritt(); } },
+      nein,
+    ));
+    Promise.allSettled(a.urls.map(teil)).then((erg) => {
+      draco.dispose();
+      const szenen = erg.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+      if (!aktuell() || szenen.length < erg.length) {
+        for (const s of szenen) raeume(s);
+        if (aktuell()) fehler();
+        return;
+      }
+      for (const s of szenen) s.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
+      const lage = anordnen(szenen, a.art);
+      halter.add(lage.gruppe);
+      huelle = lage;
+      zurueck.hidden = false;
+      melde(null);
+      ansichtZurueck();
+      dialog.dataset.i3dBereit = '1';
+    });
   };
-  lade(d.i3dModel);
+  lade(start);
 
   return {
     get kaputt() { return kaputt; },
