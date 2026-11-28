@@ -35,7 +35,7 @@
    Daten; wartet trocken nie.)
    ============================================================ */
 import {
-  bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende,
+  bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende, VERGLEICH_MAX,
   LABEL_BEREIT, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
   anforderungNoetig, anforderungsMarke,
   zuletztGesetzt, seitenweise, statusMitKontrolle,
@@ -146,9 +146,14 @@ async function sammle(pr, { nurHeadNeu = false, versuch = 1 } = {}) {
      #480): Vergleich und PR-Liste nennen dieselben Dateien mit demselben
      Status und Blob. Der Vergleich liefert hoechstens 300 Dateien
      (GitHub-Doku); ab 300 gilt die PR-Liste (bis 3000), gebunden ueber
-     abweichendeDateien und die Dateizahl des PRs. */
-  const fest = (await api(`${R}/compare/${pr.base.sha}...${head}`)).files || [];
-  const vollstaendig = fest.length < 300;
+     abweichendeDateien und die Dateizahl des PRs. Geloeschte Dateien bindet
+     auch das nicht; deshalb ist ein PR ab 300 Dateien kritisch
+     (kritischeGruende). */
+  const vergleich = await api(`${R}/compare/${pr.base.sha}...${head}`);
+  const fest = vergleich.files || [];
+  // Gegen diese Basis gilt die Dateiliste; headNochGleich prueft sie vor jedem Schreiben.
+  basis = { ref: pr.base.ref, sha: pr.base.sha, zusammen: vergleich.merge_base_commit?.sha || null };
+  const vollstaendig = fest.length < VERGLEICH_MAX;
   const dateien = vollstaendig ? fest : await alle(`${R}/pulls/${NUMMER}/files`, 30);
   /* Gehoeren Commits und Dateien zum festgehaltenen Head? Ein Head, der
      waehrend der Erhebung wechselt und zurueckkehrt (A -> B -> A), besteht
@@ -282,14 +287,35 @@ async function status(sha, u) {
 /* Gehoeren die gesammelten Daten noch zum Head? Waehrend der Erhebung
    gepushte Commits mischen sonst Dateien eines neuen Stands in das Urteil
    ueber den alten. Dann schreibt dieser Lauf nichts mehr; der Lauf zum
-   neuen Stand uebernimmt (Review #477). Trocken wird nichts geschrieben. */
+   neuen Stand uebernimmt (Review #477). Trocken wird nichts geschrieben.
+   Dasselbe fuer die Basis (Review #477, Runde 5): Die Dateiliste ist der
+   Vergleich ab der Zusammenfuehrungsbasis. Wechselt der Zielzweig, kommt
+   ein Lauf zum Ereignis "edited". Ruecken nur neue Commits auf den
+   Zielzweig, bleibt die Zusammenfuehrungsbasis gleich und die Liste gilt;
+   verschiebt sie sich (Zielzweig umgeschrieben oder Teile dieses Stands
+   dort eingeflossen), gibt es kein Ereignis: dann scheitert der Lauf
+   sichtbar, statt ein Urteil aus der alten Liste zu schreiben.
+   Rueckgabe: der frisch gelesene PR. */
+let basis = null;
 async function headNochGleich(sha) {
-  if (TROCKEN) return;
+  if (TROCKEN) return null;
   const jetzt = await api(`${R}/pulls/${NUMMER}`);
   if (jetzt.head.sha !== sha || jetzt.state !== 'open') {
     console.log('Neuer Stand oder PR geschlossen waehrend der Erhebung — der Lauf dazu uebernimmt.');
     process.exit(0);
   }
+  if (basis && jetzt.base.ref !== basis.ref) {
+    console.log(`Zielzweig waehrend der Erhebung geaendert (${basis.ref} -> ${jetzt.base.ref}) — der Lauf dazu uebernimmt.`);
+    process.exit(0);
+  }
+  if (basis && jetzt.base.sha !== basis.sha) {
+    const zusammen = (await api(`${R}/compare/${jetzt.base.sha}...${sha}`)).merge_base_commit?.sha || null;
+    if (!zusammen || zusammen !== basis.zusammen) {
+      throw new Error(`Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben (${String(basis.zusammen).slice(0, 7)} -> ${String(zusammen).slice(0, 7)}): Stand ${sha.slice(0, 7)} nicht bewertet`);
+    }
+    basis = { ...basis, sha: jetzt.base.sha };
+  }
+  return jetzt;
 }
 
 // ---------------------------------------------------------------- Ablauf
@@ -354,7 +380,14 @@ if (anforderungNoetig(d)) {
       // Die Pruefung des Tokens dauert: der Head ist danach noch einmal
       // zu pruefen, sonst ginge der Befehl an einen neuen, nicht
       // freigegebenen Stand (Review #477, Runde 4).
-      await headNochGleich(head);
+      const jetzt = await headNochGleich(head);
+      // Freigabe noch da? Label ab oder zurueck zum Draft waehrend der
+      // Pruefung: dann geht kein Befehl hinaus; das Ereignis dazu hat einen
+      // eigenen Lauf (Review #477, Runde 5).
+      if (jetzt.draft || !(jetzt.labels || []).some((l) => l.name === LABEL_BEREIT)) {
+        console.log(`Freigabe waehrend der Token-Pruefung entfallen (${jetzt.draft ? 'Draft' : `Label ${LABEL_BEREIT} fehlt`}) — keine Anforderung, der Lauf dazu uebernimmt.`);
+        process.exit(0);
+      }
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });

@@ -101,9 +101,10 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   auch bei Skip und Rate-Limit grün). Rot heißt nicht geprüft: warten, Grund
   im Bericht-Kommentar des PRs lesen, nie umgehen. Merge nach `staging` macht
   Krisz, per Squash; nie selbst mergen, nie den Bypass nutzen.
-- **Kritisch** (Pfadliste in `scripts/lib/review-nachweis.mjs`, dazu jede
-  sicherheitsrelevante Änderung: dann Label `kritisch` setzen) braucht zwei
-  KI-Reviews (CodeRabbit und cubic). Fehlt der zweite, gibt es nur eine
+- **Kritisch** (Pfadliste in `scripts/lib/review-nachweis.mjs`, jeder PR ab
+  300 Dateien, dazu jede sicherheitsrelevante Änderung: dann Label
+  `kritisch` setzen) braucht zwei KI-Reviews (CodeRabbit und cubic). Fehlt
+  der zweite, gibt es nur eine
   **dokumentierte Ausnahme mit Krisz' ausdrücklicher Freigabe** aus Chat oder
   AgencyOS, vorher gezielte Zusatztests. Der Ausnahme-Kommentar steht in
   `docs/review-workflow.md`; nie auf eigene Initiative, nie automatisch.

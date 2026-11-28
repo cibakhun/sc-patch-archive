@@ -687,6 +687,19 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     assert.doesNotMatch(r.stdout, /erhebe neu/);
     assert.equal(zustaende(r)[0], 'pending');
     assert.match(r.stdout, /320 Dateien/);
+    // Geloeschte Dateien bindet auch der Abgleich nicht: ab 300 Dateien im Zweifel kritisch.
+    assert.match(bericht(r), /\*\*kritisch\*\*/);
+    assert.match(bericht(r), /300 oder mehr Dateien: Dateiliste nicht fest an den Stand gebunden/);
+  });
+
+  test('ROT: ab 300 Dateien ist ein PR kritisch, auch wenn die Liste nur Daten nennt', () => {
+    // CodeRabbits Nachfrage: Die PR-Liste von B besteht jeden Abgleich, wenn
+    // sie sich hinter Datei 300 nur durch geloeschte Dateien unterscheidet;
+    // die kritische Aenderung von A fehlt dann. Deshalb zaehlt die Groesse.
+    assert.deepEqual(kritischeGruende(viele(299)), [], 'unter 300 normale Daten: normal');
+    assert.deepEqual(kritischeGruende(viele(300)), ['300 oder mehr Dateien: Dateiliste nicht fest an den Stand gebunden']);
+    const vonB = [...viele(300), ...viele(19).map((f, i) => ({ ...f, filename: `mehr/${i}.json` })), { ...NUR_GELOESCHT }];
+    assert.ok(kritischeGruende(vonB).length > 0);
   });
 
   test('ROT: Commits von einem anderen Stand scheitern nach drei Versuchen, ohne zu schreiben', () => {
@@ -759,6 +772,47 @@ describe('Review-Nachweis: Runde 4 (Review #477)', () => {
     const r = laeufer([prMit(KOPF, ['review-ready'])], mitAnforderung);
     assert.equal(r.status, 0, r.stderr);
     assert.equal(anforderungen(r).length, 1);
+  });
+
+  // Runde 5: Auch die Freigabe selbst kann waehrend der Token-Pruefung entfallen.
+  test('ROT: Label ab oder zurueck zum Draft waehrend der Token-Pruefung: keine Anforderung', () => {
+    const ohne = laeufer([prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready']), prMit(KOPF, [])], mitAnforderung);
+    assert.equal(ohne.status, 0, ohne.stderr);
+    assert.match(ohne.stdout, /Freigabe waehrend der Token-Pruefung entfallen \(Label review-ready fehlt\)/);
+    assert.deepEqual(anforderungen(ohne), []);
+    assert.deepEqual(ohne.schreibend, []);
+    const draft = laeufer([prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready']), prMit(KOPF, ['review-ready'], { draft: true })], mitAnforderung);
+    assert.equal(draft.status, 0, draft.stderr);
+    assert.match(draft.stdout, /Freigabe waehrend der Token-Pruefung entfallen \(Draft\)/);
+    assert.deepEqual(draft.schreibend, []);
+  });
+
+  // Runde 5: Die Dateiliste ist der Vergleich ab der Zusammenfuehrungsbasis.
+  const NEUBASIS = h('d'), ZB = h('9');
+  const mitBasis = (zielNeu, zbNeu) => ({ routen: {
+    [`GET repos/o/r/compare/${ZIEL}...${KOPF}`]: [{ files: [datei(KOPF)], merge_base_commit: { sha: ZB } }],
+    [`GET repos/o/r/compare/${NEUBASIS}...${KOPF}`]: [{ files: [datei(KOPF)], merge_base_commit: { sha: zbNeu } }],
+  } });
+
+  test('ROT: wechselt der Zielzweig waehrend der Erhebung, schreibt der Lauf nichts', () => {
+    const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'main', sha: ZIEL } })], mitBasis());
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /Zielzweig waehrend der Erhebung geaendert \(staging -> main\)/);
+    assert.deepEqual(r.schreibend, []);
+  });
+
+  test('ROT: verschiebt sich die Zusammenfuehrungsbasis, scheitert der Lauf ohne Urteil', () => {
+    const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'staging', sha: NEUBASIS } })], mitBasis(NEUBASIS, h('5')));
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /Zusammenfuehrungsbasis hat sich waehrend der Erhebung verschoben \(9999999 -> 5555555\)/);
+    assert.deepEqual(r.schreibend, []);
+  });
+
+  test('Gegenprobe: ruecken nur neue Commits auf den Zielzweig, laeuft er normal weiter', () => {
+    const r = laeufer([prMit(KOPF), prMit(KOPF, [], { base: { ref: 'staging', sha: NEUBASIS } })], mitBasis(NEUBASIS, ZB));
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(zustaende(r)[0], 'pending');
+    assert.equal(zustaende(r).at(-1), 'failure', 'ohne Review rot wie sonst');
   });
 
   // Ziel einer Zusammenfassung ist ein aelterer Stand A. Beim ersten Erheben

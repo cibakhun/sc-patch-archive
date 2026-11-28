@@ -101,11 +101,21 @@ export const KRITISCHE_SIGNALE = [
   [/^\s*"(gate|gate:data|test:e2e|verify:[\w-]+|audit:[\w-]+)"\s*:/, 'Tor-Kette in package.json geaendert', { nurEntfernt: true }],
 ];
 
+/** Hoechstzahl Dateien, die der Vergleich zweier fester Commits liefert
+    (GitHub-Doku). Bis darunter stammt die Dateiliste fest vom Stand. */
+export const VERGLEICH_MAX = 300;
+
 /** Liste der Gruende, warum ein PR kritisch ist (leer = normal). */
 export function kritischeGruende(dateien, labels = []) {
   const gruende = [];
   const dazu = (g) => { if (!gruende.includes(g)) gruende.push(g); };
   if (labels.includes(LABEL_KRITISCH)) dazu(`Label "${LABEL_KRITISCH}"`);
+  /* Ab 300 Dateien kommt die Liste aus der PR-Liste, die dem jeweils
+     aktuellen Head gilt. Geloeschte Dateien darin lassen sich nicht an den
+     Stand binden: Kehrte der Head waehrend der Erhebung zurueck, koennte
+     eine kritische Aenderung fehlen. Im Zweifel kritisch (Review #477,
+     Nachfrage zu Runde 4). */
+  if ((dateien || []).length >= VERGLEICH_MAX) dazu(`${VERGLEICH_MAX} oder mehr Dateien: Dateiliste nicht fest an den Stand gebunden`);
   for (const f of dateien) {
     for (const name of [f.filename, f.previous_filename].filter(Boolean)) {
       for (const [re, warum] of KRITISCHE_PFADE) if (re.test(name)) dazu(`${warum}: ${name}`);

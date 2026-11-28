@@ -190,6 +190,9 @@ maßgebliche Liste steht in `KRITISCHE_PFADE` und `KRITISCHE_SIGNALE`.
   oder Geheimschlüssel, `SECURITY DEFINER`, RLS-Policies, `GRANT`/`REVOKE`,
   Sicherheits-Kopfzeilen, Stripe, Anmelde-API, und das Entfernen oder
   Ändern von Tor-Skripten in `package.json`.
+- **300 oder mehr geänderte Dateien:** Dann liefert der feste Vergleich
+  nicht alle Dateien, und gelöschte Dateien der PR-Liste lassen sich nicht
+  an den geprüften Stand binden (siehe „Warten“). Im Zweifel kritisch.
 - **Label `kritisch`:** Der Agent setzt es bei jeder anderen
   sicherheitsrelevanten Änderung. Die Erkennung ist eine Heuristik, das
   Label schließt ihre Lücken.
@@ -286,6 +289,12 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst. Dasselbe gilt
 unmittelbar vor der Anforderung und vor jedem Schreiben eines Status,
 auch des „Warte“: Kam während der Erhebung ein neuer Stand, schreibt der
 Lauf nichts, damit kein Urteil aus gemischten Daten am alten Stand hängt.
+Vor der Anforderung muss außerdem die Freigabe noch stehen (Label
+`review-ready` gesetzt, kein Draft). Die Basis prüft der Lauf genauso:
+Wechselt der Zielzweig, endet er ohne Status (das Ereignis `edited` hat
+einen eigenen Lauf); rücken nur neue Commits auf den Zielzweig, bleibt die
+Zusammenführungsbasis und damit die Dateiliste gleich; verschiebt sie sich
+trotzdem, scheitert er sichtbar („Auswertung gescheitert“).
 Ein Head, der wechselt und zurückkehrt (A, B, wieder A), besteht diese
 Nachfrage; deshalb sind auch die Daten an den Stand gebunden. Die Dateien
 kommen aus dem Vergleich zweier fester Commits (`compare/<Basis>...<Head>`),
@@ -296,7 +305,8 @@ nennen dieselben Dateien mit demselben Status und Blob). Der Vergleich
 liefert höchstens 300 Dateien; ab dann gilt die PR-Liste, und jede ihrer
 nicht gelöschten Dateien muss den Head als Quelle nennen (`contents_url`),
 jede Datei des Vergleichs muss gleich in ihr stehen, und ihre Länge muss
-die Dateizahl des PRs treffen. Der Head muss in der Commit-Liste stehen, und jeder
+die Dateizahl des PRs treffen; gelöschte Dateien bindet auch das nicht,
+deshalb gilt ein PR ab 300 Dateien als kritisch. Der Head muss in der Commit-Liste stehen, und jeder
 Commit der Liste muss in seinem Verlauf liegen (eine Liste zu einem
 Nachfolger B = A + X brächte X mit). Die Commits ordnet der Lauf nach
 ihren Eltern, nicht nach der Liste, weil cubics Abdeckung sie der Reihe
@@ -356,13 +366,16 @@ abgebrochener Lauf nimmt dem Bereich den Beleg.
   kein Merge.
 - **Kritisch-Erkennung** ist eine Heuristik; das Label `kritisch` schließt
   ihre Lücken.
-- **Mehr als 300 geänderte Dateien.** Dann bindet die PR-Liste nur, was sie
+- **300 oder mehr geänderte Dateien.** Dann bindet die PR-Liste nur, was sie
   selbst verrät: die ersten 300 Dateien des Vergleichs, die Quelle jeder
   nicht gelöschten Datei und die Dateizahl des PRs. Kehrt der Head genau
   während der Erhebung zurück (A, B, wieder A) und unterscheidet sich B
   hinter den ersten 300 Dateien nur durch gelöschte Dateien bei gleicher
-  Dateizahl, fiele das nicht auf. So große PRs sind hier Datenläufe; das
-  Label `kritisch` gilt unabhängig davon.
+  Dateizahl, fiele eine fehlende kritische Änderung nicht auf. Deshalb ist
+  jeder so große PR kritisch: zwei Reviews oder Krisz' dokumentierte
+  Ausnahme. Weil CodeRabbit PRs über 300 Dateien überspringt (gemessen:
+  „640 files exceed the limit of 300“), geht ein so großer PR damit nur
+  mit Ausnahme durch; vorher hätte cubic allein gereicht.
 
 ## Rulesets (Vorschlag, noch nicht aktiv)
 
