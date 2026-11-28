@@ -7,7 +7,7 @@
 //
 // Die Zusicherungen, auf die sich Dashboard und Datenbank verlassen:
 //   * Handle und Code fuer die Pruefung kommen aus der Datenbank, nicht aus
-//     der Anfrage (ausser fuer das alte Dashboard mit RSI_LEGACY_FLOW=1).
+//     der Anfrage (auch nicht mit dem frueheren Schalter RSI_LEGACY_FLOW).
 //   * Drosselung, Zeitlimit, Fremdhost, Riesenseite, fremde Zwischenseite:
 //     immer Nicht-2xx. Das alte Dashboard entzieht nur bei 200 mit
 //     verified:false; auf Nicht-2xx tut es nichts.
@@ -311,36 +311,29 @@ describe('verify-rsi: verifiziertes Konto mit offenem neuem Code', () => {
   });
 });
 
-describe('verify-rsi: alter Ablauf (main bis zum naechsten Release)', () => {
+describe('verify-rsi: alter Ablauf (Code aus dem Browser) ist abgeschaltet', () => {
   const legacyGet = { rsi_handle: 'Pilot_One', code: null, profile_verified: false, profile_code: null };
   const legacyPage = (url) => response(200, page({ bio: 'VERSEBASE-VERIFY-AB12CD' }), { url });
 
-  test('Code aus der Anfrage ohne RSI_LEGACY_FLOW: 409, kein Abruf', async () => {
+  test('Code aus der Anfrage: 409, kein Abruf, nichts festgehalten', async () => {
     const w = world({ rpc: { rsi_challenge_get: legacyGet }, rsi: legacyPage });
     const r = await w.call({ rsi_handle: 'Pilot_One', rsi_code: 'VERSEBASE-VERIFY-AB12CD' });
     assert.deepStrictEqual([r.status, r.data], [409, { error: 'no_challenge' }]);
     assert.strictEqual(w.calls.rsi.length, 0);
+    assert.ok(!w.calls.rpc.some((c) => c.fn === 'rsi_challenge_result'));
   });
 
-  test('mit RSI_LEGACY_FLOW=1: nur das alte Format, gespeichert ueber rsi_challenge_result', async () => {
-    const w = world({ rpc: { rsi_challenge_get: legacyGet }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
-    const r = await w.call({ rsi_handle: 'Pilot_One', rsi_code: 'VERSEBASE-VERIFY-AB12CD' });
-    assert.deepStrictEqual([r.status, r.data.verified], [200, true]);
-    assert.strictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_code, 'VERSEBASE-VERIFY-AB12CD');
-    // Ein Praefix eines fremden Altcodes in der Bio ist kein Treffer.
-    const w3 = world({ rpc: { rsi_challenge_get: legacyGet, rsi_challenge_result: (a) => (a.p_found ? 'verified' : 'not_found') }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
-    const r3 = await w3.call({ rsi_handle: 'Pilot_One', rsi_code: 'VERSEBASE-VERIFY-AB12' });
-    assert.deepStrictEqual([r3.status, r3.data.verified], [200, false]);
-    assert.strictEqual(w3.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_found, false);
-    for (const code of ['<html', ' ', 'Pilot_One', 'VB-1111-2222-3333', 'VERSEBASE-VERIFY-', 'versebase-verify-ab12cd']) {
-      const w2 = world({ rpc: { rsi_challenge_get: legacyGet }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
-      const r2 = await w2.call({ rsi_handle: 'Pilot_One', rsi_code: code });
-      assert.strictEqual(r2.status, 409, `Code ${JSON.stringify(code)}`);
-      assert.strictEqual(w2.calls.rsi.length, 0);
+  test('auch mit dem frueheren Schalter RSI_LEGACY_FLOW=1: 409, kein Abruf', async () => {
+    for (const code of ['VERSEBASE-VERIFY-AB12CD', 'VERSEBASE-VERIFY-AB12', 'VB-1111-2222-3333']) {
+      const w = world({ rpc: { rsi_challenge_get: legacyGet }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
+      const r = await w.call({ rsi_handle: 'Pilot_One', rsi_code: code });
+      assert.deepStrictEqual([r.status, r.data], [409, { error: 'no_challenge' }], `Code ${JSON.stringify(code)}`);
+      assert.strictEqual(w.calls.rsi.length, 0);
+      assert.ok(!w.calls.rpc.some((c) => c.fn === 'rsi_challenge_result'));
     }
   });
 
-  test('Altfall (vor dem Umbau verifiziert): Nachpruefung mit dem Code aus dem Profil, auch ohne Schalter', async () => {
+  test('Altfall (vor dem Umbau verifiziert): Nachpruefung mit dem Code aus dem Profil', async () => {
     const w = world({
       rpc: { rsi_challenge_get: { rsi_handle: 'Pilot_One', code: null, profile_verified: true, profile_code: 'VERSEBASE-VERIFY-AB12CD' } },
       rsi: legacyPage,
