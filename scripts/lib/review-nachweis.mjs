@@ -180,25 +180,145 @@ export function anforderungAmHead(kommentare, head) {
   return t.length ? Math.max(...t) : null;
 }
 
-/** Abgeschlossene CodeRabbit-Runden: Commits des PRs mit fertigem Review. */
-export function rundenZahl(d) {
-  return (d.commits || []).filter((c) => (d.laeufeJeCommit?.[c] || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft')).length;
+/** Alle Anforderungen, gleich fuer welchen Stand. */
+const alleAnforderungen = (kommentare) => (kommentare || []).filter((k) => /<!--\s*review-nachweis:anforderung\s+sha=[0-9a-f]{40}\s*-->/.test(k.body || ''));
+
+/** Juengstes Setzen eines Labels (ms) aus den Issue-Ereignissen, sonst null. */
+export function zuletztGesetzt(ereignisse, label) {
+  const t = (ereignisse || []).filter((e) => e.event === 'labeled' && e.label?.name === label).map((e) => Date.parse(e.created_at || '')).filter(Number.isFinite);
+  return t.length ? Math.max(...t) : null;
 }
 
-/** Laege eine weitere Anforderung ueber dem Rundenlimit, ohne Freigabe von Krisz? */
+/** Ist die Freigabe `review-runde-frei` schon verbraucht? Ja, sobald nach
+    ihrem juengsten Setzen (`d.freigabeGesetzt`, ms) irgendeine Anforderung
+    geschrieben wurde. Das folgt aus dem Verlauf, nicht aus dem Lauf, der
+    anforderte: bricht der nach dem Kommentar ab oder scheitert das Abnehmen
+    des Labels, bleibt die Freigabe trotzdem verbraucht (Review #477).
+    Unbekannter Setzzeitpunkt oder unlesbare Zeit: verbraucht (im Zweifel
+    bremsen). */
+export function freigabeVerbraucht(d) {
+  if (!(d.pr.labels || []).includes(LABEL_RUNDE_FREI)) return false;
+  const t = d.freigabeGesetzt;
+  if (!Number.isFinite(t)) return true;
+  return alleAnforderungen(d.kommentare).some((k) => !(Date.parse(k.erstellt || '') < t));
+}
+
+const fertigGeprueft = (laeufe) => (laeufe || []).filter(istCodeRabbit).some((l) => codeRabbitLauf(l).art === 'geprueft');
+
+/** Staende mit abgeschlossenem CodeRabbit-Review, je PR: aus den Laeufen der
+    heutigen Commits und aus dem, was ein Umschreiben ueberdauert
+    (`d.fruehereRunden`: Bereichsziele aus CodeRabbits Reviews und das
+    Ledger im Bericht). Sonst senkte ein Force-Push, Rebase oder Squash die
+    Zahl unter das Limit (Review #477). */
+export function gepruefteStaende(d) {
+  const jetzt = (d.commits || []).filter((c) => fertigGeprueft(d.laeufeJeCommit?.[c]));
+  return [...new Set([...jetzt, ...(d.fruehereRunden || []).filter((x) => SHA.test(x))])];
+}
+
+/** Abgeschlossene CodeRabbit-Runden des PRs. */
+export function rundenZahl(d) {
+  return gepruefteStaende(d).length;
+}
+
+/** Laege eine weitere Anforderung ueber dem Rundenlimit, ohne gueltige
+    (noch nicht verbrauchte) Freigabe von Krisz? */
 export function rundenBremse(d) {
-  return rundenZahl(d) >= MAX_RUNDEN && !(d.pr.labels || []).includes(LABEL_RUNDE_FREI);
+  const frei = (d.pr.labels || []).includes(LABEL_RUNDE_FREI) && !freigabeVerbraucht(d);
+  return rundenZahl(d) >= MAX_RUNDEN && !frei;
+}
+
+/** Darf derselbe Stand noch einmal angefordert werden? Nur nach einem
+    Rate-Limit: Hat CodeRabbit auf die juengste Anforderung mit "rate
+    limited" geantwortet und wurde `review-ready` danach neu gesetzt
+    (`d.bereitGesetzt`, ms), gibt das genau eine neue Anforderung frei. Ein
+    Mensch oder der Agent setzt das Label, sobald das Limit vorbei ist;
+    von selbst wiederholt der Workflow nichts. */
+export function wiederholungErlaubt(d) {
+  const head = d.pr.head_sha;
+  const tAnf = anforderungAmHead(d.kommentare, head);
+  const letzter = juengster((d.laeufeJeCommit?.[head] || []).filter(istCodeRabbit));
+  if (tAnf === null || !letzter || codeRabbitLauf(letzter).art !== 'ratenlimit') return false;
+  const tLimit = Date.parse(letzter.started_at || '');
+  return Number.isFinite(tLimit) && tLimit >= tAnf && Number.isFinite(d.bereitGesetzt) && d.bereitGesetzt > tLimit;
 }
 
 /** Soll jetzt `@coderabbitai review` geschrieben werden? Nur mit Label, nie im
-    Draft, nie doppelt, nie ueber dem Rundenlimit ohne `review-runde-frei`. */
+    Draft, nie doppelt (ausser nach einem Rate-Limit mit neu gesetztem
+    Label), nie ueber dem Rundenlimit ohne `review-runde-frei`. */
 export function anforderungNoetig(d, { bremse = true } = {}) {
   const { pr } = d;
   if (pr.draft || (pr.base_ref === 'main' && pr.head_ref === 'staging')) return false;
   if (!(pr.labels || []).includes(LABEL_BEREIT)) return false;
-  if (anforderungen(d.kommentare, pr.head_sha).length) return false;
   if (codeRabbitAmCommit(d.laeufeJeCommit?.[pr.head_sha] || []).art === 'geprueft') return false;
+  if (anforderungen(d.kommentare, pr.head_sha).length && !wiederholungErlaubt(d)) return false;
   return !(bremse && rundenBremse(d));
+}
+
+/* ---------------------------------------------------------------
+   Status je PR. Der Status haengt am Commit; ein spaeterer PR vom selben
+   Stand (etwa nach einem anderen Zielzweig) koennte ihn ueberschreiben, und
+   die Release-Pruefung naehme dessen Urteil fuer den gemergten PR (Review
+   #477). Darum nennt jede Beschreibung den PR, und die Release-Pruefung
+   liest das juengste Urteil, das genau diesen PR nennt.
+   --------------------------------------------------------------- */
+export const prMarke = (nummer) => ` [#${nummer}]`;
+
+/** Beschreibung mit PR-Marke, zusammen hoechstens 140 Zeichen. */
+export function beschreibungMitPr(beschreibung, nummer) {
+  const marke = prMarke(nummer);
+  return `${String(beschreibung).slice(0, 140 - marke.length)}${marke}`;
+}
+
+/** Juengstes Urteil (`state`) des Nachweises fuer genau diesen PR aus der
+    Status-Liste eines Commits, sonst null. */
+export function nachweisFuerPr(statuses, nummer) {
+  const marke = prMarke(nummer);
+  const eigene = (statuses || [])
+    .filter((x) => x.context === STATUS_KONTEXT && String(x.description || '').endsWith(marke))
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  return eigene[0]?.state || null;
+}
+
+/* ---------------------------------------------------------------
+   Hilfen fuer den Aufrufer, ohne eigenes Netz: Er reicht die Abrufe als
+   Funktionen herein, so sind Reihenfolge und Grenzen pruefbar.
+   --------------------------------------------------------------- */
+
+/** Liest eine seitenweise Liste ganz. `holen(seite)` liefert die Eintraege
+    einer Seite. Ist auch die Seite nach `max` noch gefuellt, wirft es: eine
+    abgeschnittene Liste wuerde still etwas uebersehen (einen Lauf, einen
+    PR mit demselben Stand, eine Anforderung; Review #477). */
+export async function seitenweise(holen, { max, was = 'Liste', proSeite = 100 }) {
+  const out = [];
+  for (let seite = 1; seite <= max + 1; seite++) {
+    const teil = (await holen(seite)) || [];
+    if (seite > max) {
+      if (teil.length) throw new Error(`${was}: mehr als ${max * proSeite} Eintraege, Liste unvollstaendig`);
+      break;
+    }
+    out.push(...teil);
+    if (teil.length < proSeite) break;
+  }
+  return out;
+}
+
+/** Schreibt das Urteil als Status; vor und nach einem gruenen sieht es noch
+    einmal nach anderen offenen PRs mit demselben Head. Ein zweiter PR kann
+    nach dem Sammeln geoeffnet worden sein, und sein Lauf haette "rot" schon
+    vor unserem "gruen" geschrieben. Mit der Kontrolle danach steht in
+    jeder Reihenfolge zuletzt rot (Review #477). Gibt das zuletzt
+    geschriebene Urteil zurueck. */
+export async function statusMitKontrolle(urteil, d, { schreibe, gleicheStaende }) {
+  const pruefe = async (u) => {
+    if (u.state !== 'success') return u;
+    const andere = await gleicheStaende(d.pr.head_sha);
+    return andere.length ? bewerte({ ...d, gleicherStand: andere }) : u;
+  };
+  let u = await pruefe(urteil);
+  await schreibe(u);
+  const danach = await pruefe(u);
+  if (danach !== u) { u = danach; await schreibe(u); }
+  return u;
 }
 
 /** Bereiche "between A and B" aus einem CodeRabbit-Text. */
@@ -215,13 +335,17 @@ export function bereicheAusText(text) {
    ab der Merge-Basis). Ziel muss ein Commit des heutigen PR-Stands sein. Ein umgeschriebener Verlauf (Force-Push)
    reisst die Kette: dann hilft nur `@coderabbitai full review`.
    --------------------------------------------------------------- */
-export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren }) {
+export function codeRabbitAbdeckung({ bereiche, commits, head, vorfahren, laeufeJeCommit }) {
   const imPr = new Set(commits);
   const gueltig = [];
   const verworfen = [];
   for (const r of bereiche) {
     if (!SHA.test(r.a) || !SHA.test(r.b)) continue;
-    const zielOk = imPr.has(r.b);
+    /* Ziel im heutigen Verlauf und dort ein fertiger Review. Den Bereich
+       nennt CodeRabbit schon zu Beginn einer Runde; bricht sie ab, darf er
+       aus Zusammenfassung oder Ledger kein Glied der Kette werden.
+       (Ohne `laeufeJeCommit` nur die Verlaufspruefung, fuer Einzeltests.) */
+    const zielOk = imPr.has(r.b) && (!laeufeJeCommit || fertigGeprueft(laeufeJeCommit[r.b]));
     const quelleOk = imPr.has(r.a) || vorfahren[r.a] === true; // vorfahren: liegt auf dem Zielzweig
     (zielOk && quelleOk ? gueltig : verworfen).push(r);
   }
@@ -323,12 +447,18 @@ export function bewerte(d) {
     return s('failure', 'PR hat 250+ Commits: Abdeckung nicht pruefbar, bitte aufteilen', { bericht: ['Mehr als 250 Commits: die API liefert nicht alle, der Nachweis bleibt aus.'] });
   }
 
+  // GitHub liefert hoechstens 3000 Dateien je PR: darueber sieht die
+  // Kritisch-Erkennung nicht alles.
+  if ((d.dateien || []).length >= 3000) {
+    return s('failure', 'PR hat 3000+ Dateien: Kritisch-Erkennung unvollstaendig, bitte aufteilen', { bericht: ['3000 oder mehr Dateien: die API liefert nicht alle, der Nachweis bleibt aus.'] });
+  }
+
   const gruende = kritischeGruende(d.dateien || [], labels);
   const kritisch = gruende.length > 0;
 
   // CodeRabbit
   const crHead = codeRabbitAmCommit(d.laeufeJeCommit?.[head] || []);
-  const crAbd = codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {} });
+  const crAbd = codeRabbitAbdeckung({ bereiche: d.bereiche || [], commits: d.commits || [], head, vorfahren: d.vorfahren || {}, laeufeJeCommit: d.laeufeJeCommit || {} });
   const crBeleg = crHead.art === 'geprueft' && crAbd.abgedeckt;
 
   // cubic
@@ -341,7 +471,7 @@ export function bewerte(d) {
   if (kritisch) for (const g of gruende.slice(0, 12)) bericht.push(`- kritisch: ${g}`);
   if (gruende.length > 12) bericht.push(`- … und ${gruende.length - 12} weitere Gruende`);
   bericht.push(`CodeRabbit am Head: ${crHead.art}${crHead.titel ? ` (${crHead.titel})` : ''}; Abdeckung: ${crAbd.abgedeckt ? 'lueckenlos' : 'NICHT belegt'}${crAbd.kette.length ? ' — ' + crAbd.kette.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(' → ') : ''}`);
-  if (crAbd.verworfen.length) bericht.push(`- verworfene Bereiche (Ziel nicht im heutigen Verlauf oder Quelle nicht auf dem Zielzweig): ${crAbd.verworfen.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(', ')}`);
+  if (crAbd.verworfen.length) bericht.push(`- verworfene Bereiche (Ziel nicht im heutigen Verlauf oder ohne fertigen Review, oder Quelle nicht auf dem Zielzweig): ${crAbd.verworfen.map((r) => `${kurz(r.a)}..${kurz(r.b)}`).join(', ')}`);
   bericht.push(`cubic am Head: ${cuAbd.amHead.art}${cuAbd.amHead.titel ? ` (${cuAbd.amHead.titel})` : ''}; Abdeckung: ${cuBeleg ? 'lueckenlos' : 'NICHT belegt'}${cuAbd.spur.length ? ' — ' + cuAbd.spur.join(', ') : ''}`);
 
   const belege = [crBeleg && 'CodeRabbit', cuBeleg && 'cubic'].filter(Boolean);
@@ -387,7 +517,7 @@ export function bewerte(d) {
   else if (!labels.includes(LABEL_BEREIT) && tAnf === null && ['fehlt', 'uebersprungen'].includes(crHead.art)) grund = 'Kein Review fuer diesen Stand angefordert (Label review-ready fehlt)';
   else if (crAngefordert) grund = 'Review angefordert, CodeRabbit hat nicht reagiert: NICHT geprueft';
   else if (nichtAngefordert && labels.includes(LABEL_BEREIT)) grund = `Label gesetzt, aber nicht angefordert: ${d.anforderungUnmoeglich}`;
-  else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: Stand NICHT geprueft';
+  else if (crHead.art === 'ratenlimit') grund = 'CodeRabbit rate-limitiert: NICHT geprueft, nach dem Limit Label neu setzen';
   else if (crHead.art === 'uebersprungen') grund = `CodeRabbit hat uebersprungen (${crHead.titel}): NICHT geprueft`;
   else if (crHead.art === 'abgebrochen') grund = 'CodeRabbit-Review abgebrochen: NICHT geprueft';
   else if (crHead.art === 'unbekannt') grund = `CodeRabbit meldet Unbekanntes (${crHead.titel}): NICHT gezaehlt`;
@@ -425,6 +555,13 @@ function bewerteRelease(d) {
 }
 
 /** Bereiche aus dem eigenen Bericht-Kommentar (Ledger) lesen. */
+/** Gepruefte Staende aus dem eigenen Bericht (ueberdauern ein Umschreiben). */
+export function rundenLesen(text) {
+  const m = /<!-- review-nachweis:runden (\[[^]*?\]) -->/.exec(String(text || ''));
+  if (!m) return [];
+  try { return JSON.parse(m[1]).filter((x) => SHA.test(x)); } catch { return []; }
+}
+
 export function ledgerLesen(text) {
   const m = /<!-- review-nachweis:bereiche (\[[^]*?\]) -->/.exec(String(text || ''));
   if (!m) return [];
@@ -432,7 +569,7 @@ export function ledgerLesen(text) {
 }
 
 /** Den Bericht-Kommentar bauen (Text fuer Menschen, Bereiche fuer den naechsten Lauf). */
-export function berichtText(urteil, { bereiche, lauf, quelle }) {
+export function berichtText(urteil, { bereiche, runden = [], lauf, quelle }) {
   const symbol = urteil.state === 'success' ? '✅' : urteil.state === 'pending' ? '⏳' : '❌';
   const eindeutig = [];
   for (const r of bereiche) if (!eindeutig.some((x) => x.a === r.a && x.b === r.b)) eindeutig.push({ a: r.a, b: r.b });
@@ -444,5 +581,6 @@ export function berichtText(urteil, { bereiche, lauf, quelle }) {
     '',
     `<sub>Automatischer Bericht, bei jedem Ereignis neu geschrieben. Auswertung aus: ${quelle}. [Lauf](${lauf}). Regeln: docs/review-workflow.md</sub>`,
     `<!-- review-nachweis:bereiche ${JSON.stringify(eindeutig)} -->`,
+    `<!-- review-nachweis:runden ${JSON.stringify([...new Set(runden)])} -->`,
   ].join('\n');
 }

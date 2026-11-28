@@ -15,6 +15,8 @@ import {
   bewerte, codeRabbitLauf, cubicLauf, bereicheAusText, codeRabbitAbdeckung, cubicAbdeckung,
   kritischeGruende, ausnahme, ledgerLesen, berichtText, codeRabbitAmCommit,
   anforderungNoetig, anforderungAmHead, anforderungsMarke, rundenZahl, rundenBremse,
+  freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
+  gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr, wiederholungErlaubt,
 } from '../../scripts/lib/review-nachweis.mjs';
 
 const h = (c) => c.repeat(40).slice(0, 40);
@@ -288,6 +290,25 @@ describe('Review-Nachweis: Anforderung genau einmal je Stand', () => {
     assert.equal(leer.state, 'failure', leer.description);
     assert.match(leer.description, /HTTP 401/);
   });
+  test('nach Rate-Limit: erst ein neu gesetztes Label gibt genau eine neue Anforderung frei', () => {
+    const limit = { ...CR_LIMIT, started_at: '2026-11-26T17:30:40Z' }; // Antwort auf anf(C) um 17:30:20
+    const limitLage = (x = {}) => ohneReview({ kommentare: [anf(C)], laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_LABEL_SKIP, limit] }, ...x });
+    assert.equal(anforderungNoetig(limitLage()), false, 'ohne neues Label nichts von selbst');
+    assert.equal(anforderungNoetig(limitLage({ bereitGesetzt: Date.parse('2026-11-26T17:30:11Z') })), false, 'Label von vor dem Limit');
+    const neu = limitLage({ bereitGesetzt: Date.parse('2026-11-26T18:31:00Z') });
+    assert.equal(wiederholungErlaubt(neu), true);
+    assert.equal(anforderungNoetig(neu), true, 'Label nach dem Limit: eine neue Anforderung');
+    // Danach steht eine neue Marke nach dem Limit: keine dritte.
+    const danach = { ...neu, kommentare: [anf(C), anf(C, '2026-11-26T18:31:05Z')] };
+    assert.equal(anforderungNoetig(danach), false);
+    // Ein Skip ist kein Rate-Limit: Label neu setzen hilft dort nicht.
+    const skip = limitLage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [{ ...CR_SKIP, started_at: '2026-11-26T17:30:40Z' }] }, bereitGesetzt: Date.parse('2026-11-26T18:31:00Z') });
+    assert.equal(anforderungNoetig(skip), false);
+    // Der Status bleibt rot und sagt, was zu tun ist.
+    const u = bewerte({ ...limitLage(), keinWarten: true });
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /rate-limitiert: NICHT geprueft, nach dem Limit Label neu setzen/);
+  });
   test('die Marke allein ist nie ein Review', () => {
     const u = bewerte(ohneReview({ kommentare: [anf(C)], keinWarten: true }));
     assert.notEqual(u.state, 'success');
@@ -308,10 +329,58 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     assert.equal(anforderungNoetig(vierte()), false, 'ohne Freigabe keine vierte Runde');
     assert.equal(anforderungNoetig(vierte(), { bremse: false }), true, 'ohne Bremse waere sie faellig');
   });
+  // Krisz setzt die Freigabe nach der dritten Runde.
+  const GESETZT = '2026-11-28T09:00:00Z';
+  const ev = [
+    { event: 'labeled', label: { name: 'review-ready' }, created_at: '2026-11-28T08:00:00Z' },
+    { event: 'labeled', label: { name: 'review-runde-frei' }, created_at: GESETZT },
+  ];
+  const anfD = { author: 'Verse-Base', body: `@coderabbitai review\n\n${anforderungsMarke(D)}`, erstellt: '2026-11-28T09:00:30Z' };
+  const frei = (x = {}) => vierte({ freigabeGesetzt: zuletztGesetzt(ev, 'review-runde-frei'), ...x, pr: { labels: ['review-ready', 'review-runde-frei'], ...(x.pr || {}) } });
   test('review-runde-frei gibt genau die naechste Anforderung frei', () => {
-    const frei = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });
-    assert.equal(rundenBremse(frei), false);
-    assert.equal(anforderungNoetig(frei), true);
+    assert.equal(zuletztGesetzt(ev, 'review-runde-frei'), Date.parse(GESETZT));
+    assert.equal(freigabeVerbraucht(frei()), false);
+    assert.equal(rundenBremse(frei()), false);
+    assert.equal(anforderungNoetig(frei()), true);
+    // Eine Anforderung von vor dem Setzen verbraucht sie nicht.
+    const alt = { ...anfD, body: `@coderabbitai review\n\n${anforderungsMarke(C)}`, erstellt: '2026-11-28T07:00:00Z' };
+    assert.equal(freigabeVerbraucht(frei({ kommentare: [alt] })), false);
+  });
+  test('verbraucht mit der Anforderung, auch wenn der Lauf danach abbrach und das Label blieb', () => {
+    // Lage danach: Label noch da (Abnehmen nie passiert oder gescheitert),
+    // Anforderung fuer D steht, ein neuer Stand E ist gepusht.
+    const E = h('5');
+    const danach = frei({
+      kommentare: [anfD],
+      commits: [A, B, C, D, E],
+      laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_FERTIG], [C]: [CR_FERTIG], [D]: [CR_FERTIG], [E]: [] },
+      pr: { head_sha: E },
+    });
+    assert.equal(freigabeVerbraucht(danach), true);
+    assert.equal(rundenBremse(danach), true);
+    assert.equal(anforderungNoetig(danach), false, 'keine fuenfte Runde ohne neue Freigabe');
+    const u = bewerte({ ...danach, keinWarten: true });
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /^Rundenbremse: 4 Runden erreicht/);
+  });
+  test('Runden ueberdauern ein Umschreiben: nach Force-Push keine vierte ohne Freigabe', () => {
+    // Drei Runden auf A, B, C; dann Squash auf einen neuen Stand E. Die
+    // geprueften Commits sind nicht mehr im PR, ihre Reviews schon.
+    const E = h('5');
+    const neu = lage({ commits: [E], laeufeJeCommit: { [E]: [] }, bereiche: [], pr: { head_sha: E } });
+    assert.equal(rundenZahl(neu), 0, 'ohne Gedaechtnis waere die Bremse weg');
+    const mit = { ...neu, fruehereRunden: [A, B, C] };
+    assert.equal(rundenZahl(mit), 3);
+    assert.equal(anforderungNoetig(mit), false);
+    assert.deepEqual(gepruefteStaende({ ...mit, commits: [C, E], laeufeJeCommit: { [C]: [CR_FERTIG] } }).sort(), [A, B, C].sort(), 'doppelt zaehlt einmal');
+    // Das Ledger im Bericht traegt sie zum naechsten Lauf.
+    const text = berichtText({ state: 'failure', description: 'x', bericht: [] }, { bereiche: [], runden: [A, B, C, 'kaputt'], lauf: '-', quelle: '-' });
+    assert.deepEqual(rundenLesen(text).sort(), [A, B, C].sort());
+  });
+  test('Freigabe ohne bekannten Setzzeitpunkt bremst (im Zweifel verbraucht)', () => {
+    const ohneZeit = vierte({ pr: { labels: ['review-ready', 'review-runde-frei'] } });
+    assert.equal(freigabeVerbraucht(ohneZeit), true);
+    assert.equal(anforderungNoetig(ohneZeit), false);
   });
   test('ROT mit Grund: Rundenbremse, auch nachdem das Label abgenommen ist', () => {
     for (const labels of [['review-ready'], []]) {
@@ -327,6 +396,84 @@ describe('Review-Nachweis: Rundenbremse und gleicher Stand (Review #477)', () =>
     assert.match(u.description, /auch Head von #480/);
     const rel = bewerte({ ...lage({ gleicherStand: [481] }), pr: pr({ base_ref: 'main', head_ref: 'staging' }) });
     assert.equal(rel.state, 'failure', 'auch im Release-Modus');
+  });
+  // Wettlauf: der zweite PR erscheint erst nach dem Sammeln.
+  const lauf = async (antworten) => {
+    const geschrieben = [];
+    let n = 0;
+    const u = await statusMitKontrolle(bewerte(lage()), lage(), {
+      schreibe: async (x) => { geschrieben.push(x.state); },
+      gleicheStaende: async () => antworten[Math.min(n++, antworten.length - 1)],
+    });
+    return { u, geschrieben, abfragen: n };
+  };
+  test('gleicher Stand, Wettlauf: zweiter PR erst nach dem gruenen Schreiben -> zuletzt rot', async () => {
+    const { u, geschrieben } = await lauf([[], [482]]);
+    assert.deepEqual(geschrieben, ['success', 'failure']);
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /auch Head von #482/);
+  });
+  test('gleicher Stand schon vor dem Schreiben: nur rot; ohne zweiten PR genau ein gruen', async () => {
+    assert.deepEqual((await lauf([[483]])).geschrieben, ['failure']);
+    const ok = await lauf([[]]);
+    assert.deepEqual(ok.geschrieben, ['success']);
+    assert.equal(ok.abfragen, 2, 'vor und nach dem Schreiben nachgesehen');
+  });
+});
+
+describe('Review-Nachweis: Kette nur ueber fertige Reviews (Review #477)', () => {
+  test('ROT: Bereich aus einer abgebrochenen Runde (Ziel ohne fertigen Review) ist kein Glied', () => {
+    // CodeRabbit nennt den Bereich A..B schon zu Beginn; die Runde auf B
+    // brach ab, das Ledger hat den Bereich trotzdem.
+    const d = lage({ laeufeJeCommit: { [A]: [CR_FERTIG], [B]: [CR_ABBRUCH], [C]: [CR_FERTIG] } });
+    const u = bewerte(d);
+    assert.equal(u.state, 'failure', u.description);
+    assert.match(u.description, /Abdeckung lueckenhaft/);
+    assert.ok(u.bericht.some((z) => /verworfene Bereiche/.test(z)));
+    // Mit fertigem Review auf B ist dieselbe Kette gueltig.
+    assert.equal(bewerte(lage()).state, 'success');
+  });
+});
+
+describe('Review-Nachweis: Release liest das Urteil je PR (Review #477)', () => {
+  const st = (state, description, created_at) => ({ context: 'review-nachweis', state, description, created_at });
+  test('Beschreibung traegt den PR und bleibt in 140 Zeichen', () => {
+    const b = beschreibungMitPr('x'.repeat(200), 477);
+    assert.equal(b.length, 140);
+    assert.match(b, / \[#477\]$/);
+  });
+  test('ein spaeterer PR vom selben Stand ersetzt das Urteil des gemergten nicht', () => {
+    const liste = [
+      st('success', beschreibungMitPr('Geprueft (CodeRabbit) fuer abc, lueckenlos', 491), '2026-12-02T10:00:00Z'),
+      st('failure', beschreibungMitPr('Kritisch: zweite Pruefung fehlt', 490), '2026-12-01T10:00:00Z'),
+      st('pending', beschreibungMitPr('Warte auf CodeRabbit', 490), '2026-12-01T09:00:00Z'),
+    ];
+    assert.equal(nachweisFuerPr(liste, 490), 'failure', 'das eigene juengste Urteil zaehlt');
+    assert.equal(nachweisFuerPr(liste, 491), 'success');
+    assert.equal(nachweisFuerPr(liste, 49), null, '#49 ist nicht #490');
+    assert.equal(nachweisFuerPr([st('success', 'Geprueft ohne Marke', '2026-12-01T10:00:00Z')], 490), null, 'ohne Marke kein Nachweis');
+    assert.equal(nachweisFuerPr([{ ...liste[0], context: 'anderer' }], 491), null);
+  });
+});
+
+describe('Review-Nachweis: Listen ganz oder gar nicht (Review #477)', () => {
+  const quelle = (anzahl) => async (seite) => Array.from({ length: Math.max(0, Math.min(100, anzahl - (seite - 1) * 100)) }, (_, i) => (seite - 1) * 100 + i);
+  test('liest alle Seiten bis zur ersten nicht vollen', async () => {
+    assert.equal((await seitenweise(quelle(250), { max: 3 })).length, 250);
+    assert.equal((await seitenweise(quelle(0), { max: 3 })).length, 0);
+  });
+  test('genau max volle Seiten: eine leere Probe danach, dann vollstaendig', async () => {
+    assert.equal((await seitenweise(quelle(300), { max: 3 })).length, 300);
+  });
+  test('ROT: mehr als max Seiten wirft statt still abzuschneiden', async () => {
+    await assert.rejects(seitenweise(quelle(301), { max: 3, was: 'offene PRs' }), /offene PRs: mehr als 300 Eintraege, Liste unvollstaendig/);
+    await assert.rejects(seitenweise(quelle(501), { max: 5, was: 'Check-Laeufe' }), /mehr als 500/);
+  });
+  test('ROT: 3000 Dateien sind nicht vollstaendig pruefbar', () => {
+    const viele = Array.from({ length: 3000 }, (_, i) => ({ filename: `docs/x${i}.md` }));
+    const u = bewerte(lage({ dateien: viele }));
+    assert.equal(u.state, 'failure');
+    assert.match(u.description, /3000\+ Dateien/);
   });
 });
 

@@ -84,7 +84,8 @@ Ablauf und Gate-Regeln: [`docs/review-workflow.md`](docs/review-workflow.md)):
   wenn der Nachweis eine Lücke in der Abdeckung meldet.
 - Jeder Push nimmt `review-ready` wieder ab (der Workflow), ein neuer Stand
   wird also nie ungefragt geprüft. Nach den Fixes und erneutem Tor: Label
-  wieder setzen.
+  wieder setzen. Nach einem Rate-Limit: Label ab und nach der Wartezeit neu
+  setzen, das gibt genau eine neue Anforderung desselben Stands frei.
 - Höchstens **drei Runden** je PR. Danach entscheidet Krisz
   (Label `review-runde-frei` gibt eine Runde frei, nur auf seine Ansage).
 - Jeden Befund lesen und einordnen: beheben, begründet ablehnen (erst

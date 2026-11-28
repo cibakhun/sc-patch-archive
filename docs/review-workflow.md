@@ -27,6 +27,13 @@ ist, entscheidet Krisz, nie eine Automatik.
    auf #479 sofort lief). Fehlt das Secret oder ist der Token abgelaufen,
    fordert der Lauf nichts an und nennt das im Status. Selbst kein
    `@coderabbitai review` schreiben, das wäre eine zweite Anforderung.
+   **Nach einem Rate-Limit** bleibt der Status rot („rate-limitiert“). Dann
+   `review-ready` abnehmen und neu setzen, sobald das Limit vorbei ist
+   (CodeRabbit nennt die Wartezeit): Hat CodeRabbit auf die jüngste
+   Anforderung mit „rate limited“ geantwortet und kam das Label danach,
+   schreibt der Workflow für denselben Stand genau eine neue Anforderung.
+   Von selbst wiederholt er nichts, und eine Runde zählt erst mit einem
+   abgeschlossenen Review.
    Hintergrund: CodeRabbit prüft Repos mit weniger als 10 Sternen seit dem
    25./26.11.2026 nicht mehr automatisch, auch nicht per Label (Meldung
    an #477). `.coderabbit.yaml` schaltet automatische Reviews deshalb ganz
@@ -47,12 +54,18 @@ ist, entscheidet Krisz, nie eine Automatik.
    Commit grün ist. Krisz merged per Squash. Der Agent merged nie und nutzt
    nie den Bypass.
 
-Höchstens **drei Runden** je PR. Danach fordert der Workflow keinen
+Höchstens **drei Runden** je PR. Gezählt werden die Stände mit
+abgeschlossenem CodeRabbit-Review, auch solche, die ein Force-Push, Rebase
+oder Squash aus dem PR genommen hat: CodeRabbits Reviews bleiben am PR, und
+der Bericht-Kommentar hält die geprüften Stände fest. Danach fordert der Workflow keinen
 weiteren Review an, bei keinem Ereignis, nimmt `review-ready` wieder ab und
 nennt die Rundenbremse im Status. Krisz entscheidet: Label
 `review-runde-frei` gibt **genau eine** weitere Runde frei, nur auf seine
-Ansage. Der Workflow nimmt es mit dieser Anforderung wieder ab; jede
-weitere Runde braucht eine neue Freigabe.
+Ansage. Verbraucht ist sie mit der ersten Anforderung nach dem Setzen. Das
+liest jeder Lauf aus dem Verlauf (Zeit des Setzens gegen die
+Anforderungen), nicht aus dem Lauf, der anforderte: Bricht der ab oder
+scheitert das Abnehmen des Labels, bremst der nächste Lauf trotzdem und
+nimmt das Label nach. Jede weitere Runde braucht eine neue Freigabe.
 
 ## Labels
 
@@ -60,7 +73,7 @@ weitere Runde braucht eine neue Freigabe.
 |---|---|---|
 | `review-ready` | Agent oder Krisz, wenn der Stand fertig ist | der Workflow fordert einmal je Stand einen CodeRabbit-Review an; er nimmt das Label bei jedem neuen Push ab |
 | `kritisch` | Agent bei sicherheitsrelevanten Änderungen, die die Pfadliste nicht erkennt | macht den PR kritisch (zwei Reviews) |
-| `review-runde-frei` | nur Krisz | erlaubt genau eine Runde über die dritte hinaus; der Workflow nimmt es mit der Anforderung ab |
+| `review-runde-frei` | nur Krisz | erlaubt genau eine Runde über die dritte hinaus; verbraucht mit der nächsten Anforderung, der Workflow nimmt es dann ab |
 | `ohne-cubic` | der Workflow, auf normalen PRs | hält cubic für kritische PRs frei, sobald `cubic.yaml` auf `main` das Label beachtet (siehe „cubic“) |
 | `nachweis-neu` | Agent oder Krisz | nur ein Anstoß: bewertet den Nachweis neu (etwa nach einem Ausnahme-Kommentar); der Workflow nimmt es sofort ab |
 
@@ -86,8 +99,8 @@ Grund nennt.
 | Label fehlt, kein Review angefordert | ❌ failure |
 | Drei Runden erreicht, keine Freigabe von Krisz | ❌ failure, „Rundenbremse“ |
 | Derselbe Stand ist Head eines weiteren offenen PRs | ❌ failure, „nicht eindeutig“ (der Status hängt am Commit, nicht am PR) |
-| Der Lauf selbst scheitert (API-Fehler, Abbruch im Skript) | ❌ failure, „Auswertung gescheitert“; ein früherer Erfolg auf demselben Stand bleibt nicht stehen |
-| 250 oder mehr Commits | ❌ failure (die API liefert nicht alle) |
+| Der Lauf selbst scheitert (API-Fehler, Abbruch im Skript, eine Liste länger als gelesen) | ❌ failure, „Auswertung gescheitert“; ein früherer Erfolg auf demselben Stand bleibt nicht stehen |
+| 250 oder mehr Commits, 3000 oder mehr Dateien | ❌ failure (die API liefert nicht alle) |
 
 Was **nie** zählt: der grüne CodeRabbit-Haken allein (er wird auch bei
 Skip und Rate-Limit grün), ein Review auf einem älteren Commit, ein Review,
@@ -112,7 +125,10 @@ Der Nachweis ist deshalb erst grün, wenn die Runden zusammen **jede
   from the base of the PR and between A and B“). Der Nachweis baut daraus
   eine lückenlose Kette: Sie beginnt auf einem Commit des Zielzweigs (der
   Basis des PRs), jeder Bereich endet auf einem Commit des PRs, und die
-  Kette endet am Head. Fehlt ein Glied, ist der Status rot.
+  Kette endet am Head. Fehlt ein Glied, ist der Status rot. Ein Glied zählt
+  nur, wenn am Ziel des Bereichs ein abgeschlossener Review steht:
+  CodeRabbit nennt den Bereich schon zu Beginn einer Runde, und eine
+  abgebrochene Runde darf kein Glied werden.
 - CodeRabbit überschreibt seine Zusammenfassung bei jeder Runde. Damit eine
   Runde ohne Kommentare ihren Bereich nicht verliert, hält der
   Bericht-Kommentar jeden gesehenen Bereich fest (verborgenes Ledger).
@@ -183,6 +199,13 @@ nach `staging` gemergten PR gehört, dessen letzter Stand einen grünen
 `review-nachweis` trug. Ein Commit ohne PR (direkter Push) oder aus einem
 PR ohne Nachweis macht den Status rot und wird im Bericht aufgeführt.
 
+Gelesen wird dabei das Urteil **dieses PRs**, nicht irgendein Status am
+Commit: Jede Beschreibung des Status endet mit der PR-Nummer (`[#477]`),
+und die Release-Prüfung nimmt das jüngste Urteil, das genau diesen PR
+nennt. Ein späterer PR vom selben Stand, der nach anderen Regeln grün
+wurde (etwa als normaler PR), zählt so nicht für einen kritischen PR, der
+rot gemergt worden wäre.
+
 Das trifft zwangsläufig den ersten Release nach Einführung des Gates: PRs,
 die davor gemergt wurden, tragen keinen Nachweis. Dafür und für andere
 begründete Fälle gibt es die Release-Ausnahme, ebenfalls nur mit Krisz'
@@ -232,11 +255,12 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
 ## Grenzen (bewusst offen)
 
 - **Status je Commit.** Offene PRs mit demselben Head erkennt der Nachweis
-  und bleibt rot. Wird nach dem Merge ein neuer PR vom selben Stand
-  geöffnet, kann sein Lauf den Status des gemergten PRs überschreiben, den
-  die Release-Prüfung liest. Das kann einen Release nur röter machen, wenn
-  der neue PR schlechter dasteht; grün wird er nur, wenn derselbe Commit
-  dort tatsächlich geprüft ist.
+  und bleibt rot. Vor und nach einem grünen Status sieht der Lauf noch
+  einmal nach; öffnet währenddessen ein zweiter PR vom selben Stand, steht
+  in jeder Reihenfolge zuletzt rot. Wird nach dem Merge ein neuer PR vom
+  selben Stand geöffnet, überschreibt sein Lauf zwar den Status am Commit,
+  aber nicht das Urteil, das die Release-Prüfung liest: Die liest je PR
+  (Marke `[#Nummer]` in der Beschreibung).
 - **Gemeinsames Konto.** Agent und Krisz schreiben heute als `cibakhun`.
   Labels, Kommentare und Ausnahmen sind deshalb nicht einer Person
   zuzuordnen. Abhilfe: eigenes Agentenkonto mit eingeschränkten Rechten.
@@ -257,7 +281,9 @@ Lauf ohne Status; der Push hat einen eigenen Lauf ausgelöst.
   Anforderung, steht der Nachweis nach 40 Minuten auf „nicht reagiert“
   (rot, nie grün). Die Marke der Anforderung kann jeder schreiben, der den
   PR kommentieren darf; eine gefälschte Marke unterdrückt höchstens die
-  echte Anforderung (der Status bleibt rot), sie macht nie grün.
+  echte Anforderung (der Status bleibt rot) oder verbraucht eine Freigabe
+  `review-runde-frei` vorzeitig. Sie macht nie grün und gibt nie eine Runde
+  frei.
 - **Review ohne Ereignis.** Endet ein Review nach der Wartezeit und ohne
   Kommentare, bleibt der Status stehen, bis ein neues Ereignis kommt:
   Label `nachweis-neu` setzen.
@@ -278,8 +304,10 @@ Erst nach Krisz' Freigabe auf Basis der Testergebnisse:
   müssen aufgelöst sein, kein Force-Push, Löschen verboten. Bypass nur für
   Krisz.
 - **`main`:** PR Pflicht, **Merge-Commit** (kein Squash, kein Rebase),
-  `review-nachweis` im Release-Modus erforderlich, kein Force-Push, Löschen
-  verboten; Merge nur durch Krisz. Grund: Nach einem Squash oder Rebase
+  Status-Checks `site / build`, `bot`, `dependencies` und
+  `review-nachweis` (im Release-Modus) erforderlich, Konversationen müssen
+  aufgelöst sein, kein Force-Push, Löschen verboten; Merge nur durch
+  Krisz. Grund: Nach einem Squash oder Rebase
   enthält `main` die Commits von `staging` nur als Kopien, die gemeinsame
   Basis bleibt alt, und jeder weitere Release-PR listet alle früheren
   Commits erneut. Der Nachweis liest diese Liste (höchstens 250 Commits) und

@@ -1496,7 +1496,7 @@ export const CHECKS = [
       'Kein Tor im Auslieferungsweg, sondern ein Merge-Gate auf GitHub: laeuft nur in .github/workflows/review-nachweis.yml, braucht die GitHub-API und das Workflow-Token. ' +
       'Seine Logik ist rein (scripts/lib/review-nachweis.mjs) und laeuft als Teil von test:e2e auf Schiene A mit echten Antworten als Testdaten.',
     env:
-      'Netz: fetch() gegen https://api.github.com (PR, Commits, Dateien, Check-Laeufe, Reviews, Kommentare, Vergleich; schreibend nur Status, Labels und der eigene Bericht-Kommentar, mit --trocken gar nicht). Sonst beruehrt es nichts ausserhalb des Prozesses.',
+      'Netz: fetch() gegen https://api.github.com (PR, Commits, Dateien, Check-Laeufe, Reviews, Kommentare, Vergleich; schreibend nur Status, Labels, der eigene Bericht-Kommentar und die Anforderung `@coderabbitai review` mit dem Token des Agentenkontos, mit --trocken gar nicht). Sonst beruehrt es nichts ausserhalb des Prozesses.',
   },
 ];
 

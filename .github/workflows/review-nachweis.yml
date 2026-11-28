@@ -107,9 +107,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_NUMMER: ${{ github.event.pull_request.number }}
           LAUF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           curl -sS --fail-with-body --retry 3 -X POST -o /dev/null \
             -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/$REPO/statuses/$PR_HEAD" \
-            -d "{\"state\":\"failure\",\"context\":\"review-nachweis\",\"description\":\"Auswertung gescheitert: Stand NICHT bewertet (Lauf ansehen)\",\"target_url\":\"$LAUF_URL\"}"
+            -d "{\"state\":\"failure\",\"context\":\"review-nachweis\",\"description\":\"Auswertung gescheitert: Stand NICHT bewertet (Lauf ansehen) [#$PR_NUMMER]\",\"target_url\":\"$LAUF_URL\"}"

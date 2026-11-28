@@ -12,11 +12,13 @@
        steht so nie fuer einen aelteren Stand, und jeder Stand wird genau
        einmal angefordert.
      - `review-ready` nach drei abgeschlossenen Runden: Label ab, Krisz
-       entscheidet (Label `review-runde-frei` gibt genau eine weitere frei
-       und wird mit der Anforderung abgenommen).
+       entscheidet (Label `review-runde-frei` gibt genau eine weitere frei;
+       verbraucht ist es mit der ersten Anforderung nach dem Setzen, das
+       liest jeder Lauf aus dem Verlauf und nimmt es dann ab).
      - `review-ready` auf einem fertigen, noch nicht angeforderten Stand:
        einmal `@coderabbitai review` schreiben (mit Marke je Stand).
-       CodeRabbit prueft das Repo nicht mehr automatisch.
+       CodeRabbit prueft das Repo nicht mehr automatisch. Nach einem
+       Rate-Limit gibt erst ein neu gesetztes Label eine weitere frei.
      - `nachweis-neu`: nur Anstoss fuer einen neuen Lauf, wird abgenommen.
      - Label `ohne-cubic` auf normalen PRs, nicht auf kritischen: cubic
        bleibt so den kritischen vorbehalten, sobald cubic.yaml auf main
@@ -38,8 +40,10 @@
    ============================================================ */
 import {
   bewerte, bereicheAusText, ledgerLesen, berichtText, kritischeGruende,
-  LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, MAX_RUNDEN, STATUS_KONTEXT, BERICHT_MARKE,
-  anforderungNoetig, anforderungsMarke, rundenZahl, rundenBremse,
+  LABEL_BEREIT, LABEL_RUNDE_FREI, LABEL_OHNE_CUBIC, LABEL_NEU, STATUS_KONTEXT, BERICHT_MARKE,
+  anforderungNoetig, anforderungsMarke, rundenBremse, rundenZahl,
+  freigabeVerbraucht, zuletztGesetzt, seitenweise, statusMitKontrolle,
+  gepruefteStaende, rundenLesen, beschreibungMitPr, nachweisFuerPr,
 } from './lib/review-nachweis.mjs';
 
 const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -82,15 +86,11 @@ async function api(pfad, { method = 'GET', body, token = TOKEN } = {}) {
   if (!res.ok) throw new Error(`${method} ${pfad}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   return res.status === 204 ? null : res.json();
 }
-async function alle(pfad, max = 30) {
-  const out = [];
-  for (let seite = 1; seite <= max; seite++) {
-    const teil = await api(`${pfad}${pfad.includes('?') ? '&' : '?'}per_page=100&page=${seite}`);
-    out.push(...teil);
-    if (teil.length < 100) break;
-  }
-  return out;
-}
+// Ganze Liste oder Abbruch: eine still abgeschnittene Liste gaebe es nicht.
+const alle = (pfad, max = 30) => seitenweise(
+  (seite) => api(`${pfad}${pfad.includes('?') ? '&' : '?'}per_page=100&page=${seite}`),
+  { max, was: pfad },
+);
 const R = `repos/${REPO}`;
 const schlaf = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
@@ -98,15 +98,18 @@ const schlaf = (s) => new Promise((r) => setTimeout(r, s * 1000));
    den juengsten Lauf je Name, und ein spaeterer Skip oder ein Rate-Limit
    verdraengt einen fertigen Review desselben Commits (Review #477). */
 async function laeufeFuer(sha) {
-  const laeufe = [];
-  for (let seite = 1; seite <= 5; seite++) {
-    const teil = (await api(`${R}/commits/${sha}/check-runs?filter=all&per_page=100&page=${seite}`)).check_runs || [];
-    laeufe.push(...teil);
-    if (teil.length < 100) break;
-  }
+  const laeufe = await seitenweise(
+    async (seite) => (await api(`${R}/commits/${sha}/check-runs?filter=all&per_page=100&page=${seite}`)).check_runs || [],
+    { max: 5, was: `Check-Laeufe von ${sha.slice(0, 7)}` },
+  );
   return laeufe
     .filter((l) => ['coderabbitai', 'cubic-dev-ai'].includes(l.app?.slug))
     .map((l) => ({ app: l.app.slug, name: l.name, status: l.status, conclusion: l.conclusion, title: l.output?.title || '', summary: l.output?.summary || '', started_at: l.started_at }));
+}
+
+// Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
+async function gleicheStaende(head) {
+  return (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== NUMMER).map((p) => p.number);
 }
 
 const cacheLaeufe = new Map();
@@ -122,14 +125,19 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
   const dateien = await alle(`${R}/pulls/${NUMMER}/files`, 30);
   const kommentareRoh = await alle(`${R}/issues/${NUMMER}/comments`, 10);
   const reviews = await alle(`${R}/pulls/${NUMMER}/reviews`, 10);
-  // Andere offene PRs mit genau diesem Head: der Status gilt je Commit.
-  const gleicherStand = (await alle(`${R}/pulls?state=open`, 3)).filter((p) => p.head.sha === head && p.number !== pr.number).map((p) => p.number);
+  const gleicherStand = await gleicheStaende(head);
   const kommentare = kommentareRoh.map((k) => ({ id: k.id, author: k.user?.login, body: k.body || '', url: k.html_url, erstellt: k.created_at }));
   const bericht = kommentare.find((k) => k.author === BOT && k.body.includes(BERICHT_MARKE));
   const bereiche = [
     ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)),
     ...kommentare.filter((k) => k.author === CR).flatMap((k) => bereicheAusText(k.body)),
     ...(bericht ? ledgerLesen(bericht.body) : []),
+  ];
+  // Runden, die ein Umschreiben ueberdauern: CodeRabbits Reviews bleiben am
+  // PR, ihr Bereich endet am geprueften Stand; dazu das eigene Ledger.
+  const fruehereRunden = [
+    ...reviews.filter((r) => r.user?.login === CR).flatMap((r) => bereicheAusText(r.body)).map((r) => r.b),
+    ...(bericht ? rundenLesen(bericht.body) : []),
   ];
   const imPr = new Set(commits);
   const vorfahren = {};
@@ -148,6 +156,7 @@ async function sammle(pr, { nurHeadNeu = false } = {}) {
       head_sha: head, labels: pr.labels.map((l) => l.name),
     },
     commits, dateien, laeufeJeCommit, bereiche, vorfahren, kommentare, freigabeKonten: KONTEN, gleicherStand,
+    freigabeGesetzt, bereitGesetzt, fruehereRunden,
   };
   if (pr.base.ref === 'main' && pr.head.ref === 'staging') d.release = await releaseDaten(commits);
   return { d, bericht };
@@ -160,8 +169,10 @@ async function releaseDaten(commits) {
     const prs = [];
     for (const p of await api(`${R}/commits/${sha}/pulls`)) {
       if (!nachweisJePr.has(p.number)) {
-        const st = await api(`${R}/commits/${p.head.sha}/status`);
-        nachweisJePr.set(p.number, st.statuses.find((x) => x.context === STATUS_KONTEXT)?.state || null);
+        // Das juengste Urteil, das genau diesen PR nennt: ein spaeterer PR
+        // vom selben Stand ueberschreibt es nicht (Review #477).
+        const st = await alle(`${R}/commits/${p.head.sha}/statuses`, 10);
+        nachweisJePr.set(p.number, nachweisFuerPr(st, p.number));
       }
       prs.push({ number: p.number, merged: Boolean(p.merged_at), base_ref: p.base.ref, nachweis: nachweisJePr.get(p.number) });
     }
@@ -175,6 +186,16 @@ async function labelAb(name) {
   await api(`${R}/issues/${NUMMER}/labels/${encodeURIComponent(name)}`, { method: 'DELETE' });
   console.log(`Label entfernt: ${name}`);
 }
+// Fuer Labels, deren Wirkung aus dem Verlauf folgt: Scheitert das Abnehmen,
+// holt es der naechste Lauf nach, der Lauf selbst geht weiter.
+async function labelAbWeich(name) {
+  try {
+    await labelAb(name);
+    pr.labels = pr.labels.filter((l) => l.name !== name);
+  } catch (e) {
+    console.log(`Label ${name} nicht abgenommen (holt der naechste Lauf nach): ${e.message}`);
+  }
+}
 async function labelDran(name) {
   if (TROCKEN) { console.log(`(trocken) Label dran: ${name}`); return; }
   await api(`${R}/issues/${NUMMER}/labels`, { method: 'POST', body: { labels: [name] } });
@@ -182,12 +203,14 @@ async function labelDran(name) {
 }
 let letzterStatus = '';
 async function status(sha, u) {
-  const schluessel = `${sha} ${u.state} ${u.description}`;
+  // Die Beschreibung nennt den PR: die Release-Pruefung liest je PR.
+  const beschreibung = beschreibungMitPr(u.description, NUMMER);
+  const schluessel = `${sha} ${u.state} ${beschreibung}`;
   if (schluessel === letzterStatus) return;
   letzterStatus = schluessel;
-  console.log(`Status ${STATUS_KONTEXT} fuer ${sha.slice(0, 7)}: ${u.state} — ${u.description}`);
+  console.log(`Status ${STATUS_KONTEXT} fuer ${sha.slice(0, 7)}: ${u.state} — ${beschreibung}`);
   if (TROCKEN) return;
-  await api(`${R}/statuses/${sha}`, { method: 'POST', body: { state: u.state, description: u.description, context: STATUS_KONTEXT, target_url: LAUF || undefined } });
+  await api(`${R}/statuses/${sha}`, { method: 'POST', body: { state: u.state, description: beschreibung, context: STATUS_KONTEXT, target_url: LAUF || undefined } });
 }
 
 // ---------------------------------------------------------------- Ablauf
@@ -202,6 +225,11 @@ if (labels().includes(LABEL_NEU)) {
   pr.labels = pr.labels.filter((l) => l.name !== LABEL_NEU);
 }
 
+// Label-Verlauf des PRs (aufsteigend, ganz oder Abbruch).
+const ereignisse = await alle(`${R}/issues/${NUMMER}/events`, 10);
+const freigabeGesetzt = zuletztGesetzt(ereignisse, LABEL_RUNDE_FREI);
+const bereitGesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
+
 /* Wurde `review-ready` vor dem Push des heutigen Heads gesetzt? Dann gehoert
    es zu einem aelteren Stand. Ankerzeit ist die erste Check-Suite des Heads
    (GitHub-Uhr, entsteht beim Push), sonst das Commit-Datum. Faengt den
@@ -209,13 +237,12 @@ if (labels().includes(LABEL_NEU)) {
    (cubic schreibt die PR-Beschreibung ~30 s nach jedem Push neu, das
    `edited` bricht den laufenden Lauf ab). */
 async function labelAelterAlsHead(head) {
-  const ev = await alle(`${R}/issues/${NUMMER}/events`, 5);
-  const gesetzt = ev.filter((e) => e.event === 'labeled' && e.label?.name === LABEL_BEREIT).map((e) => Date.parse(e.created_at)).filter(Number.isFinite);
-  if (!gesetzt.length) return false;
+  const gesetzt = zuletztGesetzt(ereignisse, LABEL_BEREIT);
+  if (gesetzt === null) return false;
   const suiten = (await api(`${R}/commits/${head}/check-suites?per_page=100`)).check_suites || [];
   let anker = Math.min(...suiten.map((x) => Date.parse(x.created_at)).filter(Number.isFinite));
   if (!Number.isFinite(anker)) anker = Date.parse((await api(`${R}/commits/${head}`)).commit?.committer?.date || '');
-  return Number.isFinite(anker) && Math.max(...gesetzt) < anker;
+  return Number.isFinite(anker) && gesetzt < anker;
 }
 
 // Neuer Stand: das Label gehoerte zum alten.
@@ -226,6 +253,16 @@ if (labels().includes(LABEL_BEREIT) && (AKTION === 'synchronize' || await labelA
 
 const ende = Date.now() + WARTEN_MIN * 60_000;
 let { d, bericht } = await sammle(pr);
+
+/* `review-runde-frei` gilt fuer genau eine Anforderung. Verbraucht ist es,
+   sobald nach dem Setzen eine geschrieben wurde; das folgt aus dem Verlauf
+   (rundenBremse liest es so), das Abnehmen hier ist nur Aufraeumen und
+   holt nach, was ein abgebrochener Lauf nicht mehr schaffte (Review #477). */
+if (freigabeVerbraucht(d)) {
+  console.log(`Freigabe ${LABEL_RUNDE_FREI} ist verbraucht (Anforderung nach dem Setzen).`);
+  await labelAbWeich(LABEL_RUNDE_FREI);
+  d.pr.labels = labels();
+}
 
 /* Rundenbremse: bei jedem Ereignis vor jeder Anforderung, nicht nur beim
    Setzen des Labels (ein Ersatzlauf nach `edited` pruefte sie sonst nicht;
@@ -254,11 +291,10 @@ if (anforderungNoetig(d)) {
       const k = await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text }, token: ANFORDERUNG_TOKEN });
       console.log(`CodeRabbit angefordert fuer ${head.slice(0, 7)} als ${k.user?.login}: ${k.html_url}`);
       d.kommentare.push({ id: k.id, author: k.user?.login, body: text, url: k.html_url, erstellt: k.created_at });
-      // Ueber dem Limit ging das nur mit `review-runde-frei`: genau eine
-      // Runde, die Freigabe ist damit verbraucht (Review #477).
-      if (rundenZahl(d) >= MAX_RUNDEN && labels().includes(LABEL_RUNDE_FREI)) {
-        await labelAb(LABEL_RUNDE_FREI);
-        pr.labels = pr.labels.filter((l) => l.name !== LABEL_RUNDE_FREI);
+      // Eine Freigabe `review-runde-frei` ist mit dieser Anforderung
+      // verbraucht (gilt auch ohne das Abnehmen, siehe freigabeVerbraucht).
+      if (labels().includes(LABEL_RUNDE_FREI)) {
+        await labelAbWeich(LABEL_RUNDE_FREI);
         d.pr.labels = labels();
       }
     } catch (e) {
@@ -287,9 +323,10 @@ if (!urteil.release) {
   if (!kritisch && !labels().includes(LABEL_OHNE_CUBIC)) await labelDran(LABEL_OHNE_CUBIC);
 }
 
-await status(d.pr.head_sha, urteil);
+// Gruen nur, wenn auch danach kein zweiter offener PR denselben Stand traegt.
+urteil = await statusMitKontrolle(urteil, d, { schreibe: (u) => status(d.pr.head_sha, u), gleicheStaende });
 
-const text = berichtText(urteil, { bereiche: d.bereiche, lauf: LAUF || '(lokal)', quelle: QUELLE });
+const text = berichtText(urteil, { bereiche: d.bereiche, runden: gepruefteStaende(d), lauf: LAUF || '(lokal)', quelle: QUELLE });
 if (TROCKEN) console.log('\n' + text);
 else if (bericht && bericht.body !== text) await api(`${R}/issues/comments/${bericht.id}`, { method: 'PATCH', body: { body: text } });
 else if (!bericht) await api(`${R}/issues/${NUMMER}/comments`, { method: 'POST', body: { body: text } });
